@@ -1,0 +1,320 @@
+nav.custom-navbar.navbar.navbar-expand-lg.navbar-light {
+  position: sticky;
+}
+
+/* Navbar Styles */
+.custom-navbar {
+  color: white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  height: 56px;
+}
+
+.lo{
+  color: white;
+  display: flex;
+  align-items: center;
+
+}
+.custom-navbar .navbar-brand {
+  
+  color: white !important;
+}
+
+.custom-navbar .nav-link {
+  color: white !important;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  margin: 0 5px;
+  border-radius: 5px;
+}
+
+.custom-nav-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-nav-link::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+
+.custom-nav-link:hover::before {
+  left: 0;
+}
+
+.custom-nav-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Username and Logout */
+.username-text {
+  color: white !important;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.username-text::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: white;
+  transition: width 0.3s ease;
+}
+
+.username-text:hover::after {
+  width: 100%;
+}
+
+.logout-icon {
+  color: white !important;
+  transition: all 0.3s ease;
+  padding: 5px;
+  border-radius: 50%;
+}
+
+.logout-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+/* Admin text */
+.admin-text {
+  color: white !important;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Spacing utilities */
+.nav-item-spacing {
+  margin-left: 20px;
+}
+
+.icon-text-spacing {
+  margin-left: 8px;
+}
+
+/* Footer */
+.footer {
+  background: linear-gradient(135deg, #00c1d4, #001b6c);
+  color: white;
+  padding: 15px 20px;
+  text-align: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  height: 60px;
+}
+
+/* Login.css */
+.login-wrapper {
+  background: linear-gradient(135deg, #00c1d4 0%, #001b6c 100%);
+}
+
+.platform-name {
+  color: #00c1d4;
+}
+
+.platform-subtitle {
+  color: #001b6c;
+}
+
+.start-learning-btn {
+  background: linear-gradient(135deg, #00c1d4 0%, #001b6c 100%);
+}
+
+/* Analytics.css */
+.analytics-content {
+  border: 2px solid #00c1d4;
+}
+
+.chart-wrapper {
+  border: 1px solid #00c1d4;
+}
+
+/* StudentDash.css */
+.form-container {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 193, 212, 0.1),
+    rgba(0, 27, 108, 0.05)
+  );
+  border: 1px solid #00c1d4;
+}
+
+.btn-generate {
+  background: linear-gradient(to right, #00c1d4, #001b6c) !important;
+}
+
+.question-item {
+  border: 1px solid #00c1d4;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 193, 212, 0.1),
+    rgba(0, 27, 108, 0.05)
+  );
+}
+
+/* ProgressDashboard.css */
+.progress-card {
+  border: 1px solid #00c1d4;
+}
+
+.streak-progress .progress-bar {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+}
+
+/* LeaderboardPage.css */
+.leaderboard-container {
+  background: linear-gradient(
+    45deg,
+    rgba(0, 193, 212, 0.1),
+    rgba(0, 27, 108, 0.1),
+    rgba(0, 193, 212, 0.1)
+  );
+}
+
+.rank-badge {
+  background: linear-gradient(45deg, #00c1d4, #001b6c);
+}
+
+/* QuestsPage.css */
+.quest-card {
+  border: 1px solid #00c1d4;
+  background: white;
+  transition: transform 0.3s ease;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 193, 212, 0.1);
+}
+
+.quest-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 193, 212, 0.2);
+}
+
+.quest-progress .progress-bar {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+}
+
+.badge-primary {
+  background: #00c1d4;
+}
+
+/* SoundConfigModal.css */
+.modal-header {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+  color: white;
+}
+
+.sound-test-button {
+  border: 1px solid #00c1d4;
+  color: #001b6c;
+}
+
+.sound-test-button:hover {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+  color: white;
+}
+
+/* Common Button Styles */
+.btn-primary {
+  background: linear-gradient(to right, #00c1d4, #001b6c) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+  border: 2px solid #00c1d4 !important;
+  color: #001b6c !important;
+  background: transparent !important;
+}
+
+.btn-outline-primary:hover {
+  background: linear-gradient(to right, #00c1d4, #001b6c) !important;
+  color: white !important;
+}
+
+/* Notifications */
+.notification-badge {
+  background: #00c1d4 !important;
+}
+
+/* Progress Bars */
+.progress-bar {
+  background: linear-gradient(to right, #00c1d4, #001b6c) !important;
+}
+
+/* Form Controls */
+.form-control:focus {
+  border-color: #00c1d4;
+  box-shadow: 0 0 0 0.2rem rgba(0, 193, 212, 0.25);
+}
+
+/* Select Dropdowns */
+.select-container {
+  border-color: #00c1d4;
+}
+
+.select-container:focus-within {
+  border-color: #001b6c;
+}
+
+/* Achievement Badges */
+.achievement-badge {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* Level Badges */
+.level-badge {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+/* Navigation */
+.nav-tabs .nav-link.active {
+  color: #001b6c !important;
+  border-bottom: 2px solid #00c1d4;
+}
+
+/* Cards */
+.card {
+  border: 1px solid rgba(0, 193, 212, 0.2);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 5px 15px rgba(0, 193, 212, 0.1);
+}

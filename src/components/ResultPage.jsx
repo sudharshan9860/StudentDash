@@ -1,0 +1,645 @@
+ import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Button, Container, Row, Col, Accordion, Alert, Spinner } from 'react-bootstrap';
+import './ResultPage.css';
+import QuestionListModal from './QuestionListModal';
+import axiosInstance from '../api/axiosInstance';
+import MarkdownWithMath from './MarkdownWithMath';
+
+const ResultPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [showQuestionListModal, setShowQuestionListModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [isCalculatingScore, setIsCalculatingScore] = useState(false);
+  const [autoCalculatedScore, setAutoCalculatedScore] = useState(null);
+  
+  const { state } = location;
+  const { 
+    message, 
+    ai_data, 
+    actionType, 
+    questionList, 
+    class_id, 
+    subject_id, 
+    topic_ids, 
+    subtopic,
+    questionImage,
+    questionNumber,
+    studentImages = [],
+    question_id// Get student images from state
+  } = state || {};
+  console.log('question_id from explain state:', question_id);
+  const { 
+    question, 
+    ai_explaination, 
+    student_answer, 
+    concepts, 
+    comment,gap_analysis,time_analysis,error_type,
+    concepts_used,
+    solution, 
+    score, 
+    obtained_marks, 
+    total_marks, 
+    question_marks,
+    question_image_base64,
+    student_answer_base64 // Add this to get the processed student image from API
+  } = ai_data || {};
+  console.log('AI Data:', ai_data);
+  const formated_concepts_used = Array.isArray(concepts_used)
+    ? concepts_used.join(', ')
+    : concepts_used || '';
+
+  // Combine student images from state and API response
+  const getAllStudentImages = () => {
+    const images = [];
+    
+    // Add images from state (uploaded/captured images)
+    if (studentImages && studentImages.length > 0) {
+      studentImages.forEach((imageUrl, index) => {
+        images.push({
+          src: imageUrl,
+          type: 'uploaded',
+          label: `Uploaded Image `
+        });
+      });
+    }
+    
+    // Add processed image from API response
+    if (student_answer_base64) {
+      images.push({
+        src: `data:image/jpeg;base64,${student_answer_base64}`,
+        type: 'processed',
+        label: 'Processed Solution'
+      });
+    }
+    
+    return images;
+  };
+
+  const allStudentImages = getAllStudentImages();
+
+  // Cleanup object URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      studentImages.forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [studentImages]);
+
+  // Auto-calculate score if none is provided from API
+  useEffect(() => {
+    if ((actionType === 'submit' || actionType === 'correct') && 
+        student_answer && 
+        obtained_marks === undefined && 
+        score === undefined) {
+      calculateAutoScore();
+    }
+  }, [ai_data, actionType, student_answer]);
+
+  // Function to calculate score based on student answer
+  const calculateAutoScore = async () => {
+    if (!student_answer || !question) {
+      return;
+    }
+    
+    setIsCalculatingScore(true);
+    
+    try {
+      const aiScoringResponse = await axiosInstance.post('/auto-score/', {
+        student_answer,
+        question,
+        expected_solution: ai_explaination || solution || [],
+        total_marks: total_marks || question_marks || 10
+      }).catch(() => null);
+
+      if (aiScoringResponse?.data?.score !== undefined) {
+        setAutoCalculatedScore(aiScoringResponse.data.score);
+      } else {
+        const fallbackScore = calculateFallbackScore();
+        setAutoCalculatedScore(fallbackScore);
+      }
+    } catch (error) {
+      console.error('Error calculating score:', error);
+      const fallbackScore = calculateFallbackScore();
+      setAutoCalculatedScore(fallbackScore);
+    } finally {
+      setIsCalculatingScore(false);
+    }
+  };
+
+  // Fallback scoring method using keyword matching
+  const calculateFallbackScore = () => {
+    const totalMark = total_marks || question_marks || 10;
+    
+    const expectedSolution = Array.isArray(ai_explaination) 
+      ? ai_explaination.join(' ') 
+      : (Array.isArray(solution) ? solution.join(' ') : '');
+    
+    if (!expectedSolution) {
+      return 0;
+    }
+
+    const normalizeText = (text) => {
+      return text.toLowerCase()
+        .replace(/\s+/g, ' ')
+        .replace(/[^\w\s]/g, '')
+        .trim();
+    };
+    
+    const normalizedStudentAnswer = normalizeText(student_answer);
+    const normalizedSolution = normalizeText(expectedSolution);
+    
+    const extractKeywords = (text) => {
+      const commonWords = ['the', 'and', 'is', 'in', 'of', 'to', 'for', 'a', 'by', 'with', 'as'];
+      const words = text.split(/\s+/);
+      return words.filter(word => 
+        word.length > 2 && !commonWords.includes(word)
+      );
+    };
+    
+    const solutionKeywords = extractKeywords(normalizedSolution);
+    const studentKeywords = extractKeywords(normalizedStudentAnswer);
+    
+    let matchCount = 0;
+    for (const keyword of solutionKeywords) {
+      if (studentKeywords.includes(keyword)) {
+        matchCount++;
+      }
+    }
+    
+    const matchPercentage = solutionKeywords.length > 0 
+      ? matchCount / solutionKeywords.length 
+      : 0;
+    
+    let calculatedScore = Math.round(matchPercentage * totalMark);
+    
+    if (calculatedScore === 0 && matchCount > 0 && normalizedStudentAnswer.length > 10) {
+      calculatedScore = 1;
+    }
+    
+    if (matchPercentage > 0.8) {
+      calculatedScore = totalMark;
+    }
+    
+    return calculatedScore;
+  };
+
+  const handleBackToDashboard = () => {
+    navigate('/student-dash');
+  };
+
+  const handleBack = () => {
+    navigate('/solvequestion', {
+      state: {
+        question: question,
+        questionNumber: questionNumber,
+        questionList: questionList,
+        class_id: class_id,
+        subject_id: subject_id,
+        topic_ids: topic_ids,
+        subtopic: subtopic,
+        image: questionImage,
+        index: questionNumber ? questionNumber - 1 : 0,
+        selectedQuestions: questionList,
+        question_id: question_id
+      }
+    });
+  };
+  const handleShowQuestionList = () => {
+    setShowQuestionListModal(true);
+  };
+
+  const handleCloseQuestionList = () => {
+    setShowQuestionListModal(false);
+  };
+
+  const handleQuestionSelect = (selectedQuestion, index, selectedImage, question_id) => {
+    navigate('/solvequestion', { 
+      state: { 
+        question: selectedQuestion, 
+        questionNumber: index + 1, 
+        questionList, 
+        class_id,
+        subject_id,
+        topic_ids,
+        subtopic,
+        image: selectedImage,
+        question_id: question_id || `question_${index}_${Date.now()}`
+      } 
+    });
+  };
+
+  const handlePracticeSimilar = () => {
+    if (!question) {
+      setErrorMessage('No question available for practice');
+      return;
+    }
+  
+    navigate('/similar-questions', {
+      state: {
+        originalQuestion: question,
+        class_id,
+        subject_id,
+        topic_ids,
+        subtopic,
+        questionImage,
+        solution: ai_explaination || solution
+      }
+    });
+  };
+
+  // Display the score with proper formatting
+  const renderScore = () => {
+    const scoreFromApi = obtained_marks !== undefined 
+                    ? (typeof obtained_marks === 'number' ? obtained_marks : parseInt(obtained_marks, 10))
+                    : (score !== undefined 
+                        ? (typeof score === 'number' ? score : parseInt(score, 10))
+                        : null);
+    
+    const totalValue = total_marks !== undefined
+      ? (typeof total_marks === 'number' ? total_marks : parseInt(total_marks, 10))
+      : (question_marks !== undefined
+          ? (typeof question_marks === 'number' ? question_marks : parseInt(question_marks, 10))
+          : 10);
+
+    if (scoreFromApi !== null) {
+      return (
+        <div className="result-score">
+          <p><strong>Score:</strong> {scoreFromApi} / {totalValue}</p>
+        </div>
+      );
+    }
+    
+    if (isCalculatingScore) {
+      return (
+        <div className="result-score calculating">
+          <p>
+            <Spinner animation="border" size="sm" /> 
+            <strong> Calculating Score...</strong>
+          </p>
+        </div>
+      );
+    }
+  };
+
+  // Function to render solution steps with proper formatting
+  const renderSolutionSteps = (steps) => {
+    if (!steps || !Array.isArray(steps) || steps.length === 0) {
+      return <p>No solution steps available.</p>;
+    }
+
+    return (
+      <div className="solution-steps">
+        {steps.map((step, index) => {
+          const stepMatch = step.match(/^Step\s+(\d+):\s+(.*)/i);
+          
+          if (stepMatch) {
+            const [_, stepNumber, stepContent] = stepMatch;
+            return (
+              <div key={index} className="solution-step-container">
+                <div className="step-title">Step {stepNumber}:</div>
+                <div className="step-description">
+                  <MarkdownWithMath content={stepContent} />
+                </div>
+              </div>
+            );
+          } else {
+            return (
+              <div key={index} className="solution-step-container">
+                <div className="step-title">Step {index+1}:</div>
+                <div className="question-step">
+                  <MarkdownWithMath content={step} />
+                </div>
+              </div>
+            );
+          }
+        })}
+      </div>
+    );
+  };
+
+  const formatExampleContent = (example) => {
+    if (!example) return null;
+
+    const [intro, ...stepParts] = example.split(/Step \d+:/);
+// Remove empty parts
+    return (
+      <div className="example-content">
+        <div className="example-steps">
+          {stepParts.map((step, index) => (
+            <div key={index} className="example-step">
+              <strong>{`Step ${index + 1}:`}</strong><MarkdownWithMath content={step.replace(/\*\*/g, '').trim()} />
+            </div>
+          ))}
+        </div>
+        
+        
+      </div>
+    );
+  };
+
+  const renderContentBasedOnAction = () => {
+    if (!actionType) {
+      return <p>No action type provided. Unable to display results.</p>;
+    }
+
+    switch (actionType) {
+
+      case 'submit':
+        return (
+          <>
+            <div className="result-question">
+              <p><strong>Student Answer:</strong></p>
+              <div className="student-answer-content">
+                {student_answer || "No answer submitted"}
+              </div>
+            </div>
+            {renderScore()}
+            {comment && (
+              <div className="result-question">
+                <p><strong>Comments:</strong> {comment}</p>
+              </div>
+            )}
+            {formated_concepts_used && (
+              <div className="result-question">
+                <p><strong>Concepts Used:</strong> {formated_concepts_used}</p>
+              </div>
+            )}
+          </>
+        );
+      case 'solve':
+        return (
+          <>
+            <div className="result-question">
+              <p className="solution-header">AI Solution:</p>
+              {question_image_base64 && (
+                <div className="solution-image-container">
+                  <img 
+                    src={`data:image/jpeg;base64,${question_image_base64}`}
+                    alt="Solution diagram"
+                    className="solution-image"
+                  />
+                </div>
+              )}
+              {renderSolutionSteps(ai_explaination)}
+            </div>
+            {comment && (
+              <div className="result-question">
+                <p><strong>Comments:</strong> {comment}</p>
+              </div>
+            )}
+            {formated_concepts_used && (
+              <div className="result-question">
+                <p><strong>Concepts Used:</strong> {formated_concepts_used}</p>
+              </div>
+            )}
+          </>
+        );
+        case 'correct':   
+        return (         
+        <>
+            {/* <div className="result-question">
+              <p><strong>Student Answer:</strong></p>
+              <div className="student-answer-content">
+                {student_answer || "No answer submitted"}
+              </div>
+            </div> */}
+          <div className="result-question">
+            <p className="solution-header">AI Solution:</p>
+            {question_image_base64 && (
+              <div className="solution-image-container">
+                <img 
+                  src={`data:image/jpeg;base64,${question_image_base64}`}
+                  alt="Solution diagram"
+                  className="solution-image"
+                />
+              </div>
+            )}
+            {renderSolutionSteps(ai_explaination)}
+            </div>
+            {renderScore()}
+            {comment && (
+              <div className="result-question">
+                <p><strong>Comments:</strong> {comment}</p>
+              </div>
+            )}
+            {gap_analysis && (
+              <div className="result-question">
+                <p><strong>Gap Analysis:</strong> {gap_analysis}</p>
+              </div>
+            )}
+
+            {error_type && (
+              <div className="result-question">
+                <p><strong>Type of Error:</strong> {error_type}</p>
+              </div>
+            )}
+            {time_analysis && (
+              <div className="result-question">
+                <p><strong>Time-Management:</strong> {time_analysis}</p>
+              </div>
+            )}
+            {formated_concepts_used && (
+              <div className="result-question">
+                <p><strong>Concepts Required:</strong> <MarkdownWithMath content={formated_concepts_used} /></p>
+              </div>
+            )}
+          </>
+        );
+    
+      case 'explain':
+        return (
+          <>
+            {concepts && (
+              <Accordion defaultActiveKey="0" className="result-accordion">
+                {concepts.map((conceptItem, index) => (
+                  <Accordion.Item eventKey={index.toString()} key={index} className="accordion-item">
+                    <Accordion.Header>
+                      <strong>{`Concept ${index + 1}`}</strong>
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      <p className="concept-title"><strong>{conceptItem.concept}</strong></p>
+                      {/* <p className="chapter-name"><strong>Chapter Name:</strong> {conceptItem.chapter}</p> */}
+                      <div className="example-section">
+                        <p className="example-header"><strong>Example:</strong></p>
+                        {/* {formatExampleContent(conceptItem['example'])} */}
+                        {/* {console.log('Concept example:', conceptItem.example)}
+                        {console.log('Concept ex-solution:', conceptItem.application)} */}
+                        {conceptItem.example && (
+                          <div className="example-content">
+                            {typeof conceptItem.example === "string" ? (
+                              <>
+                                <MarkdownWithMath content={conceptItem.example} />
+                                <strong className="example-header">Solution:</strong>
+                                <MarkdownWithMath content={conceptItem.application} />
+                              </>
+                            ) : (
+                              <>
+                                {conceptItem.example.problem && (
+                                  <MarkdownWithMath content={conceptItem.example.problem} />
+                                )}
+                                {conceptItem.example.solution && (
+                                  <>
+                                    <strong className="example-header">Solution:</strong>
+                                    <MarkdownWithMath content={conceptItem.example.solution} />
+                                  </>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        )}
+
+                      </div>
+                      <p className="explanation"><strong>Explanation:</strong> <MarkdownWithMath content={conceptItem.explanation} /></p>
+                      
+                    </Accordion.Body>
+                  </Accordion.Item>
+                ))}
+              </Accordion>
+            )}
+            {comment && (
+              <div className="result-question">
+                <p><strong>Comments:</strong> </p>
+                <MarkdownWithMath content={comment} />
+              </div>
+            )}
+            {formated_concepts_used && (
+              <div className="result-question">
+                <p><strong>Concepts Used:</strong> {formated_concepts_used}</p>
+              </div>
+            )}
+          </>
+        );
+        
+      default:
+        return <p>No action type provided. Unable to display results.</p>;
+    }
+  };
+
+  return (
+    <>
+      {/* Fixed Back Button - Top Left */}
+      <div className="fixed-back-button">
+        <Button
+          variant="outline-primary"
+          onClick={handleBack}
+          className="back-btn-fixed"
+        >
+          ← Back
+        </Button>
+      </div>
+
+      {/* Fixed Bottom Buttons */}
+      <div className="fixed-bottom-buttons">
+        <Button
+          variant="outline-primary"
+          onClick={handleShowQuestionList}
+          className="dashboard-btn-fixed"
+        >
+           Question List
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handlePracticeSimilar}
+          className="practice-btn-fixed"
+        >
+          Similar Questions
+        </Button>
+      </div>
+
+      {/* Main Content Container */}
+      <Container fluid className="result-page-container">
+        <Row className="result-row">
+          {/* Left Column - Sticky Image Container */}
+          {allStudentImages.length > 0 && (
+            <Col lg={5} className="image-column">
+              <div className="result-content">
+                <h2 className="result-title">Your Solution</h2>
+                <div className="student-images">
+                  {allStudentImages.map((imageData, index) => (
+                    <div key={index} className="student-image-wrapper">
+                      <img 
+                        src={imageData.src}
+                        alt={imageData.label}
+                        className="student-solution-image"
+                        onError={(e) => {
+                          console.error('Error loading image:', imageData.src);
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      <span className="image-label">{imageData.label}</span>
+                      {imageData.type === 'processed' && (
+                        <span className="image-type-badge">AI Processed</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Fallback text display if no images or images fail to load */}
+                {student_answer && (
+                  <div className="student-answer-text">
+                    <h5>Answer Text:</h5>
+                    <div className="answer-text-content">
+                      <MarkdownWithMath content={student_answer} />
+                    </div>
+                  </div>
+                )}
+               
+              </div>
+            </Col>
+          )}
+          
+          {/* Right Column - Content */}
+          <Col lg={allStudentImages.length > 0 ? 7 : 12} className="content-column">
+            <div className="result-content">
+              <h2 className="result-title">Result</h2>
+              
+              {errorMessage && (
+                <Alert variant="danger" onClose={() => setErrorMessage(null)} dismissible>
+                  {errorMessage}
+                </Alert>
+              )}
+              
+              <div className="result-question">
+                <p><strong>Question {questionNumber}:</strong> <MarkdownWithMath content={question} /></p>
+                {questionImage && (
+                  <div className="question-image-container">
+                    <img 
+                      src={questionImage}
+                      alt="Question"
+                      className="question-image"
+                    />
+                  </div>
+                )}
+                {solution && solution.length > 0 && (
+                  <div className="result-solution">
+                    <p className="solution-header">Solution:</p>
+                    {renderSolutionSteps(solution)}
+                  </div>
+                )}
+              </div>
+              
+              {renderContentBasedOnAction()}
+              
+              {/* Add some bottom padding to prevent content from being hidden behind fixed buttons */}
+              <div style={{ height: '100px' }}></div>
+            </div>
+          </Col>
+        </Row>
+
+        <QuestionListModal 
+          show={showQuestionListModal} 
+          onHide={handleCloseQuestionList} 
+          questionList={questionList} 
+          onQuestionClick={handleQuestionSelect} 
+        />
+      </Container>
+    </>
+  );
+};
+
+export default ResultPage; 

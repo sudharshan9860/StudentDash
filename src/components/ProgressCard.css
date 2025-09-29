@@ -1,0 +1,164 @@
+/* ProgressCard.css - Sidebar Version */
+.progress-card-sidebar {
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.progress-card-sidebar:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.progress-circle-sidebar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.progress-svg {
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.2));
+}
+
+.progress-circle-fill-sidebar {
+  transition: stroke-dashoffset 1.5s ease-in-out;
+  stroke-linecap: round;
+}
+
+.progress-text-sidebar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.progress-percentage-sidebar {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #10b981;
+  line-height: 1;
+}
+
+.progress-stats-sidebar {
+  margin-bottom: 16px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label-sidebar {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-value-sidebar {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.weekly-goal-sidebar {
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+}
+
+.weekly-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.weekly-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.weekly-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.weekly-progress-bar-sidebar {
+  width: 100%;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.weekly-progress-fill-sidebar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 2px;
+  transition: width 1s ease;
+  position: relative;
+}
+
+.weekly-progress-fill-sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Dark Mode Improvements */
+.dark-mode .progress-card-sidebar {
+  background: #0f172a;
+  border-color: #475569;
+}
+
+.dark-mode .progress-percentage-sidebar {
+  color: #34d399;
+}
+
+.dark-mode .weekly-title {
+  color: #f1f5f9;
+}
+
+.dark-mode .weekly-count {
+  color: #cbd5e1;
+}
+
+.dark-mode .stat-label-sidebar {
+  color: #cbd5e1;
+}
+
+.dark-mode .stat-value-sidebar {
+  color: #f1f5f9;
+}
+
+.dark-mode .stat-row {
+  border-bottom-color: #475569;
+}
+
+.dark-mode .weekly-goal-sidebar {
+  border-top-color: #475569;
+}

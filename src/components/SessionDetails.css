@@ -1,0 +1,144 @@
+.session-details-modal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .session-details-modal .modal-header {
+    background: linear-gradient(to right, #00c1d4, #001b6c);
+    color: white;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 15px 20px;
+  }
+  
+  .session-details-modal .modal-header .btn-close {
+    color: white;
+    opacity: 0.8;
+  }
+  
+  .session-details-modal .modal-header .btn-close:hover {
+    opacity: 1;
+  }
+  
+  .session-details-modal .modal-body {
+    padding: 20px;
+  }
+  
+  .session-details-modal .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 15px 20px;
+  }
+  
+  .session-title {
+    color: #001b6c;
+    font-weight: 600;
+  }
+  
+  .session-date {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+  
+  .session-meta .badge {
+    font-weight: 500;
+    padding: 5px 10px;
+  }
+  
+  .question-text {
+    font-size: 1rem;
+    white-space: pre-line;
+    line-height: 1.6;
+  }
+  
+  .question-image {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 8px;
+    margin-top: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .student-answer {
+    font-family: 'Courier New', monospace;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .answer-image {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    margin-top: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .correct-answer {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  
+  .solution-step {
+    margin-bottom: 10px;
+    display: flex;
+  }
+  
+  .step-number {
+    font-weight: bold;
+    color: #001b6c;
+    margin-right: 8px;
+    min-width: 20px;
+  }
+  
+  .teacher-comment {
+    font-style: italic;
+    color: #495057;
+    line-height: 1.6;
+  }
+  
+  /* Removed session-result and result-indicator styles as requested */
+  
+  @media (max-width: 768px) {
+    .session-title {
+      font-size: 1.2rem;
+    }
+    
+    .session-date {
+      font-size: 0.8rem;
+    }
+    
+    .student-answer {
+      font-size: 0.8rem;
+    }
+    
+    .correct-answer {
+      font-size: 0.9rem;
+    }
+  }
+
+  .ai-answer {
+    font-family: 'Courier New', monospace;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-height: 300px;
+    overflow-y: auto;
+    color: #333;
+  }
+  
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .ai-answer {
+      background-color: #343a40;
+      color: #f8f9fa;
+    }
+  }

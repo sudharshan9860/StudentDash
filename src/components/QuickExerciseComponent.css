@@ -1,0 +1,129 @@
+.quick-exercise-container {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .quick-exercise-container h3 {
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: 600;
+  }
+  
+  .quick-exercise-container p.text-muted {
+    margin-bottom: 24px;
+    color: #666;
+  }
+  
+  .react-select__control {
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    min-height: 42px !important;
+    box-shadow: none !important;
+  }
+  
+  .react-select__control:hover {
+    border-color: #cbd5e0 !important;
+  }
+  
+  .react-select__control--is-focused {
+    border-color: #3182ce !important;
+    box-shadow: 0 0 0 1px #3182ce !important;
+  }
+  
+  .question-selection-container {
+    margin-bottom: 20px;
+  }
+  
+  .homework-form-container {
+    margin-top: 20px;
+  }
+  
+  .selected-questions-preview {
+    background-color: #f8fafc;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 20px;
+  }
+  
+  .question-preview-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .question-preview-item {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .question-preview-item:last-child {
+    border-bottom: none;
+  }
+  
+  .question-number {
+    font-weight: bold;
+    margin-right: 10px;
+    color: #0080ff;
+    flex-shrink: 0;
+  }
+  
+  .question-text {
+    flex: 1;
+  }
+  
+  .question-image-small {
+    margin-top: 10px;
+    max-width: 150px;
+    margin-left: auto;
+  }
+  
+  .question-image-small img {
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .form-control {
+    height: 42px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .form-control:focus {
+    border-color: #3182ce;
+    box-shadow: 0 0 0 1px rgba(49, 130, 206, 0.25);
+  }
+  
+  textarea.form-control {
+    height: auto;
+  }
+  
+  .btn-generate {
+    background-color: #3182ce;
+    border-color: #3182ce;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 8px;
+  }
+  
+  .btn-generate:hover:not(:disabled) {
+    background-color: #2c5282;
+    border-color: #2c5282;
+  }
+  
+  .error-message {
+    background-color: #FEE2E2;
+    color: #B91C1C;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+  }

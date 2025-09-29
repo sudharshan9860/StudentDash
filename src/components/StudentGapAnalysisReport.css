@@ -1,0 +1,110 @@
+.gap-analysis-report {
+  max-width: 600px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.09), 0 1.5px 6px rgba(0,193,212,0.08);
+  padding: 32px 28px 28px 28px;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  position: relative;
+}
+
+.gap-analysis-report h2 {
+  text-align: center;
+  color: #001B6C;
+  font-weight: 700;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+}
+
+.gap-analysis-report select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #00C1D4;
+  font-size: 1rem;
+  margin-bottom: 18px;
+  background: #f8fcfd;
+  transition: border 0.2s;
+}
+
+.gap-analysis-report select:focus {
+  outline: none;
+  border-color: #001B6C;
+}
+
+.gap-analysis-report button {
+  background: linear-gradient(90deg, #00C1D4 0%, #001B6C 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,193,212,0.08);
+  transition: background 0.2s, transform 0.1s;
+}
+
+.gap-analysis-report button:disabled {
+  background: #b2e4ea;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.gap-analysis-report button:not(:disabled):hover {
+  background: linear-gradient(90deg, #001B6C 0%, #00C1D4 100%);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.gap-analysis-loading,
+.gap-analysis-error,
+.gap-analysis-empty {
+  text-align: center;
+  color: #00C1D4;
+  font-size: 1.1rem;
+  margin-top: 40px;
+}
+
+.gap-analysis-error {
+  color: #e74c3c;
+}
+
+.gap-analysis-report pre {
+  background: #f8fcfd;
+  border-radius: 8px;
+  padding: 18px 14px;
+  font-size: 0.98rem;
+  color: #222;
+  margin-top: 18px;
+  overflow-x: auto;
+  box-shadow: 0 1px 4px rgba(0,193,212,0.07);
+}
+
+.gap-analysis-report ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px 0;
+}
+
+.gap-analysis-report li {
+  margin-bottom: 10px;
+}
+
+.gap-analysis-report li button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  background: #f8fcfd;
+  color: #001B6C;
+  border: 1.5px solid #00C1D4;
+  border-radius: 7px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+
+.gap-analysis-report li button:hover {
+  background: #00C1D4;
+  color: #fff;
+}

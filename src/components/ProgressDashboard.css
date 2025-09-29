@@ -1,0 +1,232 @@
+.progress-page-container {
+    min-height: calc(100vh - 120px);
+    padding: 20px;
+    padding-bottom: 80px; /* Add padding for footer */
+    background: linear-gradient(135deg, rgba(0, 193, 212, 0.1), rgba(0, 27, 108, 0.1));
+  }
+  
+  /* Study Streak Card */
+  .streak-card {
+    background: linear-gradient(135deg, #ffffff, rgba(0, 193, 212, 0.1));
+    border: 2px solid #00C1D4;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 27, 108, 0.1);
+  }
+  
+  .streak-title {
+    color: #001B6C;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .streak-stars {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+  }
+  
+  .streak-star {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    color: #ccc;
+    transition: all 0.3s ease;
+  }
+  
+  .streak-star.active {
+    background: linear-gradient(to right, #00C1D4, #001B6C);
+    color: white;
+  }
+  
+  .streak-progress {
+    height: 10px;
+    background: rgba(0, 27, 108, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 15px 0;
+  }
+  
+  .streak-progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #00C1D4, #001B6C);
+    border-radius: 5px;
+  }
+  
+  /* Performance Overview */
+  .performance-card {
+    background: linear-gradient(135deg, #ffffff, rgba(0, 193, 212, 0.1));
+    border: 2px solid #00C1D4;
+    border-radius: 15px;
+    padding: 20px;
+  }
+  
+  .performance-title {
+    color: #001B6C;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #00C1D4;
+    padding-bottom: 10px;
+  }
+  
+  .accuracy-value {
+    color: #00C1D4;
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .total-questions {
+    color: #001B6C;
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  /* Weekly Study Progress */
+  .weekly-progress-card {
+    background: linear-gradient(135deg, #ffffff, rgba(0, 193, 212, 0.1));
+    border: 2px solid #00C1D4;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  
+  .weekly-progress-title {
+    color: #001B6C;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #00C1D4;
+    padding-bottom: 10px;
+  }
+  
+  /* Subject Progress */
+  .subject-progress-section {
+    margin: 20px 0;
+  }
+  
+  .subject-progress-title {
+    color: #001B6C;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 20px 0;
+    background: linear-gradient(to right, #00C1D4, #001B6C);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .subject-card {
+    background: linear-gradient(135deg, #ffffff, rgba(0, 193, 212, 0.1));
+    border: 2px solid #00C1D4;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  /* Badges Section */
+  .badges-section {
+    background: linear-gradient(135deg, #ffffff, rgba(0, 193, 212, 0.1));
+    border: 2px solid #00C1D4;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  
+  .badges-title {
+    color: #001B6C;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #00C1D4;
+    padding-bottom: 10px;
+  }
+  
+  .no-badges-text {
+    color: #001B6C;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+  }
+  
+  /* Rewards Section */
+  .rewards-section {
+    background: linear-gradient(135deg, #ffffff, rgba(0, 193, 212, 0.1));
+    border: 2px solid #00C1D4;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    margin-bottom: 80px; /* Extra margin for footer */
+  }
+  
+  .rewards-title {
+    color: #001B6C;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #00C1D4;
+    padding-bottom: 10px;
+  }
+  
+  .points-display {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #00C1D4;
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  .redeem-button {
+    background: linear-gradient(to right, #00C1D4, #001B6C);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 30px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 0 auto;
+  }
+  
+  .redeem-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 193, 212, 0.3);
+  }
+  
+  /* Footer Adjustment */
+  .footer {
+    background: linear-gradient(to right, #00C1D4, #001B6C);
+    color: white;
+    text-align: center;
+    padding: 15px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .progress-page-container {
+      padding: 10px;
+      padding-bottom: 70px;
+    }
+  
+    .streak-star {
+      width: 30px;
+      height: 30px;
+    }
+  
+    .accuracy-value,
+    .total-questions,
+    .points-display {
+      font-size: 1.5rem;
+    }
+  }

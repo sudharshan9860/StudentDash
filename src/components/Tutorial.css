@@ -1,0 +1,83 @@
+.tutorial-tooltip {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 8px 32px rgba(0, 193, 212, 0.1) !important;
+  padding: 20px !important;
+}
+
+.tutorial-tooltip [class*="Tooltip"] {
+  font-size: 16px !important;
+  color: #333 !important;
+}
+
+.tutorial-tooltip [class*="Button"] {
+  background: linear-gradient(to right, #00c1d4, #001b6c) !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  color: white !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+}
+
+.tutorial-tooltip [class*="Button"]:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 27, 108, 0.2) !important;
+}
+
+.tutorial-overlay {
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.tutorial-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1100;
+}
+
+.tutorial-close-btn {
+  padding: 6px 15px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  position: fixed;
+  top: 80px;
+  right: 20vh; /* Default for larger screens */
+}
+
+/* ✅ Responsive Design */
+@media (max-width: 1024px) {
+  .tutorial-close-btn {
+    right: 10vh; /* Adjust for tablets */
+  }
+}
+
+@media (max-width: 768px) {
+  .tutorial-close-btn {
+    right: 5vh; /* Adjust for smaller tablets */
+    top: 70px;
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tutorial-close-btn {
+    right: 10px; /* Closer to the edge for mobile */
+    top: 60px;
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+}
+
+
+.tutorial-close-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}

@@ -1,0 +1,376 @@
+/* UnifiedSessions.css - Enhanced with Light/Dark Mode Support */
+
+/* ========================================
+   LEARNING ACTIVITY SECTION STYLING
+======================================== */
+
+/* Learning Activity Title */
+.section-title {
+  color: var(--text-primary, #001B6C);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--primary-color, #00C1D4);
+  padding-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+/* Dark Mode Title */
+.dark-mode .section-title {
+  color: var(--primary-color, #00BCD4) !important;
+  border-bottom-color: var(--border-color, #334155) !important;
+}
+
+/* ========================================
+   TAB NAVIGATION FIXES - BOTH THEMES
+======================================== */
+
+/* Tab Container Spacing and Styling */
+.unified-tabs {
+  margin-bottom: 30px !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 5px;
+  padding-bottom: 0 !important;
+}
+
+/* Dark Mode Tab Container */
+.dark-mode .unified-tabs {
+  border-bottom-color: #334155 !important;
+}
+
+/* Light Mode Tab Styling */
+.unified-tabs .nav-link {
+  color: #2d3748 !important;
+  border: 2px solid #e2e8f0 !important;
+  border-bottom: 3px solid transparent !important;
+  border-radius: 8px 8px 0 0 !important;
+  padding: 12px 20px !important;
+  font-weight: 600 !important;
+  background-color: #f8fafc !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  margin-right: 5px !important;
+  transition: all 0.3s ease;
+}
+
+/* Light Mode Tab Hover */
+.unified-tabs .nav-link:hover {
+  background-color: #edf2f7 !important;
+  border-color: #cbd5e0 !important;
+  border-bottom-color: rgba(0, 193, 212, 0.5) !important;
+  color: #00C1D4 !important;
+}
+
+/* Light Mode Active Tab */
+.unified-tabs .nav-link.active {
+  color: #00C1D4 !important;
+  background-color: white !important;
+  border: 2px solid #00C1D4 !important;
+  border-bottom: 3px solid #00C1D4 !important;
+  font-weight: 700 !important;
+}
+
+/* Dark Mode Tab Styling */
+.dark-mode .unified-tabs .nav-link {
+  color: #e2e8f0 !important;
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  border: 2px solid #334155 !important;
+  border-bottom: 3px solid transparent !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Dark Mode Tab Hover */
+.dark-mode .unified-tabs .nav-link:hover {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  border-color: #4b5563 !important;
+  border-bottom-color: rgba(0, 188, 212, 0.5) !important;
+  color: #00BCD4 !important;
+}
+
+/* Dark Mode Active Tab */
+.dark-mode .unified-tabs .nav-link.active {
+  color: #00BCD4 !important;
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  border: 2px solid #00BCD4 !important;
+  border-bottom: 3px solid #00BCD4 !important;
+  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3) !important;
+}
+
+/* Tab Badge Styling */
+.tab-badge {
+  font-size: 0.75rem !important;
+  padding: 0.25em 0.6em !important;
+  margin-left: 0.5rem !important;
+  background-color: #cbd5e0 !important;
+  color: #2d3748 !important;
+  border-radius: 50px !important;
+  font-weight: 600 !important;
+}
+
+/* Dark Mode Badge */
+.dark-mode .tab-badge {
+  background-color: #00BCD4 !important;
+  color: #0f172a !important;
+}
+
+/* ========================================
+   CONTENT SPACING FIXES
+======================================== */
+
+/* Add space before content rows */
+.content-grid {
+  margin-top: 20px !important;
+}
+
+/* Container for content */
+.content-container {
+  margin-top: 20px !important;
+  padding-top: 10px !important;
+  position: relative;
+  z-index: 5;
+}
+
+/* Space around session cards */
+.session-card, 
+.submission-card {
+  margin-bottom: 20px !important;
+  margin-top: 10px !important;
+  border-width: 2px !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease;
+}
+
+/* Dark mode card styling */
+.dark-mode .session-card,
+.dark-mode .submission-card {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Card hover effects */
+.session-card:hover, 
+.submission-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode .session-card:hover,
+.dark-mode .submission-card:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Card body padding */
+.card-body {
+  padding: 1.25rem !important;
+}
+
+/* Empty state messages styling and spacing */
+.text-center.py-4,
+.no-data-message {
+  margin-top: 20px !important;
+  padding: 20px !important;
+  background-color: #f8fafc !important;
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+.dark-mode .text-center.py-4,
+.dark-mode .no-data-message {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid #334155 !important;
+  color: #94a3b8 !important;
+}
+
+/* ========================================
+   SESSION CARD STYLING ENHANCEMENTS
+======================================== */
+
+/* Session Icon Container */
+.session-icon-container {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.session-icon {
+  font-size: 1.25rem;
+  color: white;
+}
+
+/* Session Card Title */
+.session-title,
+.submission-title {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: #2d3748 !important;
+  margin-bottom: 8px !important;
+}
+
+.dark-mode .session-title,
+.dark-mode .submission-title {
+  color: #f1f5f9 !important;
+}
+
+/* Session Time and Score */
+.session-time, 
+.session-score,
+.submission-meta .text-muted {
+  color: #64748b !important;
+  font-size: 0.875rem !important;
+}
+
+.dark-mode .session-time,
+.dark-mode .session-score,
+.dark-mode .submission-meta .text-muted {
+  color: #94a3b8 !important;
+}
+
+/* Score Emphasis */
+.session-score strong,
+.submission-stats strong {
+  color: #00C1D4 !important;
+  font-weight: 700 !important;
+}
+
+.dark-mode .session-score strong,
+.dark-mode .submission-stats strong {
+  color: #00BCD4 !important;
+}
+
+/* Session Arrow (chevron) */
+.session-arrow,
+.submission-arrow {
+  color: #cbd5e1 !important;
+  font-size: 1.2rem !important;
+  transition: transform 0.3s ease !important;
+  margin-left: 0.5rem !important;
+}
+
+.session-card:hover .session-arrow,
+.submission-card:hover .submission-arrow {
+  transform: translateX(5px) !important;
+  color: #00C1D4 !important;
+}
+
+.dark-mode .session-card:hover .session-arrow,
+.dark-mode .submission-card:hover .submission-arrow {
+  color: #00BCD4 !important;
+}
+
+/* Submission Stats Box */
+.submission-stats {
+  background-color: #f8fafc !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  margin-top: 10px !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.dark-mode .submission-stats {
+  background-color: rgba(30, 41, 59, 0.5) !important;
+  border: 1px solid #334155 !important;
+}
+
+/* ========================================
+   SPECIFIC TAB STYLING - SELF/CLASSWORK/HOMEWORK
+======================================== */
+
+/* Self Tab (First Tab) */
+.unified-tabs .nav-link[data-tab="self"] {
+  border-top-color: #3B82F6 !important;
+  border-top-width: 3px !important;
+}
+
+/* Classwork Tab (Second Tab) */
+.unified-tabs .nav-link[data-tab="classwork"] {
+  border-top-color: #10B981 !important;
+  border-top-width: 3px !important;
+}
+
+/* Homework Tab (Third Tab) */
+.unified-tabs .nav-link[data-tab="homework"] {
+  border-top-color: #F59E0B !important;
+  border-top-width: 3px !important;
+}
+
+/* ========================================
+   BUTTON STYLING
+======================================== */
+
+/* Button Styling */
+.btn-outline-primary,
+.btn-outline-info {
+  border-width: 2px !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-info:hover {
+  transform: translateY(-2px) !important;
+}
+
+/* Dark Mode Button Styling */
+.dark-mode .btn-outline-primary {
+  color: #60a5fa !important;
+  border-color: #60a5fa !important;
+  background-color: transparent !important;
+}
+
+.dark-mode .btn-outline-primary:hover {
+  background-color: #60a5fa !important;
+  color: #0f172a !important;
+}
+
+.dark-mode .btn-outline-info {
+  color: #00BCD4 !important;
+  border-color: #00BCD4 !important;
+  background-color: transparent !important;
+}
+
+.dark-mode .btn-outline-info:hover {
+  background-color: #00BCD4 !important;
+  color: #0f172a !important;
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+======================================== */
+
+@media (max-width: 992px) {
+  .unified-tabs .nav-link {
+    padding: 10px 15px !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .unified-tabs .nav-link {
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .tab-badge {
+    font-size: 0.7rem !important;
+    padding: 0.2em 0.5em !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .unified-tabs .nav-link {
+    padding: 6px 10px !important;
+    font-size: 0.85rem !important;
+  }
+}

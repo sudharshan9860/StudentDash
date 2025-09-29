@@ -1,0 +1,402 @@
+/* Layout.css */
+.custom-navbar {
+  background: linear-gradient(135deg, #00c1d4, #001b6c) !important;
+  color: white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  height: 60px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+}
+
+.custom-navbar .navbar-brand {
+  color: white !important;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: transform 0.3s ease;
+}
+
+.custom-navbar .navbar-brand:hover {
+  transform: scale(1.05);
+}
+
+.custom-navbar .nav-link {
+  color: white !important;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  margin: 0 5px;
+}
+
+.custom-navbar:not(.notification-badge) .custom-nav-link {
+  color: white;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  margin: 0 5px;
+}
+
+.custom-navbar:not(.notification-badge) .custom-nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: white;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.custom-navbar:not(.notification-badge) .custom-nav-link:hover::after {
+  width: 80%;
+}
+
+
+.footer {
+  background: linear-gradient(135deg, #00c1d4, #001b6c);
+  color: white;
+  padding: 15px 20px;
+  text-align: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  height: 60px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Login.css */
+.login-wrapper {
+  background: linear-gradient(135deg, #00c1d4 0%, #001b6c 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.platform-name {
+  color: #00c1d4;
+  
+  font-weight: 800;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.platform-subtitle {
+  color: #001b6c;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.start-learning-btn {
+  background: linear-gradient(135deg, #00c1d4 0%, #001b6c 100%);
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 193, 212, 0.2);
+}
+
+.start-learning-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 193, 212, 0.3);
+}
+
+/* Analytics.css */
+.analytics-content {
+  border: 2px solid #00c1d4;
+}
+
+.chart-wrapper {
+  border: 1px solid #00c1d4;
+}
+
+/* StudentDash.css */
+
+
+.btn-generate {
+  background: linear-gradient(to right, #00c1d4, #001b6c) !important;
+}
+
+.question-item {
+  border: 1px solid #00c1d4;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 193, 212, 0.1),
+    rgba(0, 27, 108, 0.05)
+  );
+}
+
+/* ProgressDashboard.css */
+.progress-card {
+  border: 1px solid #00c1d4;
+}
+
+.streak-progress .progress-bar {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+}
+
+/* LeaderboardPage.css */
+.leaderboard-container {
+  background: linear-gradient(
+    45deg,
+    rgba(0, 193, 212, 0.1),
+    rgba(0, 27, 108, 0.1),
+    rgba(0, 193, 212, 0.1)
+  );
+}
+
+.rank-badge {
+  background: linear-gradient(45deg, #00c1d4, #001b6c);
+}
+
+/* QuestsPage.css */
+.quest-card {
+  border: 1px solid #00c1d4;
+  background: white;
+  transition: transform 0.3s ease;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 193, 212, 0.1);
+}
+
+.quest-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 193, 212, 0.2);
+}
+
+.quest-progress .progress-bar {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+}
+
+.badge-primary {
+  background: #00c1d4;
+}
+
+/* SoundConfigModal.css */
+.modal-header {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+  color: white;
+}
+
+.sound-test-button {
+  border: 1px solid #00c1d4;
+  color: #001b6c;
+}
+
+.sound-test-button:hover {
+  background: linear-gradient(to right, #00c1d4, #001b6c);
+  color: white;
+}
+
+/* Common Button Styles */
+.btn-primary, .btn-outline-primary {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 25px;
+  border-radius: 25px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+/* COMMON BEFORE STYLE WITH CUBIC-BEZIER SKEW SLIDE */
+.btn-primary::before,
+.btn-outline-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 120%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2); /* Light effect */
+  transform: skew(30deg);
+  transition: transform 0.4s cubic-bezier(0.3, 1, 0.8, 1), left 0.4s cubic-bezier(0.3, 1, 0.8, 1);
+  z-index: 0;
+}
+
+/* TRIGGER ANIMATION ON HOVER */
+.btn-primary:hover::before,
+.btn-outline-primary:hover::before {
+  left: 100%;
+  transform: skew(30deg);
+}
+
+/* CONTENT SHOULD BE ABOVE THE BEFORE EFFECT */
+.btn-primary span,
+.btn-outline-primary span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Specific btn-primary styling */
+.btn-primary {
+  background: linear-gradient(135deg, #00c1d4 0%, #001b6c 100%) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(0, 193, 212, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 193, 212, 0.3);
+}
+
+/* Specific btn-outline-primary styling */
+.btn-outline-primary {
+  background: transparent !important;
+  color: #001b6c !important;
+  border: 2px solid #00c1d4 !important;
+}
+
+.btn-outline-primary:hover {
+  background: linear-gradient(135deg, #00c1d4 0%, #001b6c 100%) !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 193, 212, 0.2);
+}
+
+
+/* Notifications */
+.notification-badge {
+  background: #00c1d4 !important;
+}
+
+/* Progress Bars */
+.progress {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(0, 193, 212, 0.1);
+  overflow: hidden;
+}
+
+.progress-bar {
+  background: linear-gradient(135deg, #00c1d4 0%, #001b6c 100%) !important;
+  transition: width 1s ease-in-out;
+}
+
+/* Form Controls */
+.form-control {
+  border-radius: 10px;
+  padding: 12px 15px;
+  border: 1px solid rgba(0, 193, 212, 0.2);
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #00c1d4;
+  box-shadow: 0 0 0 3px rgba(0, 193, 212, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Select Dropdowns */
+.select-container {
+  border-color: #00c1d4;
+}
+
+.select-container:focus-within {
+  border-color: #001b6c;
+}
+
+/* Achievement Badges */
+.achievement-badge,
+.level-badge {
+  background: linear-gradient(135deg, #00c1d4 0%, #001b6c 100%);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0, 193, 212, 0.2);
+  transition: all 0.3s ease;
+}
+
+.achievement-badge:hover,
+.level-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 193, 212, 0.3);
+}
+
+/* Navigation */
+.nav-tabs {
+  border: none;
+  margin-bottom: 20px;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  color: #001b6c;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  background: rgba(0, 193, 212, 0.1);
+  color: #00c1d4;
+}
+
+.nav-tabs .nav-link.active {
+  background: linear-gradient(135deg, #00c1d4 0%, #001b6c 100%);
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(0, 193, 212, 0.2);
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 15px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 193, 212, 0.15);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .custom-navbar {
+    height: auto;
+    padding: 10px;
+  }
+
+  .platform-name {
+    font-size: 2rem;
+  }
+
+  .card {
+    margin-bottom: 20px;
+  }
+}
