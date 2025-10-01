@@ -19,6 +19,8 @@ import HomeworkSubmissionForm from "../components/HomeworkSubmissionForm";
 import StudentGapAnalysisReport from "../components/StudentGapAnalysisReport";
 import WorksheetSubmission from "../components/WorksheetSubmission";
 import RouteTracker from "../components/RouteTracker"; // ✅ new import
+import StudentAnalytics from "../components/StudentAnalytics";
+
 
 const AppRoutes = () => {
   // Read last visited route from localStorage
@@ -127,16 +129,16 @@ const AppRoutes = () => {
           }
         />
 
-        <Route
-          path="/analytics"
-          element={
-            <PrivateRoute>
-              <Layout>
-                <Analytics />
-              </Layout>
-            </PrivateRoute>
-          }
-        />
+                  <Route
+            path="/analytics"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <StudentAnalytics />  {/* Changed from Analytics to StudentAnalytics */}
+                </Layout>
+              </PrivateRoute>
+            }
+          />
 
         <Route
           path="/homework"
