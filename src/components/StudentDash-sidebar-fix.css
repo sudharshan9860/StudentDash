@@ -1,0 +1,273 @@
+/* Sidebar Text Fix - Prevent All Cutoffs */
+
+/* ==========================================
+   SIDEBAR WITH NO TEXT CUTOFF
+   ========================================== */
+.sidebar-fixed {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 220px !important; /* Optimal width for content */
+  height: 100vh !important;
+  background: #e0e5ec !important;
+  box-shadow: 5px 0 15px rgba(0,0,0,0.1) !important;
+  padding: 1rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  z-index: 100 !important;
+}
+
+/* Sidebar Cards - Ensure No Cutoff */
+.progress-card,
+.streak-card,
+.badges-card {
+  background: #e0e5ec !important;
+  border-radius: 16px !important;
+  padding: 0.9rem !important;
+  box-shadow: 5px 5px 10px #b8b9be, -5px -5px 10px #fff !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  min-height: 75px !important;
+  width: 100% !important;
+  position: relative !important;
+  overflow: visible !important; /* Important: Allow content to be visible */
+}
+
+/* Icons - Smaller to save space */
+.progress-icon,
+.streak-icon,
+.badges-icon {
+  width: 45px !important;
+  height: 45px !important;
+  min-width: 45px !important; /* Prevent shrinking */
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.3rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* Card Details - Optimized for space */
+.progress-details,
+.streak-details,
+.badges-details {
+  flex: 1 !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 60px) !important; /* Account for icon + gap */
+}
+
+/* Numbers - Responsive sizing */
+.progress-details h4,
+.streak-details h4,
+.badges-details h4 {
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Labels - Full visibility */
+.progress-details span,
+.streak-details span,
+.badges-details span {
+  font-size: 0.65rem !important;
+  color: #64748b !important;
+  display: block !important;
+  margin-top: 0.2rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  line-height: 1 !important;
+  /* No text cutoff */
+  white-space: normal !important; /* Allow wrapping if needed */
+  word-break: break-word !important; /* Break long words */
+  overflow-wrap: break-word !important;
+}
+
+/* Specific text fixes */
+.progress-details span::after {
+  content: ''; /* Remove any ellipsis */
+}
+
+/* Ensure PROGRESS text is visible */
+.progress-details span {
+  min-width: fit-content !important;
+}
+
+/* Ensure DAY STREAK text is visible */
+.streak-details span {
+  min-width: fit-content !important;
+}
+
+/* Ensure BADGES text is visible */
+.badges-details span {
+  min-width: fit-content !important;
+}
+
+/* ==========================================
+   MAIN CONTENT ADJUSTMENT
+   ========================================== */
+.main-content-fixed {
+  margin-left: 220px !important; /* Match sidebar width */
+  width: calc(100% - 220px) !important;
+  padding: 1rem 1.5rem !important;
+  background: #e0e5ec !important;
+}
+
+/* ==========================================
+   ALTERNATIVE: ICON-ONLY MODE FOR VERY SMALL SCREENS
+   ========================================== */
+@media (max-width: 480px) {
+  .sidebar-fixed {
+    width: 70px !important;
+    padding: 0.5rem !important;
+  }
+  
+  .progress-card,
+  .streak-card,
+  .badges-card {
+    padding: 0.75rem !important;
+    justify-content: center !important;
+  }
+  
+  .progress-details,
+  .streak-details,
+  .badges-details {
+    display: none !important; /* Hide text on very small screens */
+  }
+  
+  .progress-icon,
+  .streak-icon,
+  .badges-icon {
+    margin: 0 !important;
+  }
+  
+  .main-content-fixed {
+    margin-left: 70px !important;
+    width: calc(100% - 70px) !important;
+  }
+}
+
+/* ==========================================
+   TOOLTIP FOR ICON-ONLY MODE (Optional)
+   ========================================== */
+@media (max-width: 480px) {
+  .progress-card::after {
+    content: "89% Progress";
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #2c3e50;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    margin-left: 10px;
+    z-index: 1000;
+  }
+  
+  .progress-card:hover::after {
+    opacity: 1;
+  }
+  
+  .streak-card::after {
+    content: "5 Day Streak";
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #2c3e50;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    margin-left: 10px;
+    z-index: 1000;
+  }
+  
+  .streak-card:hover::after {
+    opacity: 1;
+  }
+  
+  .badges-card::after {
+    content: "3 Badges";
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #2c3e50;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    margin-left: 10px;
+    z-index: 1000;
+  }
+  
+  .badges-card:hover::after {
+    opacity: 1;
+  }
+}
+
+/* ==========================================
+   FORCE TEXT VISIBILITY
+   ========================================== */
+.sidebar-fixed * {
+  text-overflow: initial !important; /* No ellipsis */
+  overflow: visible !important; /* Show all content */
+}
+
+/* Gradient colors for icons remain */
+.progress-icon {
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  color: white !important;
+}
+
+.streak-icon {
+  background: linear-gradient(135deg, #f093fb, #f5576c) !important;
+  color: white !important;
+}
+
+.badges-icon {
+  background: linear-gradient(135deg, #4facfe, #00f2fe) !important;
+  color: white !important;
+}
+
+/* Gradient text for numbers */
+.progress-details h4 {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.streak-details h4 {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badges-details h4 {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

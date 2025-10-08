@@ -6,6 +6,8 @@ import axiosInstance from '../api/axiosInstance';
 import TeacherDashboard from './TeacherDashboard';
 import StudentDash from './StudentDash';
 import QuickExerciseComponent from './QuickExerciseComponent';
+import ProgressTab from './ProgressTab';
+
 
 // Import the separated components
 import ClassAnalysis from './ClassAnalysis';
@@ -171,26 +173,31 @@ const EnhancedTeacherDash = () => {
     fetchTeacherData();
   }, []);
 
-  const fetchTeacherData = async () => {
-    try {
-      const response = await axiosInstance.get('/teacher-dashboard/');
-      console.log('teacher-data', response.data);
-      
-      setTeacherData(response.data);
-      
-      if (response.data.students && response.data.students.length > 0) {
-        setSelectedClass({
-          id: 1,
-          name: "Class 6th",
-          students: response.data.students
-        });
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching teacher data:', error);
-      setLoading(false);
+  // In the useEffect that fetches teacher data, save to localStorage:
+const fetchTeacherData = async () => {
+  try {
+    const response = await axiosInstance.get('/teacher-dashboard/');
+    console.log('teacher-data', response.data);
+    
+    setTeacherData(response.data);
+    
+    // Save to localStorage for Progress tab
+    localStorage.setItem('teacherData', JSON.stringify(response.data));
+    localStorage.setItem('studentData', JSON.stringify(response.data.students || []));
+    
+    if (response.data.students && response.data.students.length > 0) {
+      setSelectedClass({
+        id: 1,
+        name: "Class 6th",
+        students: response.data.students
+      });
     }
-  };
+    setLoading(false);
+  } catch (error) {
+    console.error('Error fetching teacher data:', error);
+    setLoading(false);
+  }
+};
 
   const generateStudentData = (studentName, classId) => {
     const baseEfficiency = Math.floor(Math.random() * 30) + 60;
@@ -307,6 +314,13 @@ const renderMainSidebar = () => {
         >
           👤 Student Analysis
         </button>
+
+        <button 
+          onClick={() => setActiveTab('progress')}
+          className={`main-sidebar-button tab-progress ${activeTab === 'progress' ? 'active' : ''}`}
+        >
+          📈 Progress
+        </button>
       </div>
     </div>
   );
@@ -341,7 +355,13 @@ const renderMainSidebar = () => {
 
           {/* Main Content */}
           <div className="main-content-area">
-            {activeTab === 'class' ? (
+              {activeTab === 'progress' ? (
+                <ProgressTab 
+                  teacherData={teacherData}
+                  selectedClass={selectedClass}
+                  onClassChange={handleClassChange}
+                />
+              ) : activeTab === 'class' ? (
               <ClassAnalysis 
                 selectedClass={selectedClass}
                 classesData={classesData}

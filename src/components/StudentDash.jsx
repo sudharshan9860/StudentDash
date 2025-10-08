@@ -5,6 +5,10 @@ import 'katex/dist/katex.min.css';
 import { Form, Button, Row, Col, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "./StudentDash.css";
+import "./StudentDash-neumorphic.css"; // Add this line
+import "./StudentDash-ultimate.css";
+import "./StudentDash-compact.css"; // This will override and fix spacing
+import "./StudentDash-sidebar-fix.css"; // Add this
 import axiosInstance from "../api/axiosInstance";
 import QuestionListModal from "./QuestionListModal";
 import Select from "react-select";

@@ -1,0 +1,566 @@
+/* Enhanced Neumorphic Theme with Color Gradients */
+
+/* ==========================================
+   COLOR GRADIENT VARIABLES
+   ========================================== */
+:root {
+  /* Neumorphic Base */
+  --neu-bg: #e0e5ec;
+  --neu-bg-dark: #a3b1c6;
+  --neu-bg-light: #ffffff;
+  
+  /* Beautiful Gradient Combinations */
+  --gradient-purple-blue: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-ocean: linear-gradient(135deg, #667eea 0%, #00c6fb 100%);
+  --gradient-sunset: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-mint: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-peach: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --gradient-lavender: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  --gradient-aurora: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);
+  --gradient-forest: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+  --gradient-coral: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  --gradient-mystic: linear-gradient(135deg, #c471f5 0%, #fa71cd 100%);
+  
+  /* Subtle Gradients for backgrounds */
+  --gradient-subtle-blue: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  --gradient-subtle-mint: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
+  --gradient-subtle-peach: linear-gradient(135deg, rgba(250, 112, 154, 0.1) 0%, rgba(254, 225, 64, 0.1) 100%);
+  
+  /* Neumorphic Shadows */
+  --neu-shadow-outer: 20px 20px 40px #a3b1c6, -20px -20px 40px #ffffff;
+  --neu-shadow-inner: inset 6px 6px 12px #a3b1c6, inset -6px -6px 12px #ffffff;
+  --neu-shadow-hover: 25px 25px 50px #a3b1c6, -25px -25px 50px #ffffff;
+  --neu-shadow-small: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff;
+  
+  /* Colored Shadows */
+  --shadow-purple: 0 10px 30px rgba(102, 126, 234, 0.3);
+  --shadow-mint: 0 10px 30px rgba(79, 172, 254, 0.3);
+  --shadow-peach: 0 10px 30px rgba(250, 112, 154, 0.3);
+}
+
+/* Dark Mode Gradients */
+.dark-mode {
+  --neu-bg: #1a1f2e;
+  --neu-bg-dark: #0d1117;
+  --neu-bg-light: #272d3e;
+  
+  /* Dark mode gradients - more vibrant */
+  --gradient-purple-blue: linear-gradient(135deg, #7f7fd5 0%, #86a8e7 50%, #91eae4 100%);
+  --gradient-ocean: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-sunset: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+  --gradient-mint: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  --gradient-peach: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  
+  --neu-shadow-outer: 10px 10px 20px #0d1117, -10px -10px 20px #272d3e;
+  --neu-shadow-inner: inset 5px 5px 10px #0d1117, inset -5px -5px 10px #272d3e;
+}
+
+/* ==========================================
+   BODY AND LAYOUT
+   ========================================== */
+body {
+  background: var(--neu-bg);
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-subtle-blue);
+  pointer-events: none;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+/* ==========================================
+   SIDEBAR WITH GRADIENT ACCENTS
+   ========================================== */
+.sidebar-fixed {
+  background: var(--neu-bg) !important;
+  position: relative;
+  overflow: visible;
+}
+
+.sidebar-fixed::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--gradient-purple-blue);
+  border-radius: 0 35px 35px 0;
+  z-index: -1;
+  opacity: 0.1;
+}
+
+/* Progress Card with Purple-Blue Gradient */
+.progress-card {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-outer) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-purple-blue);
+  opacity: 0.05;
+  transition: opacity 0.3s ease;
+}
+
+.progress-card:hover::before {
+  opacity: 0.1;
+}
+
+.progress-card .progress-icon {
+  background: var(--gradient-purple-blue) !important;
+  color: white !important;
+  box-shadow: var(--shadow-purple) !important;
+}
+
+.progress-card .progress-details h4 {
+  background: var(--gradient-purple-blue) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Streak Card with Sunset Gradient */
+.streak-card {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-outer) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.streak-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-sunset);
+  opacity: 0.05;
+  transition: opacity 0.3s ease;
+}
+
+.streak-card:hover::before {
+  opacity: 0.1;
+}
+
+.streak-card .streak-icon {
+  background: var(--gradient-sunset) !important;
+  color: white !important;
+  box-shadow: var(--shadow-peach) !important;
+}
+
+.streak-card .streak-details h4 {
+  background: var(--gradient-sunset) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Badges Card with Mint Gradient */
+.badges-card {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-outer) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.badges-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-mint);
+  opacity: 0.05;
+  transition: opacity 0.3s ease;
+}
+
+.badges-card:hover::before {
+  opacity: 0.1;
+}
+
+.badges-card .badges-icon {
+  background: var(--gradient-mint) !important;
+  color: white !important;
+  box-shadow: var(--shadow-mint) !important;
+}
+
+.badges-card .badges-details h4 {
+  background: var(--gradient-mint) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* ==========================================
+   GREETING HEADER WITH GRADIENT
+   ========================================== */
+.greeting-content {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-outer) !important;
+  position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.greeting-content::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--gradient-ocean);
+  border-radius: 30px;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+.greeting-text h1 {
+  background: var(--gradient-ocean) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-weight: 800 !important;
+  filter: drop-shadow(2px 2px 4px rgba(102, 126, 234, 0.2));
+}
+
+/* Motivation Buttons with Gradients */
+.motivation-btn:first-child {
+  background: var(--gradient-peach) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: var(--neu-shadow-small), var(--shadow-peach) !important;
+}
+
+.motivation-btn:last-child {
+  background: var(--gradient-mint) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: var(--neu-shadow-small), var(--shadow-mint) !important;
+}
+
+/* ==========================================
+   FORM SECTION WITH GRADIENT BORDERS
+   ========================================== */
+.form-container {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-outer) !important;
+  position: relative;
+  border-radius: 30px;
+}
+
+.form-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-purple-blue);
+  border-radius: 30px 30px 0 0;
+}
+
+/* Form Controls with Gradient Focus */
+.form-control-enhanced,
+.form-control,
+.form-select {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-inner) !important;
+  border: 2px solid transparent !important;
+  transition: all 0.3s ease !important;
+}
+
+.form-control-enhanced:focus,
+.form-control:focus,
+.form-select:focus {
+  border-color: transparent !important;
+  background-image: linear-gradient(var(--neu-bg), var(--neu-bg)), var(--gradient-ocean) !important;
+  background-origin: border-box !important;
+  background-clip: padding-box, border-box !important;
+  box-shadow: var(--neu-shadow-inner), 0 0 20px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Labels with gradient icons */
+.form-label svg {
+  background: var(--gradient-ocean);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ==========================================
+   GENERATE BUTTON WITH ANIMATED GRADIENT
+   ========================================== */
+.btn-generate-enhanced {
+  background: var(--gradient-purple-blue) !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--neu-shadow-small), var(--shadow-purple) !important;
+  border: none !important;
+  color: white !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+}
+
+.btn-generate-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-generate-enhanced:hover::before {
+  left: 100%;
+}
+
+.btn-generate-enhanced:hover {
+  transform: translateY(-4px) scale(1.02) !important;
+  box-shadow: var(--neu-shadow-hover), 0 15px 30px rgba(102, 126, 234, 0.4) !important;
+}
+
+/* ==========================================
+   SESSION CARDS WITH CATEGORY GRADIENTS
+   ========================================== */
+
+/* Self Sessions - Ocean Gradient */
+.session-tabs .nav-link:nth-child(1) {
+  background: var(--gradient-ocean) !important;
+  color: white !important;
+  box-shadow: var(--neu-shadow-small) !important;
+}
+
+/* Classwork Sessions - Purple Gradient */
+.session-tabs .nav-link:nth-child(2) {
+  background: var(--gradient-purple-blue) !important;
+  color: white !important;
+  box-shadow: var(--neu-shadow-small) !important;
+}
+
+/* Homework Sessions - Sunset Gradient */
+.session-tabs .nav-link:nth-child(3) {
+  background: var(--gradient-sunset) !important;
+  color: white !important;
+  box-shadow: var(--neu-shadow-small) !important;
+}
+
+.session-tabs .nav-link {
+  border: none !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.session-tabs .nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.2);
+  transition: left 0.3s ease;
+}
+
+.session-tabs .nav-link:hover::before {
+  left: 0;
+}
+
+.session-tabs .nav-link.active {
+  transform: scale(1.05) !important;
+  box-shadow: var(--neu-shadow-outer), 0 10px 20px rgba(0,0,0,0.2) !important;
+}
+
+/* Session Cards with Border Gradients */
+.session-card {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-outer) !important;
+  position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+/* Different gradient borders for different session types */
+.session-card:nth-child(odd) {
+  background-image: linear-gradient(var(--neu-bg), var(--neu-bg)), var(--gradient-lavender);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.session-card:nth-child(even) {
+  background-image: linear-gradient(var(--neu-bg), var(--neu-bg)), var(--gradient-coral);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.session-card:hover {
+  transform: translateY(-5px) scale(1.02) !important;
+  box-shadow: var(--neu-shadow-hover), 0 15px 30px rgba(0,0,0,0.15) !important;
+}
+
+/* Gap Analysis Button with Gradient */
+.session-card button,
+.btn-outline-info {
+  background: var(--gradient-ocean) !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 20px !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  box-shadow: var(--neu-shadow-small) !important;
+  transition: all 0.3s ease !important;
+}
+
+.session-card button:hover,
+.btn-outline-info:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4) !important;
+}
+
+/* ==========================================
+   CHAPTERS SELECT WITH GRADIENT
+   ========================================== */
+.chapters-select-final .select__control {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-inner) !important;
+  border: 2px solid transparent !important;
+  position: relative;
+}
+
+.chapters-select-final .select__control--is-focused {
+  background-image: linear-gradient(var(--neu-bg), var(--neu-bg)), var(--gradient-purple-blue) !important;
+  background-origin: border-box !important;
+  background-clip: padding-box, border-box !important;
+}
+
+.chapters-select-final .select__multi-value {
+  background: var(--gradient-ocean) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.chapters-select-final .select__option--is-selected {
+  background: var(--gradient-purple-blue) !important;
+  color: white !important;
+}
+
+/* ==========================================
+   FLOATING GRADIENT ORBS ANIMATION
+   ========================================== */
+.student-dash-wrapper::after {
+  content: '';
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  top: 20%;
+  right: 10%;
+  animation: float 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.student-dash-wrapper::before {
+  content: '';
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(79,172,254,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  bottom: 20%;
+  left: 10%;
+  animation: float 8s ease-in-out infinite reverse;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-30px) scale(1.05);
+  }
+}
+
+/* ==========================================
+   DARK MODE ENHANCEMENTS
+   ========================================== */
+.dark-mode .progress-card::before,
+.dark-mode .streak-card::before,
+.dark-mode .badges-card::before {
+  opacity: 0.15;
+}
+
+.dark-mode .progress-card:hover::before,
+.dark-mode .streak-card:hover::before,
+.dark-mode .badges-card:hover::before {
+  opacity: 0.25;
+}
+
+.dark-mode .greeting-content::before {
+  opacity: 0.5;
+}
+
+.dark-mode .session-card {
+  border-color: rgba(102, 126, 234, 0.3) !important;
+}
+
+.dark-mode .btn-generate-enhanced {
+  background: var(--gradient-mint) !important;
+  box-shadow: var(--neu-shadow-small), 0 10px 20px rgba(67, 233, 123, 0.3) !important;
+}
+
+/* ==========================================
+   RESPONSIVE ADJUSTMENTS
+   ========================================== */
+@media (max-width: 768px) {
+  .sidebar-fixed {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar-fixed.open {
+    transform: translateX(0);
+  }
+  
+  .main-content-fixed {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  
+  .greeting-content::before,
+  .form-container::after {
+    opacity: 0.2;
+  }
+}
+
+/* ==========================================
+   SMOOTH TRANSITIONS
+   ========================================== */
+* {
+  transition: background 0.3s ease, 
+              color 0.3s ease, 
+              box-shadow 0.3s ease,
+              transform 0.3s ease,
+              border 0.3s ease !important;
+}

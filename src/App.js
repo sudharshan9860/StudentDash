@@ -10,6 +10,7 @@ import { CurrentQuestionProvider } from "./contexts/CurrentQuestionContext";
 import AppRoutes from "./routing/Routing";
 import ChatBox from "./components/ChatBox";
 import "./styles/theme.css";
+import './styles/neumorphic-theme.css';
 import { TutorialProvider } from "./contexts/TutorialContext";
 import { TimerProvider } from "./contexts/TimerContext";
 import RouteTracker from "./components/RouteTracker";
