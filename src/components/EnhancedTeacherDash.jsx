@@ -298,6 +298,13 @@ const renderMainSidebar = () => {
         >
           📄 Worksheets
         </button>
+
+        <button 
+          onClick={() => setActiveTab('Exam-Correction')}
+          className={`main-sidebar-button tab-homework ${activeTab === 'Exam-Correction' ? 'active' : ''}`}
+        >
+          📄 Exam Correction
+        </button>
         
         {/* 4. Class Analysis - Fourth */}
         <button 
