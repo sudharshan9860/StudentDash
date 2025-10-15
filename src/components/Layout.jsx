@@ -70,11 +70,11 @@ const Layout = ({ children }) => {
       showFor: ['teacher']
     },
     { 
-      path: '/analytics', 
-      label: 'Analytics',
-      icon: faChartLine,
-      showFor: ['student', 'teacher']
-    },
+    path: '/analytics', 
+    label: 'Analytics',
+    icon: faChartLine,
+    showFor: ['student', 'teacher']
+  },
     { 
       path: '/leaderboard', 
       label: 'Leaderboard',

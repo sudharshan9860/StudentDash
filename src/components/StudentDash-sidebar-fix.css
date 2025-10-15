@@ -1,243 +1,61 @@
-/* Sidebar Text Fix - Prevent All Cutoffs */
-
-/* ==========================================
-   SIDEBAR WITH NO TEXT CUTOFF
+/* ========================================
+   SIDEBAR ALIGNMENT FIXES
    ========================================== */
+
 .sidebar-fixed {
   position: fixed !important;
   left: 0 !important;
-  top: 0 !important;
-  width: 220px !important; /* Optimal width for content */
-  height: 100vh !important;
-  background: #e0e5ec !important;
-  box-shadow: 5px 0 15px rgba(0,0,0,0.1) !important;
-  padding: 1rem !important;
+  top: 60px !important; /* Adjust based on header height */
+  height: calc(100vh - 60px) !important;
+  width: 220px !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  padding: 1.5rem !important;
+  overflow-y: auto !important;
+  z-index: 100 !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 0.75rem !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  z-index: 100 !important;
+  gap: 1rem !important;
+  align-items: stretch !important;
 }
 
-/* Sidebar Cards - Ensure No Cutoff */
-.progress-card,
-.streak-card,
-.badges-card {
-  background: #e0e5ec !important;
-  border-radius: 16px !important;
-  padding: 0.9rem !important;
-  box-shadow: 5px 5px 10px #b8b9be, -5px -5px 10px #fff !important;
+.main-content-fixed {
+  margin-left: 240px !important; /* sidebar width + spacing */
+  padding: 2rem !important;
+  width: calc(100% - 240px) !important;
+}
+
+/* Progress Cards Alignment */
+.progress-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 15px !important;
+  padding: 1.2rem !important;
+  margin-bottom: 1rem !important;
   display: flex !important;
   align-items: center !important;
-  gap: 0.75rem !important;
-  min-height: 75px !important;
+  gap: 1rem !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
   width: 100% !important;
-  position: relative !important;
-  overflow: visible !important; /* Important: Allow content to be visible */
+  box-sizing: border-box !important;
 }
 
-/* Icons - Smaller to save space */
-.progress-icon,
-.streak-icon,
-.badges-icon {
+.progress-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Card Icons Centered */
+.card-icon {
   width: 45px !important;
   height: 45px !important;
-  min-width: 45px !important; /* Prevent shrinking */
-  border-radius: 12px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  border-radius: 12px !important;
   font-size: 1.3rem !important;
   flex-shrink: 0 !important;
 }
 
-/* Card Details - Optimized for space */
-.progress-details,
-.streak-details,
-.badges-details {
-  flex: 1 !important;
-  min-width: 0 !important;
-  max-width: calc(100% - 60px) !important; /* Account for icon + gap */
-}
-
-/* Numbers - Responsive sizing */
-.progress-details h4,
-.streak-details h4,
-.badges-details h4 {
-  font-size: 1.6rem !important;
-  font-weight: 800 !important;
-  line-height: 1.2 !important;
-  margin: 0 !important;
-  display: block !important;
-  width: 100% !important;
-}
-
-/* Labels - Full visibility */
-.progress-details span,
-.streak-details span,
-.badges-details span {
-  font-size: 0.65rem !important;
-  color: #64748b !important;
-  display: block !important;
-  margin-top: 0.2rem !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.3px !important;
-  line-height: 1 !important;
-  /* No text cutoff */
-  white-space: normal !important; /* Allow wrapping if needed */
-  word-break: break-word !important; /* Break long words */
-  overflow-wrap: break-word !important;
-}
-
-/* Specific text fixes */
-.progress-details span::after {
-  content: ''; /* Remove any ellipsis */
-}
-
-/* Ensure PROGRESS text is visible */
-.progress-details span {
-  min-width: fit-content !important;
-}
-
-/* Ensure DAY STREAK text is visible */
-.streak-details span {
-  min-width: fit-content !important;
-}
-
-/* Ensure BADGES text is visible */
-.badges-details span {
-  min-width: fit-content !important;
-}
-
-/* ==========================================
-   MAIN CONTENT ADJUSTMENT
-   ========================================== */
-.main-content-fixed {
-  margin-left: 220px !important; /* Match sidebar width */
-  width: calc(100% - 220px) !important;
-  padding: 1rem 1.5rem !important;
-  background: #e0e5ec !important;
-}
-
-/* ==========================================
-   ALTERNATIVE: ICON-ONLY MODE FOR VERY SMALL SCREENS
-   ========================================== */
-@media (max-width: 480px) {
-  .sidebar-fixed {
-    width: 70px !important;
-    padding: 0.5rem !important;
-  }
-  
-  .progress-card,
-  .streak-card,
-  .badges-card {
-    padding: 0.75rem !important;
-    justify-content: center !important;
-  }
-  
-  .progress-details,
-  .streak-details,
-  .badges-details {
-    display: none !important; /* Hide text on very small screens */
-  }
-  
-  .progress-icon,
-  .streak-icon,
-  .badges-icon {
-    margin: 0 !important;
-  }
-  
-  .main-content-fixed {
-    margin-left: 70px !important;
-    width: calc(100% - 70px) !important;
-  }
-}
-
-/* ==========================================
-   TOOLTIP FOR ICON-ONLY MODE (Optional)
-   ========================================== */
-@media (max-width: 480px) {
-  .progress-card::after {
-    content: "89% Progress";
-    position: absolute;
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #2c3e50;
-    color: white;
-    padding: 0.5rem;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-    margin-left: 10px;
-    z-index: 1000;
-  }
-  
-  .progress-card:hover::after {
-    opacity: 1;
-  }
-  
-  .streak-card::after {
-    content: "5 Day Streak";
-    position: absolute;
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #2c3e50;
-    color: white;
-    padding: 0.5rem;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-    margin-left: 10px;
-    z-index: 1000;
-  }
-  
-  .streak-card:hover::after {
-    opacity: 1;
-  }
-  
-  .badges-card::after {
-    content: "3 Badges";
-    position: absolute;
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #2c3e50;
-    color: white;
-    padding: 0.5rem;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-    margin-left: 10px;
-    z-index: 1000;
-  }
-  
-  .badges-card:hover::after {
-    opacity: 1;
-  }
-}
-
-/* ==========================================
-   FORCE TEXT VISIBILITY
-   ========================================== */
-.sidebar-fixed * {
-  text-overflow: initial !important; /* No ellipsis */
-  overflow: visible !important; /* Show all content */
-}
-
-/* Gradient colors for icons remain */
 .progress-icon {
   background: linear-gradient(135deg, #667eea, #764ba2) !important;
   color: white !important;
@@ -248,26 +66,243 @@
   color: white !important;
 }
 
-.badges-icon {
+.feedback-icon {
   background: linear-gradient(135deg, #4facfe, #00f2fe) !important;
   color: white !important;
 }
 
-/* Gradient text for numbers */
-.progress-details h4 {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Card Content */
+.card-content {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.2rem !important;
 }
 
-.streak-details h4 {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.card-value {
+  font-size: 1.8rem !important;
+  font-weight: bold !important;
+  color: #2d3748 !important;
+  line-height: 1 !important;
 }
 
-.badges-details h4 {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.card-label {
+  font-size: 0.75rem !important;
+  color: #718096 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-weight: 600 !important;
+}
+
+/* Feedback Button */
+.feedback-button {
+  width: 100% !important;
+  margin-top: 0.5rem !important;
+  padding: 0.4rem 0.8rem !important;
+  background: linear-gradient(135deg, #4facfe, #00f2fe) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+}
+
+.feedback-button:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4) !important;
+}
+
+/* ========================================
+   COLORFUL BUTTON HOVER EFFECTS
+   ========================================== */
+
+/* Generate Questions Button */
+.generate-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  padding: 0.8rem 2rem !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  border-radius: 50px !important;
+  color: white !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.generate-btn:before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent) !important;
+  transition: left 0.6s ease !important;
+}
+
+.generate-btn:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5) !important;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+}
+
+.generate-btn:hover:before {
+  left: 100% !important;
+}
+
+/* Keep Going Button */
+button:contains("Keep Going") {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* You're Awesome Button */
+button:contains("You're Awesome") {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Dropdown Selects - Colorful Focus States */
+.form-select, 
+.react-select__control {
+  border: 2px solid #e2e8f0 !important;
+  transition: all 0.3s ease !important;
+  background: white !important;
+}
+
+.form-select:hover,
+.react-select__control:hover {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+.form-select:focus,
+.react-select__control--is-focused {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+  background: linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%) !important;
+}
+
+/* Tab Buttons - Colorful Active States */
+.nav-tabs .nav-link {
+  background: #f7fafc !important;
+  color: #4a5568 !important;
+  border: none !important;
+  padding: 0.6rem 1.5rem !important;
+  border-radius: 25px !important;
+  margin: 0 0.3rem !important;
+  transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+}
+
+.nav-tabs .nav-link:hover {
+  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%) !important;
+  transform: translateY(-2px) !important;
+  color: #667eea !important;
+}
+
+.nav-tabs .nav-link.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+}
+
+/* Animated Gradient Text for Greeting */
+.greeting-text {
+  background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #f5576c) !important;
+  background-size: 300% 300% !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  animation: gradient-shift 3s ease infinite !important;
+  font-weight: bold !important;
+  font-size: 1.8rem !important;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Card Hover Effects */
+.session-card {
+  background: white !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.session-card:before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb) !important;
+  transform: scaleX(0) !important;
+  transition: transform 0.3s ease !important;
+  transform-origin: left !important;
+}
+
+.session-card:hover {
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15) !important;
+  transform: translateY(-3px) !important;
+  background: linear-gradient(to bottom right, #ffffff 0%, #f0f4ff 100%) !important;
+}
+
+.session-card:hover:before {
+  transform: scaleX(1) !important;
+}
+
+/* Floating Action Buttons */
+.floating-action-btn {
+  position: fixed !important;
+  bottom: 30px !important;
+  right: 30px !important;
+  width: 60px !important;
+  height: 60px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4) !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.5rem !important;
+  z-index: 1000 !important;
+}
+
+.floating-action-btn:hover {
+  transform: scale(1.1) rotate(90deg) !important;
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6) !important;
+  background: linear-gradient(135deg, #764ba2 0%, #f093fb 100%) !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .sidebar-fixed {
+    width: 200px !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+  }
+  
+  .sidebar-fixed.open {
+    transform: translateX(0) !important;
+  }
+  
+  .main-content-fixed {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
 }

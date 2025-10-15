@@ -4,40 +4,39 @@
 .dashboard-container {
   min-height: 100vh;
   background-color: #f3f4f6;
+  position: relative;
 }
 
 .dashboard-wrapper {
   max-width: 100%;
   margin: 0;
   padding: 0;
-}
-
-/* Main Dashboard Layout */
-.main-dashboard-layout {
-  display: flex;
-  min-height: 100vh;
   position: relative;
+  height: 100%;
 }
 
-/* Main Sidebar Styles */
+/* Main Sidebar Styles - COMPLETELY FIXED */
 .main-sidebar {
   background-color: #f8fafc;
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  position: fixed;
+  position: fixed; /* Fixed positioning */
+  left: 0;
+  top: 60px; /* Adjust based on your header height */
+  bottom: 0;
   width: 280px;
-  overflow: hidden;
   z-index: 100;
+  height: calc(100vh - 60px); /* Full height minus header */
+  overflow: hidden; /* Prevent sidebar itself from scrolling */
 }
 
 .main-sidebar-container {
-  padding: 30px 20px 20px 20px;
+  padding: 20px 15px;
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow-y: auto; /* Makes sidebar scrollable */
+  overflow-y: auto; /* Enable vertical scrolling for content */
   overflow-x: hidden;
 }
 
@@ -52,39 +51,50 @@
 }
 
 .main-sidebar-container::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #9ca3af;
   border-radius: 3px;
+  min-height: 30px; /* Ensure scrollbar thumb is visible */
 }
 
 .main-sidebar-container::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #6b7280;
 }
 
 .main-sidebar-nav {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-top: 0;
-  padding-bottom: 20px; /* Add padding for scroll */
+  gap: 12px;
+  padding-bottom: 20px;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
+/* Button styles remain same but ensure they don't shrink */
 .main-sidebar-button {
-  padding: 24px 20px;
+  padding: 16px 14px;
   border: none;
-  border-radius: 16px;
-  font-size: 16px;
+  border-radius: 12px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: left;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   position: relative;
   color: #6b7280;
   background-color: #f3f4f6;
-  min-height: 60px;
+  min-height: 48px;
+  flex-shrink: 0; /* Prevent button shrinking */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+/* Sub-navigation items (Upload buttons) */
+.main-sidebar-button.sub-item {
+  margin-left: 20px;
+  font-size: 14px;
+  min-height: 42px;
+  background-color: #f9fafb;
 }
 
 .main-sidebar-button:hover {
@@ -177,16 +187,16 @@
   color: #374151;
 }
 
-/* Progress Tab - Pink when active */
+/* Ensure all tab buttons remain visible */
 .main-sidebar-button.tab-progress {
   background-color: #f3f4f6;
   color: #6b7280;
 }
 
 .main-sidebar-button.tab-progress.active {
-  background-color: #ec4899 !important;
+  background-color: #14b8a6 !important; /* Teal for progress */
   color: white !important;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
 }
 
 .main-sidebar-button.tab-progress:hover:not(.active) {
@@ -196,12 +206,12 @@
 
 /* Main Content Area */
 .main-content-area {
-  margin-left: 280px;
   flex: 1;
+  margin-left: 280px; /* Offset for fixed sidebar */
   padding: 20px;
-  background-color: #f9fafb;
-  min-height: 100vh;
-  overflow-y: auto;
+  min-height: calc(100vh - 60px);
+  overflow-y: auto; /* Allow main content to scroll */
+  background-color: #ffffff;
 }
 
 .content-with-padding {
@@ -482,4 +492,65 @@
   border-radius: 8px;
   margin-bottom: 16px;
   border-left: 4px solid #16a34a;
+}
+
+.main-sidebar-header {
+  padding: 15px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 15px;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  text-align: center;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-height: 768px) {
+  .main-sidebar-button {
+    padding: 14px 14px;
+    min-height: 45px;
+    font-size: 14px;
+  }
+  
+  .main-sidebar-nav {
+    gap: 8px;
+  }
+  
+  .main-sidebar-container {
+    padding: 15px 10px;
+  }
+}
+
+/* For very small height screens */
+@media (max-height: 600px) {
+  .main-sidebar-button {
+    padding: 12px 12px;
+    min-height: 40px;
+    font-size: 13px;
+  }
+  
+  .main-sidebar-nav {
+    gap: 5px;
+  }
+}
+
+/* Exam Correction - Purple when active */
+.main-sidebar-button.tab-exam {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.main-sidebar-button.tab-exam.active {
+  background-color: #8b5cf6 !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.main-sidebar-button.tab-exam:hover:not(.active) {
+  background-color: #e5e7eb;
+  color: #374151;
 }

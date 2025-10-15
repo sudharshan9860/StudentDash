@@ -2,10 +2,17 @@
 
 /* Custom Navbar Styles */
 .custom-navbar {
-  background: linear-gradient(to right, #00c1d4, #001b6c);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 12px 0;
-  transition: all 0.3s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 60px; /* Consistent height */
+}
+
+/* Add padding to body or main container */
+body {
+  padding-top: 60px; /* Same as navbar height */
 }
 
 .custom-navbar.navbar-dark {

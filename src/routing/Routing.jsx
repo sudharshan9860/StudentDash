@@ -20,6 +20,8 @@ import StudentGapAnalysisReport from "../components/StudentGapAnalysisReport";
 import WorksheetSubmission from "../components/WorksheetSubmission";
 import RouteTracker from "../components/RouteTracker"; // ✅ new import
 import StudentAnalytics from "../components/StudentAnalytics";
+import ExamCorrection from "../components/ExamCorrection";
+import ExamAnalytics from "../components/ExamAnalytics";
 
 
 const AppRoutes = () => {
@@ -150,6 +152,30 @@ const AppRoutes = () => {
             </PrivateRoute>
           }
         />
+
+          {/* Exam Correction Route - Teacher Only */}
+          <Route
+            path="/exam-correction"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <ExamCorrection />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Exam Analytics Route - Teacher and Student */}
+          <Route
+            path="/exam-analytics"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <ExamAnalytics />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
 
         <Route
           path="/leaderboard"

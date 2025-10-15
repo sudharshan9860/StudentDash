@@ -9,8 +9,8 @@ import { QuestProvider } from "./contexts/QuestContext";
 import { CurrentQuestionProvider } from "./contexts/CurrentQuestionContext";
 import AppRoutes from "./routing/Routing";
 import ChatBox from "./components/ChatBox";
+import FeedbackBox from "./components/FeedbackBox";
 import "./styles/theme.css";
-import './styles/neumorphic-theme.css';
 import { TutorialProvider } from "./contexts/TutorialContext";
 import { TimerProvider } from "./contexts/TimerContext";
 import RouteTracker from "./components/RouteTracker";
@@ -26,7 +26,12 @@ function AppContent() {
     <>
     <RouteTracker />
       <AppRoutes />
-      {!isAuthPage && <ChatBox />}
+      {!isAuthPage && (
+        <>
+          <FeedbackBox />
+          <ChatBox />
+        </>
+      )}
     </>
   );
 }
