@@ -1,4 +1,4 @@
-// ExamAnalytics.jsx - Updated with Full Window Layout
+// ExamAnalytics.jsx 
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
@@ -155,6 +155,15 @@ const ExamAnalytics = () => {
     });
   };
 
+  // ADD THIS AT TOP OF COMPONENT (after state declarations):
+const handleCreateExam = () => {
+  if (window.handleExamCorrectionView) {
+    window.handleExamCorrectionView();
+  } else {
+    navigate('/exam-correction');
+  }
+};
+
   // Loading state
   if (loading && exams.length === 0 && studentOwnResults.length === 0) {
     return (
@@ -170,7 +179,7 @@ const ExamAnalytics = () => {
   // Student View
   if (role === 'student') {
     return (
-      <div className="exam-analytics-fullscreen">
+      <div className="exam-analytics-dashboard">
         <div className="exam-analytics-header">
           <div className="header-content">
             <div className="header-icon student">
@@ -287,7 +296,7 @@ const ExamAnalytics = () => {
   // Teacher View - Exam List
   if (role === 'teacher' && viewMode === 'list') {
     return (
-      <div className="exam-analytics-fullscreen">
+      <div className="exam-analytics-dashboard">
         <div className="exam-analytics-header">
           <div className="header-content">
             <div className="header-icon teacher">
@@ -303,7 +312,7 @@ const ExamAnalytics = () => {
           </div>
           <button 
             className="create-exam-btn"
-            onClick={() => navigate('/exam-correction')}
+            onClick={handleCreateExam}
           >
             <span>➕</span>
             Create New Exam
@@ -393,7 +402,7 @@ const ExamAnalytics = () => {
   // Teacher View - Exam Details
   if (role === 'teacher' && viewMode === 'details' && selectedExam) {
     return (
-      <div className="exam-analytics-fullscreen">
+      <div className="exam-analytics-dashboard">
         <div className="exam-analytics-header">
           <div className="header-content">
             <button className="back-btn" onClick={handleBackToList}>

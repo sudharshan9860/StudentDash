@@ -1,4 +1,4 @@
-// EnhancedTeacherDash.jsx - Updated with UploadHomework component
+// EnhancedTeacherDash.jsx
 
 import React, { useState, useEffect } from 'react';
 import './EnhancedTeacherDash.css';
@@ -6,6 +6,7 @@ import axiosInstance from '../api/axiosInstance';
 import TeacherDashboard from './TeacherDashboard';
 import StudentDash from './StudentDash';
 import QuickExerciseComponent from './QuickExerciseComponent';
+import ExamAnalytics from './ExamAnalytics';
 import ProgressTab from './ProgressTab';
 import { useNavigate } from 'react-router-dom';
 
@@ -167,8 +168,8 @@ const classesData = {
 const EnhancedTeacherDash = () => {
 
   const navigate = useNavigate();
-
   const { showAlert, AlertContainer } = useAlert();
+
   const [selectedClass, setSelectedClass] = useState(classesData[1]);
   const [activeTab, setActiveTab] = useState('homework'); // Now defaults to Worksheets tab
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -181,6 +182,23 @@ const EnhancedTeacherDash = () => {
   useEffect(() => {
     fetchTeacherData();
   }, []);
+
+  useEffect(() => {
+    // Function for ExamCorrection to switch to analytics
+    window.handleExamAnalyticsView = () => {
+      setActiveTab('exam-analytics');
+    };
+    
+    // Function for ExamAnalytics to switch to correction
+    window.handleExamCorrectionView = () => {
+      setActiveTab('exam-correction');
+    };
+    
+    return () => {
+      delete window.handleExamAnalyticsView;
+      delete window.handleExamCorrectionView;
+    };
+  }, []); // Empty dependency array - only runs once
 
   // In the useEffect that fetches teacher data, save to localStorage:
 const fetchTeacherData = async () => {
@@ -458,6 +476,10 @@ const renderMainSidebar = () => {
               </div>
             ) : activeTab === 'exam-correction' ? (
               <ExamCorrection />
+            ) : activeTab === 'exam-analytics' ? (
+              <div style={{ padding: '20px', height: 'calc(100vh - 100px)', overflow: 'auto' }}>
+                <ExamAnalytics />
+                </div>
             ) : activeTab === 'progress' ? (
               <ProgressTab 
               teacherData={teacherData}

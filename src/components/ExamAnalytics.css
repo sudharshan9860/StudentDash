@@ -1,18 +1,14 @@
-/* ExamAnalytics.css - Full Window Layout */
+/* ExamAnalytics.css - */
 
-/* Full Screen Container */
-.exam-analytics-fullscreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.exam-analytics-dashboard {
+  width: 100%;
+  min-height: 100%;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  overflow-y: auto;
-  padding: 2rem;
-  z-index: 9999;
+  padding: 1.5rem;
+  border-radius: 16px;
 }
 
+.exam-analytics-dashboard{
 .exam-analytics-header {
   display: flex;
   justify-content: space-between;
@@ -594,4 +590,5 @@
   .results-table {
     min-width: 800px;
   }
+}
 }

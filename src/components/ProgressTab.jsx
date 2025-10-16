@@ -1,5 +1,4 @@
-// ProgressTab.jsx - FIXED VERSION with Streamlit parity
-// Removes auto-refresh, shows single class, hides 0% attendance topics
+// ProgressTab.jsx - 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import './ProgressTab.css';
 import axiosInstance from '../api/axiosInstance';

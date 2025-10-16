@@ -1,4 +1,4 @@
-/* ExamCorrection.css - Enhanced with Better Alignment and Full-Window Analytics */
+/* ExamCorrection.css */
 
 .exam-correction-container {
   min-height: 100vh;
@@ -6,6 +6,7 @@
   padding: 2rem;
 }
 
+.exam-correction-container{
 /* Header Section */
 .exam-correction-header {
   display: flex;
@@ -769,4 +770,5 @@
   .stat-value {
     font-size: 0.85rem;
   }
+}
 }

@@ -220,13 +220,18 @@ const ExamCorrection = () => {
             <p className="header-subtitle">Upload question papers and answer sheets for automated grading</p>
           </div>
         </div>
-        <button 
-          className="view-analytics-btn"
-          onClick={() => navigate('/exam-analytics')}
-        >
-          <span>📊</span>
-          View Analytics
-        </button>
+            <button 
+            className="view-analytics-btn"
+            onClick={() => {
+              // Call parent function to change tab
+              if (window.handleExamAnalyticsView) {
+                window.handleExamAnalyticsView();
+              }
+            }}
+          >
+            <span>📊</span>
+            View Analytics
+          </button>
       </div>
 
       <div className="exam-correction-content">

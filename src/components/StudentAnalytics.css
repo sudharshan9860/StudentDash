@@ -5,7 +5,7 @@
   min-height: calc(100vh - 120px);
   padding: 20px;
 }
-
+.student-analytics-container{
 .analytics-header {
   background: white;
   padding: 20px;
@@ -584,4 +584,5 @@ body.dark-mode .bg-light.rounded {
     border: 1px solid #dee2e6;
     page-break-inside: avoid;
   }
+}
 }
