@@ -1276,9 +1276,9 @@ const fetchStudentDetails = (studentId) => {
           <div className="student-header">
             <h3>👤 STUDENT: {studentDetails.id}</h3>
             <div className="student-stats">
-              <span>Total Active ⏱️ <strong>{studentDetails.activity?.total_active_time || 'N/A'}</strong></span>
+              <span>Total Active ⏱ <strong>{studentDetails.activity?.total_active_time || 'N/A'}</strong></span>
               <span>📊 <strong>{studentDetails.activity?.total_sessions || 0}</strong> sessions</span>
-              <span>Last-Active 👁️ <strong>{studentDetails.activity?.last_seen || 'No data'}</strong></span>
+              <span>Last-Active 👁 <strong>{studentDetails.activity?.last_seen || 'No data'}</strong></span>
             </div>
           </div>
 

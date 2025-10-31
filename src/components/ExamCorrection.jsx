@@ -1,12 +1,13 @@
 // ExamCorrection.jsx - Main Exam Correction Component
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import './ExamCorrection.css';
 
 const ExamCorrection = () => {
   const navigate = useNavigate();
-  
+  const redirectTimeoutRef = useRef(null);
+
   // Form state
   const [examName, setExamName] = useState('');
   const [examType, setExamType] = useState('');
@@ -23,15 +24,26 @@ const ExamCorrection = () => {
   const [success, setSuccess] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('Ready to process');
   const [uploadProgress, setUploadProgress] = useState(0);
-  
+
   // Teacher info
   const [teacherName, setTeacherName] = useState('');
-  
+
   useEffect(() => {
     // Get teacher name from localStorage
     const fullName = localStorage.getItem('fullName');
     const username = localStorage.getItem('username');
     setTeacherName(fullName || username || '');
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    let redirectTimeout;
+
+    return () => {
+      if (redirectTimeout) {
+        clearTimeout(redirectTimeout);
+      }
+    };
   }, []);
 
   // Handle question paper file selection
@@ -284,7 +296,7 @@ const ExamCorrection = () => {
                   <label htmlFor="examType">
                     Exam Type <span className="required">*</span>
                   </label>
-                  <select
+                  {/* <select
                     id="examType"
                     className="form-input"
                     value={examType}
@@ -295,7 +307,16 @@ const ExamCorrection = () => {
                     <option value="MCQ">MCQ (Multiple Choice Questions)</option>
                     <option value="Subjective">Subjective</option>
                     <option value="Mixed">Mixed (MCQ + Subjective)</option>
-                  </select>
+                  </select> */}
+                   <input
+                    type="text"
+                    id="examType"
+                    className="form-input"
+                    placeholder="e.g., Mathematics Midterm Exam"
+                    value={examType}
+                    onChange={(e) => setExamType(e.target.value)}
+                    disabled={loading}
+                  />
                 </div>
               </div>
 
@@ -333,7 +354,7 @@ const ExamCorrection = () => {
             </div>
 
             {/* Advanced Settings */}
-            <div className="form-section">
+            {/* <div className="form-section">
               <h2 className="section-title">Advanced Settings</h2>
               
               <div className="form-row">
@@ -377,7 +398,7 @@ const ExamCorrection = () => {
                   </small>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* File Upload Section */}
             <div className="form-section">
@@ -507,7 +528,7 @@ const ExamCorrection = () => {
                   onClick={handleClearAllFiles}
                   disabled={loading}
                 >
-                  🗑️ Clear All Files
+                  🗑 Clear All Files
                 </button>
               )}
             </div>
@@ -586,7 +607,7 @@ const ExamCorrection = () => {
           </div>
 
           <div className="info-card">
-            <h3 className="info-title">ℹ️ Instructions</h3>
+            <h3 className="info-title">ℹ Instructions</h3>
             <ul className="info-list">
               <li>Upload the question paper as a single PDF file</li>
               <li>Upload all student answer sheets as PDF files</li>

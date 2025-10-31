@@ -49,20 +49,7 @@ const formatMessage = (text) => {
   return <MarkdownWithMath content={text} />;
 };
 
-// ====== Fetch Student Data Function ======
-function student_Data() {
-  return axiosInstance.post("dummy/", {
-    homework: "true",
-    agentic_data: "true",
-  })
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      console.error("❌ Error fetching dummy data:", error);
-      throw error;
-    });
-}
+
 
 // ====== Main Component ======
 const ChatBox = () => {
@@ -130,67 +117,123 @@ const ChatBox = () => {
   }, [username]);
 
   // ====== Session handling ======
+  const fetchStudentData = async () => {
+    try {
+      console.log("Fetching student data for:", username)
+      const response = await axiosInstance.post("dummy/", {
+        homework: "true",
+        agentic_data: "true",
+      })
+
+      console.log("✅ Student Data Response:", response.data)
+
+      if (response.data && response.data[username]) {
+        console.log("📦 Student data found for", username)
+        return response.data[username]
+      } else {
+        console.warn("⚠ No student data found for", username)
+        return null
+      }
+    } catch (error) {
+      console.error("❌ Error fetching student data:", error)
+      return null
+    }
+  }
+
+  const fetchExamData = async () => {
+    try {
+      console.log("Fetching student data for:", username)
+      const response = await axiosInstance.get("questions-evaluated/")
+
+      console.log("✅ Student Data Response:", response.data)
+
+      if (response.data) {
+        console.log("📦 Student data found for", username)
+        return response.data
+      } else {
+        console.warn("⚠ No student data found for", username)
+        return null
+      }
+    } catch (error) {
+      console.error("❌ Error fetching student data:", error)
+      return null
+    }
+  }
+
   const fetchStudentDataAndCreateSession = async () => {
-    setConnectionStatus("checking");
-    console.log("Fetching student data and creating session for:", username);
+    setConnectionStatus("checking")
+    console.log("Fetching student data and creating session for:", username)
 
     try {
-      // First, fetch the student data
-      const data = await student_Data();
+      const data = await fetchStudentData()
+      const examdata = await fetchExamData()
+      console.log("Fetched exam data:", examdata)
 
-      let filteredData = null;
-      if (data && data[username]) {
-        filteredData = data[username];
-        setStudentInfo(filteredData);
-        console.log("✅ Student data fetched:", filteredData);
+      let filteredData = null
+      if (data) {
+        filteredData = data
+        setStudentInfo(filteredData)
+        console.log("✅ Student data fetched:", filteredData)
       } else {
-        console.warn("⚠️ No student data found for", username);
+        console.warn("⚠️ No student data found for", username)
       }
 
-      // Now create session with the fetched data
-      await createSessionWithData(filteredData);
+      await createSessionWithData(filteredData, examdata)
 
     } catch (err) {
-      console.error("❌ Failed to fetch student data or create session:", err);
-      setConnectionStatus("disconnected");
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: "conn_fail",
-          text: "⚠️ Unable to connect to AI service right now. Please refresh the page or try again later.",
-          sender: "ai",
-          timestamp: new Date(),
-        },
-      ]);
+      console.error("❌ Failed to fetch student data or create session:", err)
+      setConnectionStatus("disconnected")
+      setMessages([{
+        id: "conn_fail",
+        text: "⚠️ Unable to connect to AI service right now. Please refresh the page or try again later.",
+        sender: "ai",
+        timestamp: new Date(),
+      }])
     }
-  };
+  }
 
-  const createSessionWithData = async (studentData) => {
+  const createSessionWithData = async (studentData, examData) => {
     try {
-      // Use the passed studentData directly, not the state
       const filteredStudentInfo = {
         data: studentData || {},
-      };
+      }
 
-      console.log("Creating session with student info:", filteredStudentInfo);
+     console.log("Creating session with student info:", filteredStudentInfo);
+console.log("Student ID:", localStorage.getItem("fullName") || username || "guest_user");
+console.log("Exam data:", examData);
+console.log("Class name:", className || "default_class");
 
-      const payload = {
-        student_id: localStorage.getItem("fullName"),
-        json_data: filteredStudentInfo,
-      };
+// Create FormData object
+const formData = new FormData();
+formData.append("student_name", localStorage.getItem("fullName") || username || "guest_user");
+formData.append("json_data", JSON.stringify(filteredStudentInfo));  // serialize JSON
+formData.append("exam_data", JSON.stringify(examData || {}));       // serialize JSON
+formData.append("class_name", className || "default_class");
 
-      const res = await api.post("/create_session", payload);
-      console.log("create_session response:", res.data);
+// Log formData entries for debugging
+for (let [key, value] of formData.entries()) {
+  console.log(`${key}:`, value);
+}
 
-      if (!res.data?.session_id) throw new Error("No session_id");
+// Send the request using FormData
+const res = await api.post("/create_session", formData, {
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+});
 
-      setSessionId(res.data.session_id);
-      setConnectionStatus("connected");
-      console.log("Session created successfully:", res.data.session_id);
+
+      console.log("create_session response:", res.data)
+
+      if (!res.data?.session_id) throw new Error("No session_id")
+
+      setSessionId(res.data.session_id)
+      setConnectionStatus("connected")
+      console.log("Session created successfully:", res.data.session_id)
 
     } catch (e) {
-      console.error("create_session error:", e);
-      setConnectionStatus("disconnected");
+      console.error("create_session error:", e)
+      setConnectionStatus("disconnected")
       setMessages((prev) => [
         ...prev,
         {
@@ -199,9 +242,9 @@ const ChatBox = () => {
           sender: "ai",
           timestamp: new Date(),
         },
-      ]);
+      ])
     }
-  };
+  }
 
   const clearChat = async () => {
     if (!sessionId) return;
@@ -325,7 +368,7 @@ const ChatBox = () => {
 
       const transcription = res?.data?.transcription || "(no transcription)";
       const aiText = res?.data?.response || res?.data?.content || "";
-      const audioBase64 = res?.data?.audio || res?.data?.audio_bytes;
+      const audioBase64 = res?.data?.audio_base64 || res?.data?.audio_bytes;
       const aiAudioUrl = audioBase64 ? `data:audio/mp3;base64,${audioBase64}` : null;
 
       // Replace placeholder with actual transcription
@@ -435,14 +478,14 @@ const ChatBox = () => {
         const res = await api.post("/chat", fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        const audioBase64 = res?.data?.audio;
+        const audioBase64 = res?.data?.audio_base64;
         const aiAudioUrl = audioBase64 ? `data:audio/mp3;base64,${audioBase64}` : null;
 
         setMessages((prev) => [
           ...prev,
           {
             id: id + 1,
-            text: res?.data?.reply || "I've analyzed your image!",
+            text: res?.data?.response || "I've analyzed your image!",
             sender: "ai",
             timestamp: new Date(),
             audioUrl: aiAudioUrl,
@@ -464,14 +507,14 @@ const ChatBox = () => {
         const res = await api.post("/chat-simple", requestBody, {
           headers: { session_token: sessionId },
         });
-        const audioBase64 = res?.data?.audio;
+        const audioBase64 = res?.data?.aiAudioUrl;
         const aiAudioUrl = audioBase64 ? `data:audio/mp3;base64,${audioBase64}` : null;
 
         setMessages((prev) => [
           ...prev,
           {
             id: id + 1,
-            text: res?.data?.reply || "I received your message!",
+            text: res?.data?.response || "I received your message!",
             sender: "ai",
             timestamp: new Date(),
             audioUrl: aiAudioUrl,
@@ -500,269 +543,269 @@ const ChatBox = () => {
     <>
       <AlertContainer />
       <div className="chat-box-container">
-      {/* Floating Toggle */}
-      <button
-        className={`chat-toggle-btn ${isOpen ? "open" : ""}`}
-        onClick={toggleChat}
-        title={isOpen ? "Close chat" : "Ask a question"}
-      >
-        <FontAwesomeIcon icon={isOpen ? faTimes : faCommentDots} />
-        {!isOpen && <span className="chat-label">Ask a question</span>}
-      </button>
+        {/* Floating Toggle */}
+        <button
+          className={`chat-toggle-btn ${isOpen ? "open" : ""}`}
+          onClick={toggleChat}
+          title={isOpen ? "Close chat" : "Ask a question"}
+        >
+          <FontAwesomeIcon icon={isOpen ? faTimes : faCommentDots} />
+          {!isOpen && <span className="chat-label">Ask a question</span>}
+        </button>
 
-      {/* Chat Window */}
-      <div className={`chat-box ${isOpen ? "open" : ""}`}>
-        {/* Header */}
-        <div className="chat-header">
-          <h5>
-            🤖 {`${className} Class`} Math Assistant
-          </h5>
-          <div className="flex-grow" />
+        {/* Chat Window */}
+        <div className={`chat-box ${isOpen ? "open" : ""}`}>
+          {/* Header */}
+          <div className="chat-header">
+            <h5>
+              🤖 {`${className} Class`} Math Assistant
+            </h5>
+            <div className="flex-grow" />
 
-          {/* Language Selector */}
-          <Form.Select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            size="sm"
-            style={{ width: 140, marginRight: 8 }}
-          >
-            <option value="en">English</option>
-            <option value="hi">Hindi</option>
-            <option value="te">Telugu</option>
-          </Form.Select>
-
-          {/* Clear chat */}
-          <Button
-            variant="outline-light"
-            size="sm"
-            onClick={clearChat}
-            disabled={connectionStatus !== "connected" || !sessionId}
-            title="Clear chat & start new session"
-            style={{ marginRight: 8 }}
-          >
-            <FontAwesomeIcon icon={faTrash} /> Clear
-          </Button>
-
-          {/* Connection status */}
-          <Button variant="outline-light" size="sm" disabled>
-            <FontAwesomeIcon icon={faLanguage} />{" "}
-            {connectionStatus === "connected"
-              ? "Connected"
-              : connectionStatus === "checking"
-                ? "Connecting..."
-                : "Disconnected"}
-          </Button>
-
-          <button className="close-btn" onClick={toggleChat}>
-            <FontAwesomeIcon icon={faTimes} />
-          </button>
-        </div>
-
-        {/* Messages */}
-        <div className="chat-messages">
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={`message ${m.sender === "user" ? "user-message" : "ai-message"
-                }`}
+            {/* Language Selector */}
+            <Form.Select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              size="sm"
+              style={{ width: 140, marginRight: 8 }}
             >
-              <div className="message-bubble">
-                {formatMessage(m.text)}
-                {m.audioUrl && (
-                  <div className="message-audio-container" style={{ marginTop: 8 }}>
-                    <audio controls src={m.audioUrl} />
-                  </div>
-                )}
-                {m.image && (
-                  <div className="message-image-container">
-                    <img
-                      src={m.image}
-                      alt="User uploaded"
-                      className="message-image"
-                    />
-                  </div>
-                )}
-              </div>
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="te">Telugu</option>
+            </Form.Select>
 
-              {/* Message footer */}
+            {/* Clear chat */}
+            <Button
+              variant="outline-light"
+              size="sm"
+              onClick={clearChat}
+              disabled={connectionStatus !== "connected" || !sessionId}
+              title="Clear chat & start new session"
+              style={{ marginRight: 8 }}
+            >
+              <FontAwesomeIcon icon={faTrash} /> Clear
+            </Button>
+
+            {/* Connection status */}
+            <Button variant="outline-light" size="sm" disabled>
+              <FontAwesomeIcon icon={faLanguage} />{" "}
+              {connectionStatus === "connected"
+                ? "Connected"
+                : connectionStatus === "checking"
+                  ? "Connecting..."
+                  : "Disconnected"}
+            </Button>
+
+            <button className="close-btn" onClick={toggleChat}>
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="chat-messages">
+            {messages.map((m) => (
               <div
-                className="message-time"
-                style={{ display: "flex", gap: 8, alignItems: "center" }}
+                key={m.id}
+                className={`message ${m.sender === "user" ? "user-message" : "ai-message"
+                  }`}
               >
-                {m.timestamp
-                  ? new Date(m.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                  : ""}
-              </div>
-            </div>
-          ))}
+                <div className="message-bubble">
+                  {formatMessage(m.text)}
+                  {m.audioUrl && (
+                    <div className="message-audio-container" style={{ marginTop: 8 }}>
+                      <audio controls src={m.audioUrl} />
+                    </div>
+                  )}
+                  {m.image && (
+                    <div className="message-image-container">
+                      <img
+                        src={m.image}
+                        alt="User uploaded"
+                        className="message-image"
+                      />
+                    </div>
+                  )}
+                </div>
 
-          {isTyping && (
-            <div className="message ai-message">
-              <div className="message-bubble typing">
-                <span className="dot"></span>
-                <span className="dot"></span>
-                <span className="dot"></span>
-              </div>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <Form onSubmit={sendMessage} className="chat-input">
-          <InputGroup>
-            <Form.Control
-              type="text"
-              placeholder={
-                connectionStatus === "connected"
-                  ? "Type your question..."
-                  : "Connecting to AI service..."
-              }
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              disabled={connectionStatus !== "connected" || isTyping}
-            />
-
-            {/* Hidden file input */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              style={{ display: "none" }}
-              disabled={connectionStatus !== "connected" || isTyping}
-            />
-
-            {/* Image thumbnail or Upload button */}
-            {previewUrl ? (
-              <div className="input-thumbnail-container">
-                <div className="input-thumbnail">
-                  <img
-                    src={previewUrl}
-                    alt="Thumbnail"
-                    className="thumbnail-image"
-                  />
-                  <button
-                    className="remove-thumbnail-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      clearSelectedFile();
-                    }}
-                    aria-label="Remove image"
-                    type="button"
-                  >
-                    <FontAwesomeIcon icon={faTimes} />
-                  </button>
+                {/* Message footer */}
+                <div
+                  className="message-time"
+                  style={{ display: "flex", gap: 8, alignItems: "center" }}
+                >
+                  {m.timestamp
+                    ? new Date(m.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                    : ""}
                 </div>
               </div>
-            ) : (
+            ))}
+
+            {isTyping && (
+              <div className="message ai-message">
+                <div className="message-bubble typing">
+                  <span className="dot"></span>
+                  <span className="dot"></span>
+                  <span className="dot"></span>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Area */}
+          <Form onSubmit={sendMessage} className="chat-input">
+            <InputGroup>
+              <Form.Control
+                type="text"
+                placeholder={
+                  connectionStatus === "connected"
+                    ? "Type your question..."
+                    : "Connecting to AI service..."
+                }
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                disabled={connectionStatus !== "connected" || isTyping}
+              />
+
+              {/* Hidden file input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                style={{ display: "none" }}
+                disabled={connectionStatus !== "connected" || isTyping}
+              />
+
+              {/* Image thumbnail or Upload button */}
+              {previewUrl ? (
+                <div className="input-thumbnail-container">
+                  <div className="input-thumbnail">
+                    <img
+                      src={previewUrl}
+                      alt="Thumbnail"
+                      className="thumbnail-image"
+                    />
+                    <button
+                      className="remove-thumbnail-btn"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        clearSelectedFile();
+                      }}
+                      aria-label="Remove image"
+                      type="button"
+                    >
+                      <FontAwesomeIcon icon={faTimes} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  className="ms-1 d-flex align-items-center justify-content-center"
+                  type="button"
+                  onClick={handleFileButtonClick}
+                  title="Upload image"
+                  disabled={connectionStatus !== "connected" || isTyping}
+                >
+                  <FontAwesomeIcon icon={faUpload} />
+                </Button>
+              )}
+
+              {/* Audio record button */}
               <Button
                 className="ms-1 d-flex align-items-center justify-content-center"
                 type="button"
-                onClick={handleFileButtonClick}
-                title="Upload image"
+                onClick={toggleRecording}
+                title={isRecording ? "Stop recording" : "Record audio"}
                 disabled={connectionStatus !== "connected" || isTyping}
+                variant={isRecording ? "danger" : "primary"}
               >
-                <FontAwesomeIcon icon={faUpload} />
+                <FontAwesomeIcon icon={isRecording ? faStop : faMicrophone} />
               </Button>
-            )}
 
-            {/* Audio record button */}
-            <Button
-              className="ms-1 d-flex align-items-center justify-content-center"
-              type="button"
-              onClick={toggleRecording}
-              title={isRecording ? "Stop recording" : "Record audio"}
-              disabled={connectionStatus !== "connected" || isTyping}
-              variant={isRecording ? "danger" : "primary"}
-            >
-              <FontAwesomeIcon icon={isRecording ? faStop : faMicrophone} />
-            </Button>
-
-            {/* Send button */}
-            <Button
-              className="ms-1 d-flex align-items-center justify-content-center"
-              type="submit"
-              disabled={
-                connectionStatus !== "connected" ||
-                isTyping ||
-                (!newMessage.trim() && !selectedFile)
-              }
-              title="Send message"
-            >
-              <FontAwesomeIcon icon={faPaperPlane} />
-            </Button>
-          </InputGroup>
-        </Form>
-      </div>
-
-      {/* Image Action Modal */}
-      <Modal show={showImageModal} onHide={clearSelectedFile} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>📸 Choose Analysis</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {previewUrl && (
-            <div style={{ textAlign: "center", marginBottom: 12 }}>
-              <img
-                src={previewUrl}
-                alt="preview"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: 240,
-                  borderRadius: 8,
-                  objectFit: "contain",
-                }}
-              />
-            </div>
-          )}
-          <div className="upload d-grid gap-2">
-            <Button
-              variant="primary"
-              onClick={() => sendImageWithCommand("solve it")}
-              disabled={connectionStatus !== "connected"}
-            >
-              🧮 Solve It
-            </Button>
-            <Button
-              variant="success"
-              onClick={() => sendImageWithCommand("correct it")}
-              disabled={connectionStatus !== "connected"}
-            >
-              ✅ Correct It
-            </Button>
-            <div className="input-container">
-              <input
-                type="text"
-                className="custom-input"
-                onChange={handleText}
-                accept="image/*"
-                placeholder="Type your message..."
-
-                disabled={connectionStatus !== "connected" || isTyping}
-              />
+              {/* Send button */}
               <Button
-                className="send-btn"
-                onClick={() => sendImageWithCommand(inputText)}
+                className="ms-1 d-flex align-items-center justify-content-center"
+                type="submit"
+                disabled={
+                  connectionStatus !== "connected" ||
+                  isTyping ||
+                  (!newMessage.trim() && !selectedFile)
+                }
+                title="Send message"
+              >
+                <FontAwesomeIcon icon={faPaperPlane} />
+              </Button>
+            </InputGroup>
+          </Form>
+        </div>
+
+        {/* Image Action Modal */}
+        <Modal show={showImageModal} onHide={clearSelectedFile} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>📸 Choose Analysis</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {previewUrl && (
+              <div style={{ textAlign: "center", marginBottom: 12 }}>
+                <img
+                  src={previewUrl}
+                  alt="preview"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: 240,
+                    borderRadius: 8,
+                    objectFit: "contain",
+                  }}
+                />
+              </div>
+            )}
+            <div className="upload d-grid gap-2">
+              <Button
+                variant="primary"
+                onClick={() => sendImageWithCommand("solve it")}
                 disabled={connectionStatus !== "connected"}
               >
-                Send Input
+                🧮 Solve It
               </Button>
-            </div>
-          </div>
+              <Button
+                variant="success"
+                onClick={() => sendImageWithCommand("correct it")}
+                disabled={connectionStatus !== "connected"}
+              >
+                ✅ Correct It
+              </Button>
+              <div className="input-container">
+                <input
+                  type="text"
+                  className="custom-input"
+                  onChange={handleText}
+                  accept="image/*"
+                  placeholder="Type your message..."
 
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={clearSelectedFile}>
-            Cancel
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </div>
+                  disabled={connectionStatus !== "connected" || isTyping}
+                />
+                <Button
+                  className="send-btn"
+                  onClick={() => sendImageWithCommand(inputText)}
+                  disabled={connectionStatus !== "connected"}
+                >
+                  Send Input
+                </Button>
+              </div>
+            </div>
+
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={clearSelectedFile}>
+              Cancel
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
     </>
   );
 };

@@ -511,7 +511,7 @@ const StudentAnalytics = () => {
                         <Col xs={12}>
                           <Card className="border-0 bg-warning bg-opacity-10">
                             <Card.Body>
-                              <h6 className="text-warning mb-2">⚠️ MEDIUM PRIORITY</h6>
+                              <h6 className="text-warning mb-2">⚠ MEDIUM PRIORITY</h6>
                               <p className="mb-1 fw-bold">Quadratic Applications</p>
                               <small className="text-muted">83% performance, 12% weightage</small>
                             </Card.Body>
@@ -765,7 +765,7 @@ const StudentAnalytics = () => {
 
                         <Card className="border-0 bg-warning bg-opacity-10 mb-3">
                           <Card.Body className="py-3">
-                            <h6 className="text-warning mb-2">⚠️ MEDIUM PRIORITY</h6>
+                            <h6 className="text-warning mb-2">⚠ MEDIUM PRIORITY</h6>
                             <p className="mb-1 fw-bold">Quadratic Applications</p>
                             <small className="text-muted">83% performance • 12% weightage</small>
                           </Card.Body>
