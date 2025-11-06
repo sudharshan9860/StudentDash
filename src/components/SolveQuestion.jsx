@@ -166,33 +166,109 @@ function SolveQuestion() {
     }
   };
 
-  // Handle image upload
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
+  // ============================================
+// ADD THESE STATE VARIABLES TO YOUR SolveQuestion.jsx
+// ============================================
 
-    // Validate file size before accepting
-    const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024); // 5MB limit
+// Add to existing state declarations:
+const [isScanning, setIsScanning] = useState(false);
+const [scanProgress, setScanProgress] = useState(0);
+const [scanningImageIndex, setScanningImageIndex] = useState(0);
+const [showScanSuccess, setShowScanSuccess] = useState(false);
 
-    if (oversizedFiles.length > 0) {
-      setError(
-        `Some files exceed the 5MB size limit. Please select smaller images.`
-      );
-      return;
+// ============================================
+// SCANNING ANIMATION FUNCTION
+// ============================================
+
+const startScanningAnimation = async (imageCount = 1) => {
+  setIsScanning(true);
+  setScanProgress(0);
+  
+  const scanDuration = 800; // milliseconds
+  const pauseBetweenScans = 100;
+  const scansPerImage = 3;
+  
+  for (let imgIndex = 0; imgIndex < imageCount; imgIndex++) {
+    setScanningImageIndex(imgIndex);
+    
+    for (let scanCount = 1; scanCount <= scansPerImage; scanCount++) {
+      setScanProgress(scanCount);
+      
+      // Trigger single scan animation
+      const scannerElement = document.querySelector(`#scanner-line-${imgIndex}`);
+      if (scannerElement) {
+        scannerElement.classList.remove('scanning');
+        void scannerElement.offsetWidth; // Force reflow
+        scannerElement.classList.add('scanning');
+      }
+      
+      // Wait for scan to complete
+      await new Promise(resolve => setTimeout(resolve, scanDuration + pauseBetweenScans));
     }
+  }
+  
+  // Show success checkmark
+  setShowScanSuccess(true);
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Clean up
+  setIsScanning(false);
+  setScanProgress(0);
+  setShowScanSuccess(false);
+};
 
-    setImages(prevImages => [...prevImages, ...files]);
-    setIsSolveEnabled(false);
-    setError(null); // Clear previous errors
-  };
+// ============================================
+// MODIFIED HANDLE IMAGE CHANGE FUNCTION
+// ============================================
+
+  // Handle image upload
+  const handleImageChange = async (e) => {
+  const files = Array.from(e.target.files);
+
+  // Validate file size before accepting
+  const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
+
+  if (oversizedFiles.length > 0) {
+    setError(
+      `Some files exceed the 5MB size limit. Please select smaller images.`
+    );
+    return;
+  }
+
+    // Add images to state
+  setImages(prevImages => [...prevImages, ...files]);
+  setIsSolveEnabled(false);
+  setError(null);
+  
+  // Start scanning animation
+  await startScanningAnimation(files.length);
+};
 
   // Handle captured image from camera
-  const handleCapturedImage = (capturedImageBlob) => {
-    // Convert blob to File object
-    const file = new File([capturedImageBlob], `captured-solution-${Date.now()}.jpg`, { type: 'image/jpeg' });
-    setImages(prevImages => [...prevImages, file]);
-    setIsSolveEnabled(false);
-    setError(null);
-  };
+  const handleCapturedImage = async (capturedImageBlob) => {
+  const file = new File(
+    [capturedImageBlob], 
+    `captured-solution-${Date.now()}.jpg`, 
+    { type: 'image/jpeg' }
+  );
+  
+  setImages(prevImages => [...prevImages, file]);
+  setIsSolveEnabled(false);
+  setError(null);
+  
+  // Start scanning animation for single image
+  await startScanningAnimation(1);
+};
+
+const handleRemoveImage = (indexToRemove) => {
+  const updatedImages = images.filter((_, index) => index !== indexToRemove);
+  setImages(updatedImages);
+  
+  // Reset solve enabled if no images remain
+  if (updatedImages.length === 0) {
+    setIsSolveEnabled(true);
+  }
+};
 
   // Handle upload progress
   const handleUploadProgress = (percent) => {
@@ -698,58 +774,94 @@ function SolveQuestion() {
           </div>
         )}
 
-        {/* Image Previews */}
-        {images.length > 0 && (
-          <div className="uploaded-images mt-3">
-            <h6>Solution Images ({images.length})</h6>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-              gap: '12px',
-              marginTop: '12px'
-            }}>
-              {images.map((image, index) => (
-                <div key={index} className="image-preview-container" style={{ position: 'relative' }}>
-                  <img
-                    src={URL.createObjectURL(image)}
-                    alt={`Preview ${index + 1}`}
-                    className="image-preview"
-                    style={{
-                      width: '100%',
-                      height: '150px',
-                      objectFit: 'cover',
-                      borderRadius: '8px',
-                      border: '1px solid #dee2e6'
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="image-remove-btn"
-                    onClick={() => handleCancelImage(index)}
-                    disabled={isAnyButtonProcessing()}
-                    aria-label="Remove image"
-                  >
-                    ×
-                  </button>
+        {/* Enhanced Image Preview Section with Scanning Animation */}
+{images.length > 0 && (
+  <div className="uploaded-images" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+    {images.map((img, index) => {
+      const imageUrl = URL.createObjectURL(img);
+      
+      return (
+        <div 
+          key={index} 
+          className={`image-preview-container-enhanced ${isScanning && scanningImageIndex === index ? 'scanning' : ''}`}
+        >
+          {/* Image Preview */}
+          <div className="image-preview-wrapper-scan">
+            <img
+              src={imageUrl}
+              alt={`Solution ${index + 1}`}
+              className="image-preview-scan"
+            />
+            
+            {/* Scanning Line */}
+            <div 
+              id={`scanner-line-${index}`}
+              className="scanner-line"
+            />
+            
+            {/* Scanning Progress Text */}
+            {isScanning && scanningImageIndex === index && (
+              <>
+                <div className="scanning-progress-text">
+                  Scanning image... ({scanProgress}/3)
+                  <span className="processing-icon">⚙️</span>
                 </div>
-              ))}
-            </div>
-            {images.length > 0 && (
-              <Button
-                variant="outline-danger"
-                size="sm"
-                className="mt-2"
-                onClick={() => {
-                  setImages([]);
-                  setIsSolveEnabled(true);
-                }}
-                disabled={isAnyButtonProcessing()}
-              >
-                Clear All
-              </Button>
+                <div className="scanning-status-badge">
+                  Processing
+                </div>
+              </>
+            )}
+            
+            {/* Success Checkmark */}
+            {showScanSuccess && scanningImageIndex === index && (
+              <div className="scan-success-check">✓</div>
+            )}
+            
+            {/* Scanning Overlay */}
+            <div className={`scanning-overlay ${isScanning && scanningImageIndex === index ? 'active' : ''}`} />
+            
+            {/* Scan Complete Effect */}
+            {!isScanning && images.length > 0 && (
+              <div className="scan-complete-effect" />
             )}
           </div>
-        )}
+          
+          {/* Remove Button */}
+          <button
+            className="image-remove-btn"
+            onClick={() => handleRemoveImage(index)}
+            disabled={isAnyButtonProcessing() || isScanning}
+            aria-label="Remove image"
+          >
+            ×
+          </button>
+          
+          {/* Image Counter */}
+          <div style={{ 
+            position: 'absolute', 
+            bottom: '10px', 
+            left: '10px', 
+            background: 'rgba(0, 27, 108, 0.8)', 
+            color: 'white', 
+            padding: '4px 10px', 
+            borderRadius: '12px', 
+            fontSize: '0.85rem',
+            fontWeight: '600'
+          }}>
+            Image {index + 1}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
+
+{/* Multiple Images Progress Indicator */}
+{isScanning && images.length > 1 && (
+  <div className="multi-scan-progress">
+    Processing image {scanningImageIndex + 1} of {images.length}
+  </div>
+)}
 
         {/* Button Layout */}
         <div className="button-grid mt-4">

@@ -9,6 +9,16 @@ import MarkdownWithMath from './MarkdownWithMath';
 const ResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [isAISolutionOpen, setIsAISolutionOpen] = useState(false);
+
+  // Add the toggle function
+const toggleAISolution = () => {
+  setIsAISolutionOpen(!isAISolutionOpen);
+};
+
+
+
   const [showQuestionListModal, setShowQuestionListModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isCalculatingScore, setIsCalculatingScore] = useState(false);
@@ -101,6 +111,17 @@ const ResultPage = () => {
       calculateAutoScore();
     }
   }, [ai_data, actionType, student_answer]);
+
+  // 🆕 FIX 2: ADD THESE LINES HERE (around line 40-50):
+  const finalScore = score || obtained_marks || 0;
+  const maxScore = total_marks || question_marks || 5;
+  const scorePercentage = (finalScore / maxScore) * 100;
+
+  const getScoreClass = () => {
+    if (scorePercentage < 40) return 'needs-attention';
+    if (scorePercentage >= 70) return 'good-score';
+    return '';
+  };
 
   // Function to calculate score based on student answer
   const calculateAutoScore = async () => {
@@ -589,125 +610,152 @@ const ResultPage = () => {
   };
 
   return (
-    <>
-      {/* Fixed Back Button - Top Left */}
-      <div className="fixed-back-button">
-        <Button
-          variant="outline-primary"
-          onClick={handleBack}
-          className="back-btn-fixed"
-        >
-          ← Back
-        </Button>
-      </div>
-
-      {/* Fixed Bottom Buttons */}
-      <div className="fixed-bottom-buttons">
-        <Button
-          variant="outline-primary"
-          onClick={handleShowQuestionList}
-          className="dashboard-btn-fixed"
-        >
-           Question List
-        </Button>
-        <Button
-          variant="primary"
-          onClick={handlePracticeSimilar}
-          className="practice-btn-fixed"
-        >
-          Similar Questions
-        </Button>
-      </div>
-
-      {/* Main Content Container */}
-      <Container fluid className="result-page-container">
-        <Row className="result-row">
-          {/* Left Column - Sticky Image Container */}
-          {allStudentImages.length > 0 && (
-            <Col lg={5} className="image-column">
-              <div className="result-content">
-                <h2 className="result-title">Your Solution</h2>
-                <div className="student-images">
-                  {allStudentImages.map((imageData, index) => (
-                    <div key={index} className="student-image-wrapper">
-                      <img 
-                        src={imageData.src}
-                        alt={imageData.label}
-                        className="student-solution-image"
-                        onError={(e) => {
-                          console.error('Error loading image:', imageData.src);
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                      <span className="image-label">{imageData.label}</span>
-                      {imageData.type === 'processed' && (
-                        <span className="image-type-badge">AI Processed</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Fallback text display if no images or images fail to load */}
-                {student_answer && (
-                  <div className="student-answer-text">
-                    <h5>Answer Text:</h5>
-                    <div className="answer-text-content">
-                      <MarkdownWithMath content={student_answer} />
-                    </div>
-                  </div>
-                )}
-               
-              </div>
-            </Col>
-          )}
+    <div className="result-page-container">
+      <div className="result-main-container">
+        
+        {/* Top Section - Two Columns */}
+        <div className="result-top-section">
           
-          {/* Right Column - Content */}
-          <Col lg={allStudentImages.length > 0 ? 7 : 12} className="content-column">
-            <div className="result-content">
-              <h2 className="result-title">Result</h2>
-              
-              {errorMessage && (
-                <Alert variant="danger" onClose={() => setErrorMessage(null)} dismissible>
-                  {errorMessage}
-                </Alert>
-              )}
-              
-              <div className="result-question">
-                <p><strong>Question {questionNumber}:</strong> <MarkdownWithMath content={question} /></p>
-                {questionImage && (
-                  <div className="question-image-container">
-                    <img 
-                      src={questionImage}
-                      alt="Question"
-                      className="question-image"
-                    />
-                  </div>
-                )}
-                {solution && solution.length > 0 && (
-                  <div className="result-solution">
-                    <p className="solution-header">Solution:</p>
-                    {renderSolutionSteps(solution)}
-                  </div>
+          {/* Left: Your Solution */}
+          <div className="result-top-box">
+            <div className="result-card" id="solution-card">
+              <h2>Your Solution</h2>
+              <div className="solution-image-wrapper">
+                {student_answer_base64 ? (
+                  <img
+                    src={student_answer_base64}
+                    alt="Student Solution"
+                    className="solution-image"
+                  />
+                ) : (
+                  <span style={{ color: '#777', fontSize: '1rem' }}>
+                    No solution image available
+                  </span>
                 )}
               </div>
-              
-              {renderContentBasedOnAction()}
-              
-              {/* Add some bottom padding to prevent content from being hidden behind fixed buttons */}
-              <div style={{ height: '100px' }}></div>
             </div>
-          </Col>
-        </Row>
+          </div>
 
-        <QuestionListModal 
-          show={showQuestionListModal} 
-          onHide={handleCloseQuestionList} 
-          questionList={questionList} 
-          onQuestionClick={handleQuestionSelect} 
-        />
-      </Container>
-    </>
+          {/* Right: Answer Text */}
+          <div className="result-top-box">
+            <div className="result-card" id="answer-text-card">
+              <h2>Answer Text</h2>
+              <div className="answer-text-content">
+                {student_answer || 'No transcribed text available.'}
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+        {/* Evaluation Section */}
+        <div className="evaluation-section fade-in-result">
+          <div className="evaluation-grid">
+            
+            {/* Question Card */}
+            <div className="result-card">
+              <div className="question-card">
+                <h3>Question:</h3>
+                <p>{question || 'Question not provided.'}</p>
+                {question_image_base64 && (
+                  <img 
+                    src={question_image_base64} 
+                    alt="Question" 
+                    style={{ 
+                      maxWidth: '100%', 
+                      height: 'auto', 
+                      marginTop: '15px',
+                      borderRadius: '8px' 
+                    }} 
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* AI Solution Card (Collapsible) */}
+            <div className="result-card ai-solution-card">
+              <button
+                type="button"
+                className={`collapsible-header ${isAISolutionOpen ? 'active' : ''}`}
+                onClick={toggleAISolution}
+              >
+                AI Solution
+                <span className="arrow">&gt;</span>
+              </button>
+              <div className={`collapsible-content ${isAISolutionOpen ? 'open' : ''}`}>
+                <div className="ai-solution-text">
+                  {ai_explaination || 'No AI solution available.'}
+                </div>
+              </div>
+            </div>
+
+            {/* Score Card */}
+            <div className="result-card score-card">
+              <h3>Score:</h3>
+              <div className={`score-display ${getScoreClass()}`}>
+                {finalScore} / {maxScore}
+              </div>
+            </div>
+
+            {/* Comments Card */}
+            <div className="result-card comments-card">
+              <h3>Comments:</h3>
+              <p>{comment || 'No comments provided.'}</p>
+            </div>
+
+            {/* Gap Analysis Card */}
+            <div className="result-card gap-analysis-card">
+              <h3>Gap Analysis:</h3>
+              <p>{gap_analysis || 'No gap analysis available.'}</p>
+            </div>
+
+            {/* Error Type Card */}
+            <div className="result-card error-type-card">
+              <h3>Type of Error:</h3>
+              <p>{error_type || 'N/A'}</p>
+            </div>
+
+            {/* Time Management Card */}
+            <div className="result-card time-management-card">
+              <h3>Time-Management:</h3>
+              {time_analysis ? (
+                <p className={time_analysis.includes('Critical') ? 'critical-text' : ''}>
+                  {time_analysis}
+                </p>
+              ) : (
+                <p>N/A</p>
+              )}
+            </div>
+
+            {/* Concepts Required Card */}
+            <div className="result-card concepts-required-card">
+              <h3>Concepts Required:</h3>
+              <p>
+                {Array.isArray(concepts) 
+                  ? concepts.join(', ') 
+                  : concepts || 'N/A'}
+              </p>
+              <div className="action-buttons">
+                <button onClick={() => navigate('/student-dash')}>
+                  Question List
+                </button>
+                <button 
+                  className="primary"
+                  onClick={() => navigate('/similar-questions', { 
+                    state: { question, concepts } 
+                  })}
+                >
+                  Similar Questions
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
   );
-};
+}
 
 export default ResultPage; 
