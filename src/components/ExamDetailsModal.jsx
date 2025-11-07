@@ -1,6 +1,6 @@
-// src/components/ExamDetailsModal.jsx
+// src/components/ExamDetailsModal.jsx - FINAL FIXED VERSION with concept object handling
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Badge, ProgressBar, Alert, Spinner } from 'react-bootstrap';
+import { Modal, Button, Badge, ProgressBar, Alert, Spinner, Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCalendarAlt,
@@ -16,12 +16,16 @@ import {
   faBullseye,
   faArrowUp,
   faArrowDown,
-  faEye
+  faEye,
+  faDownload,
+  faExpand,
+  faCompress
 } from '@fortawesome/free-solid-svg-icons';
 import MarkdownWithMath from './MarkdownWithMath';
 import axiosInstance from '../api/axiosInstance';
-
-
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import './ExamDetailsModal.css';
 
 const ExamDetailsModal = ({ show, onHide, result }) => {
   // State for questions evaluation
@@ -29,11 +33,11 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [questionsError, setQuestionsError] = useState(null);
   const [showQuestions, setShowQuestions] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(true); // Default to fullscreen
 
   // Reset questions state when modal is closed or exam changes
   useEffect(() => {
     if (!show) {
-      // Clear all questions-related state when modal is closed
       setQuestionsEvaluation(null);
       setShowQuestions(false);
       setQuestionsError(null);
@@ -41,14 +45,33 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
     }
   }, [show]);
 
-  // Clear questions state when the exam result changes
   useEffect(() => {
     setQuestionsEvaluation(null);
     setShowQuestions(false);
     setQuestionsError(null);
     setLoadingQuestions(false);
   }, [result?.result_id, result?.student_id, result?.id]);
-  // Helper function to get grade color
+
+  // Helper function to extract concept name from string or object
+  const getConceptName = (concept) => {
+    if (typeof concept === 'string') {
+      return concept;
+    }
+    if (typeof concept === 'object' && concept !== null) {
+      return concept.concept_name || concept.name || String(concept);
+    }
+    return String(concept);
+  };
+
+  // Helper function to get concept description
+  const getConceptDescription = (concept) => {
+    if (typeof concept === 'object' && concept !== null) {
+      return concept.concept_description || concept.description || null;
+    }
+    return null;
+  };
+
+  // Helper functions
   const getGradeColor = (grade) => {
     switch (grade) {
       case 'A': case 'A+': return 'success';
@@ -60,7 +83,6 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
     }
   };
 
-  // Helper function to get percentage color
   const getPercentageColor = (percentage) => {
     if (percentage >= 80) return 'success';
     if (percentage >= 60) return 'info';
@@ -68,7 +90,6 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
     return 'danger';
   };
 
-  // Helper function to get performance level
   const getPerformanceLevel = (percentage) => {
     if (percentage >= 90) return { label: 'Outstanding', color: 'success', icon: faTrophy };
     if (percentage >= 80) return { label: 'Excellent', color: 'success', icon: faCheckCircle };
@@ -79,7 +100,6 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
     return { label: 'Needs Improvement', color: 'danger', icon: faExclamationTriangle };
   };
 
-  // Format date
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
@@ -95,7 +115,6 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
   const percentage = result?.overall_percentage || 0;
   const performance = getPerformanceLevel(percentage);
 
-  // Parse strengths and areas for improvement - handle both string and array formats
   const parseListData = (data) => {
     if (!data) return [];
     if (Array.isArray(data)) return data;
@@ -108,7 +127,6 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
 
   // Fetch questions evaluation
   const fetchQuestionsEvaluation = async () => {
-    // Try multiple possible field names for the student result ID
     const studentResultId = result?.student_id || result?.result_id || result?.id;
 
     if (!studentResultId) {
@@ -126,12 +144,19 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
         }
       });
 
-      if (response.data) {
-        // API returns an array with one object containing questions_evaluation
-        let data = Array.isArray(response.data) ? response.data[0] : response.data;
-        data = data?.question_data?.[0] || [];
-        console.log("Fetched questions evaluation:", data);
+      console.log('API Response:', response.data);
 
+      if (response.data) {
+        // Handle the nested structure correctly
+        let data = response.data;
+        
+        // If it's wrapped in question_data array
+        if (data.question_data && Array.isArray(data.question_data)) {
+          data = data.question_data[0];
+        }
+        
+        console.log('Processed data:', data);
+        
         setQuestionsEvaluation(data);
         setShowQuestions(true);
       }
@@ -143,268 +168,459 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
     }
   };
 
+  // Toggle fullscreen
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  // PDF Download Function
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    let yPosition = 20;
+
+    // Header
+    doc.setFillColor(0, 193, 212);
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Exam Details - ${result?.exam_name || result?.exam || 'Exam'}`, pageWidth / 2, 25, { align: 'center' });
+
+    yPosition = 50;
+    doc.setTextColor(0, 0, 0);
+
+    // Exam Overview Section
+    doc.setFillColor(240, 240, 240);
+    doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Exam Overview', 15, yPosition + 6);
+    yPosition += 15;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Exam Type: ${result?.exam_type || 'N/A'}`, 15, yPosition);
+    doc.text(`Class/Section: ${result?.class_section || 'N/A'}`, 120, yPosition);
+    yPosition += 8;
+    doc.text(`Score: ${result?.total_marks_obtained || 0} / ${result?.total_marks || 0}`, 15, yPosition);
+    doc.text(`Percentage: ${percentage.toFixed(2)}%`, 120, yPosition);
+    yPosition += 8;
+    doc.text(`Performance: ${performance.label}`, 15, yPosition);
+    doc.text(`Processed: ${formatDate(result?.processed_at)}`, 120, yPosition);
+    yPosition += 15;
+
+    // Performance Progress Bar
+    doc.setFillColor(220, 220, 220);
+    doc.rect(15, yPosition, pageWidth - 30, 10, 'F');
+    doc.setFillColor(0, 193, 212);
+    doc.rect(15, yPosition, ((pageWidth - 30) * percentage) / 100, 10, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${percentage.toFixed(1)}%`, pageWidth / 2, yPosition + 6.5, { align: 'center' });
+    yPosition += 20;
+
+    // Strengths Section
+    if (strengths.length > 0) {
+      doc.setFillColor(212, 237, 218);
+      doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(25, 135, 84);
+      doc.text('✓ Strengths', 15, yPosition + 6);
+      yPosition += 12;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      strengths.forEach((strength, index) => {
+        if (yPosition > pageHeight - 20) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        doc.text(`• ${strength}`, 20, yPosition);
+        yPosition += 6;
+      });
+      yPosition += 5;
+    }
+
+    // Areas for Improvement Section
+    if (improvements.length > 0) {
+      if (yPosition > pageHeight - 40) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFillColor(255, 243, 205);
+      doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 193, 7);
+      doc.text('⚠ Areas for Improvement', 15, yPosition + 6);
+      yPosition += 12;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      improvements.forEach((improvement, index) => {
+        if (yPosition > pageHeight - 20) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        doc.text(`• ${improvement}`, 20, yPosition);
+        yPosition += 6;
+      });
+      yPosition += 10;
+    }
+
+    // Questions Summary Table
+    if (questionsEvaluation?.questions_evaluation?.length > 0) {
+      if (yPosition > pageHeight - 60) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFillColor(220, 240, 255);
+      doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(13, 110, 253);
+      doc.text('📊 Questions Summary', 15, yPosition + 6);
+      yPosition += 15;
+
+      const tableData = questionsEvaluation.questions_evaluation.map((q, index) => [
+        q.question_number || `Q${index + 1}`,
+        `${q.total_score || 0} / ${q.max_marks || 0}`,
+        `${q.percentage?.toFixed(1) || 0}%`,
+        q.error_type === 'no_error' ? 'Pass' : 'Fail'
+      ]);
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Question', 'Marks', 'Percentage', 'Status']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [0, 193, 212],
+          textColor: 255,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 30 },
+          1: { halign: 'center', cellWidth: 40 },
+          2: { halign: 'center', cellWidth: 40 },
+          3: { halign: 'center' }
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 5
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        }
+      });
+    }
+
+    // Footer
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text(
+        `Page ${i} of ${totalPages} | Generated: ${new Date().toLocaleDateString()}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+
+    // Save PDF
+    doc.save(`Exam_Details_${result?.exam_name || result?.exam || 'Exam'}_${Date.now()}.pdf`);
+  };
+
   return (
-    <Modal show={show} onHide={onHide} size="xl" scrollable centered>
-      <Modal.Header closeButton className="bg-primary text-white">
-        <Modal.Title>
-          <FontAwesomeIcon icon={faFileAlt} className="me-2" />
-          Exam Details - {result?.exam_name || 'N/A'}
+    <Modal 
+      show={show} 
+      onHide={onHide} 
+      size="xl" 
+      fullscreen={isFullscreen}
+      scrollable 
+      centered={!isFullscreen}
+      className="exam-details-modal"
+    >
+      <Modal.Header closeButton className="exam-modal-header">
+        <Modal.Title className="exam-modal-title">
+          <FontAwesomeIcon icon={faFileAlt} className="me-3" />
+          Exam Details - {result?.exam_name || result?.exam || 'N/A'}
         </Modal.Title>
+        <Button 
+          variant="link" 
+          onClick={toggleFullscreen}
+          className="fullscreen-toggle"
+          title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+        >
+          <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} />
+        </Button>
       </Modal.Header>
 
-      <Modal.Body>
+      <Modal.Body className="exam-modal-body">
         {/* Exam Overview */}
-        <div className="mb-2 p-3 bg-light rounded">
-          <div className="row">
+        <div className="exam-overview-card">
+          <div className="row g-4">
             <div className="col-md-6">
-              <p className="mb-2">
-                <FontAwesomeIcon icon={faFileAlt} className="text-primary me-2" />
-                <strong>Exam Type:</strong>{" "}
-                <Badge bg="secondary">{result?.exam_type || 'N/A'}</Badge>
-              </p>
-              <p className="mb-2">
-                <FontAwesomeIcon icon={faGraduationCap} className="text-info me-2" />
-                <strong>Class/Section:</strong> {result?.class_section || 'N/A'}
-              </p>
+              <div className="info-item">
+                <FontAwesomeIcon icon={faFileAlt} className="info-icon text-primary" />
+                <div className="info-content">
+                  <span className="info-label">Exam Type</span>
+                  <Badge bg="secondary" className="info-badge">{result?.exam_type || 'N/A'}</Badge>
+                </div>
+              </div>
+              <div className="info-item">
+                <FontAwesomeIcon icon={faGraduationCap} className="info-icon text-info" />
+                <div className="info-content">
+                  <span className="info-label">Class/Section</span>
+                  <span className="info-value">{result?.class_section || 'N/A'}</span>
+                </div>
+              </div>
               {result?.roll_number && (
-                <p className="mb-2">
-                  <FontAwesomeIcon icon={faClipboardCheck} className="text-success me-2" />
-                  <strong>Roll Number:</strong> {result.roll_number}
-                </p>
+                <div className="info-item">
+                  <FontAwesomeIcon icon={faClipboardCheck} className="info-icon text-success" />
+                  <div className="info-content">
+                    <span className="info-label">Roll Number</span>
+                    <span className="info-value">{result.roll_number}</span>
+                  </div>
+                </div>
               )}
             </div>
+
             <div className="col-md-6">
-              <p className="mb-2">
-                <FontAwesomeIcon icon={faChartLine} className="text-info me-2" />
-                <strong>Score:</strong>{" "}
-                <span className="fw-bold">{result?.total_marks_obtained || 0}</span> / {result?.total_max_marks || 0}
-                {" "}
-                <Badge bg={getGradeColor(result?.grade)} className="ms-2">
-                  Grade {result?.grade || 'N/A'}
-                </Badge>
-              </p>
-              <p className="mb-2">
-                <FontAwesomeIcon icon={faChartBar} className="text-warning me-2" />
-                <strong>Percentage:</strong>{" "}
-                <span className="fw-bold">{percentage.toFixed(2)}%</span>
-              </p>
-              <p className="mb-0">
-                <FontAwesomeIcon icon={performance.icon} className={`text-${performance.color} me-2`} />
-                <strong>Performance:</strong>{" "}
-                <Badge bg={performance.color}>{performance.label}</Badge>
-              </p>
+              <div className="info-item">
+                <FontAwesomeIcon icon={faChartLine} className="info-icon text-primary" />
+                <div className="info-content">
+                  <span className="info-label">Score</span>
+                  <span className="info-value score-highlight">
+                    {result?.total_marks_obtained || 0} / {result?.total_marks || 0}
+                  </span>
+                </div>
+              </div>
+              <div className="info-item">
+                <FontAwesomeIcon icon={faBullseye} className="info-icon text-warning" />
+                <div className="info-content">
+                  <span className="info-label">Percentage</span>
+                  <span className={`info-value percentage-${getPercentageColor(percentage)}`}>
+                    {percentage.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+              <div className="info-item">
+                <FontAwesomeIcon icon={performance.icon} className={`info-icon text-${performance.color}`} />
+                <div className="info-content">
+                  <span className="info-label">Performance</span>
+                  <Badge bg={performance.color} className="performance-badge">{performance.label}</Badge>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div className="mt-3">
-            <div className="d-flex justify-content-between mb-1">
-              <small className="text-muted">Overall Performance</small>
-              <small className="fw-bold">{percentage.toFixed(1)}%</small>
+          {/* Overall Performance Progress */}
+          <div className="performance-progress-section">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h6 className="mb-0">Overall Performance</h6>
+              <span className="percentage-display">{percentage.toFixed(1)}%</span>
             </div>
-            <ProgressBar
-              now={percentage}
+            <ProgressBar 
+              now={percentage} 
               variant={getPercentageColor(percentage)}
+              className="performance-progress-bar"
               animated
-              striped
-              label={`${percentage.toFixed(1)}%`}
-              style={{ height: '25px', fontSize: '14px' }}
             />
           </div>
         </div>
 
-        {/* Performance Breakdown */}
-        <div className="row mb-4">
-          <div className="col-md-6">
-            {/* Strengths Section */}
+        {/* Strengths and Areas for Improvement */}
+        {(strengths.length > 0 || improvements.length > 0) && (
+          <div className="row g-3 mb-4">
             {strengths.length > 0 && (
-              <Alert variant="success" className="mb-3">
-                <h6 className="alert-heading d-flex align-items-center mb-3">
-                  <FontAwesomeIcon icon={faBullseye} className="me-2" />
-                  Strengths
-                </h6>
-                <ul className="mb-0 ps-3">
-                  {strengths.map((strength, idx) => (
-                    <li key={idx} className="mb-1">
-                      <MarkdownWithMath content={strength} />
-                    </li>
-                  ))}
-                </ul>
-              </Alert>
-            )}
-          </div>
-          <div className="col-md-6">
-            {/* Areas for Improvement */}
-            {improvements.length > 0 && (
-              <Alert variant="warning" className="mb-3">
-                <h6 className="alert-heading d-flex align-items-center mb-3">
-                  <FontAwesomeIcon icon={faLightbulb} className="me-2" />
-                  Areas for Improvement
-                </h6>
-                <ul className="mb-0 ps-3">
-                  {improvements.map((improvement, idx) => (
-                    <li key={idx} className="mb-1">
-                      <MarkdownWithMath content={improvement} />
-                    </li>
-                  ))}
-                </ul>
-              </Alert>
-            )}
-          </div>
-        </div>
-
-        {/* Additional Information */}
-        {result?.questions && result.questions.length > 0 && (
-          <>
-            <h5 className="mb-3 d-flex align-items-center">
-              <FontAwesomeIcon icon={faClipboardCheck} className="text-warning me-2" />
-              Question-wise Analysis
-            </h5>
-
-            {result.questions.map((question, index) => (
-              <div key={index} className="mb-3 border rounded overflow-hidden">
-                <div className="p-3 bg-light border-bottom">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="mb-0">
-                      Question {index + 1}
-                    </h6>
-                    <span className="fw-bold">
-                      {question.marks_obtained || 0} / {question.max_marks || 0} marks
-                    </span>
-                  </div>
-                </div>
-                <div className="p-3">
-                  {question.feedback && (
-                    <div className="alert alert-info mb-0">
-                      <strong>Feedback:</strong>
-                      <p className="mb-0 mt-2">
-                        <MarkdownWithMath content={question.feedback} />
-                      </p>
-                    </div>
-                  )}
+              <div className="col-md-6">
+                <div className="strengths-card">
+                  <h5 className="section-heading">
+                    <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
+                    Strengths
+                  </h5>
+                  <ul className="strengths-list">
+                    {strengths.map((strength, index) => (
+                      <li key={index} className="strength-item">
+                        <FontAwesomeIcon icon={faCheckCircle} className="bullet-icon" />
+                        {strength}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
-            ))}
-          </>
+            )}
+
+            {improvements.length > 0 && (
+              <div className="col-md-6">
+                <div className="improvements-card">
+                  <h5 className="section-heading">
+                    <FontAwesomeIcon icon={faLightbulb} className="me-2" />
+                    Areas for Improvement
+                  </h5>
+                  <ul className="improvements-list">
+                    {improvements.map((improvement, index) => (
+                      <li key={index} className="improvement-item">
+                        <FontAwesomeIcon icon={faLightbulb} className="bullet-icon" />
+                        {improvement}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
-        {/* No detailed data available */}
-        {(!result?.questions || result.questions.length === 0) &&
-          (!strengths.length && !improvements.length) && !showQuestions && (
-            <Alert variant="info">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
-              No detailed analysis available for this exam.
-            </Alert>
-          )}
+        {/* Questions Summary Table - FIXED FIELD MAPPING */}
+        {showQuestions && questionsEvaluation?.questions_evaluation?.length > 0 && (
+          <div className="questions-summary-section mb-4">
+            <h5 className="section-heading mb-3">
+              <FontAwesomeIcon icon={faChartBar} className="me-2" />
+              Questions Summary
+            </h5>
+            <div className="table-responsive">
+              <Table bordered hover className="questions-summary-table">
+                <thead>
+                  <tr>
+                    <th className="text-center">Question No.</th>
+                    <th className="text-center">Marks Obtained</th>
+                    <th className="text-center">Total Marks</th>
+                    <th className="text-center">Percentage</th>
+                    <th className="text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {questionsEvaluation.questions_evaluation.map((question, index) => {
+                    // FIXED: Use correct field names from API
+                    const marksObtained = question.total_score || 0;
+                    const maxMarks = question.max_marks || 0;
+                    const qPercentage = question.percentage || 0;
+                    const statusClass = qPercentage >= 75 ? 'success' : qPercentage >= 50 ? 'warning' : 'danger';
+                    
+                    return (
+                      <tr key={index}>
+                        <td className="text-center fw-bold">{question.question_number || `Q${index + 1}`}</td>
+                        <td className="text-center">{marksObtained}</td>
+                        <td className="text-center">{maxMarks}</td>
+                        <td className="text-center">
+                          <Badge bg={getPercentageColor(qPercentage)}>
+                            {qPercentage.toFixed(1)}%
+                          </Badge>
+                        </td>
+                        <td className="text-center">
+                          <Badge bg={statusClass}>
+                            {question.error_type === 'no_error' ? 'Pass' : 'Fail'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </div>
+          </div>
+        )}
 
-        {/* Questions Evaluation Section */}
+        {/* Detailed Questions Evaluation - FIXED FIELD MAPPING AND CONCEPT HANDLING */}
         {showQuestions && questionsEvaluation && (
-          <div className="mt-4">
-            <h5 className="mb-3 d-flex align-items-center">
-              <FontAwesomeIcon icon={faEye} className="text-primary me-2" />
+          <div className="detailed-questions-section">
+            <h5 className="section-heading mb-3">
+              <FontAwesomeIcon icon={faEye} className="me-2" />
               Detailed Questions Evaluation
             </h5>
 
             {questionsEvaluation.questions_evaluation && questionsEvaluation.questions_evaluation.length > 0 ? (
               questionsEvaluation.questions_evaluation.map((question, index) => {
-                // Helper function to get error type badge color
-                const getErrorTypeBadge = (errorType) => {
-                  switch (errorType) {
-                    case 'no_error':
-                      return { bg: 'success', text: 'No Error' };
-                    case 'conceptual_error':
-                      return { bg: 'warning', text: 'Conceptual Error' };
-                    case 'calculation_error':
-                      return { bg: 'danger', text: 'Calculation Error' };
-                    case 'incomplete':
-                      return { bg: 'secondary', text: 'Incomplete' };
-                    default:
-                      return { bg: 'secondary', text: errorType || 'Unknown' };
-                  }
-                };
-
-                const errorBadge = getErrorTypeBadge(question.error_type);
-
+                // FIXED: Use correct field names
+                const marksObtained = question.total_score || 0;
+                const maxMarks = question.max_marks || 0;
+                const qPercentage = question.percentage || 0;
+                
                 return (
-                  <div key={index} className="mb-4 border rounded overflow-hidden shadow-sm">
-                    {/* Question Header */}
-                    <div className="p-3 bg-primary text-white">
-                      <div className="d-flex justify-content-between align-items-center flex-wrap">
-                        <h6 className="mb-0 text-white">
+                  <div key={index} className="question-card">
+                    {/* Enhanced Question Header */}
+                    <div className={`question-header bg-gradient-${getPercentageColor(qPercentage)}`}>
+                      <div className="question-header-left">
+                        <div className="question-number-badge">
                           <FontAwesomeIcon icon={faClipboardCheck} className="me-2" />
-                          {question.question_number || `Question ${index + 1}`}
-                        </h6>
-                        <div className="d-flex gap-2 align-items-center ">
-                          {question.total_score !== undefined && question.max_marks !== undefined && (
-                            <Badge bg="light" text="dark" >
-                              {question.total_score} / {question.max_marks} marks
+                          {question.question_number || `Q${index + 1}`}
+                        </div>
+                        <div className="question-status-indicator">
+                          {question.error_type === 'no_error' ? (
+                            <Badge bg="success" className="status-badge">
+                              <FontAwesomeIcon icon={faCheckCircle} className="me-1" />
+                              Correct
+                            </Badge>
+                          ) : (
+                            <Badge bg="danger" className="status-badge">
+                              <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
+                              {question.error_type || 'Error'}
                             </Badge>
                           )}
-                          {question.percentage !== undefined && (
-                            <Badge bg="light" text="dark">
-                              {question.percentage}%
-                            </Badge>
-                          )}
+                        </div>
+                      </div>
+                      <div className="question-header-right">
+                        <div className="score-display-enhanced">
+                          <div className="marks-obtained">
+                            <span className="marks-value">{marksObtained}</span>
+                            <span className="marks-separator">/</span>
+                            <span className="marks-total">{maxMarks}</span>
+                          </div>
+                          <div className="marks-label">marks</div>
+                        </div>
+                        <div className="percentage-display-enhanced">
+                          <div className="percentage-circle" style={{'--percentage': `${qPercentage}%`}}>
+                            <span className="percentage-value">{qPercentage.toFixed(0)}</span>
+                            <span className="percentage-symbol">%</span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Question Content */}
-                    <div className="p-3">
+                    <div className="question-body">
                       {/* Question Text */}
-                      {question.question && (
-                        <div className="mb-3">
-                          <strong className="text-primary d-flex align-items-center">
-                            <FontAwesomeIcon icon={faLightbulb} className="me-2" />
-                            Question:
-                          </strong>
-                          <div className="mt-2 p-3 bg-light rounded border border-primary">
-                            <MarkdownWithMath content={question.question} />
-                          </div>
+                      <div className="question-section">
+                        <div className="section-header-inline">
+                          <FontAwesomeIcon icon={faBullseye} className="section-icon" />
+                          <strong>Question:</strong>
                         </div>
-                      )}
-
-                      {/* Error Type Badge */}
-                      {question.error_type && (
-                        <div className="mb-3">
-                          <Badge bg={errorBadge.bg} className="px-3 py-2">
-                            {errorBadge.text}
-                          </Badge>
+                        <div className="question-text-content">
+                          <MarkdownWithMath content={question.question || 'Question not available'} />
                         </div>
-                      )}
+                      </div>
 
-                      {/* Concepts Required */}
+                      {/* Concepts Required - FIXED TO HANDLE OBJECTS */}
                       {question.concepts_required && question.concepts_required.length > 0 && (
-                        <div className="mb-3">
-                          <strong className="text-info d-block mb-2">
-                            <FontAwesomeIcon icon={faLightbulb} className="me-2" />
-                            Concepts Required:
-                          </strong>
-
-                          <div className="d-flex flex-column gap-2">
+                        <div className="concepts-section">
+                          <div className="section-header-inline">
+                            <FontAwesomeIcon icon={faLightbulb} className="section-icon text-warning" />
+                            <strong>Concepts Required:</strong>
+                          </div>
+                          <div className="concepts-badges">
                             {question.concepts_required.map((concept, idx) => {
-                              // Handle both string and object formats
-                              const conceptName =
-                                typeof concept === "object" && concept.concept_name
-                                  ? concept.concept_name
-                                  : concept;
-
-                              const conceptDescription =
-                                typeof concept === "object" && concept.concept_description
-                                  ? concept.concept_description
-                                  : null;
+                              const conceptName = getConceptName(concept);
+                              const conceptDescription = getConceptDescription(concept);
 
                               return (
-                                <div key={idx} className="d-flex flex-column">
-                                  <Badge
-                                    bg="info"
-                                    className="px-3 py-2 align-self-start"
-                                    style={{ fontSize: '14px' }}
-                                  >
+                                <div key={idx} className="concept-item">
+                                  <Badge bg="info" className="concept-badge">
                                     {conceptName}
                                   </Badge>
                                   {conceptDescription && (
-                                    <div className="mt-2 ms-2 p-2 bg-light rounded border border-info" style={{ fontSize: '13px' }}>
+                                    <div className="concept-description">
                                       <MarkdownWithMath content={conceptDescription} />
                                     </div>
                                   )}
@@ -415,44 +631,39 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
                         </div>
                       )}
 
-
-                      {/* Mistakes Made and Gap Analysis - Column Layout */}
-                      <div className="d-flex flex-column gap-3">
-                        {/* Mistakes Made */}
-                        {question.mistakes_made && (
-                          <Alert variant="danger" className="mb-0">
-                            <div className="d-flex flex-column">
-                              <strong className="mb-2">
+                      {/* Mistakes and Gap Analysis */}
+                      <div className="row g-3">
+                        {question.mistakes_made && question.mistakes_made !== 'None' && (
+                          <div className="col-md-6">
+                            <Alert variant="danger" className="mistakes-alert">
+                              <div className="alert-header">
                                 <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
-                                Mistakes Made:
-                              </strong>
-                              <div className="ms-0">
+                                <strong>Mistakes Made:</strong>
+                              </div>
+                              <div className="alert-content">
                                 <MarkdownWithMath content={question.mistakes_made} />
                               </div>
-                              {question.mistake_section && (
-                                <div className="mt-2">
-                                  <small className="text-muted">
-                                    <strong>Section:</strong> {question.mistake_section}
-                                  </small>
+                              {question.mistake_section && question.mistake_section !== 'N/A' && (
+                                <div className="mistake-section-tag">
+                                  <small>Section: {question.mistake_section}</small>
                                 </div>
                               )}
-                            </div>
-                          </Alert>
+                            </Alert>
+                          </div>
                         )}
 
-                        {/* Gap Analysis */}
-                        {question.gap_analysis && (
-                          <Alert variant="warning" className="mb-0">
-                            <div className="d-flex flex-column">
-                              <strong className="mb-2">
+                        {question.gap_analysis && question.gap_analysis !== 'No gaps identified' && (
+                          <div className="col-md-6">
+                            <Alert variant="warning" className="gap-alert">
+                              <div className="alert-header">
                                 <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
-                                Gap Analysis:
-                              </strong>
-                              <div className="ms-0">
+                                <strong>Gap Analysis:</strong>
+                              </div>
+                              <div className="alert-content">
                                 <MarkdownWithMath content={question.gap_analysis} />
                               </div>
-                            </div>
-                          </Alert>
+                            </Alert>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -477,15 +688,29 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
         )}
       </Modal.Body>
 
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
+      <Modal.Footer className="exam-modal-footer">
+        <Button variant="secondary" onClick={onHide} className="btn-action">
           Close
         </Button>
-        {(result?.result_id) && (
+        
+        {/* PDF Download Button */}
+        {showQuestions && (
+          <Button
+            variant="success"
+            onClick={downloadPDF}
+            className="btn-action btn-download"
+          >
+            <FontAwesomeIcon icon={faDownload} className="me-2" />
+            Download PDF
+          </Button>
+        )}
+        
+        {(result?.result_id || result?.student_id || result?.id) && (
           <Button
             variant="primary"
             onClick={fetchQuestionsEvaluation}
             disabled={loadingQuestions}
+            className="btn-action btn-view"
           >
             {loadingQuestions ? (
               <>
