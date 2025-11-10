@@ -35,6 +35,13 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
   const [showQuestions, setShowQuestions] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(true); // Default to fullscreen
 
+  // Auto-load questions when modal opens
+useEffect(() => {
+  if (show && result && !questionsEvaluation && !loadingQuestions) {
+    fetchQuestionsEvaluation();
+  }
+}, [show, result]);
+
   // Reset questions state when modal is closed or exam changes
   useEffect(() => {
     if (!show) {
@@ -173,184 +180,501 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
     setIsFullscreen(!isFullscreen);
   };
 
-  // PDF Download Function
-  const downloadPDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-    let yPosition = 20;
+ const downloadPDF = () => {
+  // LaTeX to readable text converter
+  const convertLatexToText = (text) => {
+    if (!text) return '';
+    
+    let converted = text;
+    
+    // Remove LaTeX delimiters
+    converted = converted.replace(/\$\$/g, '');
+    converted = converted.replace(/\$/g, '');
+    
+    // Convert common LaTeX commands to Unicode/text
+    const replacements = {
+      // Superscripts
+      '\\^\\{0\\}': '⁰', '\\^0': '⁰',
+      '\\^\\{1\\}': '¹', '\\^1': '¹',
+      '\\^\\{2\\}': '²', '\\^2': '²',
+      '\\^\\{3\\}': '³', '\\^3': '³',
+      '\\^\\{4\\}': '⁴', '\\^4': '⁴',
+      '\\^\\{5\\}': '⁵', '\\^5': '⁵',
+      '\\^\\{6\\}': '⁶', '\\^6': '⁶',
+      '\\^\\{7\\}': '⁷', '\\^7': '⁷',
+      '\\^\\{8\\}': '⁸', '\\^8': '⁸',
+      '\\^\\{9\\}': '⁹', '\\^9': '⁹',
+      
+      // Greek letters
+      '\\\\alpha': 'α',
+      '\\\\beta': 'β',
+      '\\\\gamma': 'γ',
+      '\\\\delta': 'δ',
+      '\\\\epsilon': 'ε',
+      '\\\\theta': 'θ',
+      '\\\\pi': 'π',
+      '\\\\sigma': 'σ',
+      '\\\\omega': 'ω',
+      
+      // Math symbols
+      '\\\\angle': '∠',
+      '\\\\circ': '°',
+      '\\\\times': '×',
+      '\\\\div': '÷',
+      '\\\\pm': '±',
+      '\\\\neq': '≠',
+      '\\\\leq': '≤',
+      '\\\\geq': '≥',
+      '\\\\approx': '≈',
+      '\\\\infty': '∞',
+      '\\\\sum': '∑',
+      '\\\\sqrt': '√',
+      '\\\\perp': '⊥',
+      '\\\\parallel': '∥',
+      '\\\\mathrm': '',
+      
+      // Fractions - convert to division
+      '\\\\frac': '',
+      
+      // Remove curly braces
+      '\\{': '(',
+      '\\}': ')',
+      
+      // Remove backslashes
+      '\\\\': ''
+    };
+    
+    // Apply replacements
+    for (const [pattern, replacement] of Object.entries(replacements)) {
+      const regex = new RegExp(pattern, 'g');
+      converted = converted.replace(regex, replacement);
+    }
+    
+    // Handle fractions like \frac{a}{b} -> (a/b)
+    converted = converted.replace(/frac\{([^}]+)\}\{([^}]+)\}/g, '($1/$2)');
+    
+    // Clean up remaining braces
+    converted = converted.replace(/[{}]/g, '');
+    
+    // Remove HTML tags
+    converted = converted.replace(/<[^>]*>/g, '');
+    
+    // Clean up extra spaces
+    converted = converted.replace(/\s+/g, ' ').trim();
+    
+    return converted;
+  };
 
-    // Header
-    doc.setFillColor(0, 193, 212);
-    doc.rect(0, 0, pageWidth, 40, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
+  // Calculate performanceLevel before using it
+  const percentage = result?.total_max_marks > 0
+    ? ((result.total_marks_obtained / result.total_max_marks) * 100)
+    : 0;
+  
+  let performanceLevel = '';
+  if (percentage >= 90) {
+    performanceLevel = 'Excellent';
+  } else if (percentage >= 75) {
+    performanceLevel = 'Very Good';
+  } else if (percentage >= 60) {
+    performanceLevel = 'Good';
+  } else if (percentage >= 50) {
+    performanceLevel = 'Average';
+  } else if (percentage >= 40) {
+    performanceLevel = 'Below Average';
+  } else {
+    performanceLevel = 'Needs Improvement';
+  }
+  
+  const parseListData = (data) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'string') {
+      return data.split(',').map(s => s.trim()).filter(s => s);
+    }
+    return [];
+  };
+  
+  // Helper to extract concept name
+  const getConceptName = (concept) => {
+    if (typeof concept === 'string') return concept;
+    if (typeof concept === 'object' && concept !== null) {
+      return concept.concept_name || concept.name || String(concept);
+    }
+    return String(concept);
+  };
+  
+  const strengths = parseListData(result?.strengths);
+  const improvements = parseListData(result?.areas_for_improvement);
+  
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  let yPosition = 20;
+
+  const checkPageBreak = (requiredSpace) => {
+    if (yPosition + requiredSpace > pageHeight - 20) {
+      doc.addPage();
+      yPosition = 20;
+      return true;
+    }
+    return false;
+  };
+
+  // ========== HEADER ==========
+  doc.setFillColor(102, 126, 234);
+  doc.rect(0, 0, pageWidth, 40, 'F');
+  
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('Exam Details Report', pageWidth / 2, 20, { align: 'center' });
+  
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.text(result?.exam_name || 'Exam', pageWidth / 2, 30, { align: 'center' });
+  
+  yPosition = 50;
+
+  // ========== EXAM OVERVIEW ========== (FIXED: No special characters)
+  checkPageBreak(30);
+  
+  doc.setFillColor(249, 250, 251);
+  doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(31, 41, 55);
+  doc.text('Exam Overview', 15, yPosition + 6); // REMOVED emoji icons
+  yPosition += 15;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+  
+  const overviewData = [
+    ['Exam Type:', result?.exam_type || 'N/A'],
+    ['Class/Section:', result?.class_section || 'N/A'],
+    ['Score:', `${result?.total_marks_obtained || 0} / ${result?.total_max_marks || 0}`],
+    ['Percentage:', `${percentage.toFixed(1)}%`],
+    ['Performance:', performanceLevel]
+  ];
+  
+  overviewData.forEach(([label, value]) => {
+    checkPageBreak(8);
+    doc.text(label, 20, yPosition);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Exam Details - ${result?.exam_name || result?.exam || 'Exam'}`, pageWidth / 2, 25, { align: 'center' });
+    doc.text(value, 80, yPosition);
+    doc.setFont('helvetica', 'normal');
+    yPosition += 7;
+  });
+  
+  yPosition += 5;
 
-    yPosition = 50;
-    doc.setTextColor(0, 0, 0);
-
-    // Exam Overview Section
-    doc.setFillColor(240, 240, 240);
+  // ========== STRENGTHS ==========
+  if (strengths.length > 0) {
+    checkPageBreak(30);
+    
+    doc.setFillColor(209, 250, 229);
     doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Exam Overview', 15, yPosition + 6);
-    yPosition += 15;
+    doc.setTextColor(6, 95, 70);
+    doc.text('Strengths', 15, yPosition + 6); // REMOVED emoji
+    yPosition += 12;
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Exam Type: ${result?.exam_type || 'N/A'}`, 15, yPosition);
-    doc.text(`Class/Section: ${result?.class_section || 'N/A'}`, 120, yPosition);
-    yPosition += 8;
-    doc.text(`Score: ${result?.total_marks_obtained || 0} / ${result?.total_marks || 0}`, 15, yPosition);
-    doc.text(`Percentage: ${percentage.toFixed(2)}%`, 120, yPosition);
-    yPosition += 8;
-    doc.text(`Performance: ${performance.label}`, 15, yPosition);
-    doc.text(`Processed: ${formatDate(result?.processed_at)}`, 120, yPosition);
+    doc.setTextColor(0, 0, 0);
+    
+    strengths.forEach((strength) => {
+      const lines = doc.splitTextToSize(`• ${strength}`, pageWidth - 40);
+      lines.forEach(line => {
+        checkPageBreak(8);
+        doc.text(line, 20, yPosition);
+        yPosition += 6;
+      });
+    });
+    yPosition += 5;
+  }
+
+  // ========== AREAS FOR IMPROVEMENT ==========
+  if (improvements.length > 0) {
+    checkPageBreak(30);
+    
+    doc.setFillColor(255, 243, 205);
+    doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(217, 119, 6);
+    doc.text('Areas for Improvement', 15, yPosition + 6); // REMOVED emoji
+    yPosition += 12;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    
+    improvements.forEach((improvement) => {
+      const lines = doc.splitTextToSize(`• ${improvement}`, pageWidth - 40);
+      lines.forEach(line => {
+        checkPageBreak(8);
+        doc.text(line, 20, yPosition);
+        yPosition += 6;
+      });
+    });
+    yPosition += 10;
+  }
+
+  // ========== QUESTIONS SUMMARY TABLE ========== (FIXED: No special characters)
+  if (questionsEvaluation?.questions_evaluation?.length > 0) {
+    checkPageBreak(40);
+    
+    doc.setFillColor(220, 240, 255);
+    doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(13, 110, 253);
+    doc.text('Questions Summary', 15, yPosition + 6); // REMOVED emoji
     yPosition += 15;
 
-    // Performance Progress Bar
-    doc.setFillColor(220, 220, 220);
-    doc.rect(15, yPosition, pageWidth - 30, 10, 'F');
-    doc.setFillColor(0, 193, 212);
-    doc.rect(15, yPosition, ((pageWidth - 30) * percentage) / 100, 10, 'F');
-    doc.setFontSize(9);
+    const tableData = questionsEvaluation.questions_evaluation.map((q, index) => [
+      q.question_number || `Q${index + 1}`,
+      `${q.total_score || 0}`,
+      `${q.max_marks || 0}`,
+      `${q.percentage?.toFixed(1) || 0}%`,
+      q.error_type === 'no_error' ? 'Pass' : 'Fail'
+    ]);
+
+    autoTable(doc, {
+      startY: yPosition,
+      head: [['Question', 'Scored', 'Total', 'Percentage', 'Status']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [102, 126, 234],
+        textColor: 255,
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 9,
+        halign: 'center'
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251]
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 30 },
+        1: { halign: 'center', cellWidth: 30 },
+        2: { halign: 'center', cellWidth: 30 },
+        3: { halign: 'center', cellWidth: 40 },
+        4: { halign: 'center', cellWidth: 30 }
+      }
+    });
+    
+    yPosition = doc.lastAutoTable.finalY + 15;
+  }
+
+  // ========== DETAILED QUESTIONS EVALUATION ==========
+  if (questionsEvaluation?.questions_evaluation?.length > 0) {
+    doc.addPage();
+    yPosition = 20;
+    
+    doc.setFillColor(102, 126, 234);
+    doc.rect(10, yPosition, pageWidth - 20, 10, 'F');
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${percentage.toFixed(1)}%`, pageWidth / 2, yPosition + 6.5, { align: 'center' });
+    doc.setTextColor(255, 255, 255);
+    doc.text('Detailed Questions Evaluation', 15, yPosition + 7); // REMOVED emoji
     yPosition += 20;
 
-    // Strengths Section
-    if (strengths.length > 0) {
-      doc.setFillColor(212, 237, 218);
-      doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+    questionsEvaluation.questions_evaluation.forEach((question, index) => {
+      checkPageBreak(80); // More space for detailed sections
+      
+      const qPercentage = question.percentage || 0;
+      let statusColor, statusText;
+      
+      if (qPercentage === 100) {
+        statusColor = [16, 185, 129];
+        statusText = 'Correct';
+      } else if (qPercentage === 0) {
+        statusColor = [239, 68, 68];
+        statusText = 'Incorrect';
+      } else {
+        statusColor = [245, 158, 11];
+        statusText = 'Partially Correct';
+      }
+      
+      // Question Header Box
+      doc.setFillColor(249, 250, 251);
+      doc.setDrawColor(229, 231, 235);
+      doc.roundedRect(10, yPosition, pageWidth - 20, 20, 3, 3, 'FD');
+      
+      // Question Number Circle
+      doc.setFillColor(102, 126, 234);
+      doc.circle(20, yPosition + 10, 6, 'F');
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(25, 135, 84);
-      doc.text('✓ Strengths', 15, yPosition + 6);
-      yPosition += 12;
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(255, 255, 255);
+      doc.text(`${question.question_number || index + 1}`, 20, yPosition + 12, { align: 'center' });
+      
+      // Status Badge
+      doc.setFillColor(...statusColor);
+      doc.roundedRect(35, yPosition + 5, 40, 10, 2, 2, 'F');
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(statusText, 37, yPosition + 12);
+      
+      // Score
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      strengths.forEach((strength, index) => {
-        if (yPosition > pageHeight - 20) {
-          doc.addPage();
-          yPosition = 20;
-        }
-        doc.text(`• ${strength}`, 20, yPosition);
-        yPosition += 6;
-      });
+      doc.text(`Score: ${question.total_score || 0}/${question.max_marks || 0}`, pageWidth - 50, yPosition + 10);
+      
+      // Percentage
+      doc.setFontSize(10);
+      doc.setTextColor(...statusColor);
+      doc.text(`${qPercentage.toFixed(1)}%`, pageWidth - 50, yPosition + 16);
+      
+      yPosition += 25;
+      
+      // Question Text (FIXED: LaTeX conversion)
+      checkPageBreak(30);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Question:', 15, yPosition);
       yPosition += 5;
-    }
-
-    // Areas for Improvement Section
-    if (improvements.length > 0) {
-      if (yPosition > pageHeight - 40) {
-        doc.addPage();
-        yPosition = 20;
-      }
-
-      doc.setFillColor(255, 243, 205);
-      doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 193, 7);
-      doc.text('⚠ Areas for Improvement', 15, yPosition + 6);
-      yPosition += 12;
-
-      doc.setFontSize(10);
+      
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      improvements.forEach((improvement, index) => {
-        if (yPosition > pageHeight - 20) {
-          doc.addPage();
-          yPosition = 20;
-        }
-        doc.text(`• ${improvement}`, 20, yPosition);
-        yPosition += 6;
+      const questionText = question.question || 'N/A';
+      const cleanQuestionText = convertLatexToText(questionText); // LATEX CONVERSION
+      const questionLines = doc.splitTextToSize(cleanQuestionText, pageWidth - 30);
+      
+      questionLines.forEach(line => {
+        checkPageBreak(8);
+        doc.text(line, 15, yPosition);
+        yPosition += 5;
       });
-      yPosition += 10;
-    }
-
-    // Questions Summary Table
-    if (questionsEvaluation?.questions_evaluation?.length > 0) {
-      if (yPosition > pageHeight - 60) {
-        doc.addPage();
-        yPosition = 20;
+      
+      yPosition += 3;
+      
+      // Concepts Required (FIXED: Extract concept names properly)
+      if (question.concepts_required && question.concepts_required.length > 0) {
+        checkPageBreak(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Concepts Required:', 15, yPosition);
+        yPosition += 5;
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        question.concepts_required.forEach(concept => {
+          checkPageBreak(6);
+          const conceptName = getConceptName(concept); // EXTRACT NAME
+          doc.text(`• ${conceptName}`, 20, yPosition);
+          yPosition += 5;
+        });
       }
+      
+      yPosition += 5;
+      
+      // MISTAKES MADE SECTION (NEW)
+      if (question.mistakes_made && question.mistakes_made !== 'None') {
+        checkPageBreak(25);
+        
+        doc.setFillColor(254, 226, 226);
+        doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(239, 68, 68);
+        doc.text('Mistakes Made:', 15, yPosition + 6);
+        yPosition += 12;
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        
+        const mistakesText = convertLatexToText(question.mistakes_made);
+        const mistakesLines = doc.splitTextToSize(mistakesText, pageWidth - 40);
+        
+        mistakesLines.forEach(line => {
+          checkPageBreak(6);
+          doc.text(line, 20, yPosition);
+          yPosition += 5;
+        });
+        
+        yPosition += 5;
+      }
+      
+      // GAP ANALYSIS SECTION (NEW)
+      if (question.gap_analysis && question.gap_analysis !== 'No gaps identified') {
+        checkPageBreak(25);
+        
+        doc.setFillColor(254, 243, 199);
+        doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(245, 158, 11);
+        doc.text('Gap Analysis:', 15, yPosition + 6);
+        yPosition += 12;
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        
+        const gapText = convertLatexToText(question.gap_analysis);
+        const gapLines = doc.splitTextToSize(gapText, pageWidth - 40);
+        
+        gapLines.forEach(line => {
+          checkPageBreak(6);
+          doc.text(line, 20, yPosition);
+          yPosition += 5;
+        });
+        
+        yPosition += 5;
+      }
+      
+      yPosition += 5;
+      
+      // Separator line
+      if (index < questionsEvaluation.questions_evaluation.length - 1) {
+        doc.setDrawColor(229, 231, 235);
+        doc.line(10, yPosition, pageWidth - 10, yPosition);
+        yPosition += 10;
+      }
+    });
+  }
 
-      doc.setFillColor(220, 240, 255);
-      doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(13, 110, 253);
-      doc.text('📊 Questions Summary', 15, yPosition + 6);
-      yPosition += 15;
+  // ========== FOOTER ON ALL PAGES ==========
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(107, 114, 128);
+    doc.text(
+      `Generated: ${new Date().toLocaleString()} | Page ${i} of ${totalPages}`,
+      pageWidth / 2,
+      pageHeight - 10,
+      { align: 'center' }
+    );
+  }
 
-      const tableData = questionsEvaluation.questions_evaluation.map((q, index) => [
-        q.question_number || `Q${index + 1}`,
-        `${q.total_score || 0} / ${q.max_marks || 0}`,
-        `${q.percentage?.toFixed(1) || 0}%`,
-        q.error_type === 'no_error' ? 'Pass' : 'Fail'
-      ]);
-
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['Question', 'Marks', 'Percentage', 'Status']],
-        body: tableData,
-        theme: 'striped',
-        headStyles: {
-          fillColor: [0, 193, 212],
-          textColor: 255,
-          fontStyle: 'bold',
-          halign: 'center'
-        },
-        columnStyles: {
-          0: { halign: 'center', cellWidth: 30 },
-          1: { halign: 'center', cellWidth: 40 },
-          2: { halign: 'center', cellWidth: 40 },
-          3: { halign: 'center' }
-        },
-        styles: {
-          fontSize: 9,
-          cellPadding: 5
-        },
-        alternateRowStyles: {
-          fillColor: [245, 245, 245]
-        }
-      });
-    }
-
-    // Footer
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(128, 128, 128);
-      doc.text(
-        `Page ${i} of ${totalPages} | Generated: ${new Date().toLocaleDateString()}`,
-        pageWidth / 2,
-        pageHeight - 10,
-        { align: 'center' }
-      );
-    }
-
-    // Save PDF
-    doc.save(`Exam_Details_${result?.exam_name || result?.exam || 'Exam'}_${Date.now()}.pdf`);
-  };
+  // Save PDF
+  const filename = `${result?.exam_name?.replace(/[^a-z0-9]/gi, '_') || 'Exam'}_Details_${new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(filename);
+};
 
   return (
     <Modal 
-      show={show} 
-      onHide={onHide} 
-      size="xl" 
-      fullscreen={isFullscreen}
-      scrollable 
-      centered={!isFullscreen}
-      className="exam-details-modal"
-    >
+  show={show} 
+  onHide={onHide} 
+  size="xl" 
+  fullscreen={isFullscreen}
+  scrollable 
+  centered={!isFullscreen}
+  className={`exam-details-modal ${showQuestions ? 'questions-loaded' : ''}`}
+>
       <Modal.Header closeButton className="exam-modal-header">
         <Modal.Title className="exam-modal-title">
           <FontAwesomeIcon icon={faFileAlt} className="me-3" />
@@ -689,50 +1013,41 @@ const ExamDetailsModal = ({ show, onHide, result }) => {
       </Modal.Body>
 
       <Modal.Footer className="exam-modal-footer">
-        <Button variant="secondary" onClick={onHide} className="btn-action">
-          Close
-        </Button>
-        
-        {/* PDF Download Button */}
-        {showQuestions && (
-          <Button
-            variant="success"
-            onClick={downloadPDF}
-            className="btn-action btn-download"
-          >
-            <FontAwesomeIcon icon={faDownload} className="me-2" />
-            Download PDF
-          </Button>
-        )}
-        
-        {(result?.result_id || result?.student_id || result?.id) && (
-          <Button
-            variant="primary"
-            onClick={fetchQuestionsEvaluation}
-            disabled={loadingQuestions}
-            className="btn-action btn-view"
-          >
-            {loadingQuestions ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="me-2"
-                />
-                Loading...
-              </>
-            ) : (
-              <>
-                <FontAwesomeIcon icon={faEye} className="me-2" />
-                View Questions
-              </>
-            )}
-          </Button>
-        )}
-      </Modal.Footer>
+  <Button variant="secondary" onClick={onHide} className="btn-action">
+    Close
+  </Button>
+  
+  {/* Download PDF - Always visible once questions are loaded */}
+  {showQuestions && questionsEvaluation && (
+    <Button
+      variant="success"
+      onClick={downloadPDF}
+      className="btn-action btn-download"
+    >
+      <FontAwesomeIcon icon={faDownload} className="me-2" />
+      Download PDF
+    </Button>
+  )}
+   
+  {/* Loading state */}
+  {loadingQuestions && (
+    <Button
+      variant="primary"
+      disabled
+      className="btn-action btn-view"
+    >
+      <Spinner
+        as="span"
+        animation="border"
+        size="sm"
+        role="status"
+        aria-hidden="true"
+        className="me-2"
+      />
+      Loading Questions...
+    </Button>
+  )}
+</Modal.Footer>
     </Modal>
   );
 };
