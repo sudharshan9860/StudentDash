@@ -1,5 +1,6 @@
 // src/components/ChatBox.jsx
 import React, { useEffect, useContext, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -14,6 +15,7 @@ import {
   faChartLine,
   faExclamationTriangle,
   faBook,
+  faGraduationCap,
 } from "@fortawesome/free-solid-svg-icons";
 import "katex/dist/katex.min.css";
 import { InlineMath } from "react-katex";
@@ -25,6 +27,7 @@ import { AuthContext } from './AuthContext';
 import axiosInstance from "../api/axiosInstance";
 import MarkdownViewer from "./MarkdownViewer";
 import { useCurrentQuestion } from "../contexts/CurrentQuestionContext";
+import { useTutorial } from "../contexts/TutorialContext";
 
 // ====== API BASE ======
 const API_URL = "https://chatbot.smartlearners.ai";
@@ -56,10 +59,12 @@ const formatMessage = (text) => {
 
 // ====== Main Component ======
 const ChatBox = () => {
+  const navigate = useNavigate();
   const { username } = useContext(AuthContext);
   const { showAlert, AlertContainer } = useAlert();
   const className = localStorage.getItem("className");
   const { currentQuestion } = useCurrentQuestion();
+  const { resetTutorial, startTutorialForPage } = useTutorial();
   const includeQuestionContext = (() => {
     const stored = localStorage.getItem("include_question_context");
     return stored === null ? true : stored === "true";
@@ -109,15 +114,23 @@ const ChatBox = () => {
   const suggestionQuestions = [
     {
       text: "What is my progress?",
-      icon: faChartLine
+      icon: faChartLine,
+      isTutorial: false,
     },
     {
       text: "What are my weaknesses?",
-      icon: faExclamationTriangle
+      icon: faExclamationTriangle,
+      isTutorial: false,
     },
     {
       text: "Give remedial program for 1 week as per my weaknesses",
-      icon: faBook
+      icon: faBook,
+      isTutorial: false,
+    },
+    {
+      text: "Start Tutorial Walkthrough",
+      icon: faGraduationCap,
+      isTutorial: true,
     },
   ];
 
@@ -138,16 +151,16 @@ const ChatBox = () => {
   // ====== Session handling ======
   const fetchStudentData = async () => {
     try {
-      console.log("Fetching student data for:", username)
+      // console.log("Fetching student data for:", username)
       const response = await axiosInstance.post("dummy/", {
         homework: "true",
         agentic_data: "true",
       })
 
-      console.log("✅ Student Data Response:", response.data)
+      // console.log("✅ Student Data Response:", response.data)
 
       if (response.data && response.data[username]) {
-        console.log("📦 Student data found for", username)
+        // console.log("📦 Student data found for", username)
         return response.data[username]
       } else {
         console.warn("⚠ No student data found for", username)
@@ -161,10 +174,10 @@ const ChatBox = () => {
 
   const fetchExamData = async () => {
     try {
-      console.log("Fetching student data for:", username)
+      // console.log("Fetching student data for:", username)
       const response = await axiosInstance.get("questions-evaluated/")
 
-      console.log("✅ Student Data Response:", response.data)
+      // console.log("✅ Student Data Response:", response.data)
 
       if (response.data) {
         console.log("📦 Student data found for", username)
@@ -181,18 +194,18 @@ const ChatBox = () => {
 
   const fetchStudentDataAndCreateSession = async () => {
     setConnectionStatus("checking")
-    console.log("Fetching student data and creating session for:", username)
+    // console.log("Fetching student data and creating session for:", username)
 
     try {
       const data = await fetchStudentData()
       const examdata = await fetchExamData()
-      console.log("Fetched exam data:", examdata)
+      // console.log("Fetched exam data:", examdata)
 
       let filteredData = null
       if (data) {
         filteredData = data
         setStudentInfo(filteredData)
-        console.log("✅ Student data fetched:", filteredData)
+        // console.log("✅ Student data fetched:", filteredData)
       } else {
         console.warn("⚠️ No student data found for", username)
       }
@@ -217,10 +230,10 @@ const ChatBox = () => {
         data: studentData || {},
       }
 
-     console.log("Creating session with student info:", filteredStudentInfo);
-console.log("Student ID:", localStorage.getItem("fullName") || username || "guest_user");
-console.log("Exam data:", examData);
-console.log("Class name:", className || "default_class");
+    //  console.log("Creating session with student info:", filteredStudentInfo);
+// console.log("Student ID:", localStorage.getItem("fullName") || username || "guest_user");
+// console.log("Exam data:", examData);
+// console.log("Class name:", className || "default_class");
 
 // Create FormData object
 const formData = new FormData();
@@ -231,7 +244,7 @@ formData.append("class_name", className || "default_class");
 
 // Log formData entries for debugging
 for (let [key, value] of formData.entries()) {
-  console.log(`${key}:`, value);
+  // console.log(`${key}:`, value);
 }
 
 // Send the request using FormData
@@ -242,13 +255,13 @@ const res = await api.post("/create_session", formData, {
 });
 
 
-      console.log("create_session response:", res.data)
+      // console.log("create_session response:", res.data)
 
       if (!res.data?.session_id) throw new Error("No session_id")
 
       setSessionId(res.data.session_id)
       setConnectionStatus("connected")
-      console.log("Session created successfully:", res.data.session_id)
+      // console.log("Session created successfully:", res.data.session_id)
 
     } catch (e) {
       console.error("create_session error:", e)
@@ -427,9 +440,38 @@ const res = await api.post("/create_session", formData, {
   };
 
   // ====== Message senders ======
-  const handleSuggestionClick = async (suggestionText) => {
+  const handleSuggestionClick = async (suggestion) => {
+    // Handle tutorial button click
+    if (suggestion.isTutorial) {
+      // Show confirmation message
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          text: "🎓 Tutorial started! I'll guide you through the platform. Navigating to dashboard...",
+          sender: "ai",
+          timestamp: new Date(),
+        },
+      ]);
+
+      // Close the chatbot and start tutorial
+      setTimeout(() => {
+        setIsOpen(false);
+        // Reset any previous tutorial state
+        resetTutorial();
+        // Navigate to dashboard
+        navigate('/student-dash');
+        // Start the tutorial after a short delay to ensure navigation completes
+        setTimeout(() => {
+          startTutorialForPage('studentDash');
+        }, 300);
+      }, 500);
+      return;
+    }
+
+    // Handle regular suggestions
     if (!sessionId || connectionStatus !== "connected" || isTyping) return;
-    await sendMessageBase(suggestionText, null);
+    await sendMessageBase(suggestion.text, null);
   };
 
   const sendImageWithCommand = async (command) => {
@@ -686,9 +728,14 @@ const res = await api.post("/create_session", formData, {
                 <button
                   key={index}
                   className="suggestion-chip"
-                  onClick={() => handleSuggestionClick(suggestion.text)}
-                  disabled={connectionStatus !== "connected" || isTyping}
-                  title={`Ask: ${suggestion.text}`}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  disabled={!suggestion.isTutorial && (connectionStatus !== "connected" || isTyping)}
+                  title={suggestion.isTutorial ? "Start guided tutorial" : `Ask: ${suggestion.text}`}
+                  style={suggestion.isTutorial ? {
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    fontWeight: '600',
+                  } : {}}
                 >
                   <FontAwesomeIcon icon={suggestion.icon} className="suggestion-icon" />
                   <span>{suggestion.text}</span>

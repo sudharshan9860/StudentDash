@@ -314,7 +314,7 @@ const ExamAnalytics = () => {
               </svg>
             </div>
             <div>
-              <h1 className="header-title">📊 Exam Analytics</h1>
+              <h1 className="exam-header-title">📊 Exam Analytics</h1>
               <p className="header-subtitle">View and analyze all your exam results</p>
             </div>
           </div>

@@ -177,15 +177,13 @@ const ExamCorrection = () => {
         },
       });
 
-      console.log('Exam correction response:', response.data);
+      // console.log('Exam correction response:', response.data);
       
       setSuccess(true);
       setProcessingStatus('Processing exam in background...');
       
       // Show success message for 30 seconds, then redirect
-      setTimeout(() => {
-        navigate('/exam-analytics');
-      }, 30000);
+    
 
     } catch (error) {
       console.error('Error submitting exam correction:', error);
@@ -228,7 +226,7 @@ const ExamCorrection = () => {
             </svg>
           </div>
           <div>
-            <h1 className="header-title">📝 Exam Correction Hub</h1>
+            <h1 className="correction-header-title">📝 Exam Correction Hub</h1>
             <p className="header-subtitle">Upload question papers and answer sheets for automated grading</p>
           </div>
         </div>

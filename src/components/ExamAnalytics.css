@@ -1,4 +1,4 @@
-/* ExamAnalytics.css - FIXED VERSION */
+
 /* Fixes: Removed horizontal scroll, optimized table layout */
 
 .exam-analytics-dashboard {
@@ -60,7 +60,7 @@
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
-.header-title {
+.exam-header-title {
   font-size: 1.75rem;
   font-weight: 700;
   color: #1f2937;
@@ -668,7 +668,7 @@
     grid-template-columns: 1fr;
   }
 
-  .header-title {
+  .exam-header-title {
     font-size: 1.5rem;
   }
 
@@ -691,7 +691,7 @@
     height: 50px;
   }
 
-  .header-title {
+  .exam-header-title {
     font-size: 1.25rem;
   }
 
