@@ -1,3 +1,4 @@
+// Enhanced StudentDash.jsx - Modern Design with Better UX and Chapter Debugging - FIXED
 import React, { useState, useEffect, useContext } from "react";
 import 'katex/dist/katex.min.css';
 import { Form, Button, Row, Col, Container } from "react-bootstrap";
@@ -35,11 +36,24 @@ import {
 import UnifiedSessions from "./UnifiedSessions";
 import StreakTracker from "./StreakTracker";
 import LiveNotifications from "./LiveNotifications";
+import Tutorial from "./Tutorial";
+import { useTutorial } from "../contexts/TutorialContext";
 
 function StudentDash() {
   const navigate = useNavigate();
-  const { username, fullName } = useContext(AuthContext);
+  const { username, fullName, role } = useContext(AuthContext);
   const { showAlert, AlertContainer } = useAlert();
+
+  // Tutorial context
+  const {
+    shouldShowTutorialForPage,
+    continueTutorialFlow,
+    completeTutorialFlow,
+    startTutorialFromToggle,
+    startTutorialForPage,
+    tutorialFlow,
+    completedPages,
+  } = useTutorial();
 
   // Dark mode state with improved persistence
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -118,6 +132,40 @@ function StudentDash() {
     localStorage.setItem('darkMode', newMode.toString());
     document.body.classList.toggle('dark-mode', newMode);
   };
+  const tutorialSteps = [
+    {
+      target: '.greeting-content',
+      content: 'Welcome to your Student Dashboard! Let me guide you through how to get started with solving questions.',
+      disableBeacon: true,
+    },
+    {
+      target: '#formClass',
+      content: 'First, select your class from this dropdown. Your class should be pre-selected based on your username.',
+    },
+    {
+      target: '#formSubject',
+      content: 'Next, choose the subject you want to study. Mathematics is usually selected by default.',
+    },
+    {
+      target: '.chapters-select-final',
+      content: 'Select one or more chapters you want to practice. You can select multiple chapters at once!',
+    },
+    {
+      target: '#formQuestionType',
+      content: 'Choose the type of questions: Solved Examples (to learn), Exercises (to practice), or Worksheets (for tests).',
+    },
+    {
+      target: '.button--mimas',
+      content: 'Finally, click this button to generate questions based on your selections. You\'ll see a list of available questions!',
+    },
+  ];
+
+  // Handle tutorial completion for StudentDash
+  const handleTutorialComplete = () => {
+    // console.log("StudentDash tutorial completed");
+    // Don't mark as complete yet - will continue to next page when user clicks generate
+  };
+
 
   // Apply dark mode on component mount
   useEffect(() => {
@@ -373,7 +421,7 @@ useEffect(() => {
             topicid: selectedChapters[0], // Using first chapter for subtopics
             external: true,
           });
-          console.log("Subtopics response:", response);
+          // console.log("Subtopics response:", response);
           setSubTopics(response.data.subtopics || []);
         } catch (error) {
           console.error("Error fetching subtopics:", error);
@@ -400,7 +448,7 @@ useEffect(() => {
             topicid: selectedChapters[0], // Using first chapter for worksheets
             worksheets: true,
           });
-          console.log("Worksheets response:", response);
+          // console.log("Worksheets response:", response);
           setWorksheets(response.data.worksheets || []);
         } catch (error) {
           console.error("Error fetching worksheets:", error);
@@ -445,11 +493,11 @@ useEffect(() => {
     requestData.worksheet_name = questionType === "worksheets" ? selectedWorksheet : null;
   }
 
-  console.log("📤 Request data for question generation:", requestData);
+  // console.log("📤 Request data for question generation:", requestData);
 
   try {
     const response = await axiosInstance.post("/question-images/", requestData);
-    console.log("📥 Response data:", response.data);
+    // console.log("📥 Response data:", response.data);
 
     // Process questions with images and context
     const questionsWithImages = (response.data.questions || []).map((question, index) => ({
@@ -463,7 +511,7 @@ useEffect(() => {
         : null,
     }));
     
-    console.log("✅ Processed questions with images:", questionsWithImages);
+    // console.log("✅ Processed questions with images:", questionsWithImages);
     setQuestionList(questionsWithImages);
     setSelectedQuestions([]);
 
@@ -477,7 +525,7 @@ useEffect(() => {
 
   // Enhanced question click handler
   const handleQuestionClick = (question, index, image, question_id, context) => {
-    console.log("Question clicked:", { question, index, image, question_id, context });
+    // console.log("Question clicked:", { question, index, image, question_id, context });
 
     setShowQuestionList(false);
 
@@ -731,6 +779,27 @@ useEffect(() => {
                         year: 'numeric'
                       })}</span>
                     </div>
+                    {/* Tutorial Toggle Button */}
+                    <button
+                      className="tutorial-toggle-btn"
+                      onClick={() => startTutorialForPage("studentDash")}
+                      title="Start Tutorial"
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        color: 'white',
+                        cursor: 'pointer',
+                        marginRight: '8px',
+                        transition: 'transform 0.2s',
+                      }}
+                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                    >
+                      <FontAwesomeIcon icon={faQuestionCircle} style={{ marginRight: '5px' }} />
+                      Tutorial
+                    </button>
                     {/* Dark Mode Toggle Button */}
                     <button
                       className="dark-mode-toggle-btn"
@@ -813,7 +882,7 @@ useEffect(() => {
                         <Col md={6}>
                           <Form.Group controlId="formChapters">
                             <Form.Label>
-                              <FontAwesomeIcon icon={faListAlt} className="me-2" />
+                              <FontAwesomeIcon icon={faListAlt} className="chapter-select me-2" />
                               Chapters (Select Multiple) - {chapters.length} Available
                             </Form.Label>
 
@@ -857,7 +926,7 @@ useEffect(() => {
                                 // CRITICAL: Portal-specific styling
                                 menuPortal: (provided) => ({
                                   ...provided,
-                                  zIndex: 99999,
+                                  zIndex: 9990,
                                 }),
                                 menu: (provided) => ({
                                   ...provided,
@@ -1106,7 +1175,7 @@ useEffect(() => {
                 </div>
 
                 {/* Recent Sessions */}
-                <UnifiedSessions />
+          { role==="student" &&   ( <UnifiedSessions />)}
               </div>
               {/* Right Side - Sidebar (1 part) */}
               <div className="dashboard-right-sidebar">
@@ -1131,6 +1200,14 @@ useEffect(() => {
           worksheetName={questionType === "worksheets" ? selectedWorksheet : ""}
 
         />
+
+        {/* Tutorial Component */}
+        {shouldShowTutorialForPage("studentDash") && (
+          <Tutorial
+            steps={tutorialSteps}
+            onComplete={handleTutorialComplete}
+          />
+        )}
       </div>
     </>
   );
