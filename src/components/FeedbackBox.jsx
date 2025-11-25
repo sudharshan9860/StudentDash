@@ -8,23 +8,24 @@ import {
   faUpload,
   faComment,
   faComments,
-  
+  faStar,
 } from "@fortawesome/free-solid-svg-icons";
+import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 import "./FeedbackBox.css";
 import { useAlert } from './AlertBox';
 import { AuthContext } from './AuthContext';
 import axiosInstance from "../api/axiosInstance";
 
-const FeedbackBox = () => {
+const FeedbackBox = ({ isOpen = false, onClose = () => {} }) => {
   const { username } = useContext(AuthContext);
   const { showAlert, AlertContainer } = useAlert();
-  const [isOpen, setIsOpen] = useState(false);
-  const toggleFeedback = () => setIsOpen((o) => !o);
 
   const [feedbackText, setFeedbackText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [hoveredStar, setHoveredStar] = useState(0);
   const fileInputRef = useRef(null);
 
   const handleFileButtonClick = () => fileInputRef.current?.click();
@@ -56,15 +57,27 @@ const FeedbackBox = () => {
 
   const submitFeedback = async (e) => {
     e.preventDefault();
-    if (!feedbackText.trim() && !selectedFile) return;
+
+    // Validation: rating is required
+    if (rating === 0) {
+      showAlert("Please select a star rating", "warning");
+      return;
+    }
+
+    // If rating is 1 or 2, text feedback is required
+    if ((rating === 1 || rating === 2) && !feedbackText.trim()) {
+      showAlert("Please provide text feedback for low ratings", "warning");
+      return;
+    }
 
     setIsSubmitting(true);
-    
+
     try {
       const formData = new FormData();
       formData.append("message", feedbackText.trim());
+      formData.append("rating", rating.toString());
 
-      
+
       if (selectedFile) {
         formData.append("feedback_image", selectedFile, selectedFile.name);
       }
@@ -76,12 +89,14 @@ const FeedbackBox = () => {
 
       // Success feedback
       showAlert("Thank you for your feedback! We appreciate your input.", "success");
-      
+
       // Reset form
       setFeedbackText("");
+      setRating(0);
+      setHoveredStar(0);
       clearSelectedFile();
-      setIsOpen(false);
-      
+      onClose();
+
     } catch (error) {
       console.error("Error submitting feedback:", error);
       showAlert("Sorry, there was an error submitting your feedback. Please try again.", "error");
@@ -93,23 +108,19 @@ const FeedbackBox = () => {
   return (
     <>
       <AlertContainer />
-      <div className="feedback-box-container">
-      {/* Floating Feedback Toggle */}
-      <button
-        className={`feedback-toggle-btn ${isOpen ? "open" : ""}`}
-        onClick={toggleFeedback}
-        title={isOpen ? "Close feedback" : "Send feedback"}
-      >
-        <FontAwesomeIcon icon={isOpen ? faTimes : faComments} />
-        {!isOpen && <span className="feedback-label">Feedback</span>}
-      </button>
+
+      {/* Overlay backdrop */}
+      <div
+        className={`feedback-overlay ${isOpen ? "active" : ""}`}
+        onClick={onClose}
+      />
 
       {/* Feedback Window */}
       <div className={`feedback-box ${isOpen ? "open" : ""}`}>
         {/* Header */}
         <div className="feedback-header">
           <h5>💬 Send Feedback</h5>
-          <button className="close-btn" onClick={toggleFeedback}>
+          <button className="close-btn" onClick={onClose}>
             <FontAwesomeIcon icon={faTimes} />
           </button>
         </div>
@@ -117,17 +128,65 @@ const FeedbackBox = () => {
         {/* Feedback Form */}
         <div className="feedback-content">
           <Form onSubmit={submitFeedback}>
+            {/* Star Rating */}
             <Form.Group className="mb-3">
-              <Form.Label>Your feedback:</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={4}
-                placeholder="Tell us about your experience, suggestions, or report an issue..."
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                disabled={isSubmitting}
-              />
+              <Form.Label>Rate your experience:</Form.Label>
+              <div className="star-rating-container">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    className={`star-button ${star <= (hoveredStar || rating) ? 'active' : ''}`}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoveredStar(star)}
+                    onMouseLeave={() => setHoveredStar(0)}
+                    disabled={isSubmitting}
+                    aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                  >
+                    <FontAwesomeIcon
+                      icon={star <= (hoveredStar || rating) ? faStar : faStarRegular}
+                      className="star-icon"
+                    />
+                  </button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <div className="rating-message">
+                  {rating <= 2 && "We're sorry to hear that. Please tell us how we can improve."}
+                  {rating === 3 && "Thanks for your feedback! Let us know what we can do better."}
+                  {rating >= 4 && "Great! We're glad you're enjoying it!"}
+                </div>
+              )}
             </Form.Group>
+
+            {/* Conditional Feedback Text */}
+            <div
+              className={`feedback-textarea-wrapper ${
+                rating === 0 ? 'hidden' : rating >= 3 ? 'optional' : 'required'
+              }`}
+            >
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  Your feedback{rating >= 3 ? ' (optional):' : ':'}
+                  {rating >= 1 && rating <= 2 && (
+                    <span className="required-indicator"> *</span>
+                  )}
+                </Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  placeholder={
+                    rating <= 2
+                      ? "Please tell us what went wrong and how we can improve..."
+                      : "Tell us about your experience, suggestions, or report an issue..."
+                  }
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  disabled={isSubmitting}
+                  required={rating >= 1 && rating <= 2}
+                />
+              </Form.Group>
+            </div>
 
             {/* Image Preview */}
             {previewUrl && (
@@ -174,7 +233,11 @@ const FeedbackBox = () => {
               {/* Submit button */}
               <Button
                 type="submit"
-                disabled={isSubmitting || (!feedbackText.trim() && !selectedFile)}
+                disabled={
+                  isSubmitting ||
+                  rating === 0 ||
+                  ((rating === 1 || rating === 2) && !feedbackText.trim())
+                }
                 title="Send feedback"
                 className="flex-grow-1"
               >
@@ -185,7 +248,6 @@ const FeedbackBox = () => {
           </Form>
         </div>
       </div>
-    </div>
     </>
   );
 };

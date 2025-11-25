@@ -1459,13 +1459,16 @@
 }
 
 /* Ensure all text elements inherit proper colors */
+.overview-container{
 p, span, div {
   color: inherit;
 }
-
+}
 /* Ensure all headers are visible */
+.overview-container{
 h2, h3, h4 {
   color: #1f2937 !important;
+}
 }
 
 /* Fix for Recharts axis labels with animation */

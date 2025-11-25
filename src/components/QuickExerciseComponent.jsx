@@ -6,6 +6,7 @@ import QuestionListModal from './QuestionListModal';
 import './QuickExerciseComponent.css';
 import MarkdownWithMath from "./MarkdownWithMath";
 import { useAlert } from './AlertBox';
+import { getImageSrc } from '../utils/imageUtils';
 
 const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
   const { showAlert, AlertContainer } = useAlert();
@@ -375,7 +376,7 @@ const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
           ...question,
           question: question.question,
           image: question.question_image
-            ? `data:image/png;base64,${question.question_image}`
+            ? `${question.question_image}`
             : null,
         }));
 
@@ -677,7 +678,8 @@ const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
                   <MarkdownWithMath content={q.question} />
                   {q.image && (
                     <div className="question-image-small">
-                      <img src={q.image} alt={`Question ${idx + 1}`} />
+                      <img src={getImageSrc(q.question_image
+)} alt={`Question ${idx + 1}`} />
                     </div>
                   )}
                 </li>
@@ -826,7 +828,8 @@ const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
                 <MarkdownWithMath content={q.question} />
                 {q.image && (
                   <div className="question-image-small">
-                    <img src={q.image} alt={`Question ${idx + 1}`} />
+                    <img src={getImageSrc(q.question_image
+)} alt={`Question ${idx + 1}`} />
                   </div>
                 )}
               </li>

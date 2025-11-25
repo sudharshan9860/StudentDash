@@ -22,6 +22,7 @@ import RouteTracker from "../components/RouteTracker"; // ✅ new import
 import StudentAnalytics from "../components/StudentAnalytics";
 import ExamCorrection from "../components/ExamCorrection";
 import ExamAnalytics from "../components/ExamAnalytics";
+import ChatRoom from "../components/ChatRoom";
 
 
 const AppRoutes = () => {
@@ -211,6 +212,19 @@ const AppRoutes = () => {
         />
 
         {/* Fallback for unknown paths */}
+        <Route path="*" element={<LoginPage />} />
+        <Route
+          path="/chat"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ChatRoom />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        {/* Fallback route */}
         <Route path="*" element={<LoginPage />} />
       </Routes>
     </>

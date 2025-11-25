@@ -9,6 +9,9 @@ import Tutorial from './Tutorial';
 import { useTutorial } from '../contexts/TutorialContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
+import Mascot from './Mascot';
+import { getImageSrc } from '../utils/imageUtils';
+// import { useMascot } from '../contexts/MascotContext';
 
 const ResultPage = () => {
   const location = useLocation();
@@ -25,6 +28,9 @@ const ResultPage = () => {
     startTutorialFromToggle,
     startTutorialForPage,
   } = useTutorial();
+
+  // Mascot context
+  // const { setEmotionFromScore } = useMascot();
 
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -134,6 +140,16 @@ const ResultPage = () => {
     console.log("ResultPage tutorial completed - marking entire flow as complete");
     completeTutorialFlow();
   };
+
+  // Set mascot emotion based on score
+  // useEffect(() => {
+  //   if (obtained_marks !== undefined && total_marks !== undefined) {
+  //     setEmotionFromScore(obtained_marks, total_marks);
+  //   } else if (score !== undefined) {
+  //     // If score is provided as percentage
+  //     setEmotionFromScore(score, 100);
+  //   }
+  // }, [obtained_marks, total_marks, score, setEmotionFromScore]);
 
   // Apply dark mode on component mount and listen for changes
   useEffect(() => {
@@ -488,8 +504,8 @@ const ResultPage = () => {
               <p className="solution-header">AI Solution:</p>
               {question_image_base64 && (
                 <div className="solution-image-container">
-                  <img 
-                    src={`data:image/jpeg;base64,${question_image_base64}`}
+                  <img
+                    src={getImageSrc(question_image_base64, 'image/jpeg')}
                     alt="Solution diagram"
                     className="solution-image"
                   />
@@ -522,8 +538,8 @@ const ResultPage = () => {
             <p className="solution-header">AI Solution:</p>
             {question_image_base64 && (
               <div className="solution-image-container">
-                <img 
-                  src={`data:image/jpeg;base64,${question_image_base64}`}
+                <img
+                  src={getImageSrc(question_image_base64, 'image/jpeg')}
                   alt="Solution diagram"
                   className="solution-image"
                 />
@@ -727,8 +743,8 @@ const ResultPage = () => {
                 <div className="student-images">
                   {allStudentImages.map((imageData, index) => (
                     <div key={index} className="student-image-wrapper">
-                      <img 
-                        src={imageData.src}
+                      <img
+                        src={getImageSrc(imageData.src)}
                         alt={imageData.label}
                         className="student-solution-image"
                         onError={(e) => {
@@ -773,8 +789,8 @@ const ResultPage = () => {
                 <p><strong>Question {questionNumber}:</strong> <MarkdownWithMath content={question} /></p>
                 {questionImage && (
                   <div className="question-image-container">
-                    <img 
-                      src={questionImage}
+                    <img
+                      src={getImageSrc(questionImage)}
                       alt="Question"
                       className="question-image"
                     />
@@ -811,6 +827,9 @@ const ResultPage = () => {
           onComplete={handleTutorialComplete}
         />
       )} */}
+
+      {/* Mascot Component */}
+      {/* <Mascot position="bottom-right" mode="3d" /> */}
     </>
   );
 };

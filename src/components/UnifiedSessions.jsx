@@ -67,20 +67,31 @@ const UnifiedSessions = () => {
 
   const navigate = useNavigate();
 
-// Detect dark mode changes
+// Detect dark mode changes - OPTIMIZED to prevent forced reflow
 useEffect(() => {
-  setIsDarkMode(document.body.classList.contains('dark-mode'));
-  
-  const observer = new MutationObserver(() => {
-    setIsDarkMode(document.body.classList.contains('dark-mode'));
-  });
-  
-  observer.observe(document.body, {
-    attributes: true,
-    attributeFilter: ['class']
-  });
-  
-  return () => observer.disconnect();
+  // Initial dark mode check from localStorage (more efficient than DOM query)
+  const darkModeValue = localStorage.getItem('darkMode') === 'true';
+  setIsDarkMode(darkModeValue);
+
+  // Listen for custom dark mode events instead of MutationObserver
+  const handleDarkModeChange = (e) => {
+    setIsDarkMode(e.detail?.isDarkMode || false);
+  };
+
+  // Listen for storage events (for cross-tab synchronization)
+  const handleStorageChange = (e) => {
+    if (e.key === 'darkMode') {
+      setIsDarkMode(e.newValue === 'true');
+    }
+  };
+
+  window.addEventListener('darkModeChange', handleDarkModeChange);
+  window.addEventListener('storage', handleStorageChange);
+
+  return () => {
+    window.removeEventListener('darkModeChange', handleDarkModeChange);
+    window.removeEventListener('storage', handleStorageChange);
+  };
 }, []);
 
   // Fetch based on active tab

@@ -6,6 +6,7 @@ import { AuthContext } from './AuthContext';
 import CameraCapture from './CameraCapture';
 import './HomeworkSubmissionForm.css';
 import MarkdownWithMath from './MarkdownWithMath';
+import { getImageSrc } from '../utils/imageUtils';
 
 const HomeworkSubmissionForm = () => {
   const [imageFiles, setImageFiles] = useState([]); // Changed from single file to array
@@ -229,7 +230,7 @@ const HomeworkSubmissionForm = () => {
 
                   {question.image && (
                     <img
-                      src={question.image}
+                      src={getImageSrc(question.image)}
                       alt={`Question ${index + 1}`}
                       className="question-image"
                     />

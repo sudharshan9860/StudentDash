@@ -9,6 +9,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import './SessionDetails.css';
 import MarkdownWithMath from './MarkdownWithMath';
+import { getImageSrc } from '../utils/imageUtils';
 
 const SessionDetails = ({ show, onHide, session }) => {
   // Format date to a readable format
@@ -220,9 +221,7 @@ const SessionDetails = ({ show, onHide, session }) => {
             {session.question_image_base64 && session.question_image_base64 !== "No image for question" && (
               <div className="text-center">
                 <img 
-                  src={session.question_image_base64.startsWith('data:') 
-                    ? session.question_image_base64 
-                    : `data:image/jpeg;base64,${session.question_image_base64}`}
+                  src={getImageSrc(session.question_image_base64)}
                   alt="Question" 
                   className="question-image"
                 />

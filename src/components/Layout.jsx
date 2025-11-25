@@ -14,14 +14,15 @@ import {
   faBars,
   faTimes,
   faHome,
-
-  faCommentDots
+  faCommentDots,
+  faComments
 } from '@fortawesome/free-solid-svg-icons';
 import './Layout.css';
 import { AuthContext } from './AuthContext';
 import NotificationDropdown from './NotificationDropdown';
 import SoundConfigModal from './SoundConfigModal';
 import { soundManager } from '../utils/SoundManager';
+import FeedbackBox from './FeedbackBox';
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
@@ -34,6 +35,9 @@ const Layout = ({ children }) => {
 
   // Mobile sidebar toggle
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Feedback modal state
+  const [showFeedback, setShowFeedback] = useState(false);
 
   // Check if current route is teacher dashboard
   const isTeacherDashboard = currentLocation.pathname === '/teacher-dash';
@@ -66,7 +70,7 @@ const Layout = ({ children }) => {
   const studentLinks = [
     { path: '/student-dash', label: 'Dashboard', icon: faHome },
     { path: '/analytics', label: 'Analytics', icon: faChartLine },
-    // { path: '/leaderboard', label: 'Leaderboard', icon: faTrophy },
+    { path: '/chat', label: 'Chat Rooms', icon: faComments }, // <-- Chat link for students
   ];
 
   const teacherLinks = [
@@ -80,6 +84,8 @@ const Layout = ({ children }) => {
     { path: '/teacher-dash?tab=class', label: 'Class Analysis', icon: '📊', tabName: 'class' },
     { path: '/teacher-dash?tab=student', label: 'Student Analysis', icon: '👤', tabName: 'student' },
     { path: '/teacher-dash?tab=progress', label: 'Progress', icon: '📈', tabName: 'progress' },
+    // Teachers may not need chat UI for 'A' option, but you can include if desired:
+    // { path: '/chat', label: 'Chat Rooms', icon: faComments },
   ];
 
   // Get the appropriate links based on role
@@ -171,12 +177,15 @@ const Layout = ({ children }) => {
             </li> */}
 
             {/* Feedback menu item */}
-            {/* <li className="sidebar-menu-item">
-              <a className="sidebar-menu-link">
+            <li className="sidebar-menu-item">
+              <div
+                className={`sidebar-menu-link ${showFeedback ? 'active' : ''}`}
+                onClick={() => setShowFeedback(!showFeedback)}
+              >
                 <FontAwesomeIcon icon={faCommentDots} className="sidebar-menu-icon" />
                 <span className="sidebar-menu-text">Feedback</span>
-              </a>
-            </li> */}
+              </div>
+            </li>
           </ul>
         </nav>
 
@@ -215,6 +224,12 @@ const Layout = ({ children }) => {
       <SoundConfigModal
         show={showSoundConfig}
         onHide={() => setShowSoundConfig(false)}
+      />
+
+      {/* Feedback Box */}
+      <FeedbackBox
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
       />
     </div>
   );

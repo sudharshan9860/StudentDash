@@ -80,7 +80,7 @@ const handleQuestionClick = (questionData, index) => {
     const selectedQuestion = {
       question: questionData.question,
       image: questionData.question_image
-        ? `data:image/png;base64,${questionData.question_image}`
+        ? `${questionData.question_image}`
         : null,
       question_id: questionData.question_id || questionData.id || index,
       context: questionData.context || null,
@@ -118,7 +118,7 @@ const handleQuestionClick = (questionData, index) => {
       if (questionData.question_image.startsWith('data:image')) {
         imageUrl = questionData.question_image;
       } else {
-        imageUrl = `data:image/png;base64,${questionData.question_image}`;
+        imageUrl = `${questionData.question_image}`;
       }
     }
 
@@ -155,7 +155,7 @@ const handleQuestionClick = (questionData, index) => {
         if (questionData.question_image.startsWith('data:image')) {
           imageUrl = questionData.question_image;
         } else {
-          imageUrl = `data:image/png;base64,${questionData.question_image}`;
+          imageUrl = `${questionData.question_image}`;
         }
       }
 
@@ -298,13 +298,10 @@ const handleQuestionClick = (questionData, index) => {
                       <div className="question-image-preview">
                         <img
                            src={
-                            questionData.question_image?.startsWith("data:image")
-                              ? questionData.question_image // already base64 format
-                              : questionData.question_image?.startsWith("http")
+                            questionData.question_image?.startsWith("http")
                               ? questionData.question_image // direct URL
-                              : questionData.question_image
-                              ? `data:image/png;base64,${questionData.question_image}` // plain base64 without prefix
-                              : "" // fallback if null
+                              :`data:image/png;base64,${questionData.question_image}` // plain base64 without prefix
+                            // fallback if null
                           }
                           alt={`Question ${index + 1}`}
                           className="preview-image"
