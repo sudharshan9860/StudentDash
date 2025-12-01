@@ -1,0 +1,701 @@
+/* ChatbotMascot.css - Enhanced Styling with Half Body and Hand Animations */
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+.chatbot-mascot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: default;
+  user-select: none;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.chatbot-mascot[role="button"] {
+  cursor: pointer;
+}
+
+.chatbot-mascot[role="button"]:hover {
+  transform: scale(1.08);
+}
+
+.chatbot-mascot[role="button"]:active {
+  transform: scale(0.95);
+}
+
+.chatbot-mascot[role="button"]:focus-visible {
+  outline: 2px solid #00BCD4;
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+
+.chatbot-mascot__svg {
+  display: block;
+  overflow: visible;
+}
+
+/* ============================================
+   SIZE VARIANTS (slightly larger for half body)
+   ============================================ */
+
+.chatbot-mascot--small { width: 40px; height: 40px; }
+.chatbot-mascot--medium { width: 56px; height: 56px; }
+.chatbot-mascot--large { width: 72px; height: 72px; }
+.chatbot-mascot--xlarge { width: 96px; height: 96px; }
+
+/* ============================================
+   SPEECH BUBBLE - FIXED POSITIONING
+   Only visible when chat is open
+   ============================================ */
+
+.chatbot-mascot__speech-bubble {
+  position: absolute;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid #00BCD4;
+  border-radius: 16px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1e293b;
+  white-space: nowrap;
+  box-shadow: 
+    0 4px 12px rgba(0, 188, 212, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  animation: speechBubbleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  max-width: 200px;
+  text-align: center;
+}
+
+.chatbot-mascot__speech-bubble--small {
+  font-size: 10px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  max-width: 150px;
+}
+
+.chatbot-mascot__speech-bubble--medium {
+  font-size: 11px;
+  padding: 7px 12px;
+  max-width: 180px;
+}
+
+.chatbot-mascot__speech-bubble--large {
+  font-size: 12px;
+  padding: 8px 14px;
+  max-width: 200px;
+}
+
+.chatbot-mascot__speech-bubble--xlarge {
+  font-size: 13px;
+  padding: 10px 16px;
+  max-width: 220px;
+}
+
+@keyframes speechBubbleIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* ============================================
+   SPEECH BUBBLE POSITION VARIANTS
+   ============================================ */
+
+/* TOP position (default) */
+.chatbot-mascot__speech-bubble--top {
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.chatbot-mascot__speech-bubble-tail--top {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #00BCD4;
+}
+
+.chatbot-mascot__speech-bubble-tail--top::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -6px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #ffffff;
+}
+
+/* RIGHT position - for header usage */
+.chatbot-mascot__speech-bubble--right {
+  bottom: auto;
+  top: 50%;
+  left: calc(100% + 12px);
+  transform: translateY(-50%);
+  animation: speechBubbleInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.chatbot-mascot__speech-bubble-tail--right {
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #00BCD4;
+}
+
+.chatbot-mascot__speech-bubble-tail--right::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: -6px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 6px solid #ffffff;
+}
+
+@keyframes speechBubbleInRight {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-10px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+  }
+}
+
+/* BOTTOM position */
+.chatbot-mascot__speech-bubble--bottom {
+  top: calc(100% + 8px);
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: speechBubbleInBottom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.chatbot-mascot__speech-bubble-tail--bottom {
+  position: absolute;
+  top: -8px;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #00BCD4;
+}
+
+.chatbot-mascot__speech-bubble-tail--bottom::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: -6px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #ffffff;
+}
+
+@keyframes speechBubbleInBottom {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* Dark mode speech bubble */
+.dark-mode .chatbot-mascot__speech-bubble,
+body.dark .chatbot-mascot__speech-bubble {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: #f1f5f9;
+  border-color: #00BCD4;
+}
+
+.dark-mode .chatbot-mascot__speech-bubble-tail--top::after,
+body.dark .chatbot-mascot__speech-bubble-tail--top::after {
+  border-top-color: #1e293b;
+}
+
+.dark-mode .chatbot-mascot__speech-bubble-tail--right::after,
+body.dark .chatbot-mascot__speech-bubble-tail--right::after {
+  border-right-color: #1e293b;
+}
+
+.dark-mode .chatbot-mascot__speech-bubble-tail--bottom::after,
+body.dark .chatbot-mascot__speech-bubble-tail--bottom::after {
+  border-bottom-color: #1e293b;
+}
+
+/* ============================================
+   STATUS INDICATOR
+   ============================================ */
+
+.chatbot-mascot__status {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid white;
+  transition: all 0.3s ease;
+}
+
+.chatbot-mascot--small .chatbot-mascot__status {
+  width: 8px;
+  height: 8px;
+  bottom: 0;
+  right: 0;
+}
+
+.chatbot-mascot--large .chatbot-mascot__status,
+.chatbot-mascot--xlarge .chatbot-mascot__status {
+  width: 12px;
+  height: 12px;
+  bottom: 4px;
+  right: 4px;
+  border-width: 3px;
+}
+
+.chatbot-mascot__status--neutral { background: #78909C; }
+.chatbot-mascot__status--happy { background: #4CAF50; box-shadow: 0 0 8px rgba(76, 175, 80, 0.6); }
+.chatbot-mascot__status--thinking { background: #FF9800; animation: statusPulse 1.5s ease-in-out infinite; }
+.chatbot-mascot__status--excited { background: #E91E63; box-shadow: 0 0 8px rgba(233, 30, 99, 0.6); animation: statusBounce 0.5s ease-in-out infinite; }
+.chatbot-mascot__status--listening { background: #9C27B0; box-shadow: 0 0 8px rgba(156, 39, 176, 0.6); animation: statusPulse 1s ease-in-out infinite; }
+.chatbot-mascot__status--sad { background: #607D8B; }
+.chatbot-mascot__status--waving { background: #4CAF50; box-shadow: 0 0 8px rgba(76, 175, 80, 0.6); }
+.chatbot-mascot__status--curious { background: #2196F3; box-shadow: 0 0 8px rgba(33, 150, 243, 0.6); }
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+@keyframes statusBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* ============================================
+   EXPRESSION-BASED BACKGROUND COLORS
+   ============================================ */
+
+.chatbot-mascot--neutral .chatbot-mascot__bg { fill: rgba(0, 188, 212, 0.05); }
+.chatbot-mascot--happy .chatbot-mascot__bg { fill: rgba(76, 175, 80, 0.1); }
+.chatbot-mascot--thinking .chatbot-mascot__bg { fill: rgba(255, 152, 0, 0.1); }
+.chatbot-mascot--excited .chatbot-mascot__bg { fill: rgba(233, 30, 99, 0.1); }
+.chatbot-mascot--listening .chatbot-mascot__bg { fill: rgba(156, 39, 176, 0.1); }
+.chatbot-mascot--sad .chatbot-mascot__bg { fill: rgba(96, 125, 139, 0.1); }
+.chatbot-mascot--waving .chatbot-mascot__bg { fill: rgba(0, 188, 212, 0.1); }
+.chatbot-mascot--curious .chatbot-mascot__bg { fill: rgba(33, 150, 243, 0.1); }
+
+/* ============================================
+   HAND ANIMATIONS
+   ============================================ */
+
+/* Thinking hand - subtle movement */
+.chatbot-mascot--animated .chatbot-mascot__hand--think {
+  animation: thinkingHand 2s ease-in-out infinite;
+}
+
+@keyframes thinkingHand {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Waving hand animation */
+.chatbot-mascot--animated .chatbot-mascot__hand--wave {
+  animation: wavingHand 0.6s ease-in-out infinite;
+  transform-origin: 65px 75px;
+}
+
+@keyframes wavingHand {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(15deg); }
+}
+
+/* Thumbs up pulse */
+.chatbot-mascot--animated .chatbot-mascot__hand--thumbsup {
+  animation: thumbsUpPulse 1s ease-in-out infinite;
+}
+
+@keyframes thumbsUpPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Celebrate hands */
+.chatbot-mascot--animated .chatbot-mascot__hand--celebrate {
+  animation: celebrateHands 0.5s ease-in-out infinite;
+}
+
+@keyframes celebrateHands {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(-3deg); }
+  75% { transform: translateY(-3px) rotate(3deg); }
+}
+
+/* Celebrate stars animation */
+.chatbot-mascot--animated .chatbot-mascot__celebrate-star {
+  animation: celebrateStar 0.8s ease-in-out infinite;
+}
+
+.chatbot-mascot--animated .chatbot-mascot__celebrate-star--delayed {
+  animation-delay: 0.4s;
+}
+
+@keyframes celebrateStar {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* Ear cupping hand */
+.chatbot-mascot--animated .chatbot-mascot__hand--ear {
+  animation: earCupHand 1.5s ease-in-out infinite;
+}
+
+@keyframes earCupHand {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-2px); }
+}
+
+/* Pointing hand bounce */
+.chatbot-mascot--animated .chatbot-mascot__hand--point {
+  animation: pointingHand 1s ease-in-out infinite;
+}
+
+@keyframes pointingHand {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ============================================
+   HEAD ANIMATIONS
+   ============================================ */
+
+/* Head bobbing */
+.chatbot-mascot--animated .chatbot-mascot__head--bobbing {
+  animation: headBob 0.6s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes headBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-2px) rotate(-2deg); }
+  75% { transform: translateY(-2px) rotate(2deg); }
+}
+
+/* ============================================
+   EYE ANIMATIONS
+   ============================================ */
+
+/* Eye blink animation */
+.chatbot-mascot--animated .chatbot-mascot__eyes--blink .chatbot-mascot__eye {
+  animation: eyeBlink 4s ease-in-out infinite;
+}
+
+.chatbot-mascot--animated .chatbot-mascot__eyes--blink .chatbot-mascot__eye--right {
+  animation-delay: 0.1s;
+}
+
+@keyframes eyeBlink {
+  0%, 45%, 55%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.1); }
+}
+
+/* Eye squint (happy) */
+.chatbot-mascot--animated .chatbot-mascot__eyes--squint {
+  animation: eyeSquintBlink 3s ease-in-out infinite;
+}
+
+@keyframes eyeSquintBlink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.3); }
+}
+
+/* Eyes look around (thinking) */
+.chatbot-mascot--animated .chatbot-mascot__eyes--look-around {
+  animation: eyesLookAround 3s ease-in-out infinite;
+}
+
+@keyframes eyesLookAround {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(2px) translateY(-1px); }
+  60% { transform: translateX(-1px) translateY(0); }
+}
+
+/* Eye sparkle (excited) */
+.chatbot-mascot--animated .chatbot-mascot__eyes--sparkle .chatbot-mascot__eye {
+  animation: eyeSparkle 0.8s ease-in-out infinite;
+}
+
+@keyframes eyeSparkle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Eye focus (listening) */
+.chatbot-mascot--animated .chatbot-mascot__eyes--focus {
+  animation: eyeFocus 2s ease-in-out infinite;
+}
+
+@keyframes eyeFocus {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05) translateY(1px); }
+}
+
+/* Droopy eyes (sad) */
+.chatbot-mascot--animated .chatbot-mascot__eyes--droopy .chatbot-mascot__eye {
+  animation: eyeDroop 4s ease-in-out infinite;
+}
+
+@keyframes eyeDroop {
+  0%, 100% { transform: scaleY(0.9) translateY(1px); }
+  50% { transform: scaleY(0.85) translateY(2px); }
+}
+
+/* Wide eyes (curious) */
+.chatbot-mascot--animated .chatbot-mascot__eyes--wide .chatbot-mascot__eye {
+  animation: eyeWide 2s ease-in-out infinite;
+}
+
+@keyframes eyeWide {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* ============================================
+   EXTRA ELEMENT ANIMATIONS
+   ============================================ */
+
+/* Thought bubbles floating */
+.chatbot-mascot--animated .chatbot-mascot__thought-bubbles {
+  animation: thoughtFloat 2s ease-in-out infinite;
+}
+
+@keyframes thoughtFloat {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-4px); opacity: 0.7; }
+}
+
+.chatbot-mascot--animated .chatbot-mascot__thought-bubbles circle:nth-child(1) {
+  animation: bubblePop 2s ease-in-out infinite;
+}
+.chatbot-mascot--animated .chatbot-mascot__thought-bubbles circle:nth-child(2) {
+  animation: bubblePop 2s ease-in-out 0.2s infinite;
+}
+.chatbot-mascot--animated .chatbot-mascot__thought-bubbles circle:nth-child(3) {
+  animation: bubblePop 2s ease-in-out 0.4s infinite;
+}
+
+@keyframes bubblePop {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 0.9; }
+}
+
+/* Sparkles */
+.chatbot-mascot--animated .chatbot-mascot__sparkle {
+  animation: sparkleShine 1.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.chatbot-mascot--animated .chatbot-mascot__sparkle--delayed {
+  animation-delay: 0.5s;
+}
+
+@keyframes sparkleShine {
+  0%, 100% { transform: scale(0.8) rotate(0deg); opacity: 0.6; }
+  50% { transform: scale(1.2) rotate(45deg); opacity: 1; }
+}
+
+/* Stars */
+.chatbot-mascot--animated .chatbot-mascot__star {
+  animation: starTwinkle 1s ease-in-out infinite;
+}
+
+.chatbot-mascot--animated .chatbot-mascot__star--delayed {
+  animation-delay: 0.3s;
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Sound waves */
+.chatbot-mascot--animated .chatbot-mascot__wave {
+  animation: soundWave 1.5s ease-out infinite;
+}
+
+.chatbot-mascot--animated .chatbot-mascot__wave--delayed {
+  animation-delay: 0.3s;
+}
+
+@keyframes soundWave {
+  0% { opacity: 0.8; transform: scale(0.8); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+
+/* Question mark */
+.chatbot-mascot--animated .chatbot-mascot__question {
+  animation: questionBounce 1s ease-in-out infinite;
+}
+
+@keyframes questionBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Headband glow */
+.chatbot-mascot--animated .chatbot-mascot__headband {
+  animation: headbandGlow 3s ease-in-out infinite;
+}
+
+@keyframes headbandGlow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
+}
+
+/* Blush pulse */
+.chatbot-mascot--animated.chatbot-mascot--happy .chatbot-mascot__blush,
+.chatbot-mascot--animated.chatbot-mascot--excited .chatbot-mascot__blush {
+  animation: blushPulse 2s ease-in-out infinite;
+}
+
+@keyframes blushPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.9; }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .chatbot-mascot__status { border-color: #1e293b; }
+  .chatbot-mascot--happy .chatbot-mascot__bg { fill: rgba(76, 175, 80, 0.15); }
+  .chatbot-mascot--thinking .chatbot-mascot__bg { fill: rgba(255, 152, 0, 0.15); }
+  .chatbot-mascot--excited .chatbot-mascot__bg { fill: rgba(233, 30, 99, 0.15); }
+  .chatbot-mascot--listening .chatbot-mascot__bg { fill: rgba(156, 39, 176, 0.15); }
+}
+
+.dark-mode .chatbot-mascot__status,
+body.dark .chatbot-mascot__status {
+  border-color: #1e293b;
+}
+
+.dark-mode .chatbot-mascot__headband,
+body.dark .chatbot-mascot__headband {
+  filter: drop-shadow(0 0 6px rgba(0, 188, 212, 0.5));
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .chatbot-mascot,
+  .chatbot-mascot * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================
+   CHATBOX INTEGRATION HELPERS
+   ============================================ */
+
+/* Header Layout */
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header-info h5 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.chat-header-status {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* AI Message with Avatar */
+.ai-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .chat-header-left {
+    gap: 8px;
+  }
+  
+  .chat-header-info h5 {
+    font-size: 13px;
+  }
+  
+  .chat-header-status {
+    font-size: 10px;
+  }
+  
+  /* Smaller mascot on mobile */
+  .chatbot-mascot--large {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  .chatbot-mascot { display: none; }
+}

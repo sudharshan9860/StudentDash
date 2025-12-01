@@ -235,8 +235,8 @@ const isScienceSubject = () => {
 
 // Complete mapping of question types with IDs
 const QUESTION_TYPE_MAPPING = [
-  { id: "1", value: 'activity_based_questions', label: 'Activity Based Questions' },
-  { id: "2", value: 'conceptual_questions', label: 'Conceptual Questions' },
+  { id: "1", value: 'conceptual_questions', label: 'Conceptual Questions' },
+  { id: "2", value: 'activity_based_questions', label: 'Activity Based Questions' },
   { id: "3", value: 'diagram_based_questions', label: 'Diagram Based Questions' },
   { id: "4", value: 'fill_in_the_blanks', label: 'Fill in the Blanks' },
   { id: "5", value: 'matching_questions', label: 'Matching Questions' },

@@ -1,0 +1,163 @@
+/* ============================================
+   Login Mascot Styles - Emoji Expression Version
+   ============================================ */
+
+.login-mascot-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.login-mascot-svg {
+  width: 130px;
+  height: 143px;
+  filter: drop-shadow(0 6px 16px rgba(0, 172, 193, 0.25));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+/* State-specific styling */
+.login-mascot-container.idle .login-mascot-svg {
+  animation: gentleBounce 3s ease-in-out infinite;
+}
+
+.login-mascot-container.thinking .login-mascot-svg {
+  filter: drop-shadow(0 6px 20px rgba(255, 193, 7, 0.35));
+  animation: thinkingTilt 2s ease-in-out infinite;
+}
+
+.login-mascot-container.covering .login-mascot-svg {
+  filter: drop-shadow(0 6px 16px rgba(233, 30, 99, 0.25));
+}
+
+.login-mascot-container.peeking .login-mascot-svg {
+  filter: drop-shadow(0 6px 20px rgba(255, 152, 0, 0.4));
+  animation: peekBounce 0.5s ease-out;
+}
+
+.login-mascot-container.celebrating .login-mascot-svg {
+  filter: drop-shadow(0 8px 25px rgba(76, 175, 80, 0.4));
+  animation: celebrateBounce 0.5s ease-in-out infinite;
+}
+
+/* Gentle idle bounce */
+@keyframes gentleBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Thinking tilt animation */
+@keyframes thinkingTilt {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  25% {
+    transform: rotate(2deg) translateY(-2px);
+  }
+  75% {
+    transform: rotate(-1deg) translateY(-1px);
+  }
+}
+
+/* Peek bounce */
+@keyframes peekBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Celebrate bounce */
+@keyframes celebrateBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-8px) rotate(3deg);
+  }
+}
+
+/* Confetti animations */
+.confetti rect {
+  transform-origin: center;
+}
+
+/* Sparkle animations */
+.celebrate-sparkles text {
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+}
+
+/* Arm transitions */
+.left-arm, .right-arm {
+  transition: transform 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .login-mascot-svg {
+    width: 110px;
+    height: 121px;
+  }
+  
+  .login-mascot-container {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-mascot-svg {
+    width: 90px;
+    height: 99px;
+  }
+  
+  .login-mascot-container {
+    margin-bottom: 10px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .login-mascot-svg {
+    animation: none !important;
+  }
+  
+  .login-mascot-container.idle .login-mascot-svg,
+  .login-mascot-container.thinking .login-mascot-svg,
+  .login-mascot-container.celebrating .login-mascot-svg {
+    animation: none;
+  }
+  
+  .confetti rect {
+    animation: none !important;
+    opacity: 0.7;
+  }
+  
+  .celebrate-sparkles text {
+    animation: none !important;
+  }
+}
+
+/* Smooth transitions for SVG elements */
+.login-mascot-svg path,
+.login-mascot-svg ellipse,
+.login-mascot-svg circle,
+.login-mascot-svg rect,
+.login-mascot-svg polygon {
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}

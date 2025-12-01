@@ -1,5 +1,5 @@
-// src/components/ChatBox.jsx
-import React, { useEffect, useContext, useRef, useState, useImperativeHandle, forwardRef } from "react";
+// src/components/ChatBox.jsx - COMPLETE WITH ENHANCED HALF-BODY MASCOT
+import React, { useEffect, useContext, useRef, useState, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -21,23 +21,23 @@ import {
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import "katex/dist/katex.min.css";
-import { InlineMath } from "react-katex";
 import axios from "axios";
 import MarkdownWithMath from "./MarkdownWithMath";
 import "./ChatBox.css";
 import { useAlert } from './AlertBox';
 import { AuthContext } from './AuthContext';
 import axiosInstance from "../api/axiosInstance";
-import MarkdownViewer from "./MarkdownViewer";
 import { useCurrentQuestion } from "../contexts/CurrentQuestionContext";
 import { useTutorial } from "../contexts/TutorialContext";
 import { getImageSrc } from "../utils/imageUtils";
-// import { useMascot } from "../contexts/MascotContext";
+
+// ✅ ENHANCED HALF-BODY MASCOT WITH HANDS
+import ChatbotMascot, { MascotMessages } from './ChatbotMascot';
+import './ChatbotMascot.css';
 
 // ====== API BASE ======
 const API_URL = "https://chatbot.smartlearners.ai";
 
-// Axios client (no login cookies; pure session-based)
 const api = axios.create({
   baseURL: API_URL,
   timeout: 300000,
@@ -66,11 +66,8 @@ const VideoListComponent = ({ videos }) => {
 
   const openYouTubeVideo = (url) => {
     try {
-      // For web app, simply open the YouTube URL directly in a new tab
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      console.error("Error opening video:", error);
-      // Fallback: try opening without the third parameter
       window.open(url, '_blank');
     }
   };
@@ -82,7 +79,6 @@ const VideoListComponent = ({ videos }) => {
           {videoGroup.concept_name && (
             <h6 className="video-concept-title">{videoGroup.concept_name}</h6>
           )}
-
           {videoGroup.videos && videoGroup.videos.map((video, videoIndex) => (
             <div
               key={`${groupIndex}-${videoIndex}`}
@@ -91,9 +87,7 @@ const VideoListComponent = ({ videos }) => {
               role="button"
               tabIndex={0}
               onKeyPress={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  openYouTubeVideo(video.url);
-                }
+                if (e.key === 'Enter' || e.key === ' ') openYouTubeVideo(video.url);
               }}
             >
               <div className="video-icon">
@@ -101,23 +95,14 @@ const VideoListComponent = ({ videos }) => {
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                 </svg>
               </div>
-
               <div className="video-info">
                 <div className="video-title">{video.title}</div>
-
                 <div className="video-meta">
-                  {video.channel && (
-                    <span className="video-meta-item">📺 {video.channel}</span>
-                  )}
-                  {video.duration && (
-                    <span className="video-meta-item">⏱️ {video.duration}</span>
-                  )}
-                  {video.views && (
-                    <span className="video-meta-item">👁️ {video.views}</span>
-                  )}
+                  {video.channel && <span className="video-meta-item">📺 {video.channel}</span>}
+                  {video.duration && <span className="video-meta-item">⏱️ {video.duration}</span>}
+                  {video.views && <span className="video-meta-item">👁️ {video.views}</span>}
                 </div>
               </div>
-
               <div className="video-arrow">
                 <FontAwesomeIcon icon={faCheckCircle} style={{ opacity: 0.6 }} />
               </div>
@@ -129,8 +114,6 @@ const VideoListComponent = ({ videos }) => {
   );
 };
 
-
-
 // ====== Main Component ======
 const ChatBox = forwardRef((props, ref) => {
   const navigate = useNavigate();
@@ -140,13 +123,12 @@ const ChatBox = forwardRef((props, ref) => {
   const className = localStorage.getItem("className");
   const { currentQuestion, questionMetadata } = useCurrentQuestion();
   const { resetTutorial, startTutorialForPage } = useTutorial();
-  // const { setTeaching, setThinking, setHappy } = useMascot();
+
   const includeQuestionContext = (() => {
     const stored = localStorage.getItem("include_question_context");
     return stored === null ? true : stored === "true";
   })();
 
-  // Check if we're on the SolveQuestion page
   const isOnSolveQuestionPage = location.pathname === "/solvequestion";
 
   const [isOpen, setIsOpen] = useState(false);
@@ -170,6 +152,11 @@ const ChatBox = forwardRef((props, ref) => {
   const [isTyping, setIsTyping] = useState(false);
   const [language, setLanguage] = useState("en");
 
+  // ✅ MASCOT STATE
+  const [mascotExpression, setMascotExpression] = useState('neutral');
+  const [mascotMessage, setMascotMessage] = useState('');
+  const [showMascotMessage, setShowMascotMessage] = useState(false);
+
   // Files / image
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -180,68 +167,53 @@ const ChatBox = forwardRef((props, ref) => {
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
 
-  // Image action modal (Solve / Correct)
+  // Image action modal
   const [showImageModal, setShowImageModal] = useState(false);
 
   // Refs
   const messagesEndRef = useRef(null);
   const hasInitialized = useRef(false);
+  const mascotTimeoutRef = useRef(null);
 
   const [inputText, setInputText] = useState("");
 
+  // ✅ MASCOT HELPER - WITH CHAT OPEN CHECK
+  const triggerMascotReaction = (expression, message = '', duration = 3000) => {
+    if (mascotTimeoutRef.current) {
+      clearTimeout(mascotTimeoutRef.current);
+    }
+
+    setMascotExpression(expression);
+    
+    // Only show message if chat is open
+    if (message && isOpen) {
+      setMascotMessage(message);
+      setShowMascotMessage(true);
+    }
+    
+    if (duration > 0) {
+      mascotTimeoutRef.current = setTimeout(() => {
+        setMascotExpression('neutral');
+        setShowMascotMessage(false);
+        setMascotMessage('');
+      }, duration);
+    }
+  };
+
   // ====== Suggestion Questions ======
-  // Different suggestions based on whether we're on SolveQuestion page
   const getSuggestionQuestions = () => {
     if (isOnSolveQuestionPage && currentQuestion) {
       return [
-        {
-          text: "AI-Solution",
-          icon: faRobot,
-          isTutorial: false,
-          isApiAction: true,
-          apiFlag: "solve",
-        },
-        {
-          text: "Concepts-Required and videos",
-          icon: faLightbulb,
-          isTutorial: false,
-          isApiAction: true,
-          apiFlag: "explain",
-        },
-        {
-          text: "Start Tutorial Walkthrough",
-          icon: faGraduationCap,
-          isTutorial: true,
-          isApiAction: false,
-        },
+        { text: "AI-Solution", icon: faRobot, isTutorial: false, isApiAction: true, apiFlag: "solve" },
+        { text: "Concepts-Required and videos", icon: faLightbulb, isTutorial: false, isApiAction: true, apiFlag: "explain" },
+        { text: "Start Tutorial Walkthrough", icon: faGraduationCap, isTutorial: true, isApiAction: false },
       ];
     }
-
     return [
-      {
-        text: "What is my progress?",
-        icon: faChartLine,
-        isTutorial: false,
-        isApiAction: false,
-      },
-      {
-        text: "What are my weaknesses?",
-        icon: faExclamationTriangle,
-        isTutorial: false,
-        isApiAction: false,
-      },
-      {
-        text: "Give remedial program for 1 week as per my weaknesses",
-        icon: faBook,
-        isTutorial: false,
-        isApiAction: false,
-      },
-      {
-        text: "Start Tutorial Walkthrough",
-        icon: faGraduationCap,
-        isTutorial: true,
-        isApiAction: false,
-      },
+      { text: "What is my progress?", icon: faChartLine, isTutorial: false, isApiAction: false },
+      { text: "What are my weaknesses?", icon: faExclamationTriangle, isTutorial: false, isApiAction: false },
+      { text: "Give remedial program for 1 week as per my weaknesses", icon: faBook, isTutorial: false, isApiAction: false },
+      { text: "Start Tutorial Walkthrough", icon: faGraduationCap, isTutorial: true, isApiAction: false },
     ];
   };
 
@@ -252,190 +224,163 @@ const ChatBox = forwardRef((props, ref) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // Initial session creation - wait for username
   useEffect(() => {
     if (hasInitialized.current) return;
-    if (!username) return; // Wait for username to be available
-
+    if (!username) return;
     hasInitialized.current = true;
     fetchStudentDataAndCreateSession();
   }, [username]);
 
+  // ✅ MASCOT REACTS TO TYPING
+  useEffect(() => {
+    if (isTyping) {
+      triggerMascotReaction('thinking', MascotMessages.thinking, 0);
+    } else if (mascotExpression === 'thinking') {
+      triggerMascotReaction('happy', MascotMessages.success, 2500);
+    }
+  }, [isTyping]);
+
+  // ✅ MASCOT GREETING WHEN CHAT OPENS
+  useEffect(() => {
+    if (isOpen && connectionStatus === 'connected') {
+      triggerMascotReaction('waving', MascotMessages.greeting, 3000);
+    }
+    // Hide message when chat closes
+    if (!isOpen) {
+      setShowMascotMessage(false);
+      setMascotMessage('');
+    }
+  }, [isOpen]);
+
+  // ✅ CONNECTION STATUS REACTIONS
+  useEffect(() => {
+    if (connectionStatus === 'connected' && isOpen) {
+      // Already handled by chat open effect
+    } else if (connectionStatus === 'disconnected') {
+      triggerMascotReaction('sad', '', 0);
+    } else if (connectionStatus === 'checking') {
+      triggerMascotReaction('thinking', '', 0);
+    }
+  }, [connectionStatus]);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (mascotTimeoutRef.current) clearTimeout(mascotTimeoutRef.current);
+    };
+  }, []);
+
   // ====== Session handling ======
   const fetchStudentData = async () => {
     try {
-      // console.log("Fetching student data for:", username)
-      const response = await axiosInstance.post("dummy/", {
-        homework: "true",
-        agentic_data: "true",
-      })
-
-      // console.log("✅ Student Data Response:", response.data)
-
-      if (response.data && response.data[username]) {
-        // console.log("📦 Student data found for", username)
-        return response.data[username]
-      } else {
-        console.warn("⚠ No student data found for", username)
-        return null
-      }
+      const response = await axiosInstance.post("dummy/", { homework: "true", agentic_data: "true" });
+      if (response.data && response.data[username]) return response.data[username];
+      return null;
     } catch (error) {
-      console.error("❌ Error fetching student data:", error)
-      return null
+      return null;
     }
-  }
+  };
 
   const fetchExamData = async () => {
     try {
-      // console.log("Fetching student data for:", username)
-      const response = await axiosInstance.get("questions-evaluated/")
-
-      // console.log("✅ Student Data Response:", response.data)
-
-      if (response.data) {
-        console.log("📦 Student data found for", username)
-        return response.data
-      } else {
-        console.warn("⚠ No student data found for", username)
-        return null
-      }
+      const response = await axiosInstance.get("questions-evaluated/");
+      return response.data || null;
     } catch (error) {
-      console.error("❌ Error fetching student data:", error)
-      return null
+      return null;
     }
-  }
+  };
 
   const fetchStudentDataAndCreateSession = async () => {
-    setConnectionStatus("checking")
-    // console.log("Fetching student data and creating session for:", username)
-
+    setConnectionStatus("checking");
     try {
-      const data = await fetchStudentData()
-      const examdata = await fetchExamData()
-      // console.log("Fetched exam data:", examdata)
-
-      let filteredData = null
-      if (data) {
-        filteredData = data
-        setStudentInfo(filteredData)
-        // console.log("✅ Student data fetched:", filteredData)
-      } else {
-        console.warn("⚠️ No student data found for", username)
-      }
-
-      await createSessionWithData(filteredData, examdata)
-
+      const data = await fetchStudentData();
+      const examdata = await fetchExamData();
+      if (data) setStudentInfo(data);
+      await createSessionWithData(data, examdata);
     } catch (err) {
-      console.error("❌ Failed to fetch student data or create session:", err)
-      setConnectionStatus("disconnected")
+      setConnectionStatus("disconnected");
+      triggerMascotReaction('sad', MascotMessages.disconnected, 4000);
       setMessages([{
         id: "conn_fail",
-        text: "⚠️ Unable to connect to AI service right now. Please refresh the page or try again later.",
+        text: "⚠️ Unable to connect to AI service. Please refresh the page.",
         sender: "ai",
         timestamp: new Date(),
-      }])
+      }]);
     }
-  }
+  };
 
   const createSessionWithData = async (studentData, examData) => {
+    triggerMascotReaction('thinking', '', 0);
     try {
-      const filteredStudentInfo = {
-        data: studentData || {},
-      }
+      const formData = new FormData();
+      formData.append("student_name", localStorage.getItem("fullName") || username || "guest_user");
+      formData.append("json_data", JSON.stringify({ data: studentData || {} }));
+      formData.append("exam_data", JSON.stringify(examData || {}));
+      formData.append("class_name", className || "default_class");
 
-    //  console.log("Creating session with student info:", filteredStudentInfo);
-// console.log("Student ID:", localStorage.getItem("fullName") || username || "guest_user");
-// console.log("Exam data:", examData);
-// console.log("Class name:", className || "default_class");
+      const res = await api.post("/create_session", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-// Create FormData object
-const formData = new FormData();
-formData.append("student_name", localStorage.getItem("fullName") || username || "guest_user");
-formData.append("json_data", JSON.stringify(filteredStudentInfo));  // serialize JSON
-formData.append("exam_data", JSON.stringify(examData || {}));       // serialize JSON
-formData.append("class_name", className || "default_class");
-
-// Log formData entries for debugging
-for (let [key, value] of formData.entries()) {
-  // console.log(`${key}:`, value);
-}
-
-// Send the request using FormData
-const res = await api.post("/create_session", formData, {
-  headers: {
-    "Content-Type": "multipart/form-data",
-  },
-});
-
-
-      // console.log("create_session response:", res.data)
-
-      if (!res.data?.session_id) throw new Error("No session_id")
-
-      setSessionId(res.data.session_id)
-      setConnectionStatus("connected")
-      // console.log("Session created successfully:", res.data.session_id)
-
+      if (!res.data?.session_id) throw new Error("No session_id");
+      setSessionId(res.data.session_id);
+      setConnectionStatus("connected");
+      if (isOpen) triggerMascotReaction('happy', MascotMessages.connected, 3000);
     } catch (e) {
-      console.error("create_session error:", e)
-      setConnectionStatus("disconnected")
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: "conn_fail",
-          text: "⚠️ Unable to connect to AI service right now. Please refresh the page or try again later.",
-          sender: "ai",
-          timestamp: new Date(),
-        },
-      ])
+      setConnectionStatus("disconnected");
+      triggerMascotReaction('sad', MascotMessages.disconnected, 4000);
+      setMessages((prev) => [...prev, {
+        id: "conn_fail",
+        text: "⚠️ Unable to connect. Please refresh.",
+        sender: "ai",
+        timestamp: new Date(),
+      }]);
     }
-  }
+  };
 
   const clearChat = async () => {
     if (!sessionId) return;
+    triggerMascotReaction('sad', "Clearing our chat... 🧹", 1500);
     try {
-      await api.delete(`/clear-session/${sessionId}`)
-    } catch (e) {
-      console.error("Failed to clear session:", e);
-    } finally {
-        setMessages([
-          {
-            id: "cleared",
-            text: "🧹 Chat cleared. Starting a fresh session… Ask your next question!",
-            sender: "ai",
-            timestamp: new Date(),
-          },
-        ]);
-      setSessionId(null);
-      setConnectionStatus("checking");
-      // Re-fetch data and create new session
+      await api.delete(`/clear-session/${sessionId}`);
+    } catch (e) {}
+    finally {
+      setTimeout(async () => {
+        setMessages([{
+          id: "cleared",
+          text: "🧹 Chat cleared. Ask your next question!",
+          sender: "ai",
+          timestamp: new Date(),
+        }]);
+        setSessionId(null);
+        setConnectionStatus("checking");
+        triggerMascotReaction('waving', MascotMessages.clearChat, 3000);
         await fetchStudentDataAndCreateSession();
-      }
+      }, 1500);
+    }
   };
 
   // ====== File handlers ======
   const handleFileButtonClick = () => fileInputRef.current?.click();
   const handleFileChange = (e) => handleFile(e.target.files?.[0]);
-
-  const handleText = (e) => {
-    setInputText(e.target.value); // store user input in state
-  };
-
+  const handleText = (e) => setInputText(e.target.value);
 
   const handleFile = (file) => {
     if (!file) return;
     if (!file.type.match("image.*")) {
       showAlert("Please upload an image file", "warning");
+      triggerMascotReaction('curious', "That's not an image! 🤔", 2500);
       return;
     }
     if (file.size > 12 * 1024 * 1024) {
       showAlert("Image must be ≤ 12MB", "warning");
+      triggerMascotReaction('sad', "Image too big! 📸", 2500);
       return;
     }
     setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    setPreviewUrl(URL.createObjectURL(file));
     setShowImageModal(true);
+    triggerMascotReaction('curious', MascotMessages.imageUpload, 2500);
   };
 
   const clearSelectedFile = () => {
@@ -454,31 +399,27 @@ const res = await api.post("/create_session", formData, {
       const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
       recordedChunksRef.current = [];
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) recordedChunksRef.current.push(e.data);
+        if (e.data?.size > 0) recordedChunksRef.current.push(e.data);
       };
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(recordedChunksRef.current, { type: "audio/webm" });
+        triggerMascotReaction('thinking', MascotMessages.processingVoice, 0);
         await processAudioBlob(audioBlob);
-        // stop all tracks
         stream.getTracks().forEach((t) => t.stop());
       };
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.start();
       setIsRecording(true);
+      triggerMascotReaction('listening', MascotMessages.listening, 0);
     } catch (err) {
-      console.error("Failed to start recording:", err);
+      triggerMascotReaction('sad', "Couldn't access mic 🎤", 3000);
     }
   };
 
   const stopRecording = () => {
     if (!isRecording || !mediaRecorderRef.current) return;
-    try {
-      mediaRecorderRef.current.stop();
-    } catch (err) {
-      console.error("Failed to stop recording:", err);
-    } finally {
-      setIsRecording(false);
-    }
+    try { mediaRecorderRef.current.stop(); } catch (err) {}
+    finally { setIsRecording(false); }
   };
 
   const toggleRecording = async () => {
@@ -490,16 +431,7 @@ const res = await api.post("/create_session", formData, {
     if (!sessionId) return;
     const id = Date.now();
     setIsTyping(true);
-    // Show processing placeholder
-    setMessages((prev) => [
-      ...prev,
-      {
-        id,
-        text: "🎙️ Processing audio...",
-        sender: "user",
-        timestamp: new Date(),
-      },
-    ]);
+    setMessages((prev) => [...prev, { id, text: "🎙️ Processing audio...", sender: "user", timestamp: new Date() }]);
 
     try {
       const fd = new FormData();
@@ -507,74 +439,36 @@ const res = await api.post("/create_session", formData, {
       fd.append("language", language);
       fd.append("audio", audioBlob, `recording_${id}.webm`);
 
-      const res = await api.post("/process-audio", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
+      const res = await api.post("/process-audio", fd, { headers: { "Content-Type": "multipart/form-data" } });
       const transcription = res?.data?.transcription || "(no transcription)";
-      const aiText = res?.data?.response || res?.data?.content || "";
-      const audioBase64 = res?.data?.audio_base64 || res?.data?.audio_bytes;
+      const aiText = res?.data?.response || "";
+      const audioBase64 = res?.data?.audio_base64;
       const aiAudioUrl = audioBase64 ? `data:audio/mp3;base64,${audioBase64}` : null;
 
-      // Replace placeholder with actual transcription
       setMessages((prev) => {
         const withoutPlaceholder = prev.filter((m) => m.id !== id);
-        return [
-          ...withoutPlaceholder,
-          {
-            id,
-            text: transcription,
-            sender: "user",
-            timestamp: new Date(),
-          },
-          {
-            id: id + 1,
-            text: aiText,
-            sender: "ai",
-            timestamp: new Date(),
-            audioUrl: aiAudioUrl,
-          },
+        return [...withoutPlaceholder,
+          { id, text: transcription, sender: "user", timestamp: new Date() },
+          { id: id + 1, text: aiText, sender: "ai", timestamp: new Date(), audioUrl: aiAudioUrl }
         ];
       });
     } catch (e) {
-      console.error("processAudio error:", e);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: id + 1,
-          text: "❌ Sorry, I couldn't process the audio. Please try again.",
-          sender: "ai",
-          timestamp: new Date(),
-        },
-      ]);
+      triggerMascotReaction('sad', MascotMessages.error, 3000);
+      setMessages((prev) => [...prev, { id: id + 1, text: "❌ Sorry, couldn't process audio.", sender: "ai", timestamp: new Date() }]);
     } finally {
       setIsTyping(false);
     }
   };
 
-  // ====== Handler for calling anssubmit API ======
+  // ====== API Action Handler ======
   const handleApiAction = async (apiFlag, actionName) => {
     if (!currentQuestion || !questionMetadata) {
-      showAlert("Missing question data. Please refresh the page.", "error");
+      showAlert("Missing question data.", "error");
       return;
     }
 
-    // Set mascot to thinking mode while processing
-    // setThinking();
-
     const id = Date.now();
-
-    // Show user's action in chat
-    setMessages((prev) => [
-      ...prev,
-      {
-        id,
-        text: `Requesting ${actionName}...`,
-        sender: "user",
-        timestamp: new Date(),
-      },
-    ]);
-
+    setMessages((prev) => [...prev, { id, text: `Requesting ${actionName}...`, sender: "user", timestamp: new Date() }]);
     setIsTyping(true);
 
     try {
@@ -584,173 +478,89 @@ const res = await api.post("/create_session", formData, {
       formData.append("topic_ids", questionMetadata.topic_ids);
       formData.append("subtopic", questionMetadata.subtopic || "");
       formData.append("question_id", currentQuestion.question_id || currentQuestion.id);
-      formData.append(apiFlag, true); // solve, explain, or correct
-
-      console.log(`📤 Calling anssubmit/ API with ${apiFlag}:`, {
-        class_id: questionMetadata.class_id,
-        subject_id: questionMetadata.subject_id,
-        topic_ids: questionMetadata.topic_ids,
-        question_id: currentQuestion.question_id || currentQuestion.id,
-        apiFlag,
-      });
+      formData.append(apiFlag, true);
 
       const response = await axiosInstance.post("/anssubmit/", formData);
-
-      console.log("📥 anssubmit/ API response:", response.data);
-
-      // Extract and format the response based on the action type
+      const apiData = response.data.ai_data || response.data;
       let responseText = "";
 
-      // Check if data is nested in ai_data object
-      const apiData = response.data.ai_data || response.data;
-
       if (apiFlag === "solve") {
-        // Handle AI Solution response
         if (apiData.ai_explaination && Array.isArray(apiData.ai_explaination)) {
-          // Format each step with step numbers
-          const formattedSteps = apiData.ai_explaination.map((step, index) => {
-            return `**Step ${index + 1}:**\n\n${step}`;
-          }).join("\n\n---\n\n");
-
+          const formattedSteps = apiData.ai_explaination.map((step, index) => `**Step ${index + 1}:**\n\n${step}`).join("\n\n---\n\n");
           responseText = `##### AI Solution\n\n${formattedSteps}`;
-          console.log("✅ Solve response formatted:", responseText.substring(0, 100) + "...");
         } else {
-          responseText = apiData.solution || apiData.answer || "Solution generated successfully!";
-          console.log("⚠️ No ai_explaination found, using fallback");
+          responseText = apiData.solution || apiData.answer || "Solution generated!";
         }
-        // Set mascot to happy mode after providing solution
-        // setHappy("Here's the solution! Let me know if you need more help!");
       } else if (apiFlag === "explain") {
-        // Handle Concepts-Required response - check both locations
         const conceptsData = apiData.concepts || response.data.concepts;
         const videosData = apiData.videos || response.data.videos;
-
         if (conceptsData && Array.isArray(conceptsData)) {
-          // Format concepts with proper structure
           const conceptsFormatted = conceptsData.map((concept, index) => {
             let formatted = `###### ${index + 1}. ${concept.concept}\n\n`;
-
-            if (concept.explanation) {
-              formatted += `**Explanation:**\n${concept.explanation}\n\n`;
-            }
-
-            if (concept.example) {
-              formatted += `**Example:**\n${concept.example}\n\n`;
-            }
-
-            if (concept.application) {
-              formatted += `**Application:**\n${concept.application}\n\n`;
-            }
-
+            if (concept.explanation) formatted += `**Explanation:**\n${concept.explanation}\n\n`;
+            if (concept.example) formatted += `**Example:**\n${concept.example}\n\n`;
+            if (concept.application) formatted += `**Application:**\n${concept.application}\n\n`;
             return formatted;
           }).join("\n---\n\n");
-
           responseText = `#### Key Concepts Required\n\n${conceptsFormatted}\n`;
-
-          // Add note about videos if available
-          if (videosData && Array.isArray(videosData) && videosData.length > 0) {
-            responseText += `\n\n#### Recommended Videos\n\nClick any video below to watch it on YouTube:`;
-          }
+          if (videosData?.length > 0) responseText += `\n\n#### Recommended Videos`;
         } else {
-          responseText = "Concepts explained successfully!";
-          console.log("⚠️ No concepts found in response");
+          responseText = "Concepts explained!";
         }
-
-        // Set mascot to teaching mode after explaining concepts
-        // setTeaching("Let me explain these concepts to help you understand better!");
-
-        // Display AI response in chat with videos as separate property
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: id + 1,
-            text: responseText,
-            sender: "ai",
-            timestamp: new Date(),
-            videos: videosData && videosData.length > 0 ? videosData : null,
-          },
-        ]);
-        return; // Exit early to avoid duplicate message addition below
+        setMessages((prev) => [...prev, { id: id + 1, text: responseText, sender: "ai", timestamp: new Date(), videos: videosData?.length > 0 ? videosData : null }]);
+        return;
       } else if (apiFlag === "correct") {
         responseText = apiData.correction || apiData.feedback || "Correction completed!";
-        // Set mascot to happy mode after correction
-        // setHappy("I've reviewed your answer! Keep practicing!");
       }
 
-      // Display AI response in chat (for non-explain actions)
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: id + 1,
-          text: responseText,
-          sender: "ai",
-          timestamp: new Date(),
-        },
-      ]);
-
-      // showAlert(`${actionName} completed successfully!`, "success");
+      setMessages((prev) => [...prev, { id: id + 1, text: responseText, sender: "ai", timestamp: new Date() }]);
     } catch (error) {
-      console.error(`❌ Error calling anssubmit/ API with ${apiFlag}:`, error);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: id + 1,
-          text: `❌ Sorry, I couldn't process your ${actionName} request. Please try again.`,
-          sender: "ai",
-          timestamp: new Date(),
-        },
-      ]);
-
-      showAlert(`Failed to get ${actionName}. Please try again.`, "error");
+      triggerMascotReaction('sad', MascotMessages.error, 3000);
+      setMessages((prev) => [...prev, { id: id + 1, text: `❌ Sorry, couldn't process ${actionName}.`, sender: "ai", timestamp: new Date() }]);
+      showAlert(`Failed: ${actionName}`, "error");
     } finally {
       setIsTyping(false);
     }
   };
 
-  // ====== Message senders ======
+  // ====== Message handlers ======
   const handleSuggestionClick = async (suggestion) => {
-    // Handle tutorial button click
     if (suggestion.isTutorial) {
-      // Show confirmation message
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          text: "🎓 Tutorial started! I'll guide you through the platform. Navigating to dashboard...",
-          sender: "ai",
-          timestamp: new Date(),
-        },
-      ]);
-
-      // Close the chatbot and start tutorial
+      triggerMascotReaction('waving', MascotMessages.suggestionTutorial, 0);
+      setMessages((prev) => [...prev, { id: Date.now(), text: "🎓 Tutorial started! Navigating...", sender: "ai", timestamp: new Date() }]);
       setTimeout(() => {
         setIsOpen(false);
-        // Reset any previous tutorial state
         resetTutorial();
-        // Navigate to dashboard
         navigate('/student-dash');
-        // Start the tutorial after a short delay to ensure navigation completes
-        setTimeout(() => {
-          startTutorialForPage('studentDash');
-        }, 300);
+        setTimeout(() => startTutorialForPage('studentDash'), 300);
       }, 500);
       return;
     }
 
-    // Handle API actions (AI-Solution, Concepts-Required, etc.)
     if (suggestion.isApiAction) {
+      const apiMessages = { solve: MascotMessages.suggestionSolve, explain: MascotMessages.suggestionExplain };
+      triggerMascotReaction('thinking', apiMessages[suggestion.apiFlag] || MascotMessages.thinking, 0);
       await handleApiAction(suggestion.apiFlag, suggestion.text);
       return;
     }
 
-    // Handle regular suggestions
     if (!sessionId || connectionStatus !== "connected" || isTyping) return;
+    const suggestionReactions = {
+      "What is my progress?": { expression: 'excited', message: MascotMessages.suggestionProgress },
+      "What are my weaknesses?": { expression: 'thinking', message: MascotMessages.suggestionWeakness },
+      "Give remedial program for 1 week as per my weaknesses": { expression: 'excited', message: MascotMessages.suggestionRemedial },
+    };
+    const reaction = suggestionReactions[suggestion.text];
+    if (reaction) triggerMascotReaction(reaction.expression, reaction.message, 0);
+    else triggerMascotReaction('thinking', MascotMessages.thinking, 0);
     await sendMessageBase(suggestion.text, null);
   };
 
   const sendImageWithCommand = async (command) => {
     setShowImageModal(false);
+    if (command.toLowerCase().includes('solve')) triggerMascotReaction('thinking', MascotMessages.imageSolve, 0);
+    else if (command.toLowerCase().includes('correct')) triggerMascotReaction('thinking', MascotMessages.imageCorrect, 0);
+    else triggerMascotReaction('thinking', MascotMessages.thinking, 0);
     await sendMessageBase(command, selectedFile);
   };
 
@@ -762,129 +572,60 @@ const res = await api.post("/create_session", formData, {
 
   const sendMessageBase = async (text, imageFile) => {
     if (!sessionId) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          text: "Connecting… please try again in a moment.",
-          sender: "ai",
-          timestamp: new Date(),
-        },
-      ]);
+      setMessages((prev) => [...prev, { id: Date.now(), text: "Connecting… try again.", sender: "ai", timestamp: new Date() }]);
       return;
     }
 
     const id = Date.now();
-    setMessages((prev) => [
-      ...prev,
-      {
-        id,
-        text,
-        sender: "user",
-        timestamp: new Date(),
-        image: imageFile ? previewUrl : null,
-      },
-    ]);
+    setMessages((prev) => [...prev, { id, text, sender: "user", timestamp: new Date(), image: imageFile ? previewUrl : null }]);
     setNewMessage("");
     setIsTyping(true);
 
     try {
-      // Build combined query with optional context
       let combinedQuery = `${text || ""}`.trim();
       if (includeQuestionContext && currentQuestion && (currentQuestion.question || currentQuestion.image)) {
         const contextParts = [];
-        if (currentQuestion.question) {
-          contextParts.push(`Question: ${currentQuestion.question}`);
-        }
+        if (currentQuestion.question) contextParts.push(`Question: ${currentQuestion.question}`);
         if (currentQuestion.image) {
-          // Convert image URL to base64 if needed for better LLM understanding
           try {
             const imageBase64 = await getImageSrc(currentQuestion.image);
             contextParts.push(`Question Image: ${imageBase64}`);
           } catch (error) {
-            console.error("Error preparing question image for context:", error);
-            // Fallback to original image data
             contextParts.push(`Question Image: ${currentQuestion.image}`);
           }
         }
-        const contextStr = contextParts.join("\n");
-        combinedQuery = [combinedQuery, contextStr].filter(Boolean).join("\n\nContext:\n");
+        combinedQuery = [combinedQuery, contextParts.join("\n")].filter(Boolean).join("\n\nContext:\n");
       }
 
       if (imageFile) {
-        // Image upload with message
         const fd = new FormData();
         fd.append("session_id", sessionId);
         fd.append("query", combinedQuery || "");
         fd.append("language", language);
         fd.append("image", imageFile, imageFile.name || `image_${Date.now()}.jpg`);
-
-        // Add student context if available
-        if (studentInfo) {
-          // fd.append("student_context", JSON.stringify(studentInfo));
-        }
-
-        const res = await api.post("/chat", fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const res = await api.post("/chat", fd, { headers: { "Content-Type": "multipart/form-data" } });
         const audioBase64 = res?.data?.audio_base64;
-        const aiAudioUrl = audioBase64 ? `data:audio/mp3;base64,${audioBase64}` : null;
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: id + 1,
-            text: res?.data?.response || "I've analyzed your image!",
-            sender: "ai",
-            timestamp: new Date(),
-            audioUrl: aiAudioUrl,
-          },
-        ]);
+        setMessages((prev) => [...prev, { id: id + 1, text: res?.data?.response || "Analyzed!", sender: "ai", timestamp: new Date(), audioUrl: audioBase64 ? `data:audio/mp3;base64,${audioBase64}` : null }]);
       } else {
-        // Text-only message
-        const requestBody = {
-          session_id: sessionId,
-          query: combinedQuery || "",
-          language: language,
-        };
-
-        // Add student context if available
-        // if (studentInfo) {
-        //   requestBody.student_context = studentInfo;
-        // }
-
-        const res = await api.post("/chat-simple", requestBody, {
-          headers: { session_token: sessionId },
-        });
+        const res = await api.post("/chat-simple", { session_id: sessionId, query: combinedQuery || "", language }, { headers: { session_token: sessionId } });
         const audioBase64 = res?.data?.aiAudioUrl;
-        const aiAudioUrl = audioBase64 ? `data:audio/mp3;base64,${audioBase64}` : null;
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: id + 1,
-            text: res?.data?.response || "I received your message!",
-            sender: "ai",
-            timestamp: new Date(),
-            audioUrl: aiAudioUrl,
-          },
-        ]);
+        setMessages((prev) => [...prev, { id: id + 1, text: res?.data?.response || "Received!", sender: "ai", timestamp: new Date(), audioUrl: audioBase64 ? `data:audio/mp3;base64,${audioBase64}` : null }]);
       }
     } catch (e) {
-      console.error("sendMessage error:", e);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: id + 1,
-          text: "❌ Sorry, I couldn't process that right now. Please try again.",
-          sender: "ai",
-          timestamp: new Date(),
-        },
-      ]);
+      triggerMascotReaction('sad', MascotMessages.error, 3000);
+      setMessages((prev) => [...prev, { id: id + 1, text: "❌ Sorry, couldn't process that.", sender: "ai", timestamp: new Date() }]);
     } finally {
       setIsTyping(false);
       clearSelectedFile();
     }
+  };
+
+  // ✅ LANGUAGE CHANGE WITH MASCOT
+  const handleLanguageChange = (e) => {
+    const newLang = e.target.value;
+    setLanguage(newLang);
+    const langMessages = { en: MascotMessages.languageEn, hi: MascotMessages.languageHi, te: MascotMessages.languageTe };
+    triggerMascotReaction('excited', langMessages[newLang] || "Language changed! 🌍", 3000);
   };
 
   // ====== Render ======
@@ -906,18 +647,38 @@ const res = await api.post("/create_session", formData, {
         <div className={`chat-box ${isOpen ? "open" : ""}`}>
           {/* Header */}
           <div className="chat-header">
-            <h5>
-              {`${className} Class`} Math Assistant
-            </h5>
+            {/* ✅ HALF-BODY MASCOT WITH chatOpen PROP AND RIGHT BUBBLE */}
+            <div className="chat-header-left">
+              <ChatbotMascot 
+                expression={mascotExpression}
+                size="large"
+                animated={true}
+                message={mascotMessage}
+                showMessage={showMascotMessage}
+                chatOpen={isOpen}
+                bubblePosition="right"
+              />
+              <div className="chat-header-info">
+                <h5>{`${className} Class`} Math Assistant</h5>
+                <span className="chat-header-status">
+                  {connectionStatus === 'checking' 
+                    ? '🔄 Connecting...' 
+                    : connectionStatus === 'connected'
+                    ? mascotExpression === 'thinking' 
+                      ? '🤔 Thinking...' 
+                      : mascotExpression === 'listening'
+                      ? '🎧 Listening...'
+                      : mascotExpression === 'excited'
+                      ? '🎉 Excited!'
+                      : '✨ Ready to help!'
+                    : '⚠️ Disconnected'}
+                </span>
+              </div>
+            </div>
             <div className="flex-grow" />
 
             {/* Language Selector */}
-            <Form.Select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              size="sm"
-              style={{ width: 140, marginRight: 8 }}
-            >
+            <Form.Select value={language} onChange={handleLanguageChange} size="sm" style={{ width: 140, marginRight: 8 }}>
               <option value="en">English</option>
               <option value="hi">Hindi</option>
               <option value="te">Telugu</option>
@@ -929,7 +690,7 @@ const res = await api.post("/create_session", formData, {
               size="sm"
               onClick={clearChat}
               disabled={connectionStatus !== "connected" || !sessionId}
-              title="Clear chat & start new session"
+              title="Clear chat"
               style={{ marginRight: 8 }}
             >
               <FontAwesomeIcon icon={faTrash} /> Clear
@@ -938,11 +699,7 @@ const res = await api.post("/create_session", formData, {
             {/* Connection status */}
             <Button variant="outline-light" size="sm" disabled>
               <FontAwesomeIcon icon={faLanguage} />{" "}
-              {connectionStatus === "connected"
-                ? "Connected"
-                : connectionStatus === "checking"
-                  ? "Connecting..."
-                  : "Disconnected"}
+              {connectionStatus === "connected" ? "Connected" : connectionStatus === "checking" ? "Connecting..." : "Disconnected"}
             </Button>
 
             <button className="close-btn" onClick={toggleChat}>
@@ -952,20 +709,30 @@ const res = await api.post("/create_session", formData, {
 
           {/* Messages */}
           <div className="chat-messages">
-            {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`message ${m.sender === "user" ? "user-message" : "ai-message"
-                  }`}
-              >
+            {messages.map((m, index) => (
+              <div key={m.id} className={`message ${m.sender === "user" ? "user-message" : "ai-message"}`}>
+                {/* ✅ HALF-BODY MASCOT FOR AI MESSAGES */}
+                {m.sender === "ai" && (
+                  <div className="message-avatar">
+                    <ChatbotMascot 
+                      expression={
+                        isTyping && index === messages.length - 1 
+                          ? 'thinking' 
+                          : m.text?.includes('❌') || m.text?.includes('⚠️')
+                          ? 'sad'
+                          : m.text?.includes('🎓') || m.text?.includes('✨') || m.text?.includes('🎉')
+                          ? 'excited'
+                          : 'happy'
+                      }
+                      size="small"
+                      animated={true}
+                      chatOpen={true}
+                    />
+                  </div>
+                )}
                 <div className="message-bubble">
                   {formatMessage(m.text)}
-
-                  {/* Render videos if available */}
-                  {m.videos && m.sender === "ai" && (
-                    <VideoListComponent videos={m.videos} />
-                  )}
-
+                  {m.videos && m.sender === "ai" && <VideoListComponent videos={m.videos} />}
                   {m.audioUrl && (
                     <div className="message-audio-container" style={{ marginTop: 8 }}>
                       <audio controls src={m.audioUrl} />
@@ -973,32 +740,22 @@ const res = await api.post("/create_session", formData, {
                   )}
                   {m.image && (
                     <div className="message-image-container">
-                      <img
-                        src={m.image}
-                        alt="User uploaded"
-                        className="message-image"
-                      />
+                      <img src={m.image} alt="User uploaded" className="message-image" />
                     </div>
                   )}
                 </div>
-
-                {/* Message footer */}
-                <div
-                  className="message-time"
-                  style={{ display: "flex", gap: 8, alignItems: "center" }}
-                >
-                  {m.timestamp
-                    ? new Date(m.timestamp).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                    : ""}
+                <div className="message-time" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  {m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
                 </div>
               </div>
             ))}
 
+            {/* ✅ TYPING INDICATOR WITH MASCOT */}
             {isTyping && (
               <div className="message ai-message">
+                <div className="message-avatar">
+                  <ChatbotMascot expression={isRecording ? "listening" : "thinking"} size="small" animated={true} chatOpen={true} />
+                </div>
                 <div className="message-bubble typing">
                   <span className="dot"></span>
                   <span className="dot"></span>
@@ -1006,11 +763,10 @@ const res = await api.post("/create_session", formData, {
                 </div>
               </div>
             )}
-
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Suggestion Chips - Above Input */}
+          {/* Suggestion Chips */}
           {!isTyping && (
             <div className="suggestion-container">
               {suggestionQuestions.map((suggestion, index) => (
@@ -1018,32 +774,12 @@ const res = await api.post("/create_session", formData, {
                   key={index}
                   className="suggestion-chip"
                   onClick={() => handleSuggestionClick(suggestion)}
-                  disabled={
-                    suggestion.isApiAction
-                      ? isTyping // API actions only need to check if typing
-                      : !suggestion.isTutorial && (connectionStatus !== "connected" || isTyping) // Regular suggestions need connection
-                  }
-                  title={
-                    suggestion.isTutorial
-                      ? "Start guided tutorial"
-                      : suggestion.isApiAction
-                      ? `Get ${suggestion.text} from AI`
-                      : `Ask: ${suggestion.text}`
-                  }
+                  disabled={suggestion.isApiAction ? isTyping : !suggestion.isTutorial && (connectionStatus !== "connected" || isTyping)}
                   style={
                     suggestion.isTutorial
-                      ? {
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          color: 'white',
-                          fontWeight: '600',
-                        }
+                      ? { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontWeight: '600' }
                       : suggestion.isApiAction
-                      ? {
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                          color: 'white',
-                          fontWeight: '600',
-                          borderColor: '#3b82f6',
-                        }
+                      ? { background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: 'white', fontWeight: '600', borderColor: '#3b82f6' }
                       : {}
                   }
                 >
@@ -1059,83 +795,33 @@ const res = await api.post("/create_session", formData, {
             <InputGroup>
               <Form.Control
                 type="text"
-                placeholder={
-                  connectionStatus === "connected"
-                    ? "Type your question..."
-                    : "Connecting to AI service..."
-                }
+                placeholder={connectionStatus === "connected" ? "Type your question..." : "Connecting..."}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 disabled={connectionStatus !== "connected" || isTyping}
               />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: "none" }} disabled={connectionStatus !== "connected" || isTyping} />
 
-              {/* Hidden file input */}
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                style={{ display: "none" }}
-                disabled={connectionStatus !== "connected" || isTyping}
-              />
-
-              {/* Image thumbnail or Upload button */}
               {previewUrl ? (
                 <div className="input-thumbnail-container">
                   <div className="input-thumbnail">
-                    <img
-                      src={previewUrl}
-                      alt="Thumbnail"
-                      className="thumbnail-image"
-                    />
-                    <button
-                      className="remove-thumbnail-btn"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        clearSelectedFile();
-                      }}
-                      aria-label="Remove image"
-                      type="button"
-                    >
+                    <img src={previewUrl} alt="Thumbnail" className="thumbnail-image" />
+                    <button className="remove-thumbnail-btn" onClick={(e) => { e.preventDefault(); clearSelectedFile(); }} type="button">
                       <FontAwesomeIcon icon={faTimes} />
                     </button>
                   </div>
                 </div>
               ) : (
-                <Button
-                  className="ms-1 d-flex align-items-center justify-content-center"
-                  type="button"
-                  onClick={handleFileButtonClick}
-                  title="Upload image"
-                  disabled={connectionStatus !== "connected" || isTyping}
-                >
+                <Button className="ms-1" type="button" onClick={handleFileButtonClick} disabled={connectionStatus !== "connected" || isTyping}>
                   <FontAwesomeIcon icon={faUpload} />
                 </Button>
               )}
 
-              {/* Audio record button */}
-              <Button
-                className="ms-1 d-flex align-items-center justify-content-center"
-                type="button"
-                onClick={toggleRecording}
-                title={isRecording ? "Stop recording" : "Record audio"}
-                disabled={connectionStatus !== "connected" || isTyping}
-                variant={isRecording ? "danger" : "primary"}
-              >
+              <Button className="ms-1" type="button" onClick={toggleRecording} disabled={connectionStatus !== "connected" || isTyping} variant={isRecording ? "danger" : "primary"}>
                 <FontAwesomeIcon icon={isRecording ? faStop : faMicrophone} />
               </Button>
 
-              {/* Send button */}
-              <Button
-                className="ms-1 d-flex align-items-center justify-content-center"
-                type="submit"
-                disabled={
-                  connectionStatus !== "connected" ||
-                  isTyping ||
-                  (!newMessage.trim() && !selectedFile)
-                }
-                title="Send message"
-              >
+              <Button className="ms-1" type="submit" disabled={connectionStatus !== "connected" || isTyping || (!newMessage.trim() && !selectedFile)}>
                 <FontAwesomeIcon icon={faPaperPlane} />
               </Button>
             </InputGroup>
@@ -1150,58 +836,20 @@ const res = await api.post("/create_session", formData, {
           <Modal.Body>
             {previewUrl && (
               <div style={{ textAlign: "center", marginBottom: 12 }}>
-                <img
-                  src={previewUrl}
-                  alt="preview"
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: 240,
-                    borderRadius: 8,
-                    objectFit: "contain",
-                  }}
-                />
+                <img src={previewUrl} alt="preview" style={{ maxWidth: "100%", maxHeight: 240, borderRadius: 8, objectFit: "contain" }} />
               </div>
             )}
             <div className="upload d-grid gap-2">
-              <Button
-                variant="primary"
-                onClick={() => sendImageWithCommand("solve it")}
-                disabled={connectionStatus !== "connected"}
-              >
-                🧮 Solve It
-              </Button>
-              <Button
-                variant="success"
-                onClick={() => sendImageWithCommand("correct it")}
-                disabled={connectionStatus !== "connected"}
-              >
-                ✅ Correct It
-              </Button>
+              <Button variant="primary" onClick={() => sendImageWithCommand("solve it")} disabled={connectionStatus !== "connected"}>🧮 Solve It</Button>
+              <Button variant="success" onClick={() => sendImageWithCommand("correct it")} disabled={connectionStatus !== "connected"}>✅ Correct It</Button>
               <div className="input-container">
-                <input
-                  type="text"
-                  className="custom-input"
-                  onChange={handleText}
-                  accept="image/*"
-                  placeholder="Type your message..."
-
-                  disabled={connectionStatus !== "connected" || isTyping}
-                />
-                <Button
-                  className="send-btn"
-                  onClick={() => sendImageWithCommand(inputText)}
-                  disabled={connectionStatus !== "connected"}
-                >
-                  Send Input
-                </Button>
+                <input type="text" className="custom-input" onChange={handleText} placeholder="Type your message..." disabled={connectionStatus !== "connected" || isTyping} />
+                <Button className="send-btn" onClick={() => sendImageWithCommand(inputText)} disabled={connectionStatus !== "connected"}>Send Input</Button>
               </div>
             </div>
-
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={clearSelectedFile}>
-              Cancel
-            </Button>
+            <Button variant="secondary" onClick={clearSelectedFile}>Cancel</Button>
           </Modal.Footer>
         </Modal>
       </div>
