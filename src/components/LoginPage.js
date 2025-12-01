@@ -226,7 +226,6 @@ function LoginPage() {
           >
             <FontAwesomeIcon icon={faRightToBracket} className="header-icon left" />
             <span className="header-text">LOGIN</span>
-            <FontAwesomeIcon icon={faHeart} className="header-icon right" />
           </div>
 
           {/* Expandable Content */}
