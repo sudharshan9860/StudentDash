@@ -852,3 +852,933 @@
 .result-page-fixed ::-webkit-scrollbar-thumb:hover {
   background: var(--text-light);
 }
+
+/* Add these styles to ResultPage.css */
+
+/* ===== 3D AVATAR FULLSCREEN INTEGRATION ===== */
+
+.modal-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 30px;
+  height: calc(100% - 80px);
+  overflow: hidden;
+}
+
+.modal-content-section {
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.modal-content-section::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content-section::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.modal-content-section::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5);
+  border-radius: 4px;
+}
+
+.modal-content-section::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7);
+}
+
+.fullscreen-avatar-3d {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.8), rgba(99, 102, 241, 0.1));
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(99, 102, 241, 0.2),
+              0 10px 40px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullscreen-avatar-3d::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  animation: pulseGlow 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+/* Dark mode adjustments */
+.dark .modal-body-grid {
+  background: transparent;
+}
+
+.dark .fullscreen-avatar-3d {
+  background: linear-gradient(135deg, rgba(10, 10, 20, 0.9), rgba(79, 70, 229, 0.15));
+  border-color: rgba(79, 70, 229, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .modal-body-grid {
+    grid-template-columns: 1fr 400px;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .modal-body-grid {
+    grid-template-columns: 1fr 350px;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 992px) {
+  .modal-body-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .fullscreen-avatar-3d {
+    min-height: 400px;
+    max-height: 50vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-body-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .fullscreen-avatar-3d {
+    min-height: 300px;
+    max-height: 40vh;
+  }
+}
+
+/* Animation for 3D container entrance */
+.fullscreen-avatar-3d {
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Enhance modal content for better layout */
+.modal-content {
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  flex-shrink: 0;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+}
+
+/* Optional: Add particle effects container */
+.avatar-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(99, 102, 241, 0.6);
+  border-radius: 50%;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-100px) translateX(20px);
+    opacity: 1;
+  }
+}
+
+/* Performance optimization */
+.fullscreen-avatar-3d canvas {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ===== ENHANCED RESULT PAGE STYLES ===== */
+/* Add these styles to your ResultPage.css */
+
+/* ===== Enhanced Card Styles ===== */
+.result-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.result-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.result-card.hovered::before {
+  opacity: 1;
+}
+
+.result-card.hovered {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* Card Hover Overlay */
+.card-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.card-hover-overlay.visible {
+  opacity: 1;
+}
+
+/* Expand Hint */
+.expand-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  color: #6366f1;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+.expand-hint svg {
+  font-size: 12px;
+}
+
+/* ===== Fullscreen Modal Overlay ===== */
+.modal-overlay-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Fullscreen Modal Content */
+.modal-content-fullscreen {
+  width: 100%;
+  max-width: 1600px;
+  height: 90vh;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  position: relative;
+}
+
+/* Close Button */
+.close-modal-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(239, 68, 68, 0.9);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 20px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.close-modal-btn:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+}
+
+.close-modal-btn svg {
+  font-size: 18px;
+}
+
+/* Modal Header */
+.modal-header-fullscreen {
+  padding: 30px 40px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15));
+  border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+  flex-shrink: 0;
+}
+
+.modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.modal-header-content .card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title-section h2 {
+  color: white;
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.modal-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  margin: 4px 0 0 0;
+  font-weight: 500;
+}
+
+/* Enhanced Modal Body Grid */
+.modal-body-grid-enhanced {
+  display: grid;
+  grid-template-columns: 45% 55%;
+  height: 100%;
+  align-items: center;
+}
+
+
+/* Content Section */
+.modal-content-section-enhanced {
+  background: linear-gradient(135deg, rgba(15, 15, 35, 0.95), rgba(26, 26, 46, 0.95));
+  padding: 40px;
+  overflow-y: auto;
+  border-right: 2px solid rgba(99, 102, 241, 0.2);
+}
+
+.content-wrapper {
+  max-width: 900px;
+}
+
+/* Custom Scrollbar */
+.modal-content-section-enhanced::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-content-section-enhanced::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+.modal-content-section-enhanced::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.modal-content-section-enhanced::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #4f46e5, #9333ea);
+}
+
+/* Enhanced 3D Avatar Section */
+.fullscreen-avatar-3d-enhanced {
+  position: relative;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Avatar Backdrop with Animated Gradients */
+.avatar-backdrop {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.3;
+  animation: float 10s ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #6366f1, transparent);
+  top: 10%;
+  left: -10%;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, #a855f7, transparent);
+  bottom: 20%;
+  right: -5%;
+  animation-delay: 3s;
+}
+
+.orb-3 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, #ec4899, transparent);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: 6s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+/* 3D Model Container */
+.avatar-model-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* Avatar Info Badge */
+.avatar-info-badge {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.badge-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: rgba(99, 102, 241, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 30px;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+.badge-icon {
+  font-size: 20px;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+.badge-text {
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
+  }
+}
+
+/* ===== Dark Mode Support ===== */
+.dark .result-card {
+  background: rgba(26, 26, 46, 0.95);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.dark .result-card.hovered {
+  background: rgba(31, 31, 56, 0.95);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1400px) {
+  .modal-body-grid-enhanced {
+    grid-template-columns: 1fr 450px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .modal-body-grid-enhanced {
+    grid-template-columns: 1fr 400px;
+  }
+  
+  .modal-content-section-enhanced {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 992px) {
+  .modal-body-grid-enhanced {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 400px;
+  }
+  
+  .modal-content-section-enhanced {
+    border-right: none;
+    border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+  }
+  
+  .fullscreen-avatar-3d-enhanced {
+    height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-content-fullscreen {
+    height: 95vh;
+    border-radius: 16px;
+  }
+  
+  .modal-header-fullscreen {
+    padding: 20px;
+  }
+  
+  .modal-title-section h2 {
+    font-size: 24px;
+  }
+  
+  .modal-content-section-enhanced {
+    padding: 20px;
+  }
+  
+  .close-modal-btn {
+    top: 15px;
+    right: 15px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .modal-body-grid-enhanced {
+    grid-template-rows: 1fr 300px;
+  }
+  
+  .fullscreen-avatar-3d-enhanced {
+    height: 300px;
+  }
+  
+  .badge-content {
+    padding: 10px 20px;
+  }
+  
+  .badge-text {
+    font-size: 14px;
+  }
+}
+
+/* ===== Content Styling Inside Modal ===== */
+.modal-content-section-enhanced .question-content,
+.modal-content-section-enhanced .ai-solution,
+.modal-content-section-enhanced .user-solution,
+.modal-content-section-enhanced .text-content {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  margin-bottom: 20px;
+}
+
+.modal-content-section-enhanced h4 {
+  color: #a78bfa;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+
+.modal-content-section-enhanced .q-number {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+/* Step Styling in Modal */
+.modal-content-section-enhanced .step-item {
+  background: rgba(99, 102, 241, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border-left: 4px solid #6366f1;
+}
+
+.modal-content-section-enhanced .step-badge {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-right: 12px;
+}
+
+/* Concept Tags in Modal */
+.modal-content-section-enhanced .concept-tag {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+  margin: 6px;
+}
+
+/* Score Ring in Modal */
+.modal-content-section-enhanced .score-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+}
+
+/* ===== Animations ===== */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.modal-content-section-enhanced {
+  animation: slideInFromLeft 0.5s ease-out;
+}
+
+.fullscreen-avatar-3d-enhanced {
+  animation: slideInFromRight 0.5s ease-out;
+}
+
+
+/* ===== BOTTOM ACTION BUTTONS STYLES ===== */
+/* Add these styles to your ResultPage.css */
+
+/* Result Actions Footer */
+.result-actions {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  border-top: 2px solid rgba(99, 102, 241, 0.1);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  margin-top: 40px;
+}
+
+/* Action Buttons */
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  justify-content: center;
+}
+
+.action-btn svg {
+  font-size: 18px;
+}
+
+/* Primary Button (Similar Questions) */
+.action-btn.primary {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.action-btn.primary:hover {
+  background: linear-gradient(135deg, #4f46e5, #9333ea);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+.action-btn.primary:active {
+  transform: translateY(0);
+}
+
+/* Secondary Button (Question List) */
+.action-btn.secondary {
+  background: white;
+  color: #6366f1;
+  border: 2px solid #6366f1;
+}
+
+.action-btn.secondary:hover {
+  background: rgba(99, 102, 241, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+}
+
+.action-btn.secondary:active {
+  transform: translateY(0);
+}
+
+/* Dark Mode Support */
+.dark .result-actions {
+  background: linear-gradient(to top, rgba(26, 26, 46, 0.98), rgba(26, 26, 46, 0.95));
+  border-top-color: rgba(99, 102, 241, 0.2);
+}
+
+.dark .action-btn.secondary {
+  background: rgba(26, 26, 46, 0.9);
+  color: #a78bfa;
+  border-color: #a78bfa;
+}
+
+.dark .action-btn.secondary:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .result-actions {
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .action-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+    min-width: 140px;
+  }
+
+  .action-btn svg {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .result-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .action-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* Animation */
+@keyframes slideUpIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-actions {
+  animation: slideUpIn 0.5s ease-out;
+}
+
+/* ===== CRITICAL FIX - Add this to the END of your ResultPage.css ===== */
+/* This fixes the 3D avatar not showing in fullscreen */
+
+/* Force 3D avatar section to have proper height */
+.fullscreen-avatar-3d-enhanced {
+  min-height: 600px !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+}
+
+/* Ensure avatar container takes full space */
+.avatar-model-container {
+  flex: 1 !important;
+  min-height: 500px !important;
+  height: 100% !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+/* Make sure the canvas container is visible */
+.avatar-canvas-container {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 500px !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* Ensure canvas itself is sized properly */
+.avatar-canvas-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+/* Make 3D container visible with background for testing */
+.fullscreen-avatar-3d-enhanced::before {
+  content: 'Loading 3D Avatar...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 16px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Hide loading text when model is loaded */
+.fullscreen-avatar-3d-enhanced:has(.avatar-canvas-container canvas)::before {
+  display: none;
+}
+
+/* Ensure modal body grid gives proper space */
+.modal-body-grid-enhanced {
+  height: calc(100% - 130px) !important;
+  display: grid !important;
+  grid-template-columns: 1fr 500px !important;
+  gap: 0 !important;
+}
+
+/* Critical: Override any conflicting styles */
+.modal-content-fullscreen .fullscreen-avatar-3d-enhanced,
+.modal-content-fullscreen .avatar-model-container,
+.modal-content-fullscreen .avatar-canvas-container {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
