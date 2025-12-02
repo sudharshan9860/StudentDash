@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "../components/LoginPage";
 import StudentDash from "../components/StudentDash";
 import SolveQuestion from "../components/SolveQuestion";
-import ResultPage from "../components/ResultPage";
+import ResultPage from '../components/ResultPage';
 import SignupPage from "../components/SignupPage";
 import PrivateRoute from "../components/PrivateRoute";
 import Layout from "../components/Layout";
