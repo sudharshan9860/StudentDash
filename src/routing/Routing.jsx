@@ -23,6 +23,7 @@ import StudentAnalytics from "../components/StudentAnalytics";
 import ExamCorrection from "../components/ExamCorrection";
 import ExamAnalytics from "../components/ExamAnalytics";
 import ChatRoom from "../components/ChatRoom";
+import AnimationTester from '../components/AnimationTester';
 
 
 const AppRoutes = () => {
@@ -87,6 +88,9 @@ const AppRoutes = () => {
             </PrivateRoute>
           }
         />
+
+<Route path="/animation-tester" element={<AnimationTester />} />
+
 
         <Route
           path="/progress-dashboard"

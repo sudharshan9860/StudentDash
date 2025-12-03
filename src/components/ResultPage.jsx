@@ -1,6 +1,5 @@
 // src/components/ResultPage.jsx
-// FIXED VERSION - All issues resolved
-// Replace your entire ResultPage.jsx with this
+// UPDATED VERSION - With Section-Based Animations
 
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -30,6 +29,60 @@ import QuestionListModal from './QuestionListModal';
 import axiosInstance from '../api/axiosInstance';
 import Avatar3DModel from './Avatar3DModel';
 import './ResultPage.css';
+import './ResultPageAnimations.css'; // Add this line
+
+
+
+// ==================== ANIMATION MAPPING ====================
+const ANIMATION_MAP = {
+  question: {
+    url: '/animations/Thinking (1).fbx',
+    name: '🤔 Confused'
+  },
+  solution: {
+    url: '/animations/Talking.fbx',
+    name: '👨‍🏫 Teaching'
+  },
+   userSolution: {
+    url: '/animations/Looking (1).fbx',
+    name: '👀 Reviewing Your Work'
+  },
+   // 4. Score Card - High Score (>60%)
+  scoreHigh: {
+    url: '/animations/Golf Putt Victory.fbx',
+    name: '🎉 Victory! Great Job!'
+  },
+  
+  // 4. Score Card - Low Score (≤60%)
+  scoreLow: {
+    url: '/animations/Defeated.fbx',
+    name: '💪 Keep Practicing!'
+  },
+  gap: {
+    url: '/animations/Focus.fbx',
+    name: '🤔 Thinking'
+  },
+  error: {
+    url: '/animations/Tripping.fbx',
+    name: '💡 Explaining'
+  },
+  time: {
+    url: '/animations/Running To Turn.fbx',
+    name: '🏃 Running'
+  },
+  concepts: {
+    url: '/animations/salsa.fbx',
+    name: '📚 Teaching'
+  },
+  mistakes: {
+    url: '/animations/Sad Idle.fbx',
+    name: '😔 Reviewing'
+  },
+  default: {
+    url: '/animations/Thinking (1).fbx',
+    name: '😊 Idle'
+  }
+};
 
 // ==================== HELPER FUNCTIONS ====================
 const getImageSrc = (img, defaultType = 'image/png') => {
@@ -53,6 +106,9 @@ const ResultCard = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
+  // Get animation for this card type
+  const animation = ANIMATION_MAP[cardType] || ANIMATION_MAP.default;
+  
   const toggleFullscreen = (e) => {
     // Prevent opening fullscreen if clicking on interactive elements inside
     if (e?.target?.closest('button:not(.result-card)') || 
@@ -70,7 +126,7 @@ const ResultCard = ({
 
   return (
     <>
-      {/* CARD IN NORMAL VIEW - Now fully clickable */}
+      {/* CARD IN NORMAL VIEW - Clickable */}
       <motion.div 
         className={`result-card ${isHovered ? 'hovered' : ''}`}
         initial={{ opacity: 0, y: 20 }}
@@ -89,74 +145,67 @@ const ResultCard = ({
         </div>
         <div className="card-body">{children}</div>
         
-        {/* Hover overlay effect */}
-        <div className={`card-hover-overlay ${isHovered ? 'visible' : ''}`} />
+        
       </motion.div>
 
       {/* FULLSCREEN MODAL WITH 3D AVATAR */}
       <AnimatePresence>
         {isFullscreen && (
           <motion.div 
-            className="modal-overlay-fullscreen" 
-            onClick={handleClose}
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+            className="modal-overlay-fullscreen"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={handleClose}
           >
             <motion.div 
-              className="modal-content-fullscreen" 
-              onClick={e => e.stopPropagation()}
-              initial={{ scale: 0.9, opacity: 0 }} 
+              className="modal-content-fullscreen"
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button - FIXED */}
-              <button 
-                className="close-modal-btn" 
-                onClick={handleClose}
-              >
-                <FontAwesomeIcon icon={faTimesCircle} />
-                <span>Close</span>
-              </button>
-              
-              {/* Modal Header */}
-              <div className="modal-header-fullscreen">
-                <div className="modal-header-content">
-                  <div className="card-icon" style={{ background: color }}>
-                    <FontAwesomeIcon icon={icon} />
-                  </div>
-                  <div className="modal-title-section">
-                    <h2>{title}</h2>
-                    <p className="modal-subtitle">Interactive 3D View</p>
-                  </div>
+              {/* Header */}
+              <div className="fullscreen-header">
+                <div className="fullscreen-icon" style={{ background: color }}>
+                  <FontAwesomeIcon icon={icon} />
                 </div>
+                <h2>{title}</h2>
+                <button className="close-modal-btn" onClick={handleClose}>
+                  ×
+                </button>
               </div>
-              
-              {/* Modal Body with Enhanced Grid Layout */}
-              <div className="modal-body-grid-enhanced">
-                {/* Left: Content Section with Custom Scrollbar */}
+
+              {/* Body with Content + 3D Avatar */}
+              <div className="fullscreen-body">
+                {/* Left: Content */}
                 <div className="modal-content-section-enhanced">
-                  <div className="content-wrapper">
-                    {children}
-                  </div>
+                  {children}
                 </div>
-                
-                {/* Right: 3D Avatar Section */}
+
+                {/* Right: 3D Avatar with Animation */}
                 <div className="fullscreen-avatar-3d-enhanced">
-                  {/* Decorative gradient orbs */}
+                  {/* Avatar message badge */}
+                  <div className="avatar-message-badge">
+                    {avatarMessage}
+                  </div>
+                  
+                  {/* Gradient orbs */}
                   <div className="avatar-backdrop">
                     <div className="gradient-orb orb-1"></div>
                     <div className="gradient-orb orb-2"></div>
                     <div className="gradient-orb orb-3"></div>
                   </div>
                   
-                  {/* 3D Model Container - FIXED */}
+                  {/* 3D Model Container with Animation */}
                   <div className="avatar-model-container">
                     <Avatar3DModel 
                       modelUrl="https://models.readyplayer.me/692dee017b7a88e1f657e662.glb"
                       containerType={cardType}
                       size="xlarge"
+                      animationUrl={animation.url}
+                      animationName={animation.name}
                       key={`${cardType}-${isFullscreen}`}
                     />
                   </div>
@@ -249,81 +298,44 @@ const ResultPage = () => {
   const scoreVal = obtained_marks ?? score ?? autoScore ?? 0;
   const totalVal = total_marks ?? question_marks ?? 5;
 
-  useEffect(() => {
-    const check = () => setDarkMode(localStorage.getItem('darkMode') === 'true');
-    window.addEventListener('storage', check);
-    return () => window.removeEventListener('storage', check);
-  }, []);
+  const goBack = () => navigate(-1);
 
-  useEffect(() => {
-    if ((actionType === 'submit' || actionType === 'correct') &&
-      student_answer && obtained_marks === undefined && score === undefined) {
-      calcScore();
-    }
-  }, [ai_data, actionType]);
-
-  const calcScore = async () => {
-    if (!student_answer || !question) return;
-    setCalculating(true);
-    try {
-      const res = await axiosInstance.post('/auto-score/', {
-        student_answer, 
-        question,
-        expected_solution: ai_explaination || solution || [],
-        total_marks: totalVal
-      }).catch(() => null);
-      setAutoScore(res?.data?.score ?? 0);
-    } catch { 
-      setAutoScore(0); 
-    } finally { 
-      setCalculating(false); 
-    }
-  };
-
-  const goBack = () => navigate('/solvequestion', {
-    state: { 
-      question, questionNumber, questionList, class_id, subject_id, 
-      topic_ids, subtopic, image: questionImage, 
-      index: (questionNumber || 1) - 1, 
-      selectedQuestions: questionList, question_id, context 
-    }
-  });
-
-  const selectQuestion = (q, i, img, qId, ctx) => navigate('/solvequestion', {
-    state: { 
-      question: q, questionNumber: i + 1, questionList, 
-      class_id, subject_id, topic_ids, subtopic,
-      image: img, question_id: qId || `q_${i}`, context: ctx 
-    }
-  });
-
-  const practiseSimilar = () => {
-    if (!question) { 
-      setError('No question available'); 
-      return; 
-    }
-    navigate('/similar-questions', {
-      state: { 
-        originalQuestion: question, class_id, subject_id, 
-        topic_ids, subtopic, questionImage,
-        solution: ai_explaination || solution 
+  const selectQuestion = (q) => {
+    setShowModal(false);
+    navigate('/solvequestion', {
+      state: {
+        selectedQuestion: q,
+        questionList,
+        class_id,
+        subject_id,
+        topic_ids,
+        subtopic,
+        context
       }
     });
   };
 
-  const getErrorMood = () => {
-    if (!error_type) return 'neutral';
-    const e = error_type.toLowerCase();
-    if (e.includes('conceptual')) return 'thinking';
-    if (e.includes('calculation') || e.includes('irrelevant')) return 'confused';
-    if (e.includes('unattempted')) return 'worried';
-    if (e.includes('no error')) return 'excited';
-    return 'sad';
+  const practiseSimilar = () => {
+    if (!question) {
+      setError('Question not available');
+      return;
+    }
+    navigate('/similar-questions', {
+      state: {
+        originalQuestion: question,
+        class_id,
+        subject_id,
+        topic_ids,
+        subtopic
+      }
+    });
   };
 
-  const getTimeMood = () => {
-    if (!time_analysis) return 'neutral';
-    return time_analysis.toLowerCase().includes('critical') ? 'worried' : 'happy';
+  const getMoodFromScore = () => {
+    const pct = totalVal > 0 ? (scoreVal / totalVal) * 100 : 0;
+    if (pct >= 80) return 'happy';
+    if (pct >= 40) return 'neutral';
+    return 'worried';
   };
 
   const renderSteps = (steps) => {
@@ -344,7 +356,6 @@ const ResultPage = () => {
       </div>
     );
   };
-
 
   return (
     <div className={`result-page-fixed ${darkMode ? 'dark' : ''}`}>
@@ -372,7 +383,7 @@ const ResultPage = () => {
 
       {/* Main Grid */}
       <main className="results-grid" id="main-content">
-        {/* Question */}
+        {/* Question Card */}
         <ResultCard 
           title="Question" 
           icon={faQuestionCircle} 
@@ -385,13 +396,17 @@ const ResultPage = () => {
           <div className="question-content">
             <span className="q-number">Q{questionNumber || 1}</span>
             <div className="q-text"><MarkdownWithMath content={question}/></div>
-            {questionImage && (
-              <img src={getImageSrc(questionImage)} alt="Question" className="q-image"/>
+            {(questionImage || question_image_base64) && (
+              <img 
+                src={getImageSrc(questionImage || question_image_base64)} 
+                alt="Question" 
+                className="q-image"
+              />
             )}
           </div>
         </ResultCard>
 
-        {/* AI Solution */}
+        {/* AI Solution Card */}
         <ResultCard 
           title="AI Solution" 
           icon={faLightbulb} 
@@ -402,102 +417,63 @@ const ResultPage = () => {
           delay={0.1}
         >
           <div className={`ai-solution ${expanded ? 'expanded' : ''}`}>
-            {question_image_base64 && (
-              <img 
-                src={getImageSrc(question_image_base64, 'image/jpeg')} 
-                alt="Solution" 
-                className="sol-image"
-              />
-            )}
             {renderSteps(ai_explaination)}
           </div>
-          {ai_explaination?.length > 3 && (
-            <button 
-              className="expand-toggle" 
-              onClick={e => { 
-                e.stopPropagation(); 
-                setExpanded(!expanded); 
-              }}
-            >
-              <FontAwesomeIcon 
-                icon={faChevronDown} 
-                className={expanded ? 'rotated' : ''}
-              /> 
-              {expanded ? 'Less' : 'More'}
-            </button>
-          )}
         </ResultCard>
 
-        {/* Your Solution */}
-        <ResultCard 
-          title="Your Solution" 
-          icon={faFileAlt} 
-          color="#8b5cf6"
-          avatarMood="thinking" 
-          avatarMessage="📝 Let me see your work..." 
-          cardType="userSolution"
-          delay={0.15}
-        >
-          <div className="user-solution">
-            <div className="solution-col">
-              <h4>UPLOADED IMAGE</h4>
-              {studentImages.length > 0 ? (
-                <div className="image-preview">
-                  {studentImages.map((img, i) => (
-                    <img 
-                      key={i} 
-                      src={img.startsWith?.('blob:') ? img : getImageSrc(img)} 
-                      alt={`Upload ${i + 1}`}
-                    />
+        {/* Your Solution Card */}
+        {student_answer && (
+          <ResultCard 
+            title="Your Solution" 
+            icon={faFileAlt} 
+            color="#8b5cf6"
+            avatarMood="neutral" 
+            avatarMessage="📝 Let me check your work..." 
+            cardType="userSolution"
+            delay={0.2}
+          >
+            <div className="user-solution">
+              {studentImages && studentImages.length > 0 && (
+                <div className="uploaded-images">
+                  <h4>UPLOADED IMAGE</h4>
+                  {studentImages.map((img, idx) => (
+                    <img key={idx} src={getImageSrc(img)} alt={`Answer ${idx + 1}`} />
                   ))}
                 </div>
-              ) : (
-                <div className="placeholder">No image uploaded</div>
               )}
-            </div>
-            <div className="solution-col">
-              <h4>ANSWER TEXT</h4>
-              <div className="answer-text">
-                {student_answer ? (
+              <div className="answer-text-section">
+                <h4>ANSWER TEXT</h4>
+                <div className="text-content">
                   <MarkdownWithMath content={student_answer}/>
-                ) : (
-                  <span className="na">No answer provided</span>
-                )}
+                </div>
               </div>
             </div>
-          </div>
-        </ResultCard>
+          </ResultCard>
+        )}
 
-        {/* Score */}
+        {/* Score Card */}
         <ResultCard 
           title="Score" 
           icon={faTrophy} 
           color="#f59e0b"
-          avatarMood={scoreVal / totalVal >= 0.6 ? 'excited' : 'encouraging'}
-          avatarMessage={scoreVal / totalVal >= 0.6 ? "🏆 Great work!" : "💪 Keep trying!"} 
+          avatarMood={getMoodFromScore()} 
+          avatarMessage={scoreVal >= 4 ? "🎉 Awesome!" : "💪 Keep practicing!"} 
           cardType="score"
-          delay={0.2}
+          delay={0.25}
         >
-          {calculating ? (
-            <div className="loading-state">
-              <Spinner animation="border"/>
-              <span>Calculating...</span>
-            </div>
-          ) : (
-            <ScoreRing obtained={scoreVal} total={totalVal}/>
-          )}
+          <ScoreRing obtained={scoreVal} total={totalVal} />
         </ResultCard>
 
-        {/* Gap Analysis */}
+        {/* Gap Analysis Card */}
         {gap_analysis && (
           <ResultCard 
             title="Gap Analysis" 
             icon={faFire} 
             color="#ec4899"
-            avatarMood="suggesting" 
-            avatarMessage="🧠 Let's identify the gaps..." 
+            avatarMood="thinking" 
+            avatarMessage="🔍 Areas to focus on..." 
             cardType="gap"
-            delay={0.25}
+            delay={0.3}
           >
             <div className="text-content">
               <MarkdownWithMath content={gap_analysis}/>
@@ -505,37 +481,35 @@ const ResultPage = () => {
           </ResultCard>
         )}
 
-        {/* Type of Error */}
+        {/* Type of Error Card */}
         {error_type && (
           <ResultCard 
             title="Type of Error" 
             icon={faTimesCircle} 
             color="#ef4444"
-            avatarMood={getErrorMood()} 
-            avatarMessage="😅 Let's learn from this!" 
+            avatarMood="explaining" 
+            avatarMessage="⚠️ Common mistake identified..." 
             cardType="error"
-            delay={0.3}
+            delay={0.35}
           >
-            <div className="error-display">
-              <span className="error-badge">
-                <FontAwesomeIcon icon={faTimesCircle}/> {error_type}
-              </span>
+            <div className="error-badge">
+              <FontAwesomeIcon icon={faExclamationCircle}/> {error_type}
             </div>
           </ResultCard>
         )}
 
-        {/* Time Management */}
+        {/* Time Management Card */}
         {time_analysis && (
           <ResultCard 
             title="Time Management" 
             icon={faClock} 
             color="#06b6d4"
-            avatarMood={getTimeMood()} 
-            avatarMessage={getTimeMood() === 'worried' ? "⏰ Let's speed up!" : "⏱️ Good timing!"} 
+            avatarMood="neutral" 
+            avatarMessage="⏱️ Time analysis..." 
             cardType="time"
-            delay={0.35}
+            delay={0.4}
           >
-            <div className="time-display">
+            <div className="time-info">
               <span className={`time-badge ${time_analysis.toLowerCase().includes('critical') ? 'critical' : ''}`}>
                 <FontAwesomeIcon icon={faClock}/> {time_analysis}
               </span>
@@ -543,7 +517,7 @@ const ResultPage = () => {
           </ResultCard>
         )}
 
-        {/* Concepts Required */}
+        {/* Concepts Required Card */}
         {conceptsFormatted && (
           <ResultCard 
             title="Concepts Required" 
@@ -552,7 +526,7 @@ const ResultPage = () => {
             avatarMood="proud" 
             avatarMessage="📘 Master these concepts!" 
             cardType="concepts"
-            delay={0.4}
+            delay={0.45}
           >
             <div className="concepts-grid">
               {conceptsFormatted.split(',').map((c, i) => (
@@ -564,7 +538,7 @@ const ResultPage = () => {
           </ResultCard>
         )}
 
-        {/* Comments */}
+        {/* Comments Card */}
         {comment && (
           <ResultCard 
             title="Comments" 
@@ -573,7 +547,7 @@ const ResultPage = () => {
             avatarMood="neutral" 
             avatarMessage="💬 Here's some feedback..." 
             cardType="feedback"
-            delay={0.45}
+            delay={0.5}
           >
             <div className="text-content">
               <MarkdownWithMath content={comment}/>
@@ -581,15 +555,15 @@ const ResultPage = () => {
           </ResultCard>
         )}
 
-        {/* Mistakes Made */}
+        {/* Mistakes Made Card */}
         <ResultCard 
           title="Mistakes Made" 
           icon={faExclamationCircle} 
           color="#f97316"
           avatarMood="thinking" 
           avatarMessage="📝 Learning from mistakes..." 
-          cardType="error"
-          delay={0.5}
+          cardType="mistakes"
+          delay={0.55}
         >
           <div className="mistakes-section">
             <p className="coming-soon">Detailed mistake analysis will appear here...</p>
@@ -600,7 +574,7 @@ const ResultPage = () => {
         </ResultCard>
       </main>
 
-      {/* FIXED: Bottom Action Buttons */}
+      {/* Bottom Action Buttons */}
       <footer className="result-actions">
         <motion.button
           className="action-btn secondary"
