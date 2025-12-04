@@ -1,46 +1,86 @@
 // src/components/Avatar3DModel.jsx
-// UPDATED VERSION - FBX Animation Support
-// This version loads actual FBX animation files
+// SAFE VERSION – FIXED ANIMATION LOOP + FBX SUPPORT
 
-import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
-import './Avatar3DModel.css';
+import React, { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import "./Avatar3DModel.css";
 
-const Avatar3DModel = ({ 
-  modelUrl = 'https://models.readyplayer.me/692dee017b7a88e1f657e662.glb', 
-  containerType = 'default',
-  size = 'xlarge',
+const Avatar3DModel = ({
+  modelUrl = "https://models.readyplayer.me/692dee017b7a88e1f657e662.glb",
+  containerType = "default",
+  size = "xlarge",
   animationUrl = null,
-  animationName = 'idle'
+  animationName = "idle",
 }) => {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
   const rendererRef = useRef(null);
   const modelRef = useRef(null);
   const mixerRef = useRef(null);
-  const clockRef = useRef(new THREE.Clock());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const clockRef = useRef(null);
+  const cameraRef = useRef(null);
   const animationFrameRef = useRef(null);
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // -----------------------------------------------------
+  // SAFE ANIMATION LOOP (won't run until ready)
+  // -----------------------------------------------------
+  const startRenderLoop = () => {
+    if (animationFrameRef.current) return; // prevent multiple loops
+
+    const animate = () => {
+      animationFrameRef.current = requestAnimationFrame(animate);
+
+      if (
+        !rendererRef.current ||
+        !sceneRef.current ||
+        !cameraRef.current ||
+        !clockRef.current
+      ) {
+        return; // wait until everything loads
+      }
+
+      let delta = 0;
+      try {
+        delta = clockRef.current.getDelta();
+      } catch {
+        delta = 0;
+      }
+
+      if (mixerRef.current) {
+        mixerRef.current.update(delta);
+      }
+
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    };
+
+    animate();
+  };
+
+  // -----------------------------------------------------
+  // MAIN EFFECT — Setup Scene, Camera, Renderer, Load Model
+  // -----------------------------------------------------
   useEffect(() => {
     if (!mountRef.current) return;
 
-    // Scene setup
+    // Scene
     const scene = new THREE.Scene();
     scene.background = null;
     sceneRef.current = scene;
 
-    // Camera setup
+    // Camera config based on size
     const config = {
       small: { scale: 0.7, cameraZ: 4.0, cameraY: 0.5 },
       medium: { scale: 0.85, cameraZ: 4.5, cameraY: 0.5 },
       large: { scale: 1.0, cameraZ: 5.0, cameraY: 0.5 },
-      xlarge: { scale: 1.1, cameraZ: 5.5, cameraY: 0.5 }
+      xlarge: { scale: 1.1, cameraZ: 5.5, cameraY: 0.5 },
     }[size] || { scale: 1.1, cameraZ: 5.5, cameraY: 0.5 };
 
+    // Camera
     const camera = new THREE.PerspectiveCamera(
       50,
       mountRef.current.clientWidth / mountRef.current.clientHeight,
@@ -49,245 +89,180 @@ const Avatar3DModel = ({
     );
     camera.position.set(0, config.cameraY, config.cameraZ);
     camera.lookAt(0, 0.5, 0);
+    cameraRef.current = camera;
 
-    // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ 
-      antialias: true, 
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
       alpha: true,
-      powerPreference: "high-performance"
+      powerPreference: "high-performance",
     });
-    
+
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
-    
+
     if (width === 0 || height === 0) {
-      setError('Container has no dimensions');
+      setError("Container width or height is zero");
       return;
     }
-    
+
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.3;
     renderer.setClearColor(0x000000, 0);
-    
-    mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // Lighting setup (same as before)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-    scene.add(ambientLight);
+    mountRef.current.appendChild(renderer.domElement);
+
+    // Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
     keyLight.position.set(5, 8, 7);
     keyLight.castShadow = true;
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xb8c6ff, 0.5);
-    fillLight.position.set(-5, 3, -5);
-    scene.add(fillLight);
+    scene.add(new THREE.DirectionalLight(0xb8c6ff, 0.5));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.5));
 
-    const rimLight = new THREE.DirectionalLight(0xffa8d8, 0.4);
-    rimLight.position.set(0, 2, -8);
-    scene.add(rimLight);
+    // Clock
+    clockRef.current = new THREE.Clock();
 
-    const topLight = new THREE.DirectionalLight(0xffffff, 0.6);
-    topLight.position.set(0, 10, 0);
-    scene.add(topLight);
-
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5);
-    scene.add(hemiLight);
-
-    // Animation loop
-    const animate = () => {
-      animationFrameRef.current = requestAnimationFrame(animate);
-      const delta = clockRef.current.getDelta();
-
-      // Update animation mixer if exists
-      if (mixerRef.current) {
-        mixerRef.current.update(delta);
-      }
-
-      // Subtle idle rotation when no animation is playing
-      if (modelRef.current && !mixerRef.current) {
-        modelRef.current.rotation.y += delta * 0.15;
-      }
-
-      renderer.render(scene, camera);
-    };
-    animate();
-
-    // Load GLB model
-    const gltfLoader = new GLTFLoader();
-    
-    gltfLoader.load(
+    // ---------------------
+    // Load GLB Model
+    // ---------------------
+    const loader = new GLTFLoader();
+    loader.load(
       modelUrl,
       (gltf) => {
-        console.log('✅ Model loaded successfully');
-        
         const model = gltf.scene;
         modelRef.current = model;
 
         model.scale.set(config.scale, config.scale, config.scale);
-        
-        // Center the model
+
+        // Center model
         const box = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
-        
         model.position.x = -center.x;
         model.position.y = -box.min.y;
         model.position.z = -center.z;
-        
-        // Configure materials
-        model.traverse((node) => {
-          if (node.isMesh) {
-            node.castShadow = true;
-            node.receiveShadow = false;
-            if (node.material) {
-              node.material.metalness = 0.05;
-              node.material.roughness = 0.85;
-            }
-          }
-        });
 
         scene.add(model);
 
-        // Load FBX animation if provided
+        // If animation exists → load
         if (animationUrl) {
           loadFBXAnimation(model, animationUrl);
         } else {
           setLoading(false);
+          startRenderLoop();
         }
       },
-      (progress) => {
-        const percent = (progress.loaded / progress.total) * 100;
-        console.log(`📥 Loading model: ${percent.toFixed(1)}%`);
-      },
+      undefined,
       (error) => {
-        console.error('❌ Error loading model:', error);
-        setError('Failed to load model');
-        setLoading(false);
+        setError("Model failed to load");
+        console.error(error);
       }
     );
 
-    // Function to load FBX animation
-    const loadFBXAnimation = (model, fbxUrl) => {
+    // ---------------------
+    // Load FBX Animation
+    // ---------------------
+    const loadFBXAnimation = (model, url) => {
       const fbxLoader = new FBXLoader();
-      
-      console.log(`🎬 Loading animation: ${fbxUrl}`);
-      
+
       fbxLoader.load(
-        fbxUrl,
+        url,
         (fbx) => {
-          console.log('✅ Animation loaded successfully');
-          
-          // Create animation mixer
           const mixer = new THREE.AnimationMixer(model);
           mixerRef.current = mixer;
-          
-          // Get the animation from the FBX
-          if (fbx.animations && fbx.animations.length > 0) {
-            const animation = fbx.animations[0];
-            const action = mixer.clipAction(animation);
-            
-            // Play the animation
-            action.play();
-            console.log(`▶️ Playing animation: ${animationName}`);
-          } else {
-            console.warn('⚠️ No animations found in FBX file');
+
+          if (fbx.animations.length > 0) {
+            const action = mixer.clipAction(fbx.animations[0]);
+            action.reset().play();
           }
-          
+
           setLoading(false);
+          startRenderLoop();
         },
-        (progress) => {
-          const percent = (progress.loaded / progress.total) * 100;
-          console.log(`📥 Loading animation: ${percent.toFixed(1)}%`);
-        },
-        (error) => {
-          console.error('❌ Error loading animation:', error);
-          console.error('Animation URL:', fbxUrl);
-          setError(`Failed to load animation from ${fbxUrl}`);
+        undefined,
+        (err) => {
+          console.error("FBX Error:", err);
           setLoading(false);
+          startRenderLoop();
         }
       );
     };
 
-    // Resize handler
+    // ---------------------
+    // Resize Handler
+    // ---------------------
     const handleResize = () => {
-      if (!mountRef.current) return;
-      
-      const width = mountRef.current.clientWidth;
-      const height = mountRef.current.clientHeight;
+      if (!mountRef.current || !rendererRef.current || !cameraRef.current)
+        return;
 
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      const w = mountRef.current.clientWidth;
+      const h = mountRef.current.clientHeight;
+      cameraRef.current.aspect = w / h;
+      cameraRef.current.updateProjectionMatrix();
+      rendererRef.current.setSize(w, h);
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
+    // ---------------------
     // Cleanup
+    // ---------------------
     return () => {
-      window.removeEventListener('resize', handleResize);
-      
-      if (animationFrameRef.current) {
+      window.removeEventListener("resize", handleResize);
+
+      if (animationFrameRef.current)
         cancelAnimationFrame(animationFrameRef.current);
-      }
 
-      if (mixerRef.current) {
-        mixerRef.current.stopAllAction();
-        mixerRef.current = null;
-      }
-
-      if (rendererRef.current && mountRef.current?.contains(rendererRef.current.domElement)) {
-        mountRef.current.removeChild(rendererRef.current.domElement);
-      }
+      if (rendererRef.current) rendererRef.current.dispose();
+      mixerRef.current = null;
 
       if (sceneRef.current) {
-        sceneRef.current.traverse((object) => {
-          if (object.geometry) object.geometry.dispose();
-          if (object.material) {
-            if (Array.isArray(object.material)) {
-              object.material.forEach(material => material.dispose());
-            } else {
-              object.material.dispose();
+        sceneRef.current.traverse((obj) => {
+          if (obj.isMesh) {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+              if (Array.isArray(obj.material))
+                obj.material.forEach((m) => m.dispose());
+              else obj.material.dispose();
             }
           }
         });
       }
+
+      if (
+        rendererRef.current &&
+        mountRef.current?.contains(rendererRef.current.domElement)
+      ) {
+        mountRef.current.removeChild(rendererRef.current.domElement);
+      }
     };
-  }, [modelUrl, containerType, size, animationUrl, animationName]);
+  }, [modelUrl, size, animationUrl]);
 
   return (
     <div className={`avatar-3d-container ${size}`}>
       {loading && (
         <div className="avatar-loading">
           <div className="loading-spinner"></div>
-          <p>Loading 3D Avatar...</p>
+          <p>Loading 3D Avatar…</p>
         </div>
       )}
-      
+
       {error && (
         <div className="avatar-error">
           <p>{error}</p>
         </div>
       )}
-      
-      <div 
-        ref={mountRef} 
-        className="avatar-canvas-container"
-        style={{ 
-          opacity: loading ? 0 : 1, 
-          transition: 'opacity 0.3s'
-        }}
-      />
-      
-      {animationName && !loading && (
-        <div className="avatar-animation-info">
-          {animationName}
-        </div>
+
+      <div className="avatar-canvas-container" ref={mountRef} />
+
+      {!loading && animationName && (
+        <div className="avatar-animation-info">{animationName}</div>
       )}
     </div>
   );

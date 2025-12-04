@@ -1,7 +1,4 @@
-// src/components/ResultPage.jsx
-// UPDATED VERSION - With Section-Based Animations
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Alert, Spinner } from 'react-bootstrap';
@@ -11,217 +8,195 @@ import {
   faLightbulb,
   faFileAlt,
   faTrophy,
-  faFire,
   faTimesCircle,
   faClock,
   faGraduationCap,
   faComment,
   faExclamationCircle,
-  faBolt,
   faArrowLeft,
   faStar,
+  faCompress,
   faChevronDown,
-  faExpand,
-  faRefresh
+  faChevronUp,
+  faRefresh,
+  faListAlt
 } from '@fortawesome/free-solid-svg-icons';
 import MarkdownWithMath from './MarkdownWithMath';
 import QuestionListModal from './QuestionListModal';
 import axiosInstance from '../api/axiosInstance';
 import Avatar3DModel from './Avatar3DModel';
 import './ResultPage.css';
-import './ResultPageAnimations.css'; // Add this line
-
-
 
 // ==================== ANIMATION MAPPING ====================
 const ANIMATION_MAP = {
   question: {
     url: '/animations/Thinking (1).fbx',
-    name: '🤔 Confused'
+    name: '🤔 What\'s being asked here?'
   },
   solution: {
     url: '/animations/Talking.fbx',
-    name: '👨‍🏫 Teaching'
+    name: '💡 Here\'s how to solve it!'
   },
-   userSolution: {
+  userSolution: {
     url: '/animations/Looking (1).fbx',
-    name: '👀 Reviewing Your Work'
+    name: '📝 Let me check your work...'
   },
-   // 4. Score Card - High Score (>60%)
   scoreHigh: {
     url: '/animations/Golf Putt Victory.fbx',
-    name: '🎉 Victory! Great Job!'
+    name: '🎉 Awesome work!'
   },
-  
-  // 4. Score Card - Low Score (≤60%)
   scoreLow: {
     url: '/animations/Defeated.fbx',
-    name: '💪 Keep Practicing!'
-  },
-  gap: {
-    url: '/animations/Focus.fbx',
-    name: '🤔 Thinking'
-  },
-  error: {
-    url: '/animations/Tripping.fbx',
-    name: '💡 Explaining'
-  },
-  time: {
-    url: '/animations/Running To Turn.fbx',
-    name: '🏃 Running'
+    name: '💪 Keep practicing!'
   },
   concepts: {
     url: '/animations/salsa.fbx',
-    name: '📚 Teaching'
+    name: '🎓 Key Concepts'
   },
-  mistakes: {
-    url: '/animations/Sad Idle.fbx',
-    name: '😔 Reviewing'
+  gapAnalysis: {
+    url: '/animations/Tripping.fbx',
+    name: '📊 Gap Analysis'
   },
-  default: {
-    url: '/animations/Thinking (1).fbx',
-    name: '😊 Idle'
+  errorType: {
+    url: '/animations/Defeated.fbx',
+    name: '⚠️ Error Detection'
+  },
+  timeManagement: {
+    url: '/animations/Running To Turn.fbx',
+    name: '⏱️ Time Analysis'
   }
 };
 
-// ==================== HELPER FUNCTIONS ====================
-const getImageSrc = (img, defaultType = 'image/png') => {
-  if (!img) return '';
-  if (img.startsWith('data:')) return img;
-  if (img.startsWith('http')) return img;
-  return `data:${defaultType};base64,${img}`;
+// ==================== UTILITY FUNCTIONS ====================
+const getImageSrc = (image) => {
+  if (!image) return null;
+  if (typeof image === 'string' && image.startsWith('data:')) return image;
+  if (image instanceof File) return URL.createObjectURL(image);
+  if (typeof image === 'string' && image.match(/^[A-Za-z0-9+/=]+$/)) {
+    return `data:image/png;base64,${image}`;
+  }
+  if (typeof image === 'string' && image.match(/^https?:\/\//)) return image;
+  return null;
 };
 
-// ==================== RESULT CARD COMPONENT ====================
+// ==================== RESULT CARD COMPONENT (NO 3D MODEL) ====================
 const ResultCard = ({ 
   title, 
   icon, 
   color, 
-  avatarMood, 
-  avatarMessage, 
-  children, 
+  cardType,
   delay = 0,
-  cardType = 'default'
+  children,
+  onCardClick
 }) => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  
-  // Get animation for this card type
-  const animation = ANIMATION_MAP[cardType] || ANIMATION_MAP.default;
-  
-  const toggleFullscreen = (e) => {
-    // Prevent opening fullscreen if clicking on interactive elements inside
-    if (e?.target?.closest('button:not(.result-card)') || 
-        e?.target?.closest('a') || 
-        e?.target?.closest('input')) {
-      return;
-    }
-    setIsFullscreen(!isFullscreen);
-  };
-
-  const handleClose = (e) => {
-    e.stopPropagation();
-    setIsFullscreen(false);
-  };
-
   return (
-    <>
-      {/* CARD IN NORMAL VIEW - Clickable */}
-      <motion.div 
-        className={`result-card ${isHovered ? 'hovered' : ''}`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay }}
-        onClick={toggleFullscreen}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        style={{ cursor: 'pointer' }}
-      >
-        <div className="card-header-row">
-          <div className="card-icon" style={{ background: color }}>
+    <motion.div
+      className="result-card-clickable"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay }}
+      whileHover={{ scale: 1.02 }}
+      onClick={onCardClick}
+      style={{ cursor: 'pointer' }}
+    >
+      <div className="card-header-modern" style={{ borderTopColor: color }}>
+        <div className="header-left">
+          <div className="icon-wrapper-fixed" style={{ backgroundColor: color }}>
             <FontAwesomeIcon icon={icon} />
           </div>
-          <h3 className="card-title">{title}</h3>
+          <h3 className="card-title-modern">{title}</h3>
         </div>
-        <div className="card-body">{children}</div>
-        
-        
-      </motion.div>
+      </div>
+      
+      <div className="card-content-modern">
+        {children}
+      </div>
+    </motion.div>
+  );
+};
 
-      {/* FULLSCREEN MODAL WITH 3D AVATAR */}
-      <AnimatePresence>
-        {isFullscreen && (
-          <motion.div 
-            className="modal-overlay-fullscreen"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-          >
-            <motion.div 
-              className="modal-content-fullscreen"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
+// ==================== FULLSCREEN MODAL WITH 3D MODEL ====================
+const FullscreenModal = ({ 
+  isOpen, 
+  onClose, 
+  title, 
+  icon, 
+  color, 
+  children,
+  cardType
+}) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const animation = ANIMATION_MAP[cardType];
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="fullscreen-modal-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      >
+        <motion.div
+          className="fullscreen-modal-content"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="fullscreen-header" style={{ borderBottomColor: color }}>
+            <div className="header-left">
+              <div className="icon-wrapper-fixed" style={{ backgroundColor: color }}>
+                <FontAwesomeIcon icon={icon} />
+              </div>
+              <h2 className="fullscreen-title">{title}</h2>
+            </div>
+            <button 
+              className="close-btn-modern" 
+              onClick={onClose}
+              aria-label="Close fullscreen"
             >
-              {/* Header */}
-              <div className="fullscreen-header">
-                <div className="fullscreen-icon" style={{ background: color }}>
-                  <FontAwesomeIcon icon={icon} />
-                </div>
-                <h2>{title}</h2>
-                <button className="close-modal-btn" onClick={handleClose}>
-                  ×
-                </button>
-              </div>
+              <FontAwesomeIcon icon={faCompress} />
+            </button>
+          </div>
 
-              {/* Body with Content + 3D Avatar */}
-              <div className="fullscreen-body">
-                {/* Left: Content */}
-                <div className="modal-content-section-enhanced">
-                  {children}
-                </div>
-
-                {/* Right: 3D Avatar with Animation */}
-                <div className="fullscreen-avatar-3d-enhanced">
-                  {/* Avatar message badge */}
-                  <div className="avatar-message-badge">
-                    {avatarMessage}
-                  </div>
-                  
-                  {/* Gradient orbs */}
-                  <div className="avatar-backdrop">
-                    <div className="gradient-orb orb-1"></div>
-                    <div className="gradient-orb orb-2"></div>
-                    <div className="gradient-orb orb-3"></div>
-                  </div>
-                  
-                  {/* 3D Model Container with Animation */}
-                  <div className="avatar-model-container">
-                    <Avatar3DModel 
-                      modelUrl="https://models.readyplayer.me/692dee017b7a88e1f657e662.glb"
-                      containerType={cardType}
-                      size="xlarge"
-                      animationUrl={animation.url}
-                      animationName={animation.name}
-                      key={`${cardType}-${isFullscreen}`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+          {/* Body with 3D Model */}
+          <div className="fullscreen-body">
+            <div className="fullscreen-content-wrapper">
+              {children}
+            </div>
+            
+            {/* Large 3D Avatar in Fullscreen */}
+            <div className="floating-avatar-fullscreen">
+              <Avatar3DModel
+                animationUrl={animation?.url}
+                animationName={animation?.name}
+                size="xlarge"
+              />
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
 // ==================== SCORE RING COMPONENT ====================
 const ScoreRing = ({ obtained, total }) => {
-  const displayScore = Math.round(obtained);
+  const displayScore = obtained != null ? Math.round(obtained * 10) / 10 : 0;
   const pct = total > 0 ? Math.round((obtained / total) * 100) : 0;
 
   const getColor = () => {
@@ -241,7 +216,7 @@ const ScoreRing = ({ obtained, total }) => {
   const offset = circumference - (circumference * pct / 100);
 
   return (
-    <div className="score-section">
+    <div className="score-section-modern">
       <div className="score-ring-container">
         <svg viewBox="0 0 120 120" className="score-ring-svg">
           <circle className="ring-bg" cx="60" cy="60" r="50"/>
@@ -256,9 +231,10 @@ const ScoreRing = ({ obtained, total }) => {
             transition={{ duration: 1.5, ease: 'easeOut', delay: 0.3 }}
           />
         </svg>
-        <div className="score-text">
+        <div className="score-text-overlay">
           <span className="score-num" style={{ color: getColor() }}>{displayScore}</span>
-          <span className="score-total">/ {total}</span>
+          <span className="score-divider">/</span>
+          <span className="score-total">{total}</span>
         </div>
       </div>
       <div className="score-message">{getMessage()}</div>
@@ -274,30 +250,103 @@ const ResultPage = () => {
   const [error, setError] = useState(null);
   const [calculating, setCalculating] = useState(false);
   const [autoScore, setAutoScore] = useState(null);
-  const [expanded, setExpanded] = useState(false);
+  const [showBottomButtons, setShowBottomButtons] = useState(false);
+  
+  // Fullscreen states
+  const [fullscreenCard, setFullscreenCard] = useState(null);
+  const [showMoreSolution, setShowMoreSolution] = useState(false);
 
-  const [darkMode, setDarkMode] = useState(() => 
+  const contentRef = useRef(null);
+
+  const [darkMode] = useState(() => 
     localStorage.getItem('darkMode') === 'true'
   );
 
   const { state } = location;
   const {
-    ai_data, actionType, questionList, class_id, subject_id, topic_ids,
-    subtopic, questionImage, questionNumber, studentImages = [], question_id, context
+    ai_data, 
+    actionType, 
+    questionList, 
+    class_id, 
+    subject_id, 
+    topic_ids,
+    subtopic, 
+    questionImage, 
+    questionNumber, 
+    studentImages = [], 
+    question_id, 
+    context
   } = state || {};
 
   const {
-    question, ai_explaination, student_answer, comment, gap_analysis,
-    time_analysis, error_type, concepts_used, solution, score,
-    obtained_marks, total_marks, question_marks, question_image_base64
+    question, 
+    ai_explaination, 
+    student_answer, 
+    comment, 
+    gap_analysis,
+    time_analysis, 
+    error_type, 
+    concepts_used, 
+    solution, 
+    score,
+    obtained_marks, 
+    total_marks, 
+    question_marks, 
+    question_image_base64
   } = ai_data || {};
 
-  const conceptsFormatted = Array.isArray(concepts_used) 
-    ? concepts_used.join(', ') 
-    : concepts_used || '';
   const scoreVal = obtained_marks ?? score ?? autoScore ?? 0;
   const totalVal = total_marks ?? question_marks ?? 5;
 
+  // ==================== SCROLL DETECTION (FIXED) ====================
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const pageHeight = document.documentElement.scrollHeight;
+      const threshold = pageHeight * 0.85; // Show at 85% scroll
+      
+      setShowBottomButtons(scrollPosition >= threshold);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // ==================== AUTO-SCORE FALLBACK ====================
+  useEffect(() => {
+    const calculateAutoScore = async () => {
+      if (!obtained_marks && !score && student_answer && question) {
+        setCalculating(true);
+        
+        try {
+          const response = await axiosInstance.post('/auto-score/', {
+            student_answer: student_answer,
+            question: question,
+            expected_solution: ai_explaination?.join(' ') || solution,
+            total_marks: total_marks || question_marks || 5
+          });
+          
+          setAutoScore(response.data.score);
+        } catch (error) {
+          console.error('Auto-score failed:', error);
+          const clientScore = calculateClientSideScore(
+            student_answer,
+            ai_explaination?.join(' ') || solution,
+            total_marks || 5
+          );
+          setAutoScore(clientScore);
+        } finally {
+          setCalculating(false);
+        }
+      }
+    };
+    
+    calculateAutoScore();
+  }, [student_answer, question, obtained_marks, score, ai_explaination, solution, total_marks, question_marks]);
+
+  // ==================== HELPER FUNCTIONS ====================
   const goBack = () => navigate(-1);
 
   const selectQuestion = (q) => {
@@ -331,77 +380,103 @@ const ResultPage = () => {
     });
   };
 
-  const getMoodFromScore = () => {
+  const getScoreCardType = () => {
     const pct = totalVal > 0 ? (scoreVal / totalVal) * 100 : 0;
-    if (pct >= 80) return 'happy';
-    if (pct >= 40) return 'neutral';
-    return 'worried';
+    return pct >= 60 ? 'scoreHigh' : 'scoreLow';
   };
 
-  const renderSteps = (steps) => {
+  const calculateClientSideScore = (studentAns, expectedSol, totalMarks) => {
+    if (!studentAns || !expectedSol) return 0;
+    
+    const keywords = expectedSol.toLowerCase().split(/\s+/)
+      .filter(word => word.length > 3);
+    const uniqueKeywords = [...new Set(keywords)];
+    
+    const matchedCount = uniqueKeywords.filter(kw => 
+      studentAns.toLowerCase().includes(kw)
+    ).length;
+    
+    const matchPercentage = (matchedCount / uniqueKeywords.length) * 100;
+    return Math.round((matchPercentage / 100) * totalMarks * 10) / 10;
+  };
+
+  const renderSteps = (steps, isPreview = false) => {
     if (!steps?.length) return <p className="empty-text">No solution available.</p>;
+    
+    const stepsToShow = isPreview ? steps.slice(0, 3) : steps;
+    
     return (
-      <div className="solution-steps">
-        {steps.map((s, i) => {
+      <div className="solution-steps-modern">
+        {stepsToShow.map((s, i) => {
           const m = s.match(/^Step\s+(\d+):\s*(.*)/is);
           return (
-            <div key={i} className="step-item">
-              <span className="step-badge">{m ? m[1] : i + 1}</span>
-              <div className="step-content">
+            <div key={i} className="step-item-modern">
+              <div className="step-badge-modern">{m ? m[1] : i + 1}</div>
+              <div className="step-content-modern">
                 <MarkdownWithMath content={m ? m[2] : s}/>
               </div>
             </div>
           );
         })}
+        {isPreview && steps.length > 3 && (
+          <div className="fade-out-overlay">
+            <p className="view-full-text">Click to view complete solution</p>
+          </div>
+        )}
       </div>
     );
   };
 
+  // ==================== RENDER ====================
   return (
-    <div className={`result-page-fixed ${darkMode ? 'dark' : ''}`}>
+    <div className={`result-page-enhanced ${darkMode ? 'dark' : ''}`} ref={contentRef}>
       {/* Header */}
-      <header className="page-header">
+      <header className="page-header-modern">
         <motion.button 
-          className="back-btn" 
+          className="back-btn-modern" 
           onClick={goBack} 
           whileHover={{ scale: 1.05 }} 
           whileTap={{ scale: 0.95 }}
         >
           <FontAwesomeIcon icon={faArrowLeft}/> <span>Back</span>
         </motion.button>
-        <h1 className="page-title">
+        <h1 className="page-title-modern">
           <FontAwesomeIcon icon={faStar} className="star-icon"/> Results
         </h1>
         <div className="spacer"/>
       </header>
 
       {error && (
-        <Alert variant="danger" onClose={() => setError(null)} dismissible>
+        <Alert variant="danger" onClose={() => setError(null)} dismissible className="error-alert-modern">
           {error}
         </Alert>
       )}
 
-      {/* Main Grid */}
-      <main className="results-grid" id="main-content">
+      {/* Main Grid - NO 3D MODELS HERE */}
+      <main className="results-grid-modern">
         {/* Question Card */}
         <ResultCard 
           title="Question" 
           icon={faQuestionCircle} 
           color="#6366f1"
-          avatarMood="confused" 
-          avatarMessage="🤔 What's being asked here?" 
           cardType="question"
           delay={0}
+          onCardClick={() => setFullscreenCard('question')}
         >
-          <div className="question-content">
-            <span className="q-number">Q{questionNumber || 1}</span>
-            <div className="q-text"><MarkdownWithMath content={question}/></div>
+          <div className="question-content-enhanced">
+            <span className="q-number-modern">Q{questionNumber || 1}</span>
+            <div className="q-text-container">
+              <MarkdownWithMath content={question}/>
+            </div>
             {(questionImage || question_image_base64) && (
-              <img 
-                src={getImageSrc(questionImage || question_image_base64)} 
-                alt="Question" 
-                className="q-image"
-              />
+              <div className="q-image-wrapper">
+                <img 
+                  src={getImageSrc(questionImage || question_image_base64)} 
+                  alt="Question" 
+                  className="q-image-modern"
+                  onError={(e) => e.target.style.display = 'none'}
+                />
+              </div>
             )}
           </div>
         </ResultCard>
@@ -411,13 +486,12 @@ const ResultPage = () => {
           title="AI Solution" 
           icon={faLightbulb} 
           color="#10b981"
-          avatarMood="happy" 
-          avatarMessage="💡 Here's how to solve it!" 
           cardType="solution"
           delay={0.1}
+          onCardClick={() => setFullscreenCard('solution')}
         >
-          <div className={`ai-solution ${expanded ? 'expanded' : ''}`}>
-            {renderSteps(ai_explaination)}
+          <div className="ai-solution-preview">
+            {renderSteps(ai_explaination, true)}
           </div>
         </ResultCard>
 
@@ -427,25 +501,32 @@ const ResultPage = () => {
             title="Your Solution" 
             icon={faFileAlt} 
             color="#8b5cf6"
-            avatarMood="neutral" 
-            avatarMessage="📝 Let me check your work..." 
             cardType="userSolution"
             delay={0.2}
+            onCardClick={() => setFullscreenCard('userSolution')}
           >
-            <div className="user-solution">
+            <div className="user-solution-preview">
               {studentImages && studentImages.length > 0 && (
-                <div className="uploaded-images">
-                  <h4>UPLOADED IMAGE</h4>
-                  {studentImages.map((img, idx) => (
-                    <img key={idx} src={getImageSrc(img)} alt={`Answer ${idx + 1}`} />
-                  ))}
+                <div className="preview-image-wrapper">
+                  <img 
+                    src={getImageSrc(studentImages[0])} 
+                    alt="Answer preview" 
+                    className="preview-image"
+                  />
+                  {studentImages.length > 1 && (
+                    <div className="more-images-badge">
+                      +{studentImages.length - 1} more
+                    </div>
+                  )}
                 </div>
               )}
-              <div className="answer-text-section">
-                <h4>ANSWER TEXT</h4>
-                <div className="text-content">
-                  <MarkdownWithMath content={student_answer}/>
+              <div className="preview-text">
+                <p className="preview-label">ANSWER TEXT (Preview)</p>
+                <div className="preview-content">
+                  {student_answer.substring(0, 150)}
+                  {student_answer.length > 150 && '...'}
                 </div>
+                <p className="expand-hint">Click to view full answer</p>
               </div>
             </div>
           </ResultCard>
@@ -456,155 +537,388 @@ const ResultPage = () => {
           title="Score" 
           icon={faTrophy} 
           color="#f59e0b"
-          avatarMood={getMoodFromScore()} 
-          avatarMessage={scoreVal >= 4 ? "🎉 Awesome!" : "💪 Keep practicing!"} 
-          cardType="score"
-          delay={0.25}
+          cardType={getScoreCardType()}
+          delay={0.3}
+          onCardClick={() => setFullscreenCard('score')}
         >
-          <ScoreRing obtained={scoreVal} total={totalVal} />
+          {calculating ? (
+            <div className="calculating-spinner">
+              <Spinner animation="border" variant="primary" />
+              <p>Calculating score...</p>
+            </div>
+          ) : (
+            <ScoreRing obtained={scoreVal} total={totalVal} />
+          )}
         </ResultCard>
 
-        {/* Gap Analysis Card */}
+        {/* Gap Analysis Card - NOW FULLSCREEN ENABLED */}
         {gap_analysis && (
           <ResultCard 
             title="Gap Analysis" 
-            icon={faFire} 
+            icon={faExclamationCircle} 
             color="#ec4899"
-            avatarMood="thinking" 
-            avatarMessage="🔍 Areas to focus on..." 
-            cardType="gap"
-            delay={0.3}
+            cardType="gapAnalysis"
+            delay={0.4}
+            onCardClick={() => setFullscreenCard('gapAnalysis')}
           >
-            <div className="text-content">
-              <MarkdownWithMath content={gap_analysis}/>
+            <div className="gap-analysis-preview">
+              <MarkdownWithMath content={gap_analysis.substring(0, 200) + '...'}/>
+              <p className="expand-hint">Click to view full analysis</p>
             </div>
           </ResultCard>
         )}
 
-        {/* Type of Error Card */}
+        {/* Type of Error Card - NOW FULLSCREEN ENABLED */}
         {error_type && (
           <ResultCard 
             title="Type of Error" 
             icon={faTimesCircle} 
             color="#ef4444"
-            avatarMood="explaining" 
-            avatarMessage="⚠️ Common mistake identified..." 
-            cardType="error"
-            delay={0.35}
+            cardType="errorType"
+            delay={0.45}
+            onCardClick={() => setFullscreenCard('errorType')}
           >
-            <div className="error-badge">
-              <FontAwesomeIcon icon={faExclamationCircle}/> {error_type}
+            <div className="error-type-badge">
+              <span className="error-icon">⚠️</span>
+              <span className="error-text">{error_type}</span>
             </div>
+            <p className="expand-hint">Click for more details</p>
           </ResultCard>
         )}
 
-        {/* Time Management Card */}
+        {/* Time Management Card - NOW FULLSCREEN ENABLED */}
         {time_analysis && (
           <ResultCard 
             title="Time Management" 
             icon={faClock} 
             color="#06b6d4"
-            avatarMood="neutral" 
-            avatarMessage="⏱️ Time analysis..." 
-            cardType="time"
-            delay={0.4}
+            cardType="timeManagement"
+            delay={0.5}
+            onCardClick={() => setFullscreenCard('timeManagement')}
           >
-            <div className="time-info">
-              <span className={`time-badge ${time_analysis.toLowerCase().includes('critical') ? 'critical' : ''}`}>
-                <FontAwesomeIcon icon={faClock}/> {time_analysis}
-              </span>
+            <div className="time-analysis-preview">
+              <MarkdownWithMath content={time_analysis.substring(0, 150) + '...'}/>
+              <p className="expand-hint">Coming Soon</p>
             </div>
           </ResultCard>
-        )}
+        )}  
 
-        {/* Concepts Required Card */}
-        {conceptsFormatted && (
+        {/* Concepts Required Card - NOW FULLSCREEN ENABLED */}
+        {concepts_used && (
           <ResultCard 
             title="Concepts Required" 
             icon={faGraduationCap} 
             color="#8b5cf6"
-            avatarMood="proud" 
-            avatarMessage="📘 Master these concepts!" 
             cardType="concepts"
-            delay={0.45}
+            delay={0.55}
+            onCardClick={() => setFullscreenCard('concepts')}
           >
-            <div className="concepts-grid">
-              {conceptsFormatted.split(',').map((c, i) => (
-                <span key={i} className="concept-tag">
-                  <FontAwesomeIcon icon={faBolt}/> {c.trim()}
-                </span>
-              ))}
+            <div className="concepts-tags-container-preview">
+              {Array.isArray(concepts_used) ? (
+                concepts_used.slice(0, 3).map((concept, idx) => (
+                  <div key={idx} className="concept-tag-modern">
+                    <FontAwesomeIcon icon={faLightbulb} className="concept-icon"/>
+                    {typeof concept === 'object' ? concept.concept : concept}
+                  </div>
+                ))
+              ) : (
+                <div className="concept-tag-modern">
+                  <FontAwesomeIcon icon={faLightbulb} className="concept-icon"/>
+                  {concepts_used}
+                </div>
+              )}
+              {Array.isArray(concepts_used) && concepts_used.length > 3 && (
+                <p className="expand-hint">+{concepts_used.length - 3} more concepts</p>
+              )}
             </div>
           </ResultCard>
         )}
 
-        {/* Comments Card */}
+        {/* AI Feedback Card */}
         {comment && (
           <ResultCard 
-            title="Comments" 
+            title="AI Feedback" 
             icon={faComment} 
-            color="#64748b"
-            avatarMood="neutral" 
-            avatarMessage="💬 Here's some feedback..." 
+            color="#10b981"
             cardType="feedback"
-            delay={0.5}
+            delay={0.6}
+            onCardClick={() => setFullscreenCard('feedback')}
           >
-            <div className="text-content">
-              <MarkdownWithMath content={comment}/>
+            <div className="ai-feedback-preview">
+              <MarkdownWithMath content={comment.substring(0, 200) + '...'}/>
+              <p className="expand-hint">Click to view full feedback</p>
             </div>
           </ResultCard>
         )}
-
-        {/* Mistakes Made Card */}
-        <ResultCard 
-          title="Mistakes Made" 
-          icon={faExclamationCircle} 
-          color="#f97316"
-          avatarMood="thinking" 
-          avatarMessage="📝 Learning from mistakes..." 
-          cardType="mistakes"
-          delay={0.55}
-        >
-          <div className="mistakes-section">
-            <p className="coming-soon">Detailed mistake analysis will appear here...</p>
-            <ul className="mistake-list">
-              <li>Analysis coming soon</li>
-            </ul>
-          </div>
-        </ResultCard>
       </main>
 
-      {/* Bottom Action Buttons */}
-      <footer className="result-actions">
-        <motion.button
-          className="action-btn secondary"
-          onClick={() => setShowModal(true)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <FontAwesomeIcon icon={faQuestionCircle} />
-          <span>Question List</span>
-        </motion.button>
-        
-        <motion.button
-          className="action-btn primary"
-          onClick={practiseSimilar}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <FontAwesomeIcon icon={faRefresh} />
-          <span>Similar Questions</span>
-        </motion.button>
-      </footer>
+      {/* Bottom Action Buttons - SCROLL BASED */}
+      <AnimatePresence>
+        {showBottomButtons && (
+          <motion.div
+            className="bottom-actions-modern"
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <button 
+              className="action-btn-modern question-list-btn"
+              onClick={() => setShowModal(true)}
+            >
+              <FontAwesomeIcon icon={faListAlt} />
+              <span>Question List</span>
+            </button>
+            <button 
+              className="action-btn-modern similar-btn"
+              onClick={practiseSimilar}
+            >
+              <FontAwesomeIcon icon={faRefresh} />
+              <span>Similar Questions</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <QuestionListModal 
-        show={showModal} 
-        onHide={() => setShowModal(false)} 
-        questionList={questionList} 
-        onQuestionClick={selectQuestion}
-      />
+      {/* Question List Modal */}
+      {showModal && (
+        <QuestionListModal
+          show={showModal}
+          onHide={() => setShowModal(false)}
+          questionList={questionList || []}
+          onQuestionClick={selectQuestion}
+        />
+      )}
+
+      {/* FULLSCREEN MODALS WITH 3D MODELS */}
+      
+      {/* Question Fullscreen */}
+      <FullscreenModal
+        isOpen={fullscreenCard === 'question'}
+        onClose={() => setFullscreenCard(null)}
+        title="Question"
+        icon={faQuestionCircle}
+        color="#6366f1"
+        cardType="question"
+      >
+        <div className="fullscreen-question-content">
+          <div className="question-header-fullscreen">
+            <span className="q-number-fullscreen">Question {questionNumber || 1}</span>
+          </div>
+          <div className="question-body-fullscreen">
+            <MarkdownWithMath content={question}/>
+          </div>
+          {(questionImage || question_image_base64) && (
+            <div className="question-image-fullscreen">
+              <img 
+                src={getImageSrc(questionImage || question_image_base64)} 
+                alt="Question" 
+                onError={(e) => e.target.style.display = 'none'}
+              />
+            </div>
+          )}
+        </div>
+      </FullscreenModal>
+
+      {/* AI Solution Fullscreen */}
+      <FullscreenModal
+        isOpen={fullscreenCard === 'solution'}
+        onClose={() => setFullscreenCard(null)}
+        title="AI Solution"
+        icon={faLightbulb}
+        color="#10b981"
+        cardType="solution"
+      >
+        <div className="fullscreen-solution-content">
+          <div className="solution-header-fullscreen">
+            <h3>Step-by-Step Solution</h3>
+            {ai_explaination && ai_explaination.length > 6 && (
+              <button 
+                className="toggle-solution-btn"
+                onClick={() => setShowMoreSolution(!showMoreSolution)}
+              >
+                {showMoreSolution ? (
+                  <>
+                    <FontAwesomeIcon icon={faChevronUp} /> Show Less
+                  </>
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={faChevronDown} /> Show More
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          <div className="solution-steps-fullscreen">
+            {renderSteps(
+              showMoreSolution ? ai_explaination : ai_explaination?.slice(0, 6),
+              false
+            )}
+          </div>
+        </div>
+      </FullscreenModal>
+
+      {/* Your Solution Fullscreen */}
+      <FullscreenModal
+        isOpen={fullscreenCard === 'userSolution'}
+        onClose={() => setFullscreenCard(null)}
+        title="Your Solution"
+        icon={faFileAlt}
+        color="#8b5cf6"
+        cardType="userSolution"
+      >
+        <div className="fullscreen-user-solution">
+          {studentImages && studentImages.length > 0 && (
+            <div className="uploaded-images-fullscreen">
+              <h4>UPLOADED IMAGES</h4>
+              <div className="images-grid-fullscreen">
+                {studentImages.map((img, idx) => (
+                  <div key={idx} className="image-item-fullscreen">
+                    <img 
+                      src={getImageSrc(img)} 
+                      alt={`Answer ${idx + 1}`}
+                      onError={(e) => {
+                        console.error(`Image ${idx + 1} failed to load`);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <div className="answer-text-fullscreen">
+            <h4>EXTRACTED ANSWER TEXT</h4>
+            <div className="answer-content-fullscreen">
+              <MarkdownWithMath content={student_answer}/>
+            </div>
+          </div>
+        </div>
+      </FullscreenModal>
+
+      {/* Score Fullscreen */}
+      <FullscreenModal
+        isOpen={fullscreenCard === 'score'}
+        onClose={() => setFullscreenCard(null)}
+        title="Score"
+        icon={faTrophy}
+        color="#f59e0b"
+        cardType={getScoreCardType()}
+      >
+        <div className="fullscreen-score-content">
+          <ScoreRing obtained={scoreVal} total={totalVal} />
+          <div className="score-details-fullscreen">
+            <div className="score-stat">
+              <span className="stat-label">Obtained Marks</span>
+              <span className="stat-value">{scoreVal}</span>
+            </div>
+            <div className="score-stat">
+              <span className="stat-label">Total Marks</span>
+              <span className="stat-value">{totalVal}</span>
+            </div>
+            <div className="score-stat">
+              <span className="stat-label">Percentage</span>
+              <span className="stat-value">
+                {totalVal > 0 ? Math.round((scoreVal / totalVal) * 100) : 0}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </FullscreenModal>
+
+      {/* Gap Analysis Fullscreen */}
+      <FullscreenModal
+        isOpen={fullscreenCard === 'gapAnalysis'}
+        onClose={() => setFullscreenCard(null)}
+        title="Gap Analysis"
+        icon={faExclamationCircle}
+        color="#ec4899"
+        cardType="gapAnalysis"
+      >
+        <div className="fullscreen-gap-analysis">
+          <MarkdownWithMath content={gap_analysis}/>
+        </div>
+      </FullscreenModal>
+
+      {/* Error Type Fullscreen */}
+      <FullscreenModal
+        isOpen={fullscreenCard === 'errorType'}
+        onClose={() => setFullscreenCard(null)}
+        title="Type of Error"
+        icon={faTimesCircle}
+        color="#ef4444"
+        cardType="errorType"
+      >
+        <div className="fullscreen-error-type">
+          <div className="error-type-badge-large">
+            <span className="error-icon-large">⚠️</span>
+            <span className="error-text-large">{error_type}</span>
+          </div>
+          <div className="error-explanation">
+            <h4>What does this mean?</h4>
+            <p>This type of error indicates a specific issue in your understanding or approach to the problem.</p>
+          </div>
+        </div>
+      </FullscreenModal>
+
+      {/* Time Management Fullscreen */}
+      <FullscreenModal
+        isOpen={fullscreenCard === 'timeManagement'}
+        onClose={() => setFullscreenCard(null)}
+        title="Time Management"
+        icon={faClock}
+        color="#06b6d4"
+        cardType="timeManagement"
+      >
+        <div className="fullscreen-time-analysis">
+          <MarkdownWithMath content={time_analysis}/>
+        </div>
+      </FullscreenModal>
+
+      {/* Concepts Fullscreen */}
+      <FullscreenModal
+        isOpen={fullscreenCard === 'concepts'}
+        onClose={() => setFullscreenCard(null)}
+        title="Concepts Required"
+        icon={faGraduationCap}
+        color="#8b5cf6"
+        cardType="concepts"
+      >
+        <div className="fullscreen-concepts">
+          <div className="concepts-tags-container-fullscreen">
+            {Array.isArray(concepts_used) ? (
+              concepts_used.map((concept, idx) => (
+                <div key={idx} className="concept-tag-modern-large">
+                  <FontAwesomeIcon icon={faLightbulb} className="concept-icon"/>
+                  {typeof concept === 'object' ? concept.concept : concept}
+                </div>
+              ))
+            ) : (
+              <div className="concept-tag-modern-large">
+                <FontAwesomeIcon icon={faLightbulb} className="concept-icon"/>
+                {concepts_used}
+              </div>
+            )}
+          </div>
+        </div>
+      </FullscreenModal>
+
+      {/* Feedback Fullscreen */}
+      <FullscreenModal
+        isOpen={fullscreenCard === 'feedback'}
+        onClose={() => setFullscreenCard(null)}
+        title="AI Feedback"
+        icon={faComment}
+        color="#10b981"
+        cardType="feedback"
+      >
+        <div className="fullscreen-feedback">
+          <MarkdownWithMath content={comment}/>
+        </div>
+      </FullscreenModal>
+
     </div>
-  );
+  );  
 };
 
 export default ResultPage;
