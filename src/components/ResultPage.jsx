@@ -30,7 +30,7 @@ import './ResultPage.css';
 // ==================== ANIMATION MAPPING ====================
 const ANIMATION_MAP = {
   question: {
-    url: '/animations/Thinking (1).fbx',
+    url: '/animations/Thinking (2).fbx',
     name: '🤔 What\'s being asked here?'
   },
   solution: {
@@ -64,6 +64,10 @@ const ANIMATION_MAP = {
   timeManagement: {
     url: '/animations/Running To Turn.fbx',
     name: '⏱️ Time Analysis'
+  },
+  feedback: {
+    url: '/animations/Talking.fbx',
+    name: '💬 AI Feedback'
   }
 };
 
@@ -79,7 +83,7 @@ const getImageSrc = (image) => {
   return null;
 };
 
-// ==================== RESULT CARD COMPONENT (NO 3D MODEL) ====================
+// ==================== RESULT CARD WITH HOVER ====================
 const ResultCard = ({ 
   title, 
   icon, 
@@ -87,17 +91,17 @@ const ResultCard = ({
   cardType,
   delay = 0,
   children,
-  onCardClick
+  onMouseEnter,
+  onMouseLeave
 }) => {
   return (
     <motion.div
-      className="result-card-clickable"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-      whileHover={{ scale: 1.02 }}
-      onClick={onCardClick}
-      style={{ cursor: 'pointer' }}
+      className="result-card-hoverable"
+      initial={{ opacity: 0, x: -50 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6, delay }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <div className="card-header-modern" style={{ borderTopColor: color }}>
         <div className="header-left">
@@ -105,6 +109,10 @@ const ResultCard = ({
             <FontAwesomeIcon icon={icon} />
           </div>
           <h3 className="card-title-modern">{title}</h3>
+        </div>
+        <div className="hover-indicator">
+          <span>Hover to expand</span>
+          <FontAwesomeIcon icon={faChevronUp} className="hover-icon" />
         </div>
       </div>
       
@@ -115,7 +123,7 @@ const ResultCard = ({
   );
 };
 
-// ==================== FULLSCREEN MODAL WITH 3D MODEL ====================
+// ==================== FULLSCREEN MODAL WITH FIXED 3D MODEL ====================
 const FullscreenModal = ({ 
   isOpen, 
   onClose, 
@@ -125,6 +133,8 @@ const FullscreenModal = ({
   children,
   cardType
 }) => {
+  const [scrollY, setScrollY] = useState(0);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -136,6 +146,10 @@ const FullscreenModal = ({
     };
   }, [isOpen]);
 
+  const handleScroll = (e) => {
+    setScrollY(e.target.scrollTop);
+  };
+
   if (!isOpen) return null;
 
   const animation = ANIMATION_MAP[cardType];
@@ -143,29 +157,42 @@ const FullscreenModal = ({
   return (
     <AnimatePresence>
       <motion.div
-        className="fullscreen-modal-overlay"
+        className="fullscreen-modal-overlay-new"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
+        transition={{ duration: 0.3 }}
       >
         <motion.div
-          className="fullscreen-modal-content"
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          onClick={(e) => e.stopPropagation()}
+          className="fullscreen-modal-content-new"
+          initial={{ scale: 0.8, opacity: 0, rotateX: -15 }}
+          animate={{ scale: 1, opacity: 1, rotateX: 0 }}
+          exit={{ scale: 0.8, opacity: 0, rotateX: 15 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 300, 
+            damping: 25 
+          }}
         >
+          {/* Fixed 3D Model - Small size, stays in place */}
+          <div className="fixed-avatar-container">
+            <Avatar3DModel
+              animationUrl={animation?.url}
+              animationName={animation?.name}
+              size="medium"
+            />
+          </div>
+
           {/* Header */}
-          <div className="fullscreen-header" style={{ borderBottomColor: color }}>
+          <div className="fullscreen-header-new" style={{ borderBottomColor: color }}>
             <div className="header-left">
               <div className="icon-wrapper-fixed" style={{ backgroundColor: color }}>
                 <FontAwesomeIcon icon={icon} />
               </div>
-              <h2 className="fullscreen-title">{title}</h2>
+              <h2 className="fullscreen-title-new">{title}</h2>
             </div>
             <button 
-              className="close-btn-modern" 
+              className="close-btn-modern-new" 
               onClick={onClose}
               aria-label="Close fullscreen"
             >
@@ -173,19 +200,10 @@ const FullscreenModal = ({
             </button>
           </div>
 
-          {/* Body with 3D Model */}
-          <div className="fullscreen-body">
-            <div className="fullscreen-content-wrapper">
+          {/* Scrollable Content Area */}
+          <div className="fullscreen-body-new" onScroll={handleScroll}>
+            <div className="fullscreen-content-wrapper-new">
               {children}
-            </div>
-            
-            {/* Large 3D Avatar in Fullscreen */}
-            <div className="floating-avatar-fullscreen">
-              <Avatar3DModel
-                animationUrl={animation?.url}
-                animationName={animation?.name}
-                size="xlarge"
-              />
             </div>
           </div>
         </motion.div>
@@ -250,10 +268,10 @@ const ResultPage = () => {
   const [error, setError] = useState(null);
   const [calculating, setCalculating] = useState(false);
   const [autoScore, setAutoScore] = useState(null);
-  const [showBottomButtons, setShowBottomButtons] = useState(false);
   
-  // Fullscreen states
+  // Hover states
   const [fullscreenCard, setFullscreenCard] = useState(null);
+  const [hoverTimer, setHoverTimer] = useState(null);
   const [showMoreSolution, setShowMoreSolution] = useState(false);
 
   const contentRef = useRef(null);
@@ -298,21 +316,20 @@ const ResultPage = () => {
   const scoreVal = obtained_marks ?? score ?? autoScore ?? 0;
   const totalVal = total_marks ?? question_marks ?? 5;
 
-  // ==================== SCROLL DETECTION (FIXED) ====================
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + window.innerHeight;
-      const pageHeight = document.documentElement.scrollHeight;
-      const threshold = pageHeight * 0.85; // Show at 85% scroll
-      
-      setShowBottomButtons(scrollPosition >= threshold);
-    };
+  // ==================== HOVER HANDLERS ====================
+  const handleMouseEnter = (cardType) => {
+    const timer = setTimeout(() => {
+      setFullscreenCard(cardType);
+    }, 800); // 800ms hover delay
+    setHoverTimer(timer);
+  };
 
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-    
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const handleMouseLeave = () => {
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      setHoverTimer(null);
+    }
+  };
 
   // ==================== AUTO-SCORE FALLBACK ====================
   useEffect(() => {
@@ -420,7 +437,7 @@ const ResultPage = () => {
         })}
         {isPreview && steps.length > 3 && (
           <div className="fade-out-overlay">
-            <p className="view-full-text">Click to view complete solution</p>
+            <p className="view-full-text">Hover to view complete solution</p>
           </div>
         )}
       </div>
@@ -452,8 +469,8 @@ const ResultPage = () => {
         </Alert>
       )}
 
-      {/* Main Grid - NO 3D MODELS HERE */}
-      <main className="results-grid-modern">
+      {/* Vertical Cards Layout */}
+      <main className="results-vertical-layout">
         {/* Question Card */}
         <ResultCard 
           title="Question" 
@@ -461,7 +478,8 @@ const ResultPage = () => {
           color="#6366f1"
           cardType="question"
           delay={0}
-          onCardClick={() => setFullscreenCard('question')}
+          onMouseEnter={() => handleMouseEnter('question')}
+          onMouseLeave={handleMouseLeave}
         >
           <div className="question-content-enhanced">
             <span className="q-number-modern">Q{questionNumber || 1}</span>
@@ -482,18 +500,21 @@ const ResultPage = () => {
         </ResultCard>
 
         {/* AI Solution Card */}
-        <ResultCard 
-          title="AI Solution" 
-          icon={faLightbulb} 
-          color="#10b981"
-          cardType="solution"
-          delay={0.1}
-          onCardClick={() => setFullscreenCard('solution')}
-        >
-          <div className="ai-solution-preview">
-            {renderSteps(ai_explaination, true)}
-          </div>
-        </ResultCard>
+        {ai_explaination && ai_explaination.length > 0 && (
+          <ResultCard 
+            title="AI Solution" 
+            icon={faLightbulb} 
+            color="#10b981"
+            cardType="solution"
+            delay={0.1}
+            onMouseEnter={() => handleMouseEnter('solution')}
+            onMouseLeave={handleMouseLeave}
+          >
+            <div className="ai-solution-preview">
+              {renderSteps(ai_explaination, true)}
+            </div>
+          </ResultCard>
+        )}
 
         {/* Your Solution Card */}
         {student_answer && (
@@ -503,7 +524,8 @@ const ResultPage = () => {
             color="#8b5cf6"
             cardType="userSolution"
             delay={0.2}
-            onCardClick={() => setFullscreenCard('userSolution')}
+            onMouseEnter={() => handleMouseEnter('userSolution')}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="user-solution-preview">
               {studentImages && studentImages.length > 0 && (
@@ -526,7 +548,7 @@ const ResultPage = () => {
                   {student_answer.substring(0, 150)}
                   {student_answer.length > 150 && '...'}
                 </div>
-                <p className="expand-hint">Click to view full answer</p>
+                <p className="expand-hint">Hover to view full answer</p>
               </div>
             </div>
           </ResultCard>
@@ -539,7 +561,8 @@ const ResultPage = () => {
           color="#f59e0b"
           cardType={getScoreCardType()}
           delay={0.3}
-          onCardClick={() => setFullscreenCard('score')}
+          onMouseEnter={() => handleMouseEnter('score')}
+          onMouseLeave={handleMouseLeave}
         >
           {calculating ? (
             <div className="calculating-spinner">
@@ -551,7 +574,7 @@ const ResultPage = () => {
           )}
         </ResultCard>
 
-        {/* Gap Analysis Card - NOW FULLSCREEN ENABLED */}
+        {/* Gap Analysis Card */}
         {gap_analysis && (
           <ResultCard 
             title="Gap Analysis" 
@@ -559,16 +582,17 @@ const ResultPage = () => {
             color="#ec4899"
             cardType="gapAnalysis"
             delay={0.4}
-            onCardClick={() => setFullscreenCard('gapAnalysis')}
+            onMouseEnter={() => handleMouseEnter('gapAnalysis')}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="gap-analysis-preview">
               <MarkdownWithMath content={gap_analysis.substring(0, 200) + '...'}/>
-              <p className="expand-hint">Click to view full analysis</p>
+              <p className="expand-hint">Hover to view full analysis</p>
             </div>
           </ResultCard>
         )}
 
-        {/* Type of Error Card - NOW FULLSCREEN ENABLED */}
+        {/* Type of Error Card */}
         {error_type && (
           <ResultCard 
             title="Type of Error" 
@@ -576,17 +600,18 @@ const ResultPage = () => {
             color="#ef4444"
             cardType="errorType"
             delay={0.45}
-            onCardClick={() => setFullscreenCard('errorType')}
+            onMouseEnter={() => handleMouseEnter('errorType')}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="error-type-badge">
               <span className="error-icon">⚠️</span>
               <span className="error-text">{error_type}</span>
             </div>
-            <p className="expand-hint">Click for more details</p>
+            <p className="expand-hint">Hover for more details</p>
           </ResultCard>
         )}
 
-        {/* Time Management Card - NOW FULLSCREEN ENABLED */}
+        {/* Time Management Card */}
         {time_analysis && (
           <ResultCard 
             title="Time Management" 
@@ -594,16 +619,17 @@ const ResultPage = () => {
             color="#06b6d4"
             cardType="timeManagement"
             delay={0.5}
-            onCardClick={() => setFullscreenCard('timeManagement')}
+            onMouseEnter={() => handleMouseEnter('timeManagement')}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="time-analysis-preview">
               <MarkdownWithMath content={time_analysis.substring(0, 150) + '...'}/>
-              <p className="expand-hint">Coming Soon</p>
+              <p className="expand-hint">Hover to view analysis</p>
             </div>
           </ResultCard>
         )}  
 
-        {/* Concepts Required Card - NOW FULLSCREEN ENABLED */}
+        {/* Concepts Required Card */}
         {concepts_used && (
           <ResultCard 
             title="Concepts Required" 
@@ -611,7 +637,8 @@ const ResultPage = () => {
             color="#8b5cf6"
             cardType="concepts"
             delay={0.55}
-            onCardClick={() => setFullscreenCard('concepts')}
+            onMouseEnter={() => handleMouseEnter('concepts')}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="concepts-tags-container-preview">
               {Array.isArray(concepts_used) ? (
@@ -642,43 +669,34 @@ const ResultPage = () => {
             color="#10b981"
             cardType="feedback"
             delay={0.6}
-            onCardClick={() => setFullscreenCard('feedback')}
+            onMouseEnter={() => handleMouseEnter('feedback')}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="ai-feedback-preview">
               <MarkdownWithMath content={comment.substring(0, 200) + '...'}/>
-              <p className="expand-hint">Click to view full feedback</p>
+              <p className="expand-hint">Hover to view full feedback</p>
             </div>
           </ResultCard>
         )}
       </main>
 
-      {/* Bottom Action Buttons - SCROLL BASED */}
-      <AnimatePresence>
-        {showBottomButtons && (
-          <motion.div
-            className="bottom-actions-modern"
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <button 
-              className="action-btn-modern question-list-btn"
-              onClick={() => setShowModal(true)}
-            >
-              <FontAwesomeIcon icon={faListAlt} />
-              <span>Question List</span>
-            </button>
-            <button 
-              className="action-btn-modern similar-btn"
-              onClick={practiseSimilar}
-            >
-              <FontAwesomeIcon icon={faRefresh} />
-              <span>Similar Questions</span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Bottom Action Buttons - Fixed */}
+      <div className="bottom-actions-fixed">
+        <button 
+          className="action-btn-modern question-list-btn"
+          onClick={() => setShowModal(true)}
+        >
+          <FontAwesomeIcon icon={faListAlt} />
+          <span>Question List</span>
+        </button>
+        <button 
+          className="action-btn-modern similar-btn"
+          onClick={practiseSimilar}
+        >
+          <FontAwesomeIcon icon={faRefresh} />
+          <span>Similar Questions</span>
+        </button>
+      </div>
 
       {/* Question List Modal */}
       {showModal && (
@@ -690,7 +708,7 @@ const ResultPage = () => {
         />
       )}
 
-      {/* FULLSCREEN MODALS WITH 3D MODELS */}
+      {/* FULLSCREEN MODALS WITH FIXED 3D MODELS */}
       
       {/* Question Fullscreen */}
       <FullscreenModal
@@ -836,6 +854,7 @@ const ResultPage = () => {
         cardType="gapAnalysis"
       >
         <div className="fullscreen-gap-analysis">
+          <h4>📊 DETAILED GAP ANALYSIS</h4>
           <MarkdownWithMath content={gap_analysis}/>
         </div>
       </FullscreenModal>
@@ -871,6 +890,7 @@ const ResultPage = () => {
         cardType="timeManagement"
       >
         <div className="fullscreen-time-analysis">
+          <h4>⏱️ TIME MANAGEMENT ANALYSIS</h4>
           <MarkdownWithMath content={time_analysis}/>
         </div>
       </FullscreenModal>
@@ -885,6 +905,7 @@ const ResultPage = () => {
         cardType="concepts"
       >
         <div className="fullscreen-concepts">
+          <h4>🎓 KEY CONCEPTS</h4>
           <div className="concepts-tags-container-fullscreen">
             {Array.isArray(concepts_used) ? (
               concepts_used.map((concept, idx) => (
@@ -913,6 +934,7 @@ const ResultPage = () => {
         cardType="feedback"
       >
         <div className="fullscreen-feedback">
+          <h4>💬 AI FEEDBACK</h4>
           <MarkdownWithMath content={comment}/>
         </div>
       </FullscreenModal>
