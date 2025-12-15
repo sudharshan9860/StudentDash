@@ -109,7 +109,8 @@ const ExamAnalytics = () => {
       overall_percentage: studentResult.overall_percentage,
       grade: studentResult.grade,
       strengths: studentResult.strengths,
-      areas_for_improvement: studentResult.areas_for_improvement
+      areas_for_improvement: studentResult.areas_for_improvement,
+      detailed_analysis: studentResult.detailed_analysis
     };
     
     setSelectedStudentResult(transformedData);

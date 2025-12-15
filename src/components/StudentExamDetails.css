@@ -379,3 +379,120 @@
     page-break-inside: avoid;
   }
 }
+
+/* Overall Detailed Analysis Section */
+.overall-analysis-section {
+  margin-top: 2rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #86efac;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.analysis-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-bottom: 3px solid #047857;
+}
+
+.analysis-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.analysis-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.analysis-content {
+  padding: 1.75rem 1.5rem;
+  background: white;
+}
+
+.analysis-text {
+  font-size: 1rem;
+  color: #1f2937;
+  line-height: 1.8;
+  margin: 0;
+  text-align: justify;
+  white-space: pre-wrap;
+}
+
+/* Responsive for Overall Analysis */
+@media (max-width: 768px) {
+  .overall-analysis-section {
+    margin-top: 1.5rem;
+  }
+
+  .analysis-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .analysis-icon {
+    font-size: 1.5rem;
+  }
+
+  .analysis-title {
+    font-size: 1.1rem;
+  }
+
+  .analysis-content {
+    padding: 1.25rem 1rem;
+  }
+
+  .analysis-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+}
+
+@media (max-width: 480px) {
+  .overall-analysis-section {
+    margin-top: 1.25rem;
+    border-radius: 8px;
+  }
+
+  .analysis-header {
+    padding: 0.875rem 1rem;
+  }
+
+  .analysis-icon {
+    font-size: 1.35rem;
+  }
+
+  .analysis-title {
+    font-size: 1rem;
+  }
+
+  .analysis-content {
+    padding: 1rem 0.875rem;
+  }
+
+  .analysis-text {
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+}
+
+/* Print styles for analysis */
+@media print {
+  .overall-analysis-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #86efac;
+  }
+
+  .analysis-header {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

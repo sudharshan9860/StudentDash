@@ -1003,6 +1003,18 @@ useEffect(() => {
           </div>
         )}
 
+        {/* Detailed Analysis Section */}
+{result?.detailed_analysis && (
+  <div className="detailed-analysis-section">
+    <div className="section-header">
+      <h4>📝 Detailed Analysis</h4>
+    </div>
+    <div className="analysis-content">
+      <p>{result.detailed_analysis}</p>
+    </div>
+  </div>
+)}
+
         {/* Error displaying questions */}
         {questionsError && (
           <Alert variant="danger" className="mt-3">
