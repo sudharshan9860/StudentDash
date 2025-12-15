@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import { AuthContext } from './AuthContext';
+import StudentExamDetails from './StudentExamDetails';
 import './ExamAnalytics.css';
 
 // FIXED: Correct import for jsPDF with autoTable
@@ -25,6 +26,10 @@ const ExamAnalytics = () => {
   const [editedMarks, setEditedMarks] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(null);
+
+  // Modal state for student details
+  const [selectedStudentResult, setSelectedStudentResult] = useState(null);
+  const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
   
   useEffect(() => {
     if (role === 'teacher') {
@@ -85,6 +90,37 @@ const ExamAnalytics = () => {
     }
   };
 
+  const handleStudentRowClick = (studentResult) => {
+    // Prevent modal from opening if clicking on edit buttons
+    if (editingRow === studentResult.student_result_id) {
+      return;
+    }
+    
+    // Transform the data to match the expected format
+    const transformedData = {
+      result_id: studentResult.student_result_id,
+      exam_name: selectedExam.name,
+      exam_type: selectedExam.exam_type,
+      class_section: examStats?.classSection || 'N/A',
+      student_name: studentResult.student_name,
+      roll_number: studentResult.roll_number,
+      total_marks_obtained: studentResult.total_marks_obtained,
+      total_max_marks: studentResult.total_max_marks,
+      overall_percentage: studentResult.overall_percentage,
+      grade: studentResult.grade,
+      strengths: studentResult.strengths,
+      areas_for_improvement: studentResult.areas_for_improvement
+    };
+    
+    setSelectedStudentResult(transformedData);
+    setShowStudentDetailsModal(true);
+  };
+
+  const handleCloseStudentDetails = () => {
+    setSelectedStudentResult(null);
+    setShowStudentDetailsModal(false);
+  };
+
   const handleExamSelect = (exam) => {
     setSelectedExam(exam);
     fetchExamResults(exam.id);
@@ -99,98 +135,78 @@ const ExamAnalytics = () => {
     setUpdateSuccess(null);
   };
 
-  const handleEditClick = (result) => {
+  const handleEditClick = (e, result) => {
+    e.stopPropagation();
     setEditingRow(result.student_result_id);
     setEditedMarks(result.total_marks_obtained.toString());
     setUpdateSuccess(null);
     setError(null);
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = (e) => {
+    if (e) e.stopPropagation();
     setEditingRow(null);
     setEditedMarks('');
     setUpdateSuccess(null);
     setError(null);
   };
 
-  const handleSaveMarks = async (studentResultId, maxMarks) => {
-  const marksValue = Number(editedMarks);
+  const handleSaveMarks = async (e, studentResultId, maxMarks) => {
+    if (e) e.stopPropagation();
+    
+    const marksValue = Number(editedMarks);
 
-  if (isNaN(marksValue)) {
-    setError('Please enter a valid number for marks');
-    return;
-  }
-
-  if (marksValue < 0) {
-    setError('Marks cannot be negative');
-    return;
-  }
-
-  if (marksValue > maxMarks) {
-    setError(`Marks cannot exceed maximum marks (${maxMarks})`);
-    return;
-  }
-
-  try {
-    setIsUpdating(true);
-    setError(null);
-
-    const formData = new FormData();
-    formData.append('student_result_id', studentResultId);
-    formData.append('updated_marks', marksValue);
-
-    console.log('Sending form data:');
-    for (const pair of formData.entries()) {
-      console.log(pair[0] + ': ' + pair[1]);
+    if (isNaN(marksValue)) {
+      setError('Please enter a valid number for marks');
+      return;
     }
 
-    let response;
+    if (marksValue < 0) {
+      setError('Marks cannot be negative');
+      return;
+    }
+
+    if (marksValue > maxMarks) {
+      setError(`Marks cannot exceed maximum marks (${maxMarks})`);
+      return;
+    }
+
     try {
-      response = await axiosInstance.post('/update-student-result/', formData, {
+      setIsUpdating(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append('student_result_id', studentResultId);
+      formData.append('updated_marks', marksValue);
+
+      let response = await axiosInstance.post('/update-student-result/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-    } catch (err) {
-      if (err.response?.status === 404) {
-        console.log('Trying without /api/ prefix...');
-        response = await axiosInstance.post('/update-student-result/', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+
+      setUpdateSuccess('Successfully updated marks!');
+      await fetchExamResults(selectedExam.id);
+      setEditingRow(null);
+      setEditedMarks('');
+      setTimeout(() => setUpdateSuccess(null), 3000);
+
+    } catch (error) {
+      console.error('Error updating marks:', error);
+      let errorMessage = 'Failed to update marks. ';
+      if (error.response?.status === 404) {
+        errorMessage += 'API endpoint not found.';
+      } else if (error.response?.status === 403) {
+        errorMessage += 'Access denied.';
+      } else if (error.response?.data?.error) {
+        errorMessage += error.response.data.error;
       } else {
-        throw err;
+        errorMessage += 'Please try again.';
       }
+      setError(errorMessage);
+    } finally {
+      setIsUpdating(false);
     }
+  };
 
-    console.log('Update successful:', response.data);
-    setUpdateSuccess('Successfully updated marks!');
-    await fetchExamResults(selectedExam.id);
-    setEditingRow(null);
-    setEditedMarks('');
-    setTimeout(() => setUpdateSuccess(null), 3000);
-
-  } catch (error) {
-    console.error('Error updating marks:', error);
-
-    let errorMessage = 'Failed to update marks. ';
-    if (error.response?.status === 404) {
-      errorMessage += 'API endpoint not found. Contact administrator.';
-    } else if (error.response?.status === 403) {
-      errorMessage += 'Access denied. Only teachers can update marks.';
-    } else if (error.response?.status === 500) {
-      errorMessage += 'Server error. Check backend logs.';
-    } else if (error.response?.data?.error) {
-      errorMessage += error.response.data.error;
-    } else {
-      errorMessage += 'Please try again.';
-    }
-
-    setError(errorMessage);
-  } finally {
-    setIsUpdating(false);
-  }
-};
-
-
-  // FIXED: PDF generation with correct autoTable usage
   const handleDownloadPDF = () => {
     try {
       setError(null);
@@ -220,7 +236,6 @@ const ExamAnalytics = () => {
         result.areas_for_improvement || 'N/A'
       ]);
       
-      // FIXED: Using autoTable function directly
       autoTable(doc, {
         startY: 80,
         head: [['#', 'Full Name', 'Marks', 'Max', '%', 'Grade', 'Strengths', 'Improvements']],
@@ -242,7 +257,6 @@ const ExamAnalytics = () => {
       
       const filename = `${selectedExam.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
-      console.log('PDF generated successfully');
       
     } catch (error) {
       console.error('PDF generation error:', error);
@@ -253,7 +267,8 @@ const ExamAnalytics = () => {
   const getGradeColor = (grade) => {
     const colors = {
       'A+': '#10b981', 'A': '#16a34a', 'B+': '#3b82f6', 
-      'B': '#2563eb', 'C': '#f59e0b', 'D': '#ef4444', 'F': '#dc2626'
+      'B': '#2563eb', 'C+': '#06b6d4', 'C': '#f59e0b', 
+      'D': '#ef4444', 'F': '#dc2626'
     };
     return colors[grade] || '#6b7280';
   };
@@ -292,16 +307,120 @@ const ExamAnalytics = () => {
     );
   }
 
-  // Student View remains same as before...
+  // ========================================
+  // STUDENT VIEW
+  // ========================================
   if (role === 'student') {
     return (
       <div className="exam-analytics-dashboard">
-        {/* Student view JSX... */}
+        <div className="exam-analytics-header">
+          <div className="header-content">
+            <div className="header-icon student">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <h1 className="exam-header-title">📊 My Exam Results</h1>
+              <p className="header-subtitle">View your exam performance and detailed feedback</p>
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <div className="alert alert-error">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {studentOwnResults.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📝</div>
+            <h3>No Exam Results Yet</h3>
+            <p>Your exam results will appear here once they are graded by your teacher.</p>
+          </div>
+        ) : (
+          <div className="exams-grid">
+            {studentOwnResults.map((result) => (
+              <div 
+                key={result.result_id} 
+                className="exam-card"
+                onClick={() => {
+                  setSelectedStudentResult(result);
+                  setShowStudentDetailsModal(true);
+                }}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="exam-card-header">
+                  <h3 className="exam-name">{result.exam_name}</h3>
+                  <span className={`exam-type-badge ${result.exam_type?.toLowerCase() || 'mixed'}`}>
+                    {result.exam_type || 'EXAM'}
+                  </span>
+                </div>
+                <div className="exam-info">
+                  <div className="info-row">
+                    <span className="info-label">Score:</span>
+                    <span className="info-value">
+                      {Math.round(result.total_marks_obtained || 0)} / {Math.round(result.total_max_marks || 0)}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Percentage:</span>
+                    <span className={`info-value ${getPerformanceClass(result.overall_percentage || 0)}`}>
+                      {result.overall_percentage?.toFixed(1) || 0}%
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Grade:</span>
+                    <span className="info-value" style={{ color: getGradeColor(result.grade) }}>
+                      {result.grade || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+                <button className="view-details-btn">View Detailed Report →</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Student Details Modal */}
+        {showStudentDetailsModal && selectedStudentResult && (
+          <div className="modal-overlay" onClick={handleCloseStudentDetails}>
+            <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>📋 Exam Details - {selectedStudentResult.exam_name}</h2>
+                <button className="modal-close-btn" onClick={handleCloseStudentDetails}>✕</button>
+              </div>
+              <div className="modal-body">
+                <StudentExamDetails 
+                  studentResultId={selectedStudentResult.result_id}
+                  studentName="Me"
+                  examName={selectedStudentResult.exam_name}
+                  isTeacherView={false}
+                  summaryData={selectedStudentResult}
+                />
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={handleCloseStudentDetails}>Close</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
-  // Teacher List View
+  // ========================================
+  // TEACHER LIST VIEW
+  // ========================================
   if (role === 'teacher' && viewMode === 'list') {
     return (
       <div className="exam-analytics-dashboard">
@@ -349,9 +468,7 @@ const ExamAnalytics = () => {
               <div key={exam.id} className="exam-card" onClick={() => handleExamSelect(exam)}>
                 <div className="exam-card-header">
                   <h3 className="exam-name">{exam.name}</h3>
-                  <span className={`exam-type-badge ${exam.exam_type.toLowerCase()}`}>
-                    {exam.exam_type}
-                  </span>
+                  <span className={`exam-type-badge ${exam.exam_type.toLowerCase()}`}>{exam.exam_type}</span>
                 </div>
                 <div className="exam-info">
                   <div className="info-row">
@@ -390,7 +507,9 @@ const ExamAnalytics = () => {
     );
   }
 
-  // FIXED: Teacher Details View - No horizontal scroll, removed Roll Number column
+  // ========================================
+  // TEACHER DETAILS VIEW
+  // ========================================
   if (role === 'teacher' && viewMode === 'details' && selectedExam) {
     return (
       <div className="exam-analytics-dashboard">
@@ -463,17 +582,22 @@ const ExamAnalytics = () => {
               </thead>
               <tbody>
                 {studentResults.map((result, index) => (
-                  <tr key={result.student_result_id} className="question-row">
-                    <td className="col-number">{index + 1}</td>
-                    <td className="col-name">
+                  <tr 
+                    key={result.student_result_id}
+                    onClick={() => handleStudentRowClick(result)}
+                    className="student-row-hover"
+                    title="Click to view detailed evaluation"
+                  >
+                    <td>{index + 1}</td>
+                    <td>
                       <div className="student-name-cell">
-                        <strong className="student-fullname">{result.student_fullname || 'N/A'}</strong>
-                        <div className="roll-subtitle">Roll: {result.roll_number || 'N/A'}</div>
+                        <span className="student-fullname">{result.student_fullname || result.student_name || 'N/A'}</span>
+                        <span className="roll-subtitle">Roll: {result.roll_number || 'N/A'}</span>
                       </div>
                     </td>
                     <td className="col-marks">
                       {editingRow === result.student_result_id ? (
-                        <div className="edit-marks-cell">
+                        <div className="edit-marks-cell" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="number"
                             className="edit-marks-input"
@@ -506,12 +630,12 @@ const ExamAnalytics = () => {
                     <td className="col-improvements">
                       <div className="insights-text">{result.areas_for_improvement || 'N/A'}</div>
                     </td>
-                    <td className="col-actions">
+                    <td className="col-actions" onClick={(e) => e.stopPropagation()}>
                       {editingRow === result.student_result_id ? (
                         <div className="edit-actions">
                           <button
                             className="save-btn"
-                            onClick={() => handleSaveMarks(result.student_result_id, result.total_max_marks)}
+                            onClick={(e) => handleSaveMarks(e, result.student_result_id, result.total_max_marks)}
                             disabled={isUpdating}
                             title="Save"
                           >
@@ -531,7 +655,7 @@ const ExamAnalytics = () => {
                           </button>
                         </div>
                       ) : (
-                        <button className="edit-btn" onClick={() => handleEditClick(result)} title="Edit marks">
+                        <button className="edit-btn" onClick={(e) => handleEditClick(e, result)} title="Edit marks">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -543,6 +667,30 @@ const ExamAnalytics = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Teacher Details Modal */}
+        {showStudentDetailsModal && selectedStudentResult && (
+          <div className="modal-overlay" onClick={handleCloseStudentDetails}>
+            <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>📋 Detailed Evaluation - {selectedStudentResult.student_fullname || selectedStudentResult.student_name}</h2>
+                <button className="modal-close-btn" onClick={handleCloseStudentDetails}>✕</button>
+              </div>
+              <div className="modal-body">
+                <StudentExamDetails 
+                  studentResultId={selectedStudentResult.result_id}
+                  studentName={selectedStudentResult.student_fullname || selectedStudentResult.student_name}
+                  examName={selectedExam.name}
+                  isTeacherView={true}
+                  summaryData={selectedStudentResult}
+                />
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={handleCloseStudentDetails}>Close</button>
+              </div>
+            </div>
           </div>
         )}
       </div>

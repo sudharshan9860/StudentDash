@@ -24,6 +24,7 @@ import ExamCorrection from "../components/ExamCorrection";
 import ExamAnalytics from "../components/ExamAnalytics";
 import ChatRoom from "../components/ChatRoom";
 import AnimationTester from '../components/AnimationTester';
+import TeacherStudentDetailsView from "../components/TeacherStudentDetailsView";
 
 
 const AppRoutes = () => {
@@ -181,6 +182,17 @@ const AppRoutes = () => {
               </PrivateRoute>
             }
           />
+
+          <Route
+  path="/teacher-dash/exam-analytics/:examId/student/:studentResultId"
+  element={
+    <PrivateRoute>
+      <Layout>
+        <TeacherStudentDetailsView />
+      </Layout>
+    </PrivateRoute>
+  }
+/>
 
         <Route
           path="/leaderboard"

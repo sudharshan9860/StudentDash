@@ -1,5 +1,4 @@
-
-/* Fixes: Removed horizontal scroll, optimized table layout */
+/* Fixes: Removed horizontal scroll, optimized table layout, added modal styles */
 
 .exam-analytics-dashboard {
   width: 100%;
@@ -21,7 +20,175 @@
   z-index: 9999;
 }
 
-/* Header Styles */
+/* ========================================
+   MODAL STYLES (NEW)
+   ======================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  animation: fadeIn 0.3s ease;
+  overflow-y: auto;
+  padding: 2rem 0;
+}
+
+.modal-content-large {
+  background: white;
+  border-radius: 16px;
+  width: 95%;
+  max-width: 1400px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #e5e7eb;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  flex-shrink: 0;
+}
+
+.modal-header h2 {
+  color: white;
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  background: #f9fafb;
+}
+
+.modal-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  background: white;
+  flex-shrink: 0;
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   STUDENT ROW HOVER EFFECT (NEW)
+   ======================================== */
+
+.student-row-hover {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.student-row-hover:hover {
+  background-color: #eff6ff !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  transform: translateX(4px);
+}
+
+.student-row-hover:hover::after {
+  position: fixed;
+  right: 2rem;
+  background: #3b82f6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  animation: tooltipSlide 0.3s ease;
+}
+
+@keyframes tooltipSlide {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ========================================
+   HEADER STYLES
+   ======================================== */
+
 .exam-analytics-header {
   display: flex;
   justify-content: space-between;
@@ -60,7 +227,8 @@
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
-.exam-header-title {
+.exam-header-title,
+.header-title {
   font-size: 1.75rem;
   font-weight: 700;
   color: #1f2937;
@@ -122,7 +290,10 @@
   box-shadow: none;
 }
 
-/* Alert Styles */
+/* ========================================
+   ALERT STYLES
+   ======================================== */
+
 .alert {
   padding: 1rem 1.5rem;
   border-radius: 12px;
@@ -157,7 +328,10 @@
   }
 }
 
-/* Loading State */
+/* ========================================
+   LOADING STATE
+   ======================================== */
+
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -192,7 +366,10 @@
   }
 }
 
-/* Empty State */
+/* ========================================
+   EMPTY STATE
+   ======================================== */
+
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
@@ -240,7 +417,10 @@
   box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
 }
 
-/* Exams Grid */
+/* ========================================
+   EXAMS GRID
+   ======================================== */
+
 .exams-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -387,9 +567,13 @@
 
 .view-details-btn:hover {
   opacity: 0.9;
+  transform: scale(1.02);
 }
 
-/* FIXED: Results Table - No horizontal scroll */
+/* ========================================
+   RESULTS TABLE
+   ======================================== */
+
 .results-table-container-fixed {
   background: white;
   border-radius: 16px;
@@ -425,11 +609,11 @@
   vertical-align: top;
 }
 
-.results-table-fixed tbody tr:hover {
-  background: #f9fafb;
+.results-table-fixed tbody tr {
+  transition: all 0.2s ease;
 }
 
-/* FIXED: Column widths to prevent scroll */
+/* Column widths */
 .col-number { width: 40px; text-align: center; }
 .col-name { width: 180px; }
 .col-marks { width: 80px; text-align: center; }
@@ -516,7 +700,10 @@
   text-align: center;
 }
 
-/* Edit Marks Styles */
+/* ========================================
+   EDIT MARKS STYLES
+   ======================================== */
+
 .edit-marks-cell {
   display: flex;
   align-items: center;
@@ -615,7 +802,10 @@
   transform: none;
 }
 
-/* Responsive Design */
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
 @media (max-width: 1400px) {
   .results-table-fixed {
     font-size: 0.8rem;
@@ -633,6 +823,11 @@
   
   .results-table-fixed {
     min-width: 1000px;
+  }
+
+  .modal-content-large {
+    width: 98%;
+    max-height: 95vh;
   }
 }
 
@@ -668,12 +863,35 @@
     grid-template-columns: 1fr;
   }
 
-  .exam-header-title {
+  .exam-header-title,
+  .header-title {
     font-size: 1.5rem;
   }
 
   .header-subtitle {
     font-size: 0.85rem;
+  }
+
+  .modal-content-large {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-overlay {
+    padding: 0;
+  }
+
+  .modal-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .student-row-hover:hover::after {
+    display: none; /* Hide tooltip on mobile */
   }
 }
 
@@ -691,11 +909,20 @@
     height: 50px;
   }
 
-  .exam-header-title {
+  .exam-header-title,
+  .header-title {
     font-size: 1.25rem;
   }
 
   .empty-icon {
     font-size: 3rem;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-footer {
+    padding: 1rem;
   }
 }
