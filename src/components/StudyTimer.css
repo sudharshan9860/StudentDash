@@ -1,7 +1,7 @@
 .study-timer {
     display: inline-flex;
     align-items: center;
-    background: linear-gradient(135deg, #00c1d4, #001b6c);
+    background: #6c757d;
     color: white;
     padding: 6px 12px;
     border-radius: 20px;
@@ -9,9 +9,14 @@
     font-weight: 600;
     font-size: 14px;
     margin-right: 10px;
+    transition: all 0.3s ease;
+  }
+
+  .study-timer.active {
+    background: linear-gradient(135deg, #00c1d4, #001b6c);
     animation: pulse 2s infinite ease-in-out;
   }
-  
+
   .study-timer.stopped {
     background: #6c757d;
     animation: none;

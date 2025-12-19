@@ -1,12 +1,12 @@
-import React, { useState, useContext, useMemo, useRef, useEffect } from "react";
+import React, { useState, useContext, useMemo } from "react";
 import { Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../components/AuthContext";
 import axiosInstance from "../api/axiosInstance";
 import "./Login.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { motion, AnimatePresence } from "framer-motion";
-import LoginMascot from "./LoginMascot";
+import { motion } from "framer-motion";
+
 
 import {
   faEye,
@@ -16,34 +16,17 @@ import {
   faGraduationCap,
   faBook,
   faUser,
-  faHeart,
-  faRightToBracket,
 } from "@fortawesome/free-solid-svg-icons";
+import Markdown from "react-markdown";
+import MarkdownWithMath from "./MarkdownWithMath";
 
 function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isCardExpanded, setIsCardExpanded] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [loginSuccess, setLoginSuccess] = useState(false);
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
-
-  // Refs for accessibility
-  const cardRef = useRef(null);
-  const headerRef = useRef(null);
-  const firstInputRef = useRef(null);
-
-  // Mascot animation states
-  const [isTypingUsername, setIsTypingUsername] = useState(false);
-  const [isTypingPassword, setIsTypingPassword] = useState(false);
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
-  
-  // Refs for typing timeouts
-  const usernameTypingTimeout = useRef(null);
-  const passwordTypingTimeout = useRef(null);
 
   // Animated background
   const backgroundCircles = useMemo(() => {
@@ -57,99 +40,26 @@ function LoginPage() {
     }));
   }, []);
 
-  // Handle card expand/collapse
-  const toggleCard = () => {
-    setIsCardExpanded(!isCardExpanded);
-  };
-
-  // Handle keyboard navigation
-  const handleHeaderKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggleCard();
-    }
-  };
-
-  const handleCardKeyDown = (e) => {
-    if (e.key === 'Escape' && isCardExpanded) {
-      setIsCardExpanded(false);
-      headerRef.current?.focus();
-    }
-  };
-
-  // Focus first input when card expands
-  useEffect(() => {
-    if (isCardExpanded && firstInputRef.current) {
-      setTimeout(() => firstInputRef.current?.focus(), 300);
-    }
-  }, [isCardExpanded]);
-
-  // Handle mouse leave
-  const handleMouseLeave = () => {
-    // Only collapse if not focused inside
-    if (!cardRef.current?.contains(document.activeElement)) {
-      setIsCardExpanded(false);
-    }
-  };
-
-  // Handle username input changes
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value);
-    setIsTypingUsername(true);
-    
-    if (usernameTypingTimeout.current) {
-      clearTimeout(usernameTypingTimeout.current);
-    }
-    
-    usernameTypingTimeout.current = setTimeout(() => {
-      setIsTypingUsername(false);
-    }, 1000);
-  };
-
-  // Handle password input changes
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-    setIsTypingPassword(true);
-    
-    if (passwordTypingTimeout.current) {
-      clearTimeout(passwordTypingTimeout.current);
-    }
-    
-    passwordTypingTimeout.current = setTimeout(() => {
-      setIsTypingPassword(false);
-    }, 1000);
-  };
-
-  // Toggle password visibility
-  const handleTogglePassword = () => {
-    setShowPassword(!showPassword);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setIsLoggingIn(true);
 
     try {
       const response = await axiosInstance.login(username, password);
-      const { access, username: user, role, full_name, class_name } = response;
+      const { access, username: user, role, full_name, class_name, school } = response;
+      console.log("school",school)
 
-      // Show celebration
-      setLoginSuccess(true);
-      
-      // Wait for celebration animation
-      setTimeout(() => {
-        login(user, access, role, class_name);
-        if (role === "teacher") {
-          navigate("/teacher-dash");
-        } else {
-          navigate("/student-dash");
-        }
-      }, 1500);
+      // AuthContext handles storage
+      login(user, access, role, class_name,full_name, school);
 
+      // Redirect based on role
+      if (role === "teacher") {
+        navigate("/teacher-dash");
+      } else {
+        navigate("/student-dash");
+      }
     } catch (err) {
       console.error("Login error:", err);
-      setIsLoggingIn(false);
       setError(
         err.response?.data?.detail ||
         err.message ||
@@ -158,18 +68,8 @@ function LoginPage() {
     }
   };
 
-  // Determine mascot state
-  const getMascotState = () => {
-    if (loginSuccess) return "celebrating";
-    if (showPassword && (password.length > 0 || isPasswordFocused)) return "peeking";
-    if (isTypingUsername || isTypingPassword) return "thinking";
-    if (password.length > 0 || isPasswordFocused) return "covering";
-    return "idle";
-  };
-
   return (
     <div className="login-wrapper">
-      {/* Animated Background */}
       <div className="background-container">
         {backgroundCircles.map((circle) => (
           <motion.div
@@ -199,140 +99,77 @@ function LoginPage() {
         ))}
       </div>
 
-      {/* Neon Glow Login Card */}
-      <div 
-        className={`neon-card-wrapper ${isCardExpanded ? 'expanded' : ''}`}
-        ref={cardRef}
-        onMouseEnter={() => setIsCardExpanded(true)}
-        onMouseLeave={handleMouseLeave}
-        onKeyDown={handleCardKeyDown}
-      >
-        {/* Rotating Neon Outlines */}
-        <div className="neon-outline neon-cyan"></div>
-        <div className="neon-outline neon-pink"></div>
+      <div className="login-form-container">
+        <div className="logo-section">
+          <h3 className="platform-name1">SMART LEARNERS</h3>
 
-        {/* Main Card */}
-        <div className="login-card">
-          {/* Compact Header (Always Visible) */}
-          <div 
-            className="login-header"
-            ref={headerRef}
-            role="button"
-            tabIndex={0}
-            aria-expanded={isCardExpanded}
-            aria-controls="login-form-content"
-            onClick={toggleCard}
-            onKeyDown={handleHeaderKeyDown}
-          >
-            <FontAwesomeIcon icon={faRightToBracket} className="header-icon left" />
-            <span className="header-text">LOGIN</span>
+        </div>
+
+        <div className="portal-section">
+          <div className="portal-icons">
+            <FontAwesomeIcon icon={faGraduationCap} size="lg" />
+            <FontAwesomeIcon icon={faBook} size="lg" />
+            <FontAwesomeIcon icon={faUser} size="lg" />
+          </div>
+          <h2 className="portal-title">Student Portal</h2>
+          <p className="portal-description">
+            Access your AI-powered learning experience
+          </p>
+        </div>
+
+        
+        {error && <div className="error-alert">{error}</div>}
+
+        <Form onSubmit={handleSubmit} className="login-form">
+          <div className="input-group">
+            <div className="icon-wrapper">
+              <FontAwesomeIcon icon={faEnvelope} className="input-icon" />
+            </div>
+            <input
+              type="text"
+              placeholder="Login Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="form-input"
+            />
           </div>
 
-          {/* Expandable Content */}
-          <AnimatePresence>
-            {isCardExpanded && (
-              <motion.div 
-                id="login-form-content"
-                className="login-content"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.4, ease: "easeInOut" }}
-                aria-hidden={!isCardExpanded}
-              >
-                <div className="content-inner">
-                  {/* Logo */}
-                  <h3 className="platform-name">SMART LEARNERS</h3>
+          <div className="input-group">
+            <div className="icon-wrapper">
+              <FontAwesomeIcon icon={faLock} className="input-icon" />
+            </div>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="form-input"
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
+            </button>
+          </div>
 
-                  {/* Mascot */}
-                  <LoginMascot state={getMascotState()} />
+          <button type="submit" className="start-learning-btn">
+            Start Learning
+          </button>
 
-                  {/* Portal Info */}
-                  <div className="portal-section">
-                    <div className="portal-icons">
-                      <FontAwesomeIcon icon={faGraduationCap} size="lg" />
-                      <FontAwesomeIcon icon={faBook} size="lg" />
-                      <FontAwesomeIcon icon={faUser} size="lg" />
-                    </div>
-                    <h2 className="portal-title">Student Portal</h2>
-                    <p className="portal-description">
-                      Access your AI-powered learning experience
-                    </p>
-                  </div>
-
-                  {/* Error Message */}
-                  {error && <div className="error-alert">{error}</div>}
-
-                  {/* Login Form */}
-                  <Form onSubmit={handleSubmit} className="login-form">
-                    <div className="input-group">
-                      <div className="icon-wrapper">
-                        <FontAwesomeIcon icon={faEnvelope} className="input-icon" />
-                      </div>
-                      <input
-                        ref={firstInputRef}
-                        type="text"
-                        placeholder="Login Username"
-                        value={username}
-                        onChange={handleUsernameChange}
-                        className="form-input"
-                        disabled={isLoggingIn}
-                      />
-                    </div>
-
-                    <div className="input-group">
-                      <div className="icon-wrapper">
-                        <FontAwesomeIcon icon={faLock} className="input-icon" />
-                      </div>
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Password"
-                        value={password}
-                        onChange={handlePasswordChange}
-                        onFocus={() => setIsPasswordFocused(true)}
-                        onBlur={() => setIsPasswordFocused(false)}
-                        className="form-input"
-                        disabled={isLoggingIn}
-                      />
-                      <button
-                        type="button"
-                        className="password-toggle"
-                        onClick={handleTogglePassword}
-                        disabled={isLoggingIn}
-                      >
-                        <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
-                      </button>
-                    </div>
-
-                    <button 
-                      type="submit" 
-                      className={`start-learning-btn ${isLoggingIn ? 'loading' : ''}`}
-                      disabled={isLoggingIn}
-                    >
-                      {isLoggingIn ? (
-                        loginSuccess ? '🎉 Success!' : 'Logging in...'
-                      ) : (
-                        'Start Learning'
-                      )}
-                    </button>
-
-                    <div className="form-footer">
-                      <a href="/reset-password" className="reset-link">
-                        Reset Password
-                      </a>
-                      <a href="/support" className="support-link">
-                        Support
-                      </a>
-                    </div>
-                  </Form>
-
-                  <div className="copyright">
-                    © 2025 AI EDUCATOR. All rights reserved.
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="form-footer">
+            <a href="/reset-password" className="reset-link">
+              Reset Password
+            </a>
+            <a href="/support" className="support-link">
+              Support
+            </a>
+          </div>
+        </Form>
+        <div className="copyright">
+       
+          © 2025 AI EDUCATOR. All rights reserved.
         </div>
       </div>
     </div>

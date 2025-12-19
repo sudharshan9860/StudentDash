@@ -18,13 +18,21 @@ import TeacherDash from "../components/EnhancedTeacherDash";
 import HomeworkSubmissionForm from "../components/HomeworkSubmissionForm";
 import StudentGapAnalysisReport from "../components/StudentGapAnalysisReport";
 import WorksheetSubmission from "../components/WorksheetSubmission";
-import RouteTracker from "../components/RouteTracker"; // ✅ new import
+import RouteTracker from "../components/RouteTracker";
 import StudentAnalytics from "../components/StudentAnalytics";
 import ExamCorrection from "../components/ExamCorrection";
 import ExamAnalytics from "../components/ExamAnalytics";
 import ChatRoom from "../components/ChatRoom";
-import AnimationTester from '../components/AnimationTester';
+import ExamMode from "../components/ExamMode";
+import ExamQuestion from "../components/ExamQuestion";
+import ExamResult from "../components/ExamResult";
+import LearningPathSession from "../components/LearningPathSession";
+import LearningPathQuestion from "../components/LearningPathQuestion";
+import LearningPathResult from "../components/LearningPathResult";
+// import AnimationTester from '../components/AnimationTester';
 import TeacherStudentDetailsView from "../components/TeacherStudentDetailsView";
+import MascotTest from "../components/MascotTest";
+// import ThreeJSScene from "../components/ThreeJSScene";
 
 
 const AppRoutes = () => {
@@ -45,6 +53,7 @@ const AppRoutes = () => {
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/mascot-test" element={<MascotTest />} />
 
         <Route
           path="/student-dash"
@@ -90,7 +99,7 @@ const AppRoutes = () => {
           }
         />
 
-<Route path="/animation-tester" element={<AnimationTester />} />
+        {/* <Route path="/animation-tester" element={<AnimationTester />} /> */}
 
 
         <Route
@@ -137,16 +146,16 @@ const AppRoutes = () => {
           }
         />
 
-                  <Route
-            path="/analytics"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <StudentAnalytics />  {/* Changed from Analytics to StudentAnalytics */}
-                </Layout>
-              </PrivateRoute>
-            }
-          />
+        <Route
+          path="/analytics"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <StudentAnalytics />  {/* Changed from Analytics to StudentAnalytics */}
+              </Layout>
+            </PrivateRoute>
+          }
+        />
 
         <Route
           path="/homework"
@@ -159,40 +168,105 @@ const AppRoutes = () => {
           }
         />
 
-          {/* Exam Correction Route - Teacher Only */}
-          <Route
-            path="/exam-correction"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <ExamCorrection />
-                </Layout>
-              </PrivateRoute>
-            }
-          />
+        {/* Exam Correction Route - Teacher Only */}
+        <Route
+          path="/exam-correction"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ExamCorrection />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
 
-          {/* Exam Analytics Route - Teacher and Student */}
-          <Route
-            path="/exam-analytics"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <ExamAnalytics />
-                </Layout>
-              </PrivateRoute>
-            }
-          />
+        <Route
+          path="/exam-mode"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ExamMode />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
 
-          <Route
-  path="/teacher-dash/exam-analytics/:examId/student/:studentResultId"
-  element={
-    <PrivateRoute>
-      <Layout>
-        <TeacherStudentDetailsView />
-      </Layout>
-    </PrivateRoute>
-  }
-/>
+        <Route
+          path="/exam-question"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ExamQuestion />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/exam-result"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ExamResult />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/learning-path-session"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <LearningPathSession />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/learning-path-question"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <LearningPathQuestion />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/learning-path-result"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <LearningPathResult />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/exam-analytics"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ExamAnalytics />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/teacher-dash/exam-analytics/:examId/student/:studentResultId"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <TeacherStudentDetailsView />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
 
         <Route
           path="/leaderboard"
@@ -240,7 +314,17 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Fallback route */}
+        {/* <Route
+          path="/3d-viewer"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ThreeJSScene />
+              </Layout>
+            </PrivateRoute>
+          }
+        /> */}
+
         <Route path="*" element={<LoginPage />} />
       </Routes>
     </>

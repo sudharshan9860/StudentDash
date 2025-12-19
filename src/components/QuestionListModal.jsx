@@ -112,7 +112,7 @@ const handleQuestionClick = (questionData, index) => {
   // Handle single question submission (for students)
   const handleSingleQuestionSubmit = (questionData, index) => {
     console.log("Single question selected:", questionData);
-    
+
     let imageUrl = null;
     if (questionData.question_image) {
       if (questionData.question_image.startsWith('data:image')) {
@@ -150,7 +150,7 @@ const handleQuestionClick = (questionData, index) => {
     const selectedQuestionData = selectedQuestions.map(index => {
       const questionData = questionList[index];
       let imageUrl = null;
-      
+
       if (questionData.question_image) {
         if (questionData.question_image.startsWith('data:image')) {
           imageUrl = questionData.question_image;
@@ -170,11 +170,11 @@ const handleQuestionClick = (questionData, index) => {
     });
 
     console.log("Submitting selected questions:", selectedQuestionData);
-    
+
     if (onMultipleSelectSubmit) {
       onMultipleSelectSubmit(selectedQuestionData, mode);
     }
-    
+
     onHide();
   };
 
@@ -309,7 +309,7 @@ const handleQuestionClick = (questionData, index) => {
                       </div>
                     )}
                   </div>
-                 
+
                 </li>
               ))}
             </ul>

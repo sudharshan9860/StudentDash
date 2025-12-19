@@ -1,0 +1,228 @@
+/**
+ * Mascot3D Styles
+ * Professional styling for 3D mascot component
+ */
+
+/* Base container */
+.mascot-3d-container {
+  overflow: hidden;
+  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mascot-3d-container:hover {
+  transform: scale(1.02);
+}
+
+/* Inline mascot - for embedding next to content */
+.inline-mascot {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Floating mascot - fixed position */
+.floating-mascot {
+  animation: mascot-float 3s ease-in-out infinite;
+}
+
+@keyframes mascot-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Mascot wrapper for layout integration */
+.mascot-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.mascot-wrapper.left {
+  flex-direction: row;
+}
+
+.mascot-wrapper.right {
+  flex-direction: row-reverse;
+}
+
+/* Mascot alongside content layout */
+.mascot-content-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.mascot-content-row .mascot-section {
+  flex-shrink: 0;
+  position: sticky;
+  top: 100px;
+  align-self: flex-start;
+}
+
+.mascot-content-row .content-section {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .mascot-content-row {
+    flex-direction: column;
+  }
+
+  .mascot-content-row .mascot-section {
+    position: relative;
+    top: 0;
+    align-self: center;
+    margin-bottom: 20px;
+  }
+
+  .floating-mascot {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .inline-mascot {
+    width: 120px !important;
+    height: 150px !important;
+  }
+
+  .mascot-3d-container {
+    max-width: 150px;
+    max-height: 180px;
+  }
+}
+
+/* Dark mode support */
+.dark-mode .mascot-3d-container {
+  background: rgba(30, 41, 59, 0.3);
+}
+
+/* Loading state */
+.mascot-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+}
+
+.mascot-loading::after {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border: 3px solid #667eea;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: mascot-spinner 0.8s linear infinite;
+}
+
+@keyframes mascot-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animation state indicators (for debugging) */
+.mascot-debug-info {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 10px;
+  border-radius: 4px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Result page mascot positioning */
+.result-mascot-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.result-mascot-container .mascot-column {
+  flex-shrink: 0;
+  width: 200px;
+}
+
+.result-mascot-container .result-column {
+  flex: 1;
+}
+
+/* Solve question mascot positioning */
+.solve-question-mascot-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.solve-question-mascot-row .mascot-side {
+  flex-shrink: 0;
+  position: sticky;
+  top: 120px;
+}
+
+.solve-question-mascot-row .question-side {
+  flex: 1;
+}
+
+/* Animation celebration effects */
+.mascot-celebrating {
+  animation: celebrate-glow 1s ease-in-out infinite;
+}
+
+@keyframes celebrate-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(102, 234, 123, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(102, 234, 123, 0.6));
+  }
+}
+
+.mascot-sad {
+  animation: sad-shake 0.5s ease-in-out;
+}
+
+@keyframes sad-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* Accessibility - reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .floating-mascot,
+  .mascot-celebrating,
+  .mascot-sad,
+  .mascot-loading::after {
+    animation: none;
+  }
+
+  .mascot-3d-container:hover {
+    transform: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .mascot-3d-container {
+    border: 2px solid currentColor;
+  }
+}

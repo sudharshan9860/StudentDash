@@ -168,7 +168,7 @@
   line-height: 1.5;
 }
 
-.file-input {
+.file-input1 {
   padding: 0.75rem;
 }
 
@@ -572,7 +572,7 @@
 }
 
 /* Improved file input styling */
-.file-input {
+.file-input1 {
   padding: 0.75rem;
   border: 2px dashed #dee2e6;
   border-radius: 8px;
@@ -581,12 +581,12 @@
   cursor: pointer;
 }
 
-.file-input:hover:not(:disabled) {
+.file-input1:hover:not(:disabled) {
   border-color: #007bff;
   background: #e3f2fd;
 }
 
-.file-input:focus {
+.file-input1:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);

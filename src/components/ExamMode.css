@@ -1,0 +1,769 @@
+/* ExamMode.css - Styles for Exam Mode component */
+
+.exam-mode-wrapper {
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+}
+
+.exam-mode-wrapper.dark-mode {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* Header */
+.exam-mode-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.exam-mode-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark-mode .exam-mode-header h1 {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.exam-mode-header p {
+  font-size: 1.1rem;
+  color: #6b7280;
+}
+
+.dark-mode .exam-mode-header p {
+  color: #94a3b8;
+}
+
+/* Setup Card */
+.exam-setup-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: none;
+  max-width: 900px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.dark-mode .exam-setup-card {
+  background: #1e293b;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.exam-setup-card .card-body {
+  padding: 40px;
+}
+
+/* Form Styling */
+.form-row {
+  margin-bottom: 24px;
+}
+
+.form-row .form-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.dark-mode .form-row .form-label {
+  color: #e2e8f0;
+}
+
+.form-row .form-label svg {
+  color: #667eea;
+}
+
+.dark-mode .form-row .form-label svg {
+  color: #818cf8;
+}
+
+.form-control-enhanced {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  color: #1a202c;
+}
+
+.dark-mode .form-control-enhanced {
+  background: #0f172a;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+.form-control-enhanced:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  outline: none;
+}
+
+.dark-mode .form-control-enhanced:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
+}
+
+.form-control-enhanced:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.dark-mode .form-control-enhanced:disabled {
+  background: #1e293b;
+  color: #64748b;
+}
+
+/* Chapters Select */
+.chapters-select {
+  margin-bottom: 8px;
+}
+
+/* Duration Slider */
+.duration-slider-container {
+  padding: 16px 8px;
+}
+
+.duration-slider {
+  width: 100%;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(90deg, #dadada, #8860da);
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+}
+
+.duration-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+  border: 3px solid white;
+  transition: all 0.2s ease;
+}
+
+.duration-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.duration-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+  border: 3px solid white;
+  transition: all 0.2s ease;
+}
+
+.duration-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+}
+
+.dark-mode .duration-slider {
+  background: linear-gradient(90deg, #818cf8, #a78bfa);
+}
+
+.dark-mode .duration-slider::-webkit-slider-thumb {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  border-color: #1e293b;
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.5);
+}
+
+.dark-mode .duration-slider::-moz-range-thumb {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  border-color: #1e293b;
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.5);
+}
+
+.duration-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 0 4px;
+}
+
+.duration-labels span {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.dark-mode .duration-labels span {
+  color: #94a3b8;
+}
+
+/* Exam Summary */
+.exam-summary {
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  border-radius: 16px;
+  padding: 24px;
+  border: 2px solid #667eea30;
+}
+
+.dark-mode .exam-summary {
+  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+  border-color: #667eea40;
+}
+
+.exam-summary h5 {
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+.dark-mode .exam-summary h5 {
+  color: #818cf8;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dark-mode .summary-item {
+  background: #0f172a;
+}
+
+.summary-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.dark-mode .summary-label {
+  color: #94a3b8;
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.dark-mode .summary-value {
+  color: #818cf8;
+}
+
+/* Start Exam Button */
+.exam-actions {
+  text-align: center;
+}
+
+.btn-start-exam {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 16px;
+  padding: 18px 48px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+.btn-start-exam:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+}
+
+.btn-start-exam:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Text muted */
+.text-muted {
+  font-size: 0.85rem;
+  color: #9ca3af !important;
+}
+
+.dark-mode .text-muted {
+  color: #64748b !important;
+}
+
+/* API Error Message */
+.api-error-message {
+  background: linear-gradient(135deg, #fee2e215 0%, #fecaca15 100%);
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  padding: 16px 20px;
+  color: #dc2626;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  animation: shake 0.5s ease-in-out;
+}
+
+.dark-mode .api-error-message {
+  background: linear-gradient(135deg, #7f1d1d20 0%, #991b1b20 100%);
+  border-color: #f87171;
+  color: #fca5a5;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* Loading state for button */
+.btn-start-exam:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Learning Journey Section */
+.learning-journey-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: none;
+  max-width: 900px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.dark-mode .learning-journey-card {
+  background: #1e293b;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.learning-journey-title {
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 24px;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+}
+
+.dark-mode .learning-journey-title {
+  color: #818cf8;
+}
+
+.no-journeys-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.dark-mode .no-journeys-message {
+  color: #94a3b8;
+}
+
+.no-journeys-icon {
+  font-size: 3rem;
+  color: #d1d5db;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.dark-mode .no-journeys-icon {
+  color: #475569;
+}
+
+.learning-journey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.journey-item {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  padding: 20px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.dark-mode .journey-item {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-color: #334155;
+}
+
+.journey-item:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.dark-mode .journey-item:hover {
+  border-color: #818cf8;
+  box-shadow: 0 4px 16px rgba(129, 140, 248, 0.2);
+}
+
+.journey-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.journey-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.journey-exam-id {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1a202c;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark-mode .journey-exam-id {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.journey-date {
+  font-size: 0.85rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+}
+
+.dark-mode .journey-date {
+  color: #94a3b8;
+}
+
+.journey-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.status-badge.plan-created {
+  background: linear-gradient(135deg, #10b98115 0%, #059669 15 100%);
+  color: #059669;
+  border: 1px solid #10b981;
+}
+
+.dark-mode .status-badge.plan-created {
+  background: linear-gradient(135deg, #10b98120 0%, #05966920 100%);
+  color: #34d399;
+  border-color: #34d399;
+}
+
+.status-badge.no-plan {
+  background: linear-gradient(135deg, #f59e0b15 0%, #d9770615 100%);
+  color: #d97706;
+  border: 1px solid #f59e0b;
+}
+
+.dark-mode .status-badge.no-plan {
+  background: linear-gradient(135deg, #f59e0b20 0%, #d9770620 100%);
+  color: #fbbf24;
+  border-color: #fbbf24;
+}
+
+.journey-item-body {
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dark-mode .journey-item-body {
+  border-top-color: #334155;
+}
+
+.journey-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px;
+}
+
+.journey-stat .stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.dark-mode .journey-stat .stat-label {
+  color: #94a3b8;
+}
+
+.journey-stat .stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.dark-mode .journey-stat .stat-value {
+  color: #e2e8f0;
+}
+
+.journey-stat .stat-value.score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.journey-stat .stat-value.score.high {
+  color: #059669;
+}
+
+.dark-mode .journey-stat .stat-value.score.high {
+  color: #34d399;
+}
+
+.journey-stat .stat-value.score.medium {
+  color: #d97706;
+}
+
+.dark-mode .journey-stat .stat-value.score.medium {
+  color: #fbbf24;
+}
+
+.journey-stat .stat-value.score.low {
+  color: #dc2626;
+}
+
+.dark-mode .journey-stat .stat-value.score.low {
+  color: #f87171;
+}
+
+.journey-topics {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.dark-mode .journey-topics {
+  background: #0f172a;
+}
+
+.journey-topics .topics-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.dark-mode .journey-topics .topics-label {
+  color: #818cf8;
+}
+
+.journey-topics .topics-value {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.dark-mode .journey-topics .topics-value {
+  color: #94a3b8;
+}
+
+/* Clickable Journey Items */
+.journey-item.clickable {
+  cursor: pointer;
+  position: relative;
+}
+
+.journey-item.clickable:hover {
+  border-color: #10b981;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+  transform: translateY(-4px);
+}
+
+.dark-mode .journey-item.clickable:hover {
+  border-color: #34d399;
+  box-shadow: 0 8px 24px rgba(52, 211, 153, 0.25);
+}
+
+.journey-item.disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.journey-item.disabled:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #e2e8f0;
+}
+
+.dark-mode .journey-item.disabled:hover {
+  border-color: #334155;
+}
+
+.journey-item.loading {
+  pointer-events: none;
+}
+
+/* Loading Overlay */
+.journey-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 16px;
+  z-index: 10;
+}
+
+.dark-mode .journey-loading-overlay {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.journey-loading-overlay span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.dark-mode .journey-loading-overlay span {
+  color: #818cf8;
+}
+
+/* Journey Action Button */
+.journey-action {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dark-mode .journey-action {
+  border-top-color: #334155;
+}
+
+.continue-learning-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.continue-learning-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.continue-learning-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dark-mode .continue-learning-btn {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+}
+
+.dark-mode .continue-learning-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 6px 16px rgba(52, 211, 153, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .exam-mode-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .exam-setup-card .card-body {
+    padding: 24px;
+  }
+
+  .summary-item {
+    margin-bottom: 12px;
+  }
+
+  .btn-start-exam {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .journey-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .journey-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .journey-stat .stat-value {
+    font-size: 0.9rem;
+  }
+
+  .journey-stat .stat-value.score {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .journey-action {
+    justify-content: center;
+  }
+
+  .continue-learning-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

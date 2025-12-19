@@ -27,7 +27,7 @@ const clearAllTokens = () => {
 const axiosInstance = axios.create({
   baseURL: "https://autogen.aieducator.com",
   headers: { "Content-Type": "application/json" },
-  timeout: 180000,
+  timeout: 300000,
 });
 
 // =============================
@@ -137,7 +137,7 @@ axiosInstance.login = async (username, password) => {
   setAccessToken(access);
   setRefreshToken(refresh);
   if(fullname!=null) await localStorage.setItem("fullName", fullname || "");
-  return response.data;
+  return response.data; 
 };
 
 axiosInstance.logout = async () => {

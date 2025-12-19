@@ -20,9 +20,12 @@ import MarkdownWithMath from "./MarkdownWithMath";
 import CameraCapture from "./CameraCapture";
 import Tutorial from "./Tutorial";
 import { useTutorial } from "../contexts/TutorialContext";
-import Mascot from "./Mascot";
 import { getImageSrc, prepareImageForApi } from "../utils/imageUtils";
-// import { useMascot } from "../contexts/MascotContext";
+import AnimatedBackground from "./AnimatedBackground";
+import { useMascot, MASCOT_ANIMATIONS } from "../contexts/MascotContext";
+import { InlineMascot } from "./Mascot3D";
+import "./Mascot3D.css";
+
 
 
 function SolveQuestion() {
@@ -35,10 +38,9 @@ function SolveQuestion() {
   const { updateQuestProgress } = useContext(QuestContext);
 
   // Timer context
-  const { 
-    startTimer, 
-    stopTimer, 
-    isTimerActive 
+  const {
+    startTimer,
+    stopTimer
   } = useTimer();
 
   // Sound feedback hook
@@ -55,7 +57,7 @@ function SolveQuestion() {
   } = useTutorial();
 
   // Mascot context
-  // const { setThinking, setIdle, setEncouraging } = useMascot();
+  const { setThinking, setIdle, setExplaining, playAnimation, ANIMATIONS } = useMascot();
 
   // State for tracking study session
   const [studyTime, setStudyTime] = useState(0);
@@ -85,9 +87,9 @@ function SolveQuestion() {
   }, []);
 
   // Set mascot to encouraging mode when solving questions
-  // useEffect(() => {
-  //   setEncouraging();
-  // }, [setEncouraging]);
+  useEffect(() => {
+    playAnimation(MASCOT_ANIMATIONS.LOOK_RIGHT, { loop: true });
+  }, [playAnimation]);
 
   // Apply dark mode on component mount and listen for changes
   useEffect(() => {
@@ -207,6 +209,13 @@ function SolveQuestion() {
       }
     });
   }, []);
+
+  // Start timer on initial mount
+  useEffect(() => {
+    const initialQuestionId = location.state?.question_id || `${index}${Date.now()}`;
+    startTimer(initialQuestionId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only on mount
 
   // Stop timer when component unmounts (only run on unmount)
   useEffect(() => {
@@ -343,11 +352,6 @@ function SolveQuestion() {
     setUploadProgress(percent);
   };
 
-  // Handle timer completion
-  const handleTimerComplete = (seconds) => {
-    setStudyTime(seconds);
-  };
-
   // Handlers for different actions
   const handleSubmit = () => {
     // Stop the timer and get the time spent
@@ -363,11 +367,14 @@ function SolveQuestion() {
   };
 
   const handleSolve = () => {
+    // Trigger mascot thinking animation while processing
+    playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+
     // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
     const timeSpentMinutes = Math.ceil(timeSpentMs / 60000);
-    
-    sendFormData({ 
+
+    sendFormData({
       solve: true,
       study_time_seconds: Math.floor(timeSpentMs / 1000),
       study_time_minutes: timeSpentMinutes
@@ -375,11 +382,14 @@ function SolveQuestion() {
   };
 
   const handleExplain = () => {
+    // Trigger mascot explaining animation
+    playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+
     // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
     const timeSpentMinutes = Math.ceil(timeSpentMs / 60000);
-    
-    sendFormData({ 
+
+    sendFormData({
       explain: true,
       study_time_seconds: Math.floor(timeSpentMs / 1000),
       study_time_minutes: timeSpentMinutes
@@ -388,7 +398,9 @@ function SolveQuestion() {
 
   // Enhanced handleCorrect function
   const handleCorrect = async () => {
-  //  console.log ("Starting handleCorrect function");
+    // Trigger mascot thinking animation while correcting
+    playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+
     setProcessingButton("correct");
     setError(null);
 
@@ -733,16 +745,14 @@ function SolveQuestion() {
 
   return (
     <div className={`solve-question-wrapper ${isDarkMode ? 'dark-mode' : ''}`}>
+      {/* Animated Background with floating math/science symbols */}
+      <AnimatedBackground isDarkMode={isDarkMode} symbolCount={35} showOrbs={true} />
+
       <div className="solve-question-container">
         {/* Header section with timer */}
         <div className="solve-question-header d-flex justify-content-between align-items-center mb-3">
           {/* Study Timer */}
-          <StudyTimer
-            isActive={isTimerActive}
-            questionId={currentQuestion.id}
-            onTimerComplete={handleTimerComplete}
-            className={processingButton ? "stopped" : ""}
-          />
+          <StudyTimer className={processingButton ? "stopped" : ""} />
           {/* Tutorial Toggle Button */}
           <button
             className="tutorial-toggle-btn"
@@ -826,29 +836,41 @@ function SolveQuestion() {
           </div>
         )}
 
-        {/* Question Display Section */}
-        <div className="question-text-container">
-          <span className="question-title">
-            Question {currentQuestion.questionNumber}
-          </span>
-          {currentQuestion.image && (
-            <img
-              src={getImageSrc(currentQuestion.image)}
-              alt="Question"
-              className="question-image"
-            />
-          )}
-          <div className="question-text"><MarkdownWithMath content={currentQuestion.question} /></div>
-          <div className="mt-2">
-            <Form.Check
-              type="switch"
-              id="share-with-chat-toggle"
-              label="Share this question with Chat"
-              checked={shareWithChat}
-              onChange={(e) => setShareWithChat(e.target.checked)}
-              disabled={isAnyButtonProcessing()}
-            />
+        {/* Question Display Section with Mascot */}
+        <div className="solve-question-mascot-row">
+          {/* Mascot Section */}
+         
+
+          {/* Question Content */}
+          <div className="question-side">
+            <div className="question-text-container">
+              <span className="question-title">
+                Question {currentQuestion.questionNumber}
+              </span>
+              {currentQuestion.image && (
+                <img
+                  src={getImageSrc(currentQuestion.image)}
+                  alt="Question"
+                  className="question-image"
+                />
+              )}
+              <div className="question-text"><MarkdownWithMath content={currentQuestion.question} /></div>
+              <div className="mt-2">
+                <Form.Check
+                  type="switch"
+                  id="share-with-chat-toggle"
+                  label="Share this question with Chat"
+                  checked={shareWithChat}
+                  onChange={(e) => setShareWithChat(e.target.checked)}
+                  disabled={isAnyButtonProcessing()}
+                />
+              </div>
+            </div>
           </div>
+          <div className="mascot-side">
+            <InlineMascot size="medium" />
+          </div>
+
         </div>
 
         {/* Error Message */}

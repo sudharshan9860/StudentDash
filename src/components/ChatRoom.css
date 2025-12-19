@@ -861,7 +861,7 @@
   color: #6b7280;
 }
 
-.chat-input button {
+.chat-main{.chat-input button {
   padding: 12px 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -871,7 +871,8 @@
   font-weight: 600;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
+  margin-right: 5vw;
+}}
 
 .chat-input button:hover:not(:disabled) {
   transform: translateY(-2px);

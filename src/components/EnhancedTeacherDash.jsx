@@ -176,7 +176,7 @@ const EnhancedTeacherDash = () => {
   const getInitialTab = () => {
     if (location.state?.activeTab) return location.state.activeTab;
     const params = new URLSearchParams(location.search);
-    return params.get('tab') || 'homework';
+    return params.get('tab') || 'exam-analytics';
   };
   const [activeTab, setActiveTab] = useState(getInitialTab());
   const [selectedStudent, setSelectedStudent] = useState(null);

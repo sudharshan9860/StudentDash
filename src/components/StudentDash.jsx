@@ -38,8 +38,9 @@ import StreakTracker from "./StreakTracker";
 import LiveNotifications from "./LiveNotifications";
 import Tutorial from "./Tutorial";
 import { useTutorial } from "../contexts/TutorialContext";
-import Mascot from "./Mascot";
-// import { useMascot } from "../contexts/MascotContext";
+
+import ProgressGraph from "./ProgressGraph";
+import ProgressComparison from "./ProgressComparison"
 
 function StudentDash() {
   const navigate = useNavigate();
@@ -57,8 +58,7 @@ function StudentDash() {
     completedPages,
   } = useTutorial();
 
-  // Mascot context
-  // const { setWaving, setIdle, setHappy, setCelebrating } = useMascot();
+  // Mascot context - removed to prevent multiple WebGL contexts
 
   // Dark mode state with improved persistence
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -186,14 +186,7 @@ function StudentDash() {
     document.body.classList.toggle('dark-mode', isDarkMode);
   }, [isDarkMode]);
 
-  // Set mascot to waving on component mount
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setWaving();
-  //   }, 1000);
-
-  //   return () => clearTimeout(timer);
-  // }, [setWaving]);
+  // Mascot animation handled in SolveQuestion and ResultPage only
 
   // Load last session on component mount
   useEffect(() => {
@@ -235,8 +228,8 @@ const isScienceSubject = () => {
 
 // Complete mapping of question types with IDs
 const QUESTION_TYPE_MAPPING = [
-  { id: "1", value: 'conceptual_questions', label: 'Conceptual Questions' },
-  { id: "2", value: 'activity_based_questions', label: 'Activity Based Questions' },
+  { id: "1", value: 'activity_based_questions', label: 'Activity Based Questions' },
+  { id: "2", value: 'conceptual_questions', label: 'Conceptual Questions' },
   { id: "3", value: 'diagram_based_questions', label: 'Diagram Based Questions' },
   { id: "4", value: 'fill_in_the_blanks', label: 'Fill in the Blanks' },
   { id: "5", value: 'matching_questions', label: 'Matching Questions' },
@@ -257,8 +250,8 @@ const getQuestionTypeOptions = () => {
   } else {
     return [
       { value: 'solved', label: 'Solved Examples' },
-      { value: 'external', label: 'Exercises' },
-      { value: 'worksheets', label: 'Worksheets' }
+      { value: 'external', label: 'Book Exercises' },
+      { value: 'worksheets', label: 'Take it to next level with Worksheets' }
     ];
   }
 };
@@ -936,195 +929,23 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Resume Learning Section */}
-                {canResume && lastSession && (
-                  <div className="resume-learning-section" style={{
-                    background: isDarkMode
-                      ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)'
-                      : 'linear-gradient(135deg, rgb(95 123 248) 0%, rgb(97 111 242) 100%)',
-                    borderRadius: '16px',
-                    padding: '24px',
-                    marginBottom: '24px',
-                    boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
-                    border: `2px solid ${isDarkMode ? '#7c3aed' : '#667eea'}`,
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}>
-                    {/* Background decoration */}
-                    <div style={{
-                      position: 'absolute',
-                      top: '-50px',
-                      right: '-50px',
-                      width: '200px',
-                      height: '200px',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: '50%',
-                      filter: 'blur(40px)',
-                    }} />
-
-                    <div style={{ position: 'relative', zIndex: 1 }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: '16px',
-                      }}>
-                        <div style={{ flex: 1, minWidth: '250px' }}>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            marginBottom: '12px',
-                            color: '#ffffff',
-                          }}>
-                            <FontAwesomeIcon
-                              icon={faRocket}
-                              style={{
-                                fontSize: '24px',
-                                marginRight: '12px',
-                                animation: 'pulse 2s infinite',
-                              }}
-                            />
-                            <span style={{
-                              margin: 0,
-                              fontSize: '22px',
-                              fontWeight: '700',
-                              color: 'white',
-                            }}>
-                              Continue Your Learning Journey
-                            </span>
-                          </div>
-
-                          <div style={{
-                            color: '#ffffff',
-                            opacity: 0.95,
-                            fontSize: '15px',
-                            marginBottom: '16px',
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                              <FontAwesomeIcon icon={faBookOpen} style={{ marginRight: '8px', width: '16px' }} />
-                              <span>
-                                <strong>Subject:</strong> {lastSession.subject_name || 'Unknown'}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '8px' }}>
-                              <FontAwesomeIcon icon={faListAlt} style={{ marginRight: '8px', width: '16px', marginTop: '3px' }} />
-                              <span>
-                                <strong>Chapter:</strong>{' '}
-                                {lastSession.chapter_names && lastSession.chapter_names.length > 0 ? (
-                                  <span>
-                                    {lastSession.chapter_names[0]}
-                                    {lastSession.chapter_names.length > 1 && ` (+${lastSession.chapter_names.length - 1} more)`}
-                                  </span>
-                                ) : 'N/A'}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                              <FontAwesomeIcon icon={faClipboardQuestion} style={{ marginRight: '8px', width: '16px' }} />
-                              <span>
-                                <strong>Progress:</strong> Question {lastSession.questionNumber} of {lastSession.questionList?.length || 0}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <FontAwesomeIcon icon={faCalendarAlt} style={{ marginRight: '8px', width: '16px' }} />
-                              <span>
-                                <strong>Last active:</strong> {new Date(lastSession.timestamp).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Progress bar */}
-                          <div style={{
-                            width: '100%',
-                            height: '8px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            borderRadius: '4px',
-                            overflow: 'hidden',
-                            marginBottom: '16px',
-                          }}>
-                            <div style={{
-                              width: `${(lastSession.questionNumber / (lastSession.questionList?.length || 1)) * 100}%`,
-                              height: '100%',
-                              background: 'linear-gradient(90deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)',
-                              borderRadius: '4px',
-                              transition: 'width 0.3s ease',
-                            }} />
-                          </div>
-                        </div>
-
-                        <div>
-                          <button
-                            onClick={handleResumeLearning}
-                            style={{
-                              background: 'linear-gradient(135deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)',
-                              color: '#ffffff',
-                              border: 'none',
-                              borderRadius: '12px',
-                              padding: '16px 32px',
-                              fontSize: '16px',
-                              fontWeight: '700',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '12px',
-                              boxShadow: '0 8px 20px rgba(16, 185, 129, 0.4)',
-                              transition: 'all 0.3s ease',
-                              whiteSpace: 'nowrap',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.transform = 'translateY(-2px)';
-                              e.target.style.boxShadow = '0 12px 28px rgba(16, 185, 129, 0.5)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
-                            }}
-                          >
-                            <FontAwesomeIcon icon={faRocket} />
-                            Resume Learning
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              localStorage.removeItem(`lastSession_${username}`);
-                              setCanResume(false);
-                              setLastSession(null);
-                              showAlert('Session cleared successfully', 'success');
-                            }}
-                            style={{
-                              background: 'transparent',
-                              color: '#ffffff',
-                              border: '2px solid rgba(255, 255, 255, 0.3)',
-                              borderRadius: '8px',
-                              padding: '8px 16px',
-                              fontSize: '13px',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              marginTop: '12px',
-                              width: '100%',
-                              transition: 'all 0.2s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                              e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.background = 'transparent';
-                              e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                            }}
-                          >
-                            Start Fresh
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                {/* Progress & Resume Learning Grid Section */}
+                <div className="progress-resume-grid" style={{
+                  // display: 'grid',
+                  gridTemplateColumns:'1fr',
+                  gap: '24px',
+                  marginBottom: '24px',
+                  marginTop: '20px',
+                }}>
+                  {/* Left Column - Progress Graph */}
+                  <div className="progress-graph-column">
+                    {/* <ProgressGraph username={username} /> */}
+                    <ProgressComparison />
                   </div>
-                )}
+
+                  {/* Right Column - Resume Learning Section */}
+                 
+                </div>
 
                 {/* Enhanced Learning Adventure Section */}
                 <div className="learning-adventure-section">
@@ -1482,8 +1303,7 @@ useEffect(() => {
                         >
                           <span>
                             <FontAwesomeIcon icon={faRocket} className="me-2" />
-                            Generate Questions
-                          </span>
+                            Let's Begin                          </span>
                         </button>
                       </div>
                     </Form>
@@ -1500,6 +1320,189 @@ useEffect(() => {
 
                 {/* Live Notifications */}
                 <LiveNotifications />
+                {canResume && lastSession && (
+                    <div className="resume-learning-section" style={{
+                      background: isDarkMode
+                        ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)'
+                        : 'linear-gradient(135deg, rgb(95 123 248) 0%, rgb(97 111 242) 100%)',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
+                      border: `2px solid ${isDarkMode ? '#7c3aed' : '#667eea'}`,
+                      position: 'relative',
+                      overflow: 'hidden',
+                      height: '40vh',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}>
+                      {/* Background decoration */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '-50px',
+                        right: '-50px',
+                        width: '200px',
+                        height: '200px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        borderRadius: '50%',
+                        filter: 'blur(40px)',
+                      }} />
+
+                      <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          marginBottom: '12px',
+                          color: '#ffffff',
+                        }}>
+                          <FontAwesomeIcon
+                            icon={faRocket}
+                            style={{
+                              fontSize: '24px',
+                              marginRight: '12px',
+                              animation: 'pulse 2s infinite',
+                            }}
+                          />
+                          <span style={{
+                            margin: 0,
+                            fontSize: '20px',
+                            fontWeight: '700',
+                            color: 'white',
+                          }}>
+                            Continue Learning
+                          </span>
+                        </div>
+
+                        <div style={{
+                          color: '#ffffff',
+                          opacity: 0.95,
+                          fontSize: '14px',
+                          marginBottom: '16px',
+                          flex: 1,
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                            <FontAwesomeIcon icon={faBookOpen} style={{ marginRight: '8px', width: '16px' }} />
+                            <span>
+                              <strong>Subject:</strong> {lastSession.subject_name || 'Unknown'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '8px' }}>
+                            <FontAwesomeIcon icon={faListAlt} style={{ marginRight: '8px', width: '16px', marginTop: '3px' }} />
+                            <span>
+                              <strong>Chapter:</strong>{' '}
+                              {lastSession.chapter_names && lastSession.chapter_names.length > 0 ? (
+                                <span>
+                                  {lastSession.chapter_names[0]}
+                                  {lastSession.chapter_names.length > 1 && ` (+${lastSession.chapter_names.length - 1} more)`}
+                                </span>
+                              ) : 'N/A'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                            <FontAwesomeIcon icon={faClipboardQuestion} style={{ marginRight: '8px', width: '16px' }} />
+                            <span>
+                              <strong>Progress:</strong> Question {lastSession.questionNumber} of {lastSession.questionList?.length || 0}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <FontAwesomeIcon icon={faCalendarAlt} style={{ marginRight: '8px', width: '16px' }} />
+                            <span>
+                              <strong>Last active:</strong> {new Date(lastSession.timestamp).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div style={{
+                          width: '100%',
+                          height: '8px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          borderRadius: '4px',
+                          overflow: 'hidden',
+                          marginBottom: '16px',
+                        }}>
+                          <div style={{
+                            width: `${(lastSession.questionNumber / (lastSession.questionList?.length || 1)) * 100}%`,
+                            height: '100%',
+                            background: 'linear-gradient(90deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)',
+                            borderRadius: '4px',
+                            transition: 'width 0.3s ease',
+                          }} />
+                        </div>
+
+                        {/* Buttons */}
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                          <button
+                            onClick={handleResumeLearning}
+                            style={{
+                              background: 'linear-gradient(135deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '12px',
+                              padding: '14px 28px',
+                              fontSize: '15px',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              boxShadow: '0 8px 20px rgba(16, 185, 129, 0.4)',
+                              transition: 'all 0.3s ease',
+                              whiteSpace: 'nowrap',
+                              flex: 1,
+                              justifyContent: 'center',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.transform = 'translateY(-2px)';
+                              e.target.style.boxShadow = '0 12px 28px rgba(16, 185, 129, 0.5)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.transform = 'translateY(0)';
+                              e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
+                            }}
+                          >
+                            <FontAwesomeIcon icon={faRocket} />
+                            Resume
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              localStorage.removeItem(`lastSession_${username}`);
+                              setCanResume(false);
+                              setLastSession(null);
+                              showAlert('Session cleared successfully', 'success');
+                            }}
+                            style={{
+                              background: 'transparent',
+                              color: '#ffffff',
+                              border: '2px solid rgba(255, 255, 255, 0.3)',
+                              borderRadius: '12px',
+                              padding: '14px 20px',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              whiteSpace: 'nowrap',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                              e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = 'transparent';
+                              e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                            }}
+                          >
+                            Start Fresh
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
               </div>
             </div>
           </Container>
@@ -1525,8 +1528,7 @@ useEffect(() => {
           />
         )}
 
-        {/* Mascot Component */}
-        {/* <Mascot position="bottom-right" mode="3d" /> */}
+        {/* Mascot is shown on SolveQuestion and ResultPage only to prevent WebGL context issues */}
       </div>
     </>
   );

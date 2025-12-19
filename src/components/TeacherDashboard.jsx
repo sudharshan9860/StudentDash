@@ -465,11 +465,10 @@ const TeacherDashboard = ({ user, assignments, submissions, onAssignmentSubmit }
   const { showAlert, AlertContainer } = useAlert();
   const [homework_code, setHomeworkCode] = useState("");
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [worksheetFile, setWorksheetFile] = useState(null);
   const [dueDate, setDueDate] = useState("");
-  const [submissionType, setSubmissionType] = useState("text");
+  const [submissionType, setSubmissionType] = useState("worksheet");
   const [imageSourceType, setImageSourceType] = useState("upload"); // "upload" or "camera"
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -818,14 +817,11 @@ const TeacherDashboard = ({ user, assignments, submissions, onAssignmentSubmit }
         formData.append('due_date', new Date(dueDate).toISOString());
         formData.append('date_assigned', new Date().toISOString());
         formData.append('image', imageFile);
-        // Optionally add description if needed
-        if (description) formData.append('description', description);
       } else {
         // For text-only assignments, send JSON
         formData = {
           homework_code: homework_code.trim(),
           title: title.trim(),
-          description: submissionType === "text" ? description : undefined,
           teacherId: user.username,
           classId: user.id,
           due_date: new Date(dueDate).toISOString(),
@@ -843,10 +839,9 @@ const TeacherDashboard = ({ user, assignments, submissions, onAssignmentSubmit }
 
       // Reset form
       setTitle("");
-      setDescription("");
       setImageFile(null);
       setDueDate("");
-      setSubmissionType("text");
+      setSubmissionType("worksheet");
       setHomeworkCode("");
       setImageSourceType("upload");
 
@@ -924,7 +919,6 @@ const TeacherDashboard = ({ user, assignments, submissions, onAssignmentSubmit }
     return {
       id: data.homework_code || idx, // fallback to idx if no code
       title: data.title,
-      description: data.description,
       imageUrl: data.attachment, // or null
       createdAt: data.date_assigned ? new Date(data.date_assigned) : new Date(),
       dueDate: data.due_date ? new Date(data.due_date) : new Date(),
@@ -983,7 +977,7 @@ const TeacherDashboard = ({ user, assignments, submissions, onAssignmentSubmit }
           
           <form onSubmit={handleSubmit} className="assignment-form">
             {/* Assignment Type Selection - Always show first */}
-            <div className="form-group">
+            {/* <div className="form-group">
               <label className="form-label">Assignment Type</label>
               <div className="type-buttons">
                 <button
@@ -1000,7 +994,7 @@ const TeacherDashboard = ({ user, assignments, submissions, onAssignmentSubmit }
                   Upload Worksheet
                 </button>
               </div>
-            </div>
+            </div> */}
 
             {/* Common fields for Text and Image assignment types only */}
             {submissionType !== 'worksheet' && (
@@ -1045,19 +1039,6 @@ const TeacherDashboard = ({ user, assignments, submissions, onAssignmentSubmit }
               </>
             )}
 
-            {submissionType === "text" && (
-              <div className="form-group">
-                <label htmlFor="description" className="form-label">Assignment Description</label>
-                <textarea
-                  id="description"
-                  className="form-textarea"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter detailed assignment instructions"
-                  rows="4"
-                />
-              </div>
-            )}
 
             {submissionType === "image" && (
               <>
@@ -1166,7 +1147,7 @@ const TeacherDashboard = ({ user, assignments, submissions, onAssignmentSubmit }
 
             {submissionType === "worksheet" && (
               <>
-                <div className="form-group">
+                {/* <div className="form-group">
                   <label htmlFor="due-date-worksheet" className="form-label">Due Date (Optional)</label>
                   <input
                     id="due-date-worksheet"
@@ -1178,7 +1159,7 @@ const TeacherDashboard = ({ user, assignments, submissions, onAssignmentSubmit }
                   <div className="form-help">
                     Due date is optional for worksheet processing
                   </div>
-                </div>
+                </div> */}
 
                 <div className="form-group">
                   <label htmlFor="class-select" className="form-label">Class *</label>

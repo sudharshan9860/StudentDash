@@ -1,946 +1,873 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Alert, Spinner } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faQuestionCircle,
-  faLightbulb,
-  faFileAlt,
-  faTrophy,
-  faTimesCircle,
-  faClock,
-  faGraduationCap,
-  faComment,
-  faExclamationCircle,
-  faArrowLeft,
-  faStar,
-  faCompress,
-  faChevronDown,
-  faChevronUp,
-  faRefresh,
-  faListAlt
-} from '@fortawesome/free-solid-svg-icons';
-import MarkdownWithMath from './MarkdownWithMath';
+import { Button, Container, Row, Col, Accordion, Alert, Spinner } from 'react-bootstrap';
+import './ResultPage.css';
 import QuestionListModal from './QuestionListModal';
 import axiosInstance from '../api/axiosInstance';
-import Avatar3DModel from './Avatar3DModel';
-import './ResultPage.css';
+import MarkdownWithMath from './MarkdownWithMath';
+import Tutorial from './Tutorial';
+import { useTutorial } from '../contexts/TutorialContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
+import { getImageSrc } from '../utils/imageUtils';
+import { useMascot, MASCOT_ANIMATIONS } from '../contexts/MascotContext';
+import { InlineMascot } from './Mascot3D';
+import './Mascot3D.css';
 
-// ==================== ANIMATION MAPPING ====================
-const ANIMATION_MAP = {
-  question: {
-    url: '/animations/Thinking (2).fbx',
-    name: '🤔 What\'s being asked here?'
-  },
-  solution: {
-    url: '/animations/Talking.fbx',
-    name: '💡 Here\'s how to solve it!'
-  },
-  userSolution: {
-    url: '/animations/Looking (1).fbx',
-    name: '📝 Let me check your work...'
-  },
-  scoreHigh: {
-    url: '/animations/Golf Putt Victory.fbx',
-    name: '🎉 Awesome work!'
-  },
-  scoreLow: {
-    url: '/animations/Defeated.fbx',
-    name: '💪 Keep practicing!'
-  },
-  concepts: {
-    url: '/animations/salsa.fbx',
-    name: '🎓 Key Concepts'
-  },
-  gapAnalysis: {
-    url: '/animations/Tripping.fbx',
-    name: '📊 Gap Analysis'
-  },
-  errorType: {
-    url: '/animations/Defeated.fbx',
-    name: '⚠️ Error Detection'
-  },
-  timeManagement: {
-    url: '/animations/Running To Turn.fbx',
-    name: '⏱️ Time Analysis'
-  },
-  feedback: {
-    url: '/animations/Talking.fbx',
-    name: '💬 AI Feedback'
-  }
-};
-
-// ==================== UTILITY FUNCTIONS ====================
-const getImageSrc = (image) => {
-  if (!image) return null;
-  if (typeof image === 'string' && image.startsWith('data:')) return image;
-  if (image instanceof File) return URL.createObjectURL(image);
-  if (typeof image === 'string' && image.match(/^[A-Za-z0-9+/=]+$/)) {
-    return `data:image/png;base64,${image}`;
-  }
-  if (typeof image === 'string' && image.match(/^https?:\/\//)) return image;
-  return null;
-};
-
-// ==================== RESULT CARD WITH HOVER ====================
-const ResultCard = ({ 
-  title, 
-  icon, 
-  color, 
-  cardType,
-  delay = 0,
-  children,
-  onMouseEnter,
-  onMouseLeave
-}) => {
-  return (
-    <motion.div
-      className="result-card-hoverable"
-      initial={{ opacity: 0, x: -50 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.6, delay }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
-      <div className="card-header-modern" style={{ borderTopColor: color }}>
-        <div className="header-left">
-          <div className="icon-wrapper-fixed" style={{ backgroundColor: color }}>
-            <FontAwesomeIcon icon={icon} />
-          </div>
-          <h3 className="card-title-modern">{title}</h3>
-        </div>
-        <div className="hover-indicator">
-          <span>Hover to expand</span>
-          <FontAwesomeIcon icon={faChevronUp} className="hover-icon" />
-        </div>
-      </div>
-      
-      <div className="card-content-modern">
-        {children}
-      </div>
-    </motion.div>
-  );
-};
-
-// ==================== FULLSCREEN MODAL WITH FIXED 3D MODEL ====================
-const FullscreenModal = ({ 
-  isOpen, 
-  onClose, 
-  title, 
-  icon, 
-  color, 
-  children,
-  cardType
-}) => {
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isOpen]);
-
-  const handleScroll = (e) => {
-    setScrollY(e.target.scrollTop);
-  };
-
-  if (!isOpen) return null;
-
-  const animation = ANIMATION_MAP[cardType];
-
-  return (
-    <AnimatePresence>
-      <motion.div
-        className="fullscreen-modal-overlay-new"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <motion.div
-          className="fullscreen-modal-content-new"
-          initial={{ scale: 0.8, opacity: 0, rotateX: -15 }}
-          animate={{ scale: 1, opacity: 1, rotateX: 0 }}
-          exit={{ scale: 0.8, opacity: 0, rotateX: 15 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 300, 
-            damping: 25 
-          }}
-        >
-          {/* Fixed 3D Model - Small size, stays in place */}
-          <div className="fixed-avatar-container">
-            <Avatar3DModel
-              animationUrl={animation?.url}
-              animationName={animation?.name}
-              size="medium"
-            />
-          </div>
-
-          {/* Header */}
-          <div className="fullscreen-header-new" style={{ borderBottomColor: color }}>
-            <div className="header-left">
-              <div className="icon-wrapper-fixed" style={{ backgroundColor: color }}>
-                <FontAwesomeIcon icon={icon} />
-              </div>
-              <h2 className="fullscreen-title-new">{title}</h2>
-            </div>
-            <button 
-              className="close-btn-modern-new" 
-              onClick={onClose}
-              aria-label="Close fullscreen"
-            >
-              <FontAwesomeIcon icon={faCompress} />
-            </button>
-          </div>
-
-          {/* Scrollable Content Area */}
-          <div className="fullscreen-body-new" onScroll={handleScroll}>
-            <div className="fullscreen-content-wrapper-new">
-              {children}
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-};
-
-// ==================== SCORE RING COMPONENT ====================
-const ScoreRing = ({ obtained, total }) => {
-  const displayScore = obtained != null ? Math.round(obtained * 10) / 10 : 0;
-  const pct = total > 0 ? Math.round((obtained / total) * 100) : 0;
-
-  const getColor = () => {
-    if (pct >= 80) return '#10b981';
-    if (pct >= 60) return '#f59e0b';
-    return '#ef4444';
-  };
-
-  const getMessage = () => {
-    if (pct >= 80) return '🎉 Excellent!';
-    if (pct >= 60) return '👍 Good job!';
-    if (pct >= 40) return '💪 Keep trying!';
-    return '📚 Let\'s practice!';
-  };
-
-  const circumference = 2 * Math.PI * 50;
-  const offset = circumference - (circumference * pct / 100);
-
-  return (
-    <div className="score-section-modern">
-      <div className="score-ring-container">
-        <svg viewBox="0 0 120 120" className="score-ring-svg">
-          <circle className="ring-bg" cx="60" cy="60" r="50"/>
-          <motion.circle 
-            className="ring-progress" 
-            cx="60" 
-            cy="60" 
-            r="50"
-            style={{ stroke: getColor() }}
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1.5, ease: 'easeOut', delay: 0.3 }}
-          />
-        </svg>
-        <div className="score-text-overlay">
-          <span className="score-num" style={{ color: getColor() }}>{displayScore}</span>
-          <span className="score-divider">/</span>
-          <span className="score-total">{total}</span>
-        </div>
-      </div>
-      <div className="score-message">{getMessage()}</div>
-    </div>
-  );
-};
-
-// ==================== MAIN RESULT PAGE ====================
 const ResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [showModal, setShowModal] = useState(false);
-  const [error, setError] = useState(null);
-  const [calculating, setCalculating] = useState(false);
-  const [autoScore, setAutoScore] = useState(null);
+  const [showQuestionListModal, setShowQuestionListModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [isCalculatingScore, setIsCalculatingScore] = useState(false);
+  const [autoCalculatedScore, setAutoCalculatedScore] = useState(null);
+
+  // Tutorial context
+  const {
+    shouldShowTutorialForPage,
+    completeTutorialFlow,
+    startTutorialFromToggle,
+    startTutorialForPage,
+  } = useTutorial();
+
+  // Mascot context
+  const { playScoreAnimation, playActionAnimation, playAnimation, ANIMATIONS } = useMascot();
+
+  // Dark mode state
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('darkMode') === 'true';
+  });
   
-  // Hover states
-  const [fullscreenCard, setFullscreenCard] = useState(null);
-  const [hoverTimer, setHoverTimer] = useState(null);
-  const [showMoreSolution, setShowMoreSolution] = useState(false);
-
-  const contentRef = useRef(null);
-
-  const [darkMode] = useState(() => 
-    localStorage.getItem('darkMode') === 'true'
-  );
-
   const { state } = location;
   const {
-    ai_data, 
-    actionType, 
-    questionList, 
-    class_id, 
-    subject_id, 
+    message,
+    ai_data,
+    actionType,
+    questionList,
+    class_id,
+    subject_id,
     topic_ids,
-    subtopic, 
-    questionImage, 
-    questionNumber, 
-    studentImages = [], 
-    question_id, 
+    subtopic,
+    questionImage,
+    questionNumber,
+    studentImages = [],
+    question_id,// Get student images from state
     context
   } = state || {};
-
-  const {
+  console.log('question_id from explain state:', question_id);
+  const { 
     question, 
     ai_explaination, 
     student_answer, 
-    comment, 
-    gap_analysis,
-    time_analysis, 
-    error_type, 
-    concepts_used, 
+    concepts, 
+    comment,gap_analysis,time_analysis,error_type,mistakes_made,
+    concepts_used,
     solution, 
-    score,
+    score, 
     obtained_marks, 
     total_marks, 
-    question_marks, 
-    question_image_base64
+    question_marks,
+    question_image_base64,
+    student_answer_base64, // Add this to get the processed student image from API
+    videos = [],
+    real_world_videos = []
   } = ai_data || {};
+  console.log('AI Data:', ai_data);
+  const formated_concepts_used = Array.isArray(concepts_used)
+    ? concepts_used.join(', ')
+    : concepts_used || '';
 
-  const scoreVal = obtained_marks ?? score ?? autoScore ?? 0;
-  const totalVal = total_marks ?? question_marks ?? 5;
-
-  // ==================== HOVER HANDLERS ====================
-  const handleMouseEnter = (cardType) => {
-    const timer = setTimeout(() => {
-      setFullscreenCard(cardType);
-    }, 800); // 800ms hover delay
-    setHoverTimer(timer);
+  // Combine student images from state and API response
+  const getAllStudentImages = () => {
+    const images = [];
+    
+    // Add images from state (uploaded/captured images)
+    if (studentImages && studentImages.length > 0) {
+      studentImages.forEach((imageUrl, index) => {
+        images.push({
+          src: imageUrl,
+          type: 'uploaded',
+          label: `Uploaded Image `
+        });
+      });
+    }
+    
+    // Add processed image from API response
+    if (student_answer_base64) {
+      images.push({
+        src: `data:image/jpeg;base64,${student_answer_base64}`,
+        type: 'processed',
+        label: 'Processed Solution'
+      });
+    }
+    
+    return images;
   };
 
-  const handleMouseLeave = () => {
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      setHoverTimer(null);
+  const allStudentImages = getAllStudentImages();
+
+  // Tutorial steps for ResultPage
+  const tutorialSteps = [
+    {
+      target: '.result-title',
+      content: 'Congratulations! This is your result page where you can see AI feedback on your solution.',
+      disableBeacon: true,
+    },
+    {
+      target: '.student-images',
+      content: 'Here you can see your uploaded solution images. The AI has analyzed your work!',
+      skipIfMissing: true,
+    },
+    {
+      target: '.result-question',
+      content: 'This section shows the AI\'s feedback, solution steps, and corrections for your answer.',
+    },
+    {
+      target: '.practice-btn-fixed',
+      content: 'Click here to practice similar questions and improve your understanding!',
+    },
+    {
+      target: '.dashboard-btn-fixed',
+      content: 'Use the Question List button to try other questions from your selection.',
+    },
+    {
+      target: '.back-btn-fixed',
+      content: 'You can go back to modify your answer or try a different approach. That completes the tutorial!',
+    },
+  ];
+
+  // Handle tutorial completion for ResultPage
+  const handleTutorialComplete = () => {
+    console.log("ResultPage tutorial completed - marking entire flow as complete");
+    completeTutorialFlow();
+  };
+
+  // Set mascot emotion based on score or action type
+  useEffect(() => {
+    // For correct/submit actions with score, show score-based animation
+    if ((actionType === 'correct' || actionType === 'submit') &&
+        (obtained_marks !== undefined || score !== undefined)) {
+      const obtainedValue = obtained_marks !== undefined
+        ? (typeof obtained_marks === 'number' ? obtained_marks : parseInt(obtained_marks, 10))
+        : (score !== undefined
+          ? (typeof score === 'number' ? score : parseInt(score, 10))
+          : 0);
+
+      const totalValue = total_marks !== undefined
+        ? (typeof total_marks === 'number' ? total_marks : parseInt(total_marks, 10))
+        : (question_marks !== undefined
+          ? (typeof question_marks === 'number' ? question_marks : parseInt(question_marks, 10))
+          : 10);
+
+      // Play score-based animation (victory for high scores, sad for low)
+      playScoreAnimation(obtainedValue, totalValue);
+    } else {
+      // For explain/solve actions, play appropriate animation
+      playActionAnimation(actionType);
+    }
+  }, [actionType, obtained_marks, total_marks, score, question_marks, playScoreAnimation, playActionAnimation]);
+
+  // Apply dark mode on component mount and listen for changes
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+      setIsDarkMode(darkModeEnabled);
+      document.body.classList.toggle('dark-mode', darkModeEnabled);
+    };
+
+    checkDarkMode();
+
+    // Listen for storage events (dark mode changes in other tabs/components)
+    window.addEventListener('storage', checkDarkMode);
+
+    return () => {
+      window.removeEventListener('storage', checkDarkMode);
+    };
+  }, []);
+
+  // Cleanup object URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      studentImages.forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [studentImages]);
+
+  // Auto-calculate score if none is provided from API
+  useEffect(() => {
+    if ((actionType === 'submit' || actionType === 'correct') && 
+        student_answer && 
+        obtained_marks === undefined && 
+        score === undefined) {
+      calculateAutoScore();
+    }
+  }, [ai_data, actionType, student_answer]);
+
+  // Function to calculate score based on student answer
+  const calculateAutoScore = async () => {
+    if (!student_answer || !question) {
+      return;
+    }
+    
+    setIsCalculatingScore(true);
+    
+    try {
+      const aiScoringResponse = await axiosInstance.post('/auto-score/', {
+        student_answer,
+        question,
+        expected_solution: ai_explaination || solution || [],
+        total_marks: total_marks || question_marks || 10
+      }).catch(() => null);
+
+      if (aiScoringResponse?.data?.score !== undefined) {
+        setAutoCalculatedScore(aiScoringResponse.data.score);
+      } else {
+        const fallbackScore = calculateFallbackScore();
+        setAutoCalculatedScore(fallbackScore);
+      }
+    } catch (error) {
+      console.error('Error calculating score:', error);
+      const fallbackScore = calculateFallbackScore();
+      setAutoCalculatedScore(fallbackScore);
+    } finally {
+      setIsCalculatingScore(false);
     }
   };
 
-  // ==================== AUTO-SCORE FALLBACK ====================
-  useEffect(() => {
-    const calculateAutoScore = async () => {
-      if (!obtained_marks && !score && student_answer && question) {
-        setCalculating(true);
-        
-        try {
-          const response = await axiosInstance.post('/auto-score/', {
-            student_answer: student_answer,
-            question: question,
-            expected_solution: ai_explaination?.join(' ') || solution,
-            total_marks: total_marks || question_marks || 5
-          });
-          
-          setAutoScore(response.data.score);
-        } catch (error) {
-          console.error('Auto-score failed:', error);
-          const clientScore = calculateClientSideScore(
-            student_answer,
-            ai_explaination?.join(' ') || solution,
-            total_marks || 5
-          );
-          setAutoScore(clientScore);
-        } finally {
-          setCalculating(false);
-        }
-      }
+  // Fallback scoring method using keyword matching
+  const calculateFallbackScore = () => {
+    const totalMark = total_marks || question_marks || 10;
+    
+    const expectedSolution = Array.isArray(ai_explaination) 
+      ? ai_explaination.join(' ') 
+      : (Array.isArray(solution) ? solution.join(' ') : '');
+    
+    if (!expectedSolution) {
+      return 0;
+    }
+
+    const normalizeText = (text) => {
+      return text.toLowerCase()
+        .replace(/\s+/g, ' ')
+        .replace(/[^\w\s]/g, '')
+        .trim();
     };
     
-    calculateAutoScore();
-  }, [student_answer, question, obtained_marks, score, ai_explaination, solution, total_marks, question_marks]);
+    const normalizedStudentAnswer = normalizeText(student_answer);
+    const normalizedSolution = normalizeText(expectedSolution);
+    
+    const extractKeywords = (text) => {
+      const commonWords = ['the', 'and', 'is', 'in', 'of', 'to', 'for', 'a', 'by', 'with', 'as'];
+      const words = text.split(/\s+/);
+      return words.filter(word => 
+        word.length > 2 && !commonWords.includes(word)
+      );
+    };
+    
+    const solutionKeywords = extractKeywords(normalizedSolution);
+    const studentKeywords = extractKeywords(normalizedStudentAnswer);
+    
+    let matchCount = 0;
+    for (const keyword of solutionKeywords) {
+      if (studentKeywords.includes(keyword)) {
+        matchCount++;
+      }
+    }
+    
+    const matchPercentage = solutionKeywords.length > 0 
+      ? matchCount / solutionKeywords.length 
+      : 0;
+    
+    let calculatedScore = Math.round(matchPercentage * totalMark);
+    
+    if (calculatedScore === 0 && matchCount > 0 && normalizedStudentAnswer.length > 10) {
+      calculatedScore = 1;
+    }
+    
+    if (matchPercentage > 0.8) {
+      calculatedScore = totalMark;
+    }
+    
+    return calculatedScore;
+  };
 
-  // ==================== HELPER FUNCTIONS ====================
-  const goBack = () => navigate(-1);
+  const handleBackToDashboard = () => {
+    navigate('/student-dash');
+  };
 
-  const selectQuestion = (q) => {
-    setShowModal(false);
+  const handleBack = () => {
     navigate('/solvequestion', {
       state: {
-        selectedQuestion: q,
+        question: question,
+        questionNumber: questionNumber,
+        questionList: questionList,
+        class_id: class_id,
+        subject_id: subject_id,
+        topic_ids: topic_ids,
+        subtopic: subtopic,
+        image: questionImage,
+        index: questionNumber ? questionNumber - 1 : 0,
+        selectedQuestions: questionList,
+        question_id: question_id,
+        context: context
+      }
+    });
+  };
+  const handleShowQuestionList = () => {
+    setShowQuestionListModal(true);
+  };
+
+  const handleCloseQuestionList = () => {
+    setShowQuestionListModal(false);
+  };
+
+  const handleQuestionSelect = (selectedQuestion, index, selectedImage, question_id, questionContext = null) => {
+    navigate('/solvequestion', {
+      state: {
+        question: selectedQuestion,
+        questionNumber: index + 1,
         questionList,
         class_id,
         subject_id,
         topic_ids,
         subtopic,
-        context
+        image: selectedImage,
+        question_id: question_id || `question_${index}_${Date.now()}`,
+        context: questionContext
       }
     });
   };
 
-  const practiseSimilar = () => {
+  const handlePracticeSimilar = () => {
     if (!question) {
-      setError('Question not available');
+      setErrorMessage('No question available for practice');
       return;
     }
+  
     navigate('/similar-questions', {
       state: {
         originalQuestion: question,
         class_id,
         subject_id,
         topic_ids,
-        subtopic
+        subtopic,
+        questionImage,
+        solution: ai_explaination || solution
       }
     });
   };
 
-  const getScoreCardType = () => {
-    const pct = totalVal > 0 ? (scoreVal / totalVal) * 100 : 0;
-    return pct >= 60 ? 'scoreHigh' : 'scoreLow';
+  // Display the score with proper formatting
+  const renderScore = () => {
+    const scoreFromApi = obtained_marks !== undefined 
+                    ? (typeof obtained_marks === 'number' ? obtained_marks : parseInt(obtained_marks, 10))
+                    : (score !== undefined 
+                        ? (typeof score === 'number' ? score : parseInt(score, 10))
+                        : null);
+    
+    const totalValue = total_marks !== undefined
+      ? (typeof total_marks === 'number' ? total_marks : parseInt(total_marks, 10))
+      : (question_marks !== undefined
+          ? (typeof question_marks === 'number' ? question_marks : parseInt(question_marks, 10))
+          : 10);
+
+    if (scoreFromApi !== null) {
+      return (
+        <div className="result-score">
+          <p><strong>Score:</strong> {scoreFromApi} / {totalValue}</p>
+        </div>
+      );
+    }
+    
+    if (isCalculatingScore) {
+      return (
+        <div className="result-score calculating">
+          <p>
+            <Spinner animation="border" size="sm" /> 
+            <strong> Calculating Score...</strong>
+          </p>
+        </div>
+      );
+    }
   };
 
-  const calculateClientSideScore = (studentAns, expectedSol, totalMarks) => {
-    if (!studentAns || !expectedSol) return 0;
-    
-    const keywords = expectedSol.toLowerCase().split(/\s+/)
-      .filter(word => word.length > 3);
-    const uniqueKeywords = [...new Set(keywords)];
-    
-    const matchedCount = uniqueKeywords.filter(kw => 
-      studentAns.toLowerCase().includes(kw)
-    ).length;
-    
-    const matchPercentage = (matchedCount / uniqueKeywords.length) * 100;
-    return Math.round((matchPercentage / 100) * totalMarks * 10) / 10;
-  };
+  // Function to render solution steps with proper formatting
+  const renderSolutionSteps = (steps) => {
+    if (!steps || !Array.isArray(steps) || steps.length === 0) {
+      return <p>No solution steps available.</p>;
+    }
 
-  const renderSteps = (steps, isPreview = false) => {
-    if (!steps?.length) return <p className="empty-text">No solution available.</p>;
-    
-    const stepsToShow = isPreview ? steps.slice(0, 3) : steps;
-    
     return (
-      <div className="solution-steps-modern">
-        {stepsToShow.map((s, i) => {
-          const m = s.match(/^Step\s+(\d+):\s*(.*)/is);
-          return (
-            <div key={i} className="step-item-modern">
-              <div className="step-badge-modern">{m ? m[1] : i + 1}</div>
-              <div className="step-content-modern">
-                <MarkdownWithMath content={m ? m[2] : s}/>
+      <div className="solution-steps">
+        {steps.map((step, index) => {
+          const stepMatch = step.match(/^Step\s+(\d+):\s+(.*)/i);
+          
+          if (stepMatch) {
+            const [_, stepNumber, stepContent] = stepMatch;
+            return (
+              <div key={index} className="solution-step-container">
+                <div className="step-title">Step {stepNumber}:</div>
+                <div className="step-description">
+                  <MarkdownWithMath content={stepContent} />
+                </div>
               </div>
-            </div>
-          );
+            );
+          } else {
+            return (
+              <div key={index} className="solution-step-container">
+                <div className="step-title">Step {index+1}:</div>
+                <div className="question-step">
+                  <MarkdownWithMath content={step} />
+                </div>
+              </div>
+            );
+          }
         })}
-        {isPreview && steps.length > 3 && (
-          <div className="fade-out-overlay">
-            <p className="view-full-text">Hover to view complete solution</p>
-          </div>
-        )}
       </div>
     );
   };
 
-  // ==================== RENDER ====================
-  return (
-    <div className={`result-page-enhanced ${darkMode ? 'dark' : ''}`} ref={contentRef}>
-      {/* Header */}
-      <header className="page-header-modern">
-        <motion.button 
-          className="back-btn-modern" 
-          onClick={goBack} 
-          whileHover={{ scale: 1.05 }} 
-          whileTap={{ scale: 0.95 }}
-        >
-          <FontAwesomeIcon icon={faArrowLeft}/> <span>Back</span>
-        </motion.button>
-        <h1 className="page-title-modern">
-          <FontAwesomeIcon icon={faStar} className="star-icon"/> Results
-        </h1>
-        <div className="spacer"/>
-      </header>
+  const formatExampleContent = (example) => {
+    if (!example) return null;
 
-      {error && (
-        <Alert variant="danger" onClose={() => setError(null)} dismissible className="error-alert-modern">
-          {error}
-        </Alert>
-      )}
-
-      {/* Vertical Cards Layout */}
-      <main className="results-vertical-layout">
-        {/* Question Card */}
-        <ResultCard 
-          title="Question" 
-          icon={faQuestionCircle} 
-          color="#6366f1"
-          cardType="question"
-          delay={0}
-          onMouseEnter={() => handleMouseEnter('question')}
-          onMouseLeave={handleMouseLeave}
-        >
-          <div className="question-content-enhanced">
-            <span className="q-number-modern">Q{questionNumber || 1}</span>
-            <div className="q-text-container">
-              <MarkdownWithMath content={question}/>
+    const [intro, ...stepParts] = example.split(/Step \d+:/);
+// Remove empty parts
+    return (
+      <div className="example-content">
+        <div className="example-steps">
+          {stepParts.map((step, index) => (
+            <div key={index} className="example-step">
+              <strong>{`Step ${index + 1}:`}</strong><MarkdownWithMath content={step.replace(/\*\*/g, '').trim()} />
             </div>
-            {(questionImage || question_image_base64) && (
-              <div className="q-image-wrapper">
-                <img 
-                  src={getImageSrc(questionImage || question_image_base64)} 
-                  alt="Question" 
-                  className="q-image-modern"
-                  onError={(e) => e.target.style.display = 'none'}
+          ))}
+        </div>
+        
+        
+      </div>
+    );
+  };
+// Function to render video cards (for concept videos or real-world applications)
+  const renderVideoSection = (videosArray, title) => {
+    if (!Array.isArray(videosArray) || videosArray.length === 0) return null;
+
+    return (
+      <div className="video-section">
+        <h5 className="video-section-title">{title}</h5>
+        <div className="video-list">
+          {videosArray.map((video, index) => (
+            <div key={index} className="video-card">
+              <a
+                href={video.url || video.embed_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={video.thumbnail}
+                  alt={video.title}
+                  className="video-thumbnail"
+                />
+              </a>
+              <div className="video-info">
+                <p className="video-title"><strong>{video.title}</strong></p>
+                <p className="video-channel">{video.channel}</p>
+                <p className="video-meta">
+                  ⏱ {video.duration} | 👁 {video.views} | 👍 {video.likes}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderContentBasedOnAction = () => {
+    if (!actionType) {
+      return <p>No action type provided. Unable to display results.</p>;
+    }
+
+    switch (actionType) {
+
+      case 'submit':
+        return (
+          <>
+            <div className="result-question">
+              <p><strong>Student Answer:</strong></p>
+              <div className="student-answer-content">
+                {student_answer || "No answer submitted"}
+              </div>
+            </div>
+            {renderScore()}
+            {comment && (
+              <div className="result-question">
+                <p><strong>Comments:</strong> {comment}</p>
+              </div>
+            )}
+            {formated_concepts_used && (
+              <div className="result-question">
+                <p><strong>Concepts Used:</strong> {formated_concepts_used}</p>
+              </div>
+            )}
+          </>
+        );
+      case 'solve':
+        return (
+          <>
+            <div className="result-question">
+              <p className="solution-header">AI Solution:</p>
+              {question_image_base64 && (
+                <div className="solution-image-container">
+                  <img
+                    src={getImageSrc(question_image_base64, 'image/jpeg')}
+                    alt="Solution diagram"
+                    className="solution-image"
+                  />
+                </div>
+              )}
+              {renderSolutionSteps(ai_explaination)}
+            </div>
+            {comment && (
+              <div className="result-question">
+                <p><strong>Comments:</strong> {comment}</p>
+              </div>
+            )}
+            {formated_concepts_used && (
+              <div className="result-question">
+                <p><strong>Concepts Used:</strong> {formated_concepts_used}</p>
+              </div>
+            )}
+          </>
+        );
+        case 'correct':   
+        return (         
+        <>
+            {/* <div className="result-question">
+              <p><strong>Student Answer:</strong></p>
+              <div className="student-answer-content">
+                {student_answer || "No answer submitted"}
+              </div>
+            </div> */}
+          <div className="result-question">
+            <p className="solution-header">AI Solution:</p>
+            {question_image_base64 && (
+              <div className="solution-image-container">
+                <img
+                  src={getImageSrc(question_image_base64, 'image/jpeg')}
+                  alt="Solution diagram"
+                  className="solution-image"
                 />
               </div>
             )}
-          </div>
-        </ResultCard>
-
-        {/* AI Solution Card */}
-        {ai_explaination && ai_explaination.length > 0 && (
-          <ResultCard 
-            title="AI Solution" 
-            icon={faLightbulb} 
-            color="#10b981"
-            cardType="solution"
-            delay={0.1}
-            onMouseEnter={() => handleMouseEnter('solution')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="ai-solution-preview">
-              {renderSteps(ai_explaination, true)}
+            {renderSolutionSteps(ai_explaination)}
             </div>
-          </ResultCard>
-        )}
-
-        {/* Your Solution Card */}
-        {student_answer && (
-          <ResultCard 
-            title="Your Solution" 
-            icon={faFileAlt} 
-            color="#8b5cf6"
-            cardType="userSolution"
-            delay={0.2}
-            onMouseEnter={() => handleMouseEnter('userSolution')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="user-solution-preview">
-              {studentImages && studentImages.length > 0 && (
-                <div className="preview-image-wrapper">
-                  <img 
-                    src={getImageSrc(studentImages[0])} 
-                    alt="Answer preview" 
-                    className="preview-image"
-                  />
-                  {studentImages.length > 1 && (
-                    <div className="more-images-badge">
-                      +{studentImages.length - 1} more
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="preview-text">
-                <p className="preview-label">ANSWER TEXT (Preview)</p>
-                <div className="preview-content">
-                  {student_answer.substring(0, 150)}
-                  {student_answer.length > 150 && '...'}
-                </div>
-                <p className="expand-hint">Hover to view full answer</p>
+            {renderScore()}
+            {comment && (
+              <div className="result-question">
+                <p><strong>Comments:</strong> <MarkdownWithMath content={comment} /></p>
               </div>
-            </div>
-          </ResultCard>
-        )}
+            )}
+            {error_type && (
+              <div className="result-question">
+                <p><strong>Type of Error:</strong> <MarkdownWithMath content={error_type} /></p>
+              </div>
+            )}
+            {gap_analysis && (
+              <div className="result-question">
+                <p><strong>Gap Analysis:</strong><MarkdownWithMath content={gap_analysis} /></p>
+              </div>
+            )}
+            {mistakes_made && (
+              <div className="result-question">
+                <p><strong>Mistakes Made:</strong> <MarkdownWithMath content={mistakes_made} /></p>
+              </div>
+            )}
 
-        {/* Score Card */}
-        <ResultCard 
-          title="Score" 
-          icon={faTrophy} 
-          color="#f59e0b"
-          cardType={getScoreCardType()}
-          delay={0.3}
-          onMouseEnter={() => handleMouseEnter('score')}
-          onMouseLeave={handleMouseLeave}
+            
+            {time_analysis && (
+              <div className="result-question">
+                <p><strong>Time-Management:</strong><MarkdownWithMath content={time_analysis} /> </p>
+              </div>
+            )}
+            {formated_concepts_used && (
+              <div className="result-question">
+                <p><strong>Concepts Required:</strong> <MarkdownWithMath content={formated_concepts_used} /></p>
+              </div>
+            )}
+          </>
+        );
+    
+      case 'explain':
+        return (
+          <>
+            {concepts && (
+              <Accordion defaultActiveKey="0" className="result-accordion">
+                {concepts.map((conceptItem, index) => (
+                  <Accordion.Item eventKey={index.toString()} key={index} className="accordion-item">
+                    <Accordion.Header>
+                      <strong>{`Concept ${index + 1}`}</strong>
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      <p className="concept-title">
+                        <strong>{conceptItem.concept}</strong>
+                      </p>
+                       <p className="example-content">
+                        <strong className='example-header'>Explanation:</strong>
+                      </p>
+                      <p>  <MarkdownWithMath content={conceptItem.explanation} /></p>
+
+                      {/* 🧮 Example Section */}
+                      {conceptItem.example && (
+                        <div className="example-content pt-3">
+                          {typeof conceptItem.example === "string" ? (
+                            <>
+                            <p className="example-content">
+                        <strong className='example-header'>Example:</strong>
+                      </p>
+                              <MarkdownWithMath content={conceptItem.example} />
+                              <strong className="example-header">Solution:</strong>
+                              <MarkdownWithMath content={conceptItem.application} />
+                            
+                            </>
+                          ) : (
+                            <>
+                              {conceptItem.example.problem && (
+                                <MarkdownWithMath content={conceptItem.example.problem} />
+                              )}
+                              {conceptItem.example.solution && (
+                                <>
+                                  <strong className="example-header">Solution:</strong>
+                                  <MarkdownWithMath content={conceptItem.example.solution} />
+                                  <MarkdownWithMath content={conceptItem.example.explaination} />
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 🟦 Add filtered video + real world video sections */}
+                      {Array.isArray(videos) && videos.length > 0 && (
+                        videos
+                          .filter(
+                            (item) =>
+                              item.concept_name?.toLowerCase().trim() ===
+                              conceptItem.concept?.toLowerCase().trim()
+                          )
+                          .map((item, idx) => (
+                            <div key={idx}>
+                              {/* Concept Explanation Videos */}
+                              {Array.isArray(item.videos) && item.videos.length > 0 && (
+                                renderVideoSection(
+                                  item.videos,
+                                  `Concept Explanation Videos`
+                                )
+                              )}
+
+                              {/* Real World Applications */}
+                              {item.real_world_video && (
+                                renderVideoSection(
+                                  [item.real_world_video],
+                                  // `${item.concept_name} - Real World Applications`
+                                )
+                              )}
+                            </div>
+                          ))
+                      )}
+                    </Accordion.Body>
+                  </Accordion.Item>
+                ))}
+              </Accordion>
+            )}
+            {comment && (
+              <div className="result-question">
+                <p><strong>Comments:</strong> </p>
+                <MarkdownWithMath content={comment} />
+              </div>
+            )}
+            {formated_concepts_used && (
+              <div className="result-question">
+                <p><strong>Concepts Used:</strong> {formated_concepts_used}</p>
+              </div>
+            )}
+          </>
+        );
+        
+      default:
+        return <p>No action type provided. Unable to display results.</p>;
+    }
+  };
+
+  return (
+    <>
+      {/* Fixed Back Button - Top Left */}
+      <div className="fixed-back-button">
+        <Button
+          variant="outline-primary"
+          onClick={handleBack}
+          className="back-btn-fixed"
         >
-          {calculating ? (
-            <div className="calculating-spinner">
-              <Spinner animation="border" variant="primary" />
-              <p>Calculating score...</p>
-            </div>
-          ) : (
-            <ScoreRing obtained={scoreVal} total={totalVal} />
-          )}
-        </ResultCard>
-
-        {/* Gap Analysis Card */}
-        {gap_analysis && (
-          <ResultCard 
-            title="Gap Analysis" 
-            icon={faExclamationCircle} 
-            color="#ec4899"
-            cardType="gapAnalysis"
-            delay={0.4}
-            onMouseEnter={() => handleMouseEnter('gapAnalysis')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="gap-analysis-preview">
-              <MarkdownWithMath content={gap_analysis.substring(0, 200) + '...'}/>
-              <p className="expand-hint">Hover to view full analysis</p>
-            </div>
-          </ResultCard>
-        )}
-
-        {/* Type of Error Card */}
-        {error_type && (
-          <ResultCard 
-            title="Type of Error" 
-            icon={faTimesCircle} 
-            color="#ef4444"
-            cardType="errorType"
-            delay={0.45}
-            onMouseEnter={() => handleMouseEnter('errorType')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="error-type-badge">
-              <span className="error-icon">⚠️</span>
-              <span className="error-text">{error_type}</span>
-            </div>
-            <p className="expand-hint">Hover for more details</p>
-          </ResultCard>
-        )}
-
-        {/* Time Management Card */}
-        {time_analysis && (
-          <ResultCard 
-            title="Time Management" 
-            icon={faClock} 
-            color="#06b6d4"
-            cardType="timeManagement"
-            delay={0.5}
-            onMouseEnter={() => handleMouseEnter('timeManagement')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="time-analysis-preview">
-              <MarkdownWithMath content={time_analysis.substring(0, 150) + '...'}/>
-              <p className="expand-hint">Hover to view analysis</p>
-            </div>
-          </ResultCard>
-        )}  
-
-        {/* Concepts Required Card */}
-        {concepts_used && (
-          <ResultCard 
-            title="Concepts Required" 
-            icon={faGraduationCap} 
-            color="#8b5cf6"
-            cardType="concepts"
-            delay={0.55}
-            onMouseEnter={() => handleMouseEnter('concepts')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="concepts-tags-container-preview">
-              {Array.isArray(concepts_used) ? (
-                concepts_used.slice(0, 3).map((concept, idx) => (
-                  <div key={idx} className="concept-tag-modern">
-                    <FontAwesomeIcon icon={faLightbulb} className="concept-icon"/>
-                    {typeof concept === 'object' ? concept.concept : concept}
-                  </div>
-                ))
-              ) : (
-                <div className="concept-tag-modern">
-                  <FontAwesomeIcon icon={faLightbulb} className="concept-icon"/>
-                  {concepts_used}
-                </div>
-              )}
-              {Array.isArray(concepts_used) && concepts_used.length > 3 && (
-                <p className="expand-hint">+{concepts_used.length - 3} more concepts</p>
-              )}
-            </div>
-          </ResultCard>
-        )}
-
-        {/* AI Feedback Card */}
-        {comment && (
-          <ResultCard 
-            title="AI Feedback" 
-            icon={faComment} 
-            color="#10b981"
-            cardType="feedback"
-            delay={0.6}
-            onMouseEnter={() => handleMouseEnter('feedback')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="ai-feedback-preview">
-              <MarkdownWithMath content={comment.substring(0, 200) + '...'}/>
-              <p className="expand-hint">Hover to view full feedback</p>
-            </div>
-          </ResultCard>
-        )}
-      </main>
-
-      {/* Bottom Action Buttons - Fixed */}
-      <div className="bottom-actions-fixed">
-        <button 
-          className="action-btn-modern question-list-btn"
-          onClick={() => setShowModal(true)}
+          ← Back
+        </Button>
+        {/* Tutorial Toggle Button */}
+        {/* <button
+          className="tutorial-toggle-btn-result"
+          onClick={() => startTutorialForPage("resultPage")}
+          title="Start Tutorial"
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            marginLeft: '10px',
+            transition: 'transform 0.2s',
+          }}
+          onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+          onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
         >
-          <FontAwesomeIcon icon={faListAlt} />
-          <span>Question List</span>
-        </button>
-        <button 
-          className="action-btn-modern similar-btn"
-          onClick={practiseSimilar}
-        >
-          <FontAwesomeIcon icon={faRefresh} />
-          <span>Similar Questions</span>
-        </button>
+          <FontAwesomeIcon icon={faQuestionCircle} style={{ marginRight: '5px' }} />
+          Tutorial
+        </button> */}
       </div>
 
-      {/* Question List Modal */}
-      {showModal && (
-        <QuestionListModal
-          show={showModal}
-          onHide={() => setShowModal(false)}
-          questionList={questionList || []}
-          onQuestionClick={selectQuestion}
-        />
-      )}
+      {/* Fixed Bottom Buttons */}
+      <div className="fixed-bottom-buttons">
+        <Button
+          variant="outline-primary"
+          onClick={handleShowQuestionList}
+          className="dashboard-btn-fixed"
+        >
+           Question List
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handlePracticeSimilar}
+          className="practice-btn-fixed"
+        >
+          Similar Questions
+        </Button>
+      </div>
 
-      {/* FULLSCREEN MODALS WITH FIXED 3D MODELS */}
-      
-      {/* Question Fullscreen */}
-      <FullscreenModal
-        isOpen={fullscreenCard === 'question'}
-        onClose={() => setFullscreenCard(null)}
-        title="Question"
-        icon={faQuestionCircle}
-        color="#6366f1"
-        cardType="question"
-      >
-        <div className="fullscreen-question-content">
-          <div className="question-header-fullscreen">
-            <span className="q-number-fullscreen">Question {questionNumber || 1}</span>
-          </div>
-          <div className="question-body-fullscreen">
-            <MarkdownWithMath content={question}/>
-          </div>
-          {(questionImage || question_image_base64) && (
-            <div className="question-image-fullscreen">
-              <img 
-                src={getImageSrc(questionImage || question_image_base64)} 
-                alt="Question" 
-                onError={(e) => e.target.style.display = 'none'}
-              />
-            </div>
-          )}
-        </div>
-      </FullscreenModal>
-
-      {/* AI Solution Fullscreen */}
-      <FullscreenModal
-        isOpen={fullscreenCard === 'solution'}
-        onClose={() => setFullscreenCard(null)}
-        title="AI Solution"
-        icon={faLightbulb}
-        color="#10b981"
-        cardType="solution"
-      >
-        <div className="fullscreen-solution-content">
-          <div className="solution-header-fullscreen">
-            <h3>Step-by-Step Solution</h3>
-            {ai_explaination && ai_explaination.length > 6 && (
-              <button 
-                className="toggle-solution-btn"
-                onClick={() => setShowMoreSolution(!showMoreSolution)}
-              >
-                {showMoreSolution ? (
-                  <>
-                    <FontAwesomeIcon icon={faChevronUp} /> Show Less
-                  </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faChevronDown} /> Show More
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-          <div className="solution-steps-fullscreen">
-            {renderSteps(
-              showMoreSolution ? ai_explaination : ai_explaination?.slice(0, 6),
-              false
-            )}
-          </div>
-        </div>
-      </FullscreenModal>
-
-      {/* Your Solution Fullscreen */}
-      <FullscreenModal
-        isOpen={fullscreenCard === 'userSolution'}
-        onClose={() => setFullscreenCard(null)}
-        title="Your Solution"
-        icon={faFileAlt}
-        color="#8b5cf6"
-        cardType="userSolution"
-      >
-        <div className="fullscreen-user-solution">
-          {studentImages && studentImages.length > 0 && (
-            <div className="uploaded-images-fullscreen">
-              <h4>UPLOADED IMAGES</h4>
-              <div className="images-grid-fullscreen">
-                {studentImages.map((img, idx) => (
-                  <div key={idx} className="image-item-fullscreen">
-                    <img 
-                      src={getImageSrc(img)} 
-                      alt={`Answer ${idx + 1}`}
-                      onError={(e) => {
-                        console.error(`Image ${idx + 1} failed to load`);
-                      }}
-                    />
+      {/* Main Content Container */}
+      <Container fluid className={`result-page-container ${isDarkMode ? 'dark-mode' : ''}`}>
+        <Row className="result-row">
+          {/* Left Column - Sticky Image Container */}
+          {allStudentImages.length > 0 && (
+            <Col lg={5} className="image-column">
+              <div className="result-content">
+                <h2 className="result-title">Your Solution</h2>
+                <div className="student-images">
+                  {allStudentImages.map((imageData, index) => (
+                    <div key={index} className="student-image-wrapper">
+                      <img
+                        src={getImageSrc(imageData.src)}
+                        alt={imageData.label}
+                        className="student-solution-image"
+                        onError={(e) => {
+                          console.error('Error loading image:', imageData.src);
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      <span className="image-label">{imageData.label}</span>
+                      {imageData.type === 'processed' && (
+                        <span className="image-type-badge">AI Processed</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Fallback text display if no images or images fail to load */}
+                {student_answer && (
+                  <div className="student-answer-text">
+                    <h5>Answer Text:</h5>
+                    <div className="answer-text-content">
+                      <MarkdownWithMath content={student_answer} />
+                    </div>
                   </div>
-                ))}
+                )}
+               
               </div>
-            </div>
+            </Col>
           )}
           
-          <div className="answer-text-fullscreen">
-            <h4>EXTRACTED ANSWER TEXT</h4>
-            <div className="answer-content-fullscreen">
-              <MarkdownWithMath content={student_answer}/>
-            </div>
-          </div>
-        </div>
-      </FullscreenModal>
+          {/* Right Column - Content */}
+          <Col lg={allStudentImages.length > 0 ? 7 : 12} className="content-column">
+            <div className="result-content">
+              <h2 className="result-title">Result</h2>
 
-      {/* Score Fullscreen */}
-      <FullscreenModal
-        isOpen={fullscreenCard === 'score'}
-        onClose={() => setFullscreenCard(null)}
-        title="Score"
-        icon={faTrophy}
-        color="#f59e0b"
-        cardType={getScoreCardType()}
-      >
-        <div className="fullscreen-score-content">
-          <ScoreRing obtained={scoreVal} total={totalVal} />
-          <div className="score-details-fullscreen">
-            <div className="score-stat">
-              <span className="stat-label">Obtained Marks</span>
-              <span className="stat-value">{scoreVal}</span>
-            </div>
-            <div className="score-stat">
-              <span className="stat-label">Total Marks</span>
-              <span className="stat-value">{totalVal}</span>
-            </div>
-            <div className="score-stat">
-              <span className="stat-label">Percentage</span>
-              <span className="stat-value">
-                {totalVal > 0 ? Math.round((scoreVal / totalVal) * 100) : 0}%
-              </span>
-            </div>
-          </div>
-        </div>
-      </FullscreenModal>
+              {errorMessage && (
+                <Alert variant="danger" onClose={() => setErrorMessage(null)} dismissible>
+                  {errorMessage}
+                </Alert>
+              )}
 
-      {/* Gap Analysis Fullscreen */}
-      <FullscreenModal
-        isOpen={fullscreenCard === 'gapAnalysis'}
-        onClose={() => setFullscreenCard(null)}
-        title="Gap Analysis"
-        icon={faExclamationCircle}
-        color="#ec4899"
-        cardType="gapAnalysis"
-      >
-        <div className="fullscreen-gap-analysis">
-          <h4>📊 DETAILED GAP ANALYSIS</h4>
-          <MarkdownWithMath content={gap_analysis}/>
-        </div>
-      </FullscreenModal>
+              {/* Question with Mascot */}
+              <div className="result-mascot-container">
 
-      {/* Error Type Fullscreen */}
-      <FullscreenModal
-        isOpen={fullscreenCard === 'errorType'}
-        onClose={() => setFullscreenCard(null)}
-        title="Type of Error"
-        icon={faTimesCircle}
-        color="#ef4444"
-        cardType="errorType"
-      >
-        <div className="fullscreen-error-type">
-          <div className="error-type-badge-large">
-            <span className="error-icon-large">⚠️</span>
-            <span className="error-text-large">{error_type}</span>
-          </div>
-          <div className="error-explanation">
-            <h4>What does this mean?</h4>
-            <p>This type of error indicates a specific issue in your understanding or approach to the problem.</p>
-          </div>
-        </div>
-      </FullscreenModal>
 
-      {/* Time Management Fullscreen */}
-      <FullscreenModal
-        isOpen={fullscreenCard === 'timeManagement'}
-        onClose={() => setFullscreenCard(null)}
-        title="Time Management"
-        icon={faClock}
-        color="#06b6d4"
-        cardType="timeManagement"
-      >
-        <div className="fullscreen-time-analysis">
-          <h4>⏱️ TIME MANAGEMENT ANALYSIS</h4>
-          <MarkdownWithMath content={time_analysis}/>
-        </div>
-      </FullscreenModal>
-
-      {/* Concepts Fullscreen */}
-      <FullscreenModal
-        isOpen={fullscreenCard === 'concepts'}
-        onClose={() => setFullscreenCard(null)}
-        title="Concepts Required"
-        icon={faGraduationCap}
-        color="#8b5cf6"
-        cardType="concepts"
-      >
-        <div className="fullscreen-concepts">
-          <h4>🎓 KEY CONCEPTS</h4>
-          <div className="concepts-tags-container-fullscreen">
-            {Array.isArray(concepts_used) ? (
-              concepts_used.map((concept, idx) => (
-                <div key={idx} className="concept-tag-modern-large">
-                  <FontAwesomeIcon icon={faLightbulb} className="concept-icon"/>
-                  {typeof concept === 'object' ? concept.concept : concept}
+                 {/* Result Content Column */}
+                 <div className="result-column">
+                  <div className="result-question">
+                    <p><strong>Question {questionNumber}:</strong> <MarkdownWithMath content={question} /></p>
+                    {questionImage && (
+                      <div className="question-image-container">
+                        <img
+                          src={getImageSrc(questionImage)}
+                          alt="Question"
+                          className="question-image"
+                        />
+                      </div>
+                    )}
+                    {solution && solution.length > 0 && (
+                      <div className="result-solution">
+                        <p className="solution-header">Solution:</p>
+                        {renderSolutionSteps(solution)}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ))
-            ) : (
-              <div className="concept-tag-modern-large">
-                <FontAwesomeIcon icon={faLightbulb} className="concept-icon"/>
-                {concepts_used}
+                {/* Mascot Column */}
+                <div className="mascot-column">
+                  <InlineMascot size="medium" />
+                </div>
+
+               
               </div>
-            )}
-          </div>
-        </div>
-      </FullscreenModal>
 
-      {/* Feedback Fullscreen */}
-      <FullscreenModal
-        isOpen={fullscreenCard === 'feedback'}
-        onClose={() => setFullscreenCard(null)}
-        title="AI Feedback"
-        icon={faComment}
-        color="#10b981"
-        cardType="feedback"
-      >
-        <div className="fullscreen-feedback">
-          <h4>💬 AI FEEDBACK</h4>
-          <MarkdownWithMath content={comment}/>
-        </div>
-      </FullscreenModal>
+              {renderContentBasedOnAction()}
 
-    </div>
-  );  
+              {/* Add some bottom padding to prevent content from being hidden behind fixed buttons */}
+              <div style={{ height: '100px' }}></div>
+            </div>
+          </Col>
+        </Row>
+
+        <QuestionListModal
+          show={showQuestionListModal}
+          onHide={handleCloseQuestionList}
+          questionList={questionList}
+          onQuestionClick={handleQuestionSelect}
+        />
+      </Container>
+
+      {/* Tutorial Component */}
+      {/* {shouldShowTutorialForPage("resultPage") && (
+        <Tutorial
+          steps={tutorialSteps}
+          onComplete={handleTutorialComplete}
+        />
+      )} */}
+
+      {/* Mascot Component */}
+      {/* <Mascot position="bottom-right" mode="3d" /> */}
+    </>
+  );
 };
 
-export default ResultPage;
+export default ResultPage; 

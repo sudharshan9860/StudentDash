@@ -317,11 +317,11 @@ const HomeworkSubmissionForm = () => {
 
             {imageSourceType === "upload" ? (
               <div className="form-group">
-                <label htmlFor="image-response" className="form-label">Upload Your Response Images</label>
+                <label htmlFor="image-response1" className="form-label">Upload Your Response Images</label>
                 <input
-                  id="image-response"
+                  id="image-response1"
                   type="file"
-                  className="form-input file-input"
+                  className="form-input file-input1"
                   accept="image/*"
                   multiple // Enable multiple file selection
                   onChange={handleImageChange}

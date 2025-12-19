@@ -14,14 +14,16 @@ import "./styles/theme.css";
 import { TutorialProvider } from "./contexts/TutorialContext";
 import { TimerProvider } from "./contexts/TimerContext";
 import { MascotProvider } from "./contexts/MascotContext";
+import MascotPreloader from "./components/MascotPreloader";
+
 import RouteTracker from "./components/RouteTracker";
 
 // Wrapper component to use location hook
 function AppContent() {
   const location = useLocation();
 
-  // Check if current path is login or signup
-  const isAuthPage = ["/login", "/", "/signup"].includes(location.pathname);
+  // Check if current path is login, signup, or exam-question (hide chatbox on these pages)
+  const isAuthPage = ["/login", "/", "/signup", "/exam-question"].includes(location.pathname);
 
   return (
     <>
@@ -46,7 +48,7 @@ function App() {
             <LeaderboardProvider>
               <QuestProvider>
                 <TutorialProvider>
-                  {/* <MascotProvider> */}
+                  <MascotProvider>
                     <CurrentQuestionProvider>
                       <Router
                         future={{
@@ -54,10 +56,11 @@ function App() {
                           v7_relativeSplatPath: true,
                         }}
                       >
+                        <MascotPreloader />
                         <AppContent />
                       </Router>
                     </CurrentQuestionProvider>
-                  {/* </MascotProvider> */}
+                  </MascotProvider>
                 </TutorialProvider>
               </QuestProvider>
             </LeaderboardProvider>
