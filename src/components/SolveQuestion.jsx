@@ -23,7 +23,7 @@ import { useTutorial } from "../contexts/TutorialContext";
 import { getImageSrc, prepareImageForApi } from "../utils/imageUtils";
 import AnimatedBackground from "./AnimatedBackground";
 import { useMascot, MASCOT_ANIMATIONS } from "../contexts/MascotContext";
-import { InlineMascot } from "./Mascot3D";
+import { FloatingMascot, useSpeechBubble } from "./Mascot3D";
 import "./Mascot3D.css";
 
 
@@ -58,6 +58,14 @@ function SolveQuestion() {
 
   // Mascot context
   const { setThinking, setIdle, setExplaining, playAnimation, ANIMATIONS } = useMascot();
+
+  // Speech bubble for contextual mascot tips
+  const {
+    currentBubble,
+    showBubble: isBubbleVisible,
+    showMessage: showMascotMessage,
+    hideMessage: hideMascotMessage,
+  } = useSpeechBubble();
 
   // State for tracking study session
   const [studyTime, setStudyTime] = useState(0);
@@ -369,6 +377,7 @@ function SolveQuestion() {
   const handleSolve = () => {
     // Trigger mascot thinking animation while processing
     playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+    showMascotMessage("Let me solve this for you!", 3000);
 
     // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
@@ -384,6 +393,7 @@ function SolveQuestion() {
   const handleExplain = () => {
     // Trigger mascot explaining animation
     playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+    showMascotMessage("I'll explain the key concepts!", 3000);
 
     // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
@@ -400,6 +410,7 @@ function SolveQuestion() {
   const handleCorrect = async () => {
     // Trigger mascot thinking animation while correcting
     playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+    showMascotMessage("Analyzing your solution...", 3000);
 
     setProcessingButton("correct");
     setError(null);
@@ -836,41 +847,31 @@ function SolveQuestion() {
           </div>
         )}
 
-        {/* Question Display Section with Mascot */}
-        <div className="solve-question-mascot-row">
-          {/* Mascot Section */}
-         
-
-          {/* Question Content */}
-          <div className="question-side">
-            <div className="question-text-container">
-              <span className="question-title">
-                Question {currentQuestion.questionNumber}
-              </span>
-              {currentQuestion.image && (
-                <img
-                  src={getImageSrc(currentQuestion.image)}
-                  alt="Question"
-                  className="question-image"
-                />
-              )}
-              <div className="question-text"><MarkdownWithMath content={currentQuestion.question} /></div>
-              <div className="mt-2">
-                <Form.Check
-                  type="switch"
-                  id="share-with-chat-toggle"
-                  label="Share this question with Chat"
-                  checked={shareWithChat}
-                  onChange={(e) => setShareWithChat(e.target.checked)}
-                  disabled={isAnyButtonProcessing()}
-                />
-              </div>
+        {/* Question Display Section - Full Width */}
+        <div className="question-display-section">
+          <div className="question-text-container">
+            <span className="question-title">
+              Question {currentQuestion.questionNumber}
+            </span>
+            {currentQuestion.image && (
+              <img
+                src={getImageSrc(currentQuestion.image)}
+                alt="Question"
+                className="question-image"
+              />
+            )}
+            <div className="question-text"><MarkdownWithMath content={currentQuestion.question} /></div>
+            <div className="mt-2">
+              <Form.Check
+                type="switch"
+                id="share-with-chat-toggle"
+                label="Share this question with Chat"
+                checked={shareWithChat}
+                onChange={(e) => setShareWithChat(e.target.checked)}
+                disabled={isAnyButtonProcessing()}
+              />
             </div>
           </div>
-          <div className="mascot-side">
-            <InlineMascot size="medium" />
-          </div>
-
         </div>
 
         {/* Error Message */}
@@ -1159,8 +1160,15 @@ function SolveQuestion() {
         />
       )}
 
-      {/* Mascot Component */}
-      {/* <Mascot position="bottom-right" mode="3d" /> */}
+      {/* Floating Mascot - Non-intrusive corner placement */}
+      <FloatingMascot
+        position="bottom-right"
+        size="medium"
+        bottomOffset={80}
+        speechBubble={currentBubble}
+        showBubble={isBubbleVisible}
+        onBubbleDismiss={hideMascotMessage}
+      />
     </div>
   );
 }

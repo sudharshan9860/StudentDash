@@ -32,21 +32,32 @@
   flex-wrap: wrap;
 }
 
-.question-number {
+.question-number1 {
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.5px;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  padding: 1vw;
 }
 
-.question-marks {
-  font-size: 1.25rem;
+.question-marks1 {
+  font-size: 1rem;
   font-weight: 700;
+   color: #ffffff;
+  box-shadow: 0 2px 8px rgba(244, 244, 244, 0.3);
+  border-radius: 25px;
+  padding: 1vw;
 }
 
 .question-percentage {
   font-size: 0.95rem;
   font-weight: 600;
   opacity: 0.9;
+   box-shadow: 0 2px 8px rgba(244, 244, 244, 0.3);
+  border-radius: 25px;
+  padding: 1vw;
 }
 
 .diagram-indicator {
@@ -61,6 +72,9 @@
 
 .status-label {
   white-space: nowrap;
+   box-shadow: 0 2px 8px rgba(244, 244, 244, 0.3);
+  border-radius: 25px;
+  padding: 1vw;
 }
 
 /* Body Section */

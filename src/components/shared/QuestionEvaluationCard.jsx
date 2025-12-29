@@ -1,6 +1,5 @@
-// src/components/shared/QuestionEvaluationCard.jsx
-
 import React from 'react';
+import MarkdownWithMath from '../MarkdownWithMath';
 import './QuestionEvaluationCard.css';
 
 const QuestionEvaluationCard = ({ questionNumber, questionData, isTeacherView }) => {
@@ -51,100 +50,111 @@ const QuestionEvaluationCard = ({ questionNumber, questionData, isTeacherView })
   return (
     <div className="question-card">
       {/* Header with gradient background */}
-      <div className="question-card-header" style={{ 
-        background: `linear-gradient(135deg, ${statusColor}dd 0%, ${statusColor}99 100%)`
-      }}>
-        <div className="header-left">
-          <span className="question-number">{questionNumber}</span>
-          <span className="question-marks">
-            {Math.round(totalScore)} / {Math.round(maxMarks)}
-          </span>
-          <span className="question-percentage">({percentage.toFixed(0)}%)</span>
-          {hasDiagram === 'yes' && (
-            <span className="diagram-indicator" title="Contains diagram">📊</span>
-          )}
-        </div>
-        <div className="header-right">
-          <span className="status-label" style={{ 
-            background: 'rgba(255, 255, 255, 0.25)',
-            color: 'white',
-            padding: '0.375rem 0.875rem',
-            borderRadius: '6px',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            backdropFilter: 'blur(10px)'
-          }}>
-            {getStatusLabel(errorType)}
-          </span>
-        </div>
-      </div>
+<div className="question-card-header" style={{ 
+  background: `linear-gradient(135deg, ${statusColor}dd 0%, ${statusColor}99 100%)`
+}}>
+  <div className="header-left">
+    <span className="question-number1">{questionNumber}</span>
+    <span className="question-marks1">
+      {totalScore.toFixed(1)} / {maxMarks.toFixed(1)}
+    </span>
+    <span className="question-percentage">
+      {Math.round(percentage)}%
+    </span>
+    {hasDiagram === 'yes' && (
+      <span className="diagram-indicator" title="Has diagram">📊</span>
+    )}
+  </div>
+  <div className="header-right">
+    <span className="status-label">{getStatusLabel(errorType)}</span>
+  </div>
+</div>
 
-      {/* Question Text */}
+      {/* Body */}
       <div className="question-body">
+        {/* Question Text Section - UPDATED: Using MarkdownWithMath */}
         <div className="question-text-section">
-          <h5 className="section-label">📝 Question:</h5>
-          <p className="question-text">{question}</p>
+          <h6 className="section-label">📝 Question</h6>
+          <div className="question-text">
+            <MarkdownWithMath content={question} />
+          </div>
         </div>
 
-        {/* Mistakes Section */}
-        {mistakesMade && mistakesMade !== 'N/A' && mistakesMade !== 'None' && mistakesMade.toLowerCase() !== 'no answer provided' && mistakesMade.toLowerCase() !== 'question was not attempted by the student.' && (
-          <div className="info-section mistakes-section">
-            <div className="section-header-bar">
+        {/* Mistakes Made */}
+        {mistakesMade && mistakesMade !== 'N/A' && mistakesMade !== 'No attempt made.' && (
+          <div className="info-section">
+            <div className="section-header-bar" style={{ backgroundColor: '#fee2e2' }}>
               <span className="section-icon">⚠️</span>
-              <h5 className="section-heading">Mistakes Made</h5>
+              <h6 className="section-heading" style={{ color: '#991b1b' }}>Mistakes Made</h6>
             </div>
             <div className="section-content-box">
-              <p className="section-text">{mistakesMade}</p>
+              <div className="section-text"><MarkdownWithMath content={mistakesMade} /></div>
               {mistakeSection && mistakeSection !== 'N/A' && (
-                <div className="mistake-meta">
-                  <strong>Section:</strong> {mistakeSection}
-                </div>
+                <p className="section-text" style={{ marginTop: '0.5rem', fontStyle: 'italic', color: '#6b7280' }}>
+                  Section: {mistakeSection}
+                </p>
               )}
             </div>
           </div>
         )}
 
-        {/* Gap Analysis Section */}
-        {gapAnalysis && gapAnalysis !== 'N/A' && gapAnalysis.toLowerCase() !== 'no gaps identified' && gapAnalysis.toLowerCase() !== 'no gaps identified.' && (
-          <div className="info-section gap-section">
-            <div className="section-header-bar">
+        {/* Gap Analysis - UPDATED: Using MarkdownWithMath */}
+        {gapAnalysis && gapAnalysis !== 'N/A' && gapAnalysis !== 'No gaps identified' && (
+          <div className="info-section">
+            <div className="section-header-bar" style={{ backgroundColor: '#fef3c7' }}>
               <span className="section-icon">🎯</span>
-              <h5 className="section-heading">Gap Analysis</h5>
+              <h6 className="section-heading" style={{ color: '#92400e' }}>Gap Analysis</h6>
             </div>
             <div className="section-content-box">
-              <p className="section-text">{gapAnalysis}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Concepts Required Section */}
-        {conceptsRequired && conceptsRequired.length > 0 && (
-          <div className="info-section concepts-section">
-            <div className="section-header-bar">
-              <span className="section-icon">📚</span>
-              <h5 className="section-heading">Concepts Required</h5>
-            </div>
-            <div className="section-content-box">
-              <div className="concepts-grid">
-                {conceptsRequired.map((concept, idx) => (
-                  <div key={idx} className="concept-card">
-                    <div className="concept-header">
-                      <span className="concept-bullet">•</span>
-                      <strong className="concept-name">{concept.concept_name}</strong>
-                    </div>
-                    <p className="concept-desc">{concept.concept_description}</p>
-                  </div>
-                ))}
+              <div className="section-text">
+                <MarkdownWithMath content={gapAnalysis} />
               </div>
             </div>
           </div>
         )}
 
-        {/* Perfect Score Message */}
-        {(errorType === 'no_error' || errorType === 'correct') && (
+        {/* Concepts Required */}
+        {conceptsRequired && conceptsRequired.length > 0 && (
+          <div className="info-section">
+            <div className="section-header-bar" style={{ backgroundColor: '#dbeafe' }}>
+              <span className="section-icon">💡</span>
+              <h6 className="section-heading" style={{ color: '#1e40af' }}>Concepts Required</h6>
+            </div>
+            <div className="section-content-box">
+              <div className="concepts-list">
+                {conceptsRequired.map((concept, idx) => {
+                  // Handle both string and object formats
+                  const conceptName = typeof concept === 'string' 
+                    ? concept 
+                    : concept?.concept_name || concept?.name || `Concept ${idx + 1}`;
+                  const conceptDesc = typeof concept === 'object' 
+                    ? concept?.concept_description || concept?.description || null
+                    : null;
+
+                  return (
+                    <div key={idx} className="concept-card">
+                      <div className="concept-header">
+                        {/* <span className="concept-number">{idx + 1}</span> */}
+                        <span className="concept-name"><MarkdownWithMath content={conceptName} /></span>
+                      </div>
+                      {conceptDesc && (
+                        <div className="concept-desc">
+                          <MarkdownWithMath content={conceptDesc} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Teacher View Additional Options */}
+        {isTeacherView && errorType === 'no_error' && (
           <div className="success-banner">
             <span className="success-icon">✅</span>
-            <span className="success-text">Excellent! No mistakes identified.</span>
+            <span className="success-text">Student answered correctly - No intervention needed</span>
           </div>
         )}
       </div>

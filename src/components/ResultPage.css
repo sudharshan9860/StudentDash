@@ -1,23 +1,40 @@
 /* Updated ResultPage.css with fixed buttons layout */
+/* Hide body scrollbar when result page is active */
+body:has(.result-page-container) {
+  overflow: hidden;
+  height: 100vh;
+
+}
+
+html:has(.result-page-container) {
+  overflow: hidden;
+  height: 100vh;
+
+}
 
 .result-page-container {
   padding: 0;
   margin: 0;
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+ 
+
+
 }
 
 .result-row {
-  height: 100%;
+  min-height: 100%;
   margin: 0;
 }
 
 /* Fixed Back Button - Top Left */
 .fixed-back-button {
   position: fixed;
-  top: 10vh;
-  left: 20vw; /* Moved to the right to avoid overlap with sidebar */
-  z-index: 1001; /* Higher than sidebar's z-index of 1000 */
+  top: 3vh;
+  /* Moved to the right to avoid overlap with sidebar */
+  z-index: 1001;
+  /* Higher than sidebar's z-index of 1000 */
 }
 
 .back-btn-fixed {
@@ -47,7 +64,7 @@
   right: 2vw;
   display: flex;
   gap: 15px;
-  z-index:999;
+  z-index: 999;
 }
 
 .dashboard-btn-fixed,
@@ -107,7 +124,7 @@
   top: 0;
   padding: 30px;
   background-color: #f8f9fa;
-  margin-bottom:20vh
+  margin-bottom: 20vh
 }
 
 .image-section-title {
@@ -179,8 +196,6 @@
 
 /* Right Column - Content */
 .content-column {
-  height: 100vh;
-  overflow-y: auto;
   padding: 0;
 }
 
@@ -188,7 +203,9 @@
   background-color: #fff;
   padding: 40px;
   min-height: 100%;
-  padding-bottom: 120px; /* Add extra bottom padding for fixed buttons */
+  padding-bottom: 120px;
+  padding-top: 10vh;
+  /* Add extra bottom padding for fixed buttons */
 }
 
 .result-title {
@@ -249,7 +266,7 @@
   color: #001B6C;
 }
 
-.result-explanation p:has(strong:contains("Concepts Used")) + p {
+.result-explanation p:has(strong:contains("Concepts Used"))+p {
   color: #006064;
   font-style: italic;
 }
@@ -516,9 +533,17 @@
 
 /* Animation for calculating score */
 @keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
 }
 
 .result-score.calculating {
@@ -538,39 +563,30 @@
 @media (max-width: 1200px) {
   .image-column {
     position: relative;
-    height: auto;
     max-height: 500px;
     margin-bottom: 20px;
     border-right: none;
     border-bottom: 2px solid #e0e0e0;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none;  /* IE 10+ */
   }
-  
-  .image-column::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
+
   .sticky-image-container {
     position: relative;
     padding: 20px;
   }
-  .content-column {
-    height: 100vh;
-    overflow-y:auto;
-  }
-  
+
   .result-content {
     padding: 30px;
     padding-bottom: 120px;
+    padding-top: 10vh;
   }
-  
+
   .fixed-bottom-buttons {
     flex-direction: column;
     gap: 10px;
     bottom: 10vh;
     right: 2vw;
   }
-  
+
   .dashboard-btn-fixed,
   .practice-btn-fixed {
     min-width: 120px;
@@ -583,29 +599,31 @@
   .result-content {
     padding: 30px;
     padding-bottom: 140px;
+    padding-top: 10vh;
   }
-  
+
   .result-score p {
     font-size: 20px;
   }
-  
+
   .student-images-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .fixed-back-button {
-    top: 10vh;
-    left: 20vw; /* Adjusted for responsiveness */
+    top: 3vh;
+    /* Adjusted for responsiveness */
   }
-  
+
   .back-btn-fixed {
     padding: 8px 16px;
     font-size: 13px;
     min-width: 80px;
   }
+
   .content-column {
     height: 100vh;
-    overflow-y:auto;
+    overflow-y: auto;
   }
 }
 
@@ -613,11 +631,12 @@
   .result-content {
     padding: 25px;
     padding-bottom: 160px;
+    padding-top: 10vh;
   }
 
   .content-column {
     height: 100vh;
-    overflow-y:auto;
+    overflow-y: auto;
   }
 
   .result-score p {
@@ -650,10 +669,10 @@
   }
 
   .fixed-back-button {
-    top: 10vh;
-    left: 3vh; /* On mobile, sidebar is hidden so button can be closer to left edge */
+    top: 3vh;
+    /* On mobile, sidebar is hidden so button can be closer to left edge */
   }
-  
+
   .back-btn-fixed {
     padding: 6px 12px;
     font-size: 12px;
@@ -677,6 +696,7 @@
   .result-content {
     padding: 20px;
     padding-bottom: 180px;
+    padding-top: 10vh;
   }
 
   .fixed-bottom-buttons {
@@ -685,10 +705,12 @@
     left: 5vh;
     gap: 8px;
   }
+
   .content-column {
     height: 100vh;
-    overflow-y:auto;
+    overflow-y: auto;
   }
+
   .dashboard-btn-fixed,
   .practice-btn-fixed {
     font-size: 11px;
@@ -696,10 +718,11 @@
   }
 
   .fixed-back-button {
-    top: 10vh;
-    left: 3vh; /* On mobile, sidebar is hidden so button can be closer to left edge */
+    top: 3vh;
+    left: 3vh;
+    /* On mobile, sidebar is hidden so button can be closer to left edge */
   }
-  
+
   .back-btn-fixed {
     padding: 5px 10px;
     font-size: 11px;
@@ -1052,13 +1075,17 @@
 
 .student-answer-content {
   /* ...existing styles... */
-  overflow-x: auto; /* Enable horizontal scroll */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
+  overflow-x: auto;
+  /* Enable horizontal scroll */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
 }
 
 .student-answer-content::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
+  /* Chrome, Safari, Opera */
 }
 
 .video-section {
@@ -1081,7 +1108,7 @@
   width: 280px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: transform 0.2s ease;
 }

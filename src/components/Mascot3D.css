@@ -21,9 +21,253 @@
   padding: 0;
 }
 
-/* Floating mascot - fixed position */
-.floating-mascot {
+/* Floating mascot - fixed position with speech bubble */
+.floating-mascot-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  position: relative;
+}
+
+/* =============================================================================
+   VISIBILITY TOGGLE BUTTON - FAANG-Level Implementation
+   ============================================================================= */
+
+.mascot-visibility-toggle {
+  /* Positioning - Top right corner of mascot container */
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 1010;
+
+  /* Size and shape */
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+
+  /* Transparent by default - barely visible */
+  background: rgba(99, 102, 241, 0.12);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  /* Subtle border for definition */
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* Cursor and interaction */
+  cursor: pointer;
+  outline: none;
+
+  /* Smooth transitions */
+  transition:
+    opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Icon styling */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(99, 102, 241, 0.45);
+}
+
+.mascot-visibility-toggle .toggle-icon {
+  font-size: 12px;
+  transition:
+    color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover state - becomes fully visible */
+.mascot-visibility-toggle:hover,
+.mascot-visibility-toggle.toggle-hovered {
+  background: rgba(99, 102, 241, 0.95);
+  color: #ffffff;
+  transform: scale(1.12);
+  box-shadow:
+    0 0 0 2px rgba(99, 102, 241, 0.3),
+    0 4px 16px rgba(99, 102, 241, 0.35),
+    0 0 20px rgba(99, 102, 241, 0.15);
+}
+
+.mascot-visibility-toggle:hover .toggle-icon,
+.mascot-visibility-toggle.toggle-hovered .toggle-icon {
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+/* Focus state for accessibility */
+.mascot-visibility-toggle:focus-visible {
+  background: rgba(99, 102, 241, 0.9);
+  color: #ffffff;
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.4),
+    0 4px 16px rgba(99, 102, 241, 0.3);
+}
+
+/* Active/pressed state */
+.mascot-visibility-toggle:active {
+  transform: scale(0.95);
+  transition-duration: 0.1s;
+}
+
+/* Hidden state styling - show with different accent */
+.mascot-visibility-toggle.mascot-is-hidden {
+  background: rgba(239, 68, 68, 0.15);
+  color: rgba(239, 68, 68, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.mascot-visibility-toggle.mascot-is-hidden:hover,
+.mascot-visibility-toggle.mascot-is-hidden.toggle-hovered {
+  background: rgba(34, 197, 94, 0.95);
+  color: #ffffff;
+  box-shadow:
+    0 0 0 2px rgba(34, 197, 94, 0.3),
+    0 4px 16px rgba(34, 197, 94, 0.35),
+    0 0 20px rgba(34, 197, 94, 0.15);
+}
+
+/* =============================================================================
+   MASCOT VISIBILITY ANIMATIONS
+   ============================================================================= */
+
+.floating-mascot-wrapper {
+  position: relative;
   animation: mascot-float 3s ease-in-out infinite;
+  transition:
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Visible state */
+.floating-mascot-wrapper.wrapper-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  filter: blur(0);
+}
+
+/* Hidden state - elegant fade and scale */
+.floating-mascot-wrapper.wrapper-hidden {
+  opacity: 0;
+  transform: translateY(20px) scale(0.85);
+  pointer-events: none;
+  filter: blur(4px);
+}
+
+/* Container state classes */
+.floating-mascot-container.mascot-hidden .mascot-glow {
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-mascot-container.mascot-visible .mascot-glow {
+  opacity: 1;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mascot-glow {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border-radius: 20px;
+  background: rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
+  z-index: -1;
+}
+
+.floating-mascot-canvas {
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Speech Bubble Styles */
+.speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  max-width: 220px;
+  min-width: 140px;
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  border-radius: 16px;
+  padding: 12px 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.speech-bubble.bubble-right {
+  right: 0;
+}
+
+.speech-bubble.bubble-left {
+  left: 0;
+}
+
+.speech-bubble.bubble-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.speech-bubble.bubble-hidden {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.bubble-content {
+  position: relative;
+  padding-right: 20px;
+}
+
+.bubble-text {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.bubble-dismiss {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.bubble-dismiss:hover {
+  color: #ffffff;
+}
+
+.bubble-arrow {
+  position: absolute;
+  bottom: -8px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #8B5CF6;
+}
+
+.bubble-arrow.arrow-right {
+  right: 25px;
+}
+
+.bubble-arrow.arrow-left {
+  left: 25px;
 }
 
 @keyframes mascot-float {
@@ -31,7 +275,7 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
 }
 
@@ -85,6 +329,16 @@
   .floating-mascot {
     display: none;
   }
+
+  /* Toggle button adjustments for tablet */
+  .mascot-visibility-toggle {
+    width: 32px;
+    height: 32px;
+  }
+
+  .mascot-visibility-toggle .toggle-icon {
+    font-size: 14px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -97,11 +351,61 @@
     max-width: 150px;
     max-height: 180px;
   }
+
+  /* Toggle button adjustments for mobile */
+  .mascot-visibility-toggle {
+    width: 36px;
+    height: 36px;
+    top: -12px;
+    right: -12px;
+  }
+
+  .mascot-visibility-toggle .toggle-icon {
+    font-size: 15px;
+  }
 }
 
 /* Dark mode support */
 .dark-mode .mascot-3d-container {
   background: rgba(30, 41, 59, 0.3);
+}
+
+/* Dark mode toggle button */
+.dark-mode .mascot-visibility-toggle {
+  background: rgba(99, 102, 241, 0.2);
+  color: rgba(165, 180, 252, 0.6);
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .mascot-visibility-toggle:hover,
+.dark-mode .mascot-visibility-toggle.toggle-hovered {
+  background: rgba(99, 102, 241, 0.95);
+  color: #ffffff;
+  box-shadow:
+    0 0 0 2px rgba(129, 140, 248, 0.4),
+    0 4px 20px rgba(99, 102, 241, 0.5),
+    0 0 30px rgba(99, 102, 241, 0.25);
+}
+
+.dark-mode .mascot-visibility-toggle.mascot-is-hidden {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgba(252, 165, 165, 0.6);
+}
+
+.dark-mode .mascot-visibility-toggle.mascot-is-hidden:hover,
+.dark-mode .mascot-visibility-toggle.mascot-is-hidden.toggle-hovered {
+  background: rgba(34, 197, 94, 0.95);
+  box-shadow:
+    0 0 0 2px rgba(74, 222, 128, 0.4),
+    0 4px 20px rgba(34, 197, 94, 0.5),
+    0 0 30px rgba(34, 197, 94, 0.25);
+}
+
+.dark-mode .floating-mascot-canvas {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 /* Loading state */
@@ -211,12 +515,24 @@
   .floating-mascot,
   .mascot-celebrating,
   .mascot-sad,
-  .mascot-loading::after {
+  .mascot-loading::after,
+  .floating-mascot-wrapper {
     animation: none;
   }
 
   .mascot-3d-container:hover {
     transform: none;
+  }
+
+  .mascot-visibility-toggle,
+  .mascot-visibility-toggle .toggle-icon,
+  .floating-mascot-wrapper {
+    transition: none;
+  }
+
+  .floating-mascot-wrapper.wrapper-hidden {
+    transform: none;
+    filter: none;
   }
 }
 
@@ -224,5 +540,18 @@
 @media (prefers-contrast: high) {
   .mascot-3d-container {
     border: 2px solid currentColor;
+  }
+
+  .mascot-visibility-toggle {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+
+  .mascot-visibility-toggle:hover,
+  .mascot-visibility-toggle.toggle-hovered {
+    background: currentColor;
+    color: Canvas;
+    box-shadow: none;
   }
 }

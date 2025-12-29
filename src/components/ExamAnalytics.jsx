@@ -675,7 +675,7 @@ const ExamAnalytics = () => {
         {showStudentDetailsModal && selectedStudentResult && (
           <div className="modal-overlay" onClick={handleCloseStudentDetails}>
             <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
+              <div className="modal-header1">
                 <h2>📋 Detailed Evaluation - {selectedStudentResult.student_fullname || selectedStudentResult.student_name}</h2>
                 <button className="modal-close-btn" onClick={handleCloseStudentDetails}>✕</button>
               </div>

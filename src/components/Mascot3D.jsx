@@ -17,6 +17,8 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, useAnimations, OrbitControls } from '@react-three/drei';
 import { useMascot } from '../contexts/MascotContext';
 import * as THREE from 'three';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 // Model path constant
 const MODEL_PATH = '/models/new-mascot.glb';
@@ -268,49 +270,179 @@ export const InlineMascot = memo(({
 InlineMascot.displayName = 'InlineMascot';
 
 /**
- * Floating Mascot - For fixed position on screen
+ * Floating Mascot - For fixed position on screen with speech bubble support
+ * FAANG-level floating mascot with contextual behavior
+ *
+ * Features:
+ * - Visibility toggle with elegant hide/show animation
+ * - Persistent visibility state across page navigation
+ * - Smooth transitions with cubic-bezier easing
+ * - Accessible toggle button with proper ARIA labels
  */
 export const FloatingMascot = memo(({
   position = 'bottom-right',
   size = 'medium',
   className = '',
   onLoaded,
+  speechBubble = null,
+  showBubble = false,
+  onBubbleDismiss,
+  bottomOffset = 0,
 }) => {
+  const [isBubbleVisible, setIsBubbleVisible] = useState(false);
+  const [bubbleAnimating, setBubbleAnimating] = useState(false);
+
+  // Persistent visibility state - stored in sessionStorage for page navigation persistence
+  const [isMascotHidden, setIsMascotHidden] = useState(() => {
+    const stored = sessionStorage.getItem('mascot_visibility_hidden');
+    return stored === 'true';
+  });
+
+  // Track hover state for toggle button
+  const [isToggleHovered, setIsToggleHovered] = useState(false);
+
   const positions = {
     'bottom-right': { bottom: 20, right: 20 },
     'bottom-left': { bottom: 20, left: 20 },
-    'top-right': { top: 20, right: 20 },
-    'top-left': { top: 20, left: 20 },
+    'top-right': { top: 100, right: 20 },
+    'top-left': { top: 100, left: 20 },
   };
 
   const sizes = {
     small: { width: 100, height: 120 },
-    medium: { width: 150, height: 180 },
-    large: { width: 200, height: 240 },
+    medium: { width: 130, height: 160 },
+    large: { width: 180, height: 220 },
   };
 
   const positionStyle = positions[position] || positions['bottom-right'];
   const { width, height } = sizes[size] || sizes.medium;
+  const isRightAligned = position.includes('right');
+
+  // Handle visibility toggle with persistence
+  const handleVisibilityToggle = useCallback(() => {
+    setIsMascotHidden(prev => {
+      const newValue = !prev;
+      sessionStorage.setItem('mascot_visibility_hidden', String(newValue));
+      return newValue;
+    });
+  }, []);
+
+  // Handle speech bubble visibility
+  useEffect(() => {
+    if (showBubble && speechBubble) {
+      setIsBubbleVisible(true);
+      setBubbleAnimating(true);
+    } else if (!showBubble && isBubbleVisible) {
+      setBubbleAnimating(false);
+      setTimeout(() => {
+        setIsBubbleVisible(false);
+        onBubbleDismiss?.();
+      }, 300);
+    }
+  }, [showBubble, speechBubble, isBubbleVisible, onBubbleDismiss]);
+
+  // Calculate final position with offset
+  const finalPositionStyle = {
+    ...positionStyle,
+    ...(positionStyle.bottom !== undefined && { bottom: positionStyle.bottom + bottomOffset }),
+  };
 
   return (
     <div
-      className={`floating-mascot ${className}`}
+      className={`floating-mascot-container ${className} ${isMascotHidden ? 'mascot-hidden' : 'mascot-visible'}`}
       style={{
         position: 'fixed',
-        ...positionStyle,
+        bottom: "40vh",
+        right: "5vh",
         zIndex: 1000,
-        pointerEvents: 'none',
       }}
     >
-      <Mascot3D
-        width={width}
-        height={height}
-        onLoaded={onLoaded}
-      />
+      {/* Visibility Toggle Button - Always visible for accessibility */}
+      <button
+        className={`mascot-visibility-toggle ${isToggleHovered ? 'toggle-hovered' : ''} ${isMascotHidden ? 'mascot-is-hidden' : ''}`}
+        onClick={handleVisibilityToggle}
+        onMouseEnter={() => setIsToggleHovered(true)}
+        onMouseLeave={() => setIsToggleHovered(false)}
+        onFocus={() => setIsToggleHovered(true)}
+        onBlur={() => setIsToggleHovered(false)}
+        aria-label={isMascotHidden ? 'Show mascot' : 'Hide mascot'}
+        title={isMascotHidden ? 'Show Mascot' : 'Hide Mascot'}
+        type="button"
+      >
+        <FontAwesomeIcon
+          icon={isMascotHidden ? faEyeSlash : faEye}
+          className="toggle-icon"
+        />
+      </button>
+
+      {/* Speech Bubble - Only show when mascot is visible */}
+      {!isMascotHidden && isBubbleVisible && speechBubble && (
+        <div
+          className={`speech-bubble ${isRightAligned ? 'bubble-right' : 'bubble-left'} ${bubbleAnimating ? 'bubble-visible' : 'bubble-hidden'}`}
+          onClick={() => {
+            setBubbleAnimating(false);
+            setTimeout(() => {
+              setIsBubbleVisible(false);
+              onBubbleDismiss?.();
+            }, 300);
+          }}
+        >
+          <div className="bubble-content">
+            {typeof speechBubble === 'string' ? (
+              <span className="bubble-text">{speechBubble}</span>
+            ) : (
+              speechBubble
+            )}
+            <span className="bubble-dismiss">×</span>
+          </div>
+          <div className={`bubble-arrow ${isRightAligned ? 'arrow-right' : 'arrow-left'}`} />
+        </div>
+      )}
+
+      {/* Mascot Container with glow effect - Animated hide/show */}
+      <div className={`floating-mascot-wrapper ${isMascotHidden ? 'wrapper-hidden' : 'wrapper-visible'}`}>
+        <div className="mascot-glow" />
+        <Mascot3D
+          width={width}
+          height={height}
+          onLoaded={onLoaded}
+          className="floating-mascot-canvas"
+        />
+      </div>
     </div>
   );
 });
 
 FloatingMascot.displayName = 'FloatingMascot';
+
+/**
+ * Custom hook for managing speech bubbles
+ */
+export const useSpeechBubble = () => {
+  const [currentBubble, setCurrentBubble] = useState(null);
+  const [showBubble, setShowBubble] = useState(false);
+
+  const showMessage = useCallback((message, duration = 4000) => {
+    setCurrentBubble(message);
+    setShowBubble(true);
+
+    if (duration > 0) {
+      setTimeout(() => {
+        setShowBubble(false);
+      }, duration);
+    }
+  }, []);
+
+  const hideMessage = useCallback(() => {
+    setShowBubble(false);
+  }, []);
+
+  return {
+    currentBubble,
+    showBubble,
+    showMessage,
+    hideMessage,
+  };
+};
 
 export default Mascot3D;

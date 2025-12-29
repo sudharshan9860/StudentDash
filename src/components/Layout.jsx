@@ -28,6 +28,7 @@ const Layout = ({ children }) => {
   const navigate = useNavigate();
   const currentLocation = useLocation();
   const { username, logout, role, fullName } = useContext(AuthContext);
+// const school=localStorage.getItem("school")
 
   // Sound configuration state
   const [showSoundConfig, setShowSoundConfig] = useState(false);
@@ -38,9 +39,6 @@ const Layout = ({ children }) => {
 
   // Feedback modal state
   const [showFeedback, setShowFeedback] = useState(false);
-
-  // Logout animation state
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Check if current route is teacher dashboard
   const isTeacherDashboard = currentLocation.pathname === '/teacher-dash';
@@ -64,19 +62,40 @@ const Layout = ({ children }) => {
   };
 
   const handleLogout = () => {
-    if (isLoggingOut) return; // Prevent multiple clicks
-    
     console.log('Logging out...');
-    
-    // Trigger animation
-    setIsLoggingOut(true);
-    
-    // Wait for animation to complete before actually logging out
-    setTimeout(() => {
-      logout();
-      navigate('/');
-    }, 2000); // 2 seconds for animation to complete
+    logout();
+    navigate('/');
   };
+
+  // Navigation links based on role
+  const studentLinks = [
+    { path: '/student-dash', label: 'Dashboard', icon: faHome },
+    { path: '/exam-mode', label: 'Exam Mode', icon: faGraduationCap },
+    { path: '/analytics', label: 'Analytics', icon: faChartLine },
+    // { path: '/chat', label: 'Chat Rooms', icon: faComments }, // <-- Chat link for students
+  ];
+
+  const teacherLinks = [
+    { path: '/teacher-dash?tab=exam-correction', label: 'Exam Correction', icon: '📄', tabName: 'exam-correction' },
+     
+    // ...(school!=="HPS"?
+      // [
+    { path: '/student-dash', label: 'Dashboard', icon: faHome },
+    { path: '/teacher-dash?tab=exercise', label: 'Homework', icon: '📝', tabName: 'exercise' },
+    { path: '/teacher-dash?tab=upload-homework', label: 'Upload Homework', icon: '📑', tabName: 'upload-homework' },
+    { path: '/teacher-dash?tab=classwork', label: 'Classwork', icon: '✏', tabName: 'classwork' },
+    // { path: '/teacher-dash?tab=upload-classwork', label: 'Upload Classwork', icon: '📑', tabName: 'upload-classwork' },
+    { path: '/teacher-dash?tab=homework', label: 'Worksheets', icon: '📄', tabName: 'homework' },
+    { path: '/teacher-dash?tab=class', label: 'Class Analysis', icon: '📊', tabName: 'class' },
+    { path: '/teacher-dash?tab=student', label: 'Student Analysis', icon: '👤', tabName: 'student' },
+    { path: '/teacher-dash?tab=progress', label: 'Progress', icon: '📈', tabName: 'progress' },
+  // ]:[])
+    // Teachers may not need chat UI for 'A' option, but you can include if desired:
+    // { path: '/chat', label: 'Chat Rooms', icon: faComments },
+  ];
+
+  // Get the appropriate links based on role
+  const navigationLinks = role === 'teacher' ? teacherLinks : studentLinks;
 
   // Get user initials for avatar
   const getUserInitials = () => {
@@ -91,28 +110,6 @@ const Layout = ({ children }) => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
-
-  // Navigation links based on role
-  const studentLinks = [
-    { path: '/student-dash', label: 'Dashboard', icon: faHome },
-    { path: '/analytics', label: 'Analytics', icon: faChartLine },
-    { path: '/chat', label: 'Chat Rooms', icon: faComments },
-  ];
-
-  const teacherLinks = [
-    { path: '/student-dash', label: 'Dashboard', icon: faHome },
-    { path: '/teacher-dash?tab=exercise', label: 'Homework', icon: '📝', tabName: 'exercise' },
-    { path: '/teacher-dash?tab=upload-homework', label: 'Upload Homework', icon: '📑', tabName: 'upload-homework' },
-    { path: '/teacher-dash?tab=classwork', label: 'Classwork', icon: '✏', tabName: 'classwork' },
-    { path: '/teacher-dash?tab=homework', label: 'Worksheets', icon: '📄', tabName: 'homework' },
-    { path: '/teacher-dash?tab=exam-correction', label: 'Exam Correction', icon: '📄', tabName: 'exam-correction' },
-    { path: '/teacher-dash?tab=class', label: 'Class Analysis', icon: '📊', tabName: 'class' },
-    { path: '/teacher-dash?tab=student', label: 'Student Analysis', icon: '👤', tabName: 'student' },
-    { path: '/teacher-dash?tab=progress', label: 'Progress', icon: '📈', tabName: 'progress' },
-  ];
-
-  // Get the appropriate links based on role
-  const navigationLinks = role === 'teacher' ? teacherLinks : studentLinks;
 
   return (
     <div id="main-content1">
@@ -136,7 +133,7 @@ const Layout = ({ children }) => {
         {/* Brand/Logo */}
         <div className="">
           <div className="sidebar-brand">
-            <img src="/images/smart.png" alt="Logo" style={{ width: '100%', height: '20vh', objectFit: 'contain' }} />
+            <img src="/images/logo.png" alt="Logo" style={{ width: '15vw', height: '20vh', objectFit: 'cover' }} />
           </div>
         </div>
 
@@ -169,6 +166,22 @@ const Layout = ({ children }) => {
               );
             })}
 
+            {/* Notifications Dropdown */}
+
+            {/* Sound Toggle as menu item */}
+            {/* <li className="sidebar-menu-item">
+              <div
+                className="sidebar-menu-link"
+                onClick={() => setShowSoundConfig(true)}
+              >
+                <FontAwesomeIcon
+                  icon={isSoundEnabled ? faVolumeUp : faVolumeMute}
+                  className="sidebar-menu-icon"
+                />
+                <span className="sidebar-menu-text">Sound</span>
+              </div>
+            </li> */}
+
             {/* Feedback menu item */}
             <li className="sidebar-menu-item">
               <div
@@ -185,42 +198,25 @@ const Layout = ({ children }) => {
         {/* Sidebar Footer */}
         <div className="sidebar-footer">
           {/* User Info */}
-          {role === 'student' && (
-            <div className="sidebar-user-info">
-              <div className="sidebar-user-avatar">
-                {getUserInitials()}
-              </div>
-              <div className="sidebar-user-details">
-                <p className="sidebar-user-name">{fullName || username}</p>
-                <p className="sidebar-user-role">{role === 'student' ? 'Student' : 'Teacher'}</p>
-              </div>
-            </div>
-          )}
 
-          {/* Animated Logout Button */}
-          <button
-            className={`animated-logout-button ${isLoggingOut ? 'logging-out' : ''}`}
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-          >
-            <span className="logout-text">
-              {isLoggingOut ? 'Logging Out...' : 'Log Out'}
-            </span>
-            
-            <div className="logout-icon-container">
-              {/* Person walking */}
-              <svg className="logout-person" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
-              </svg>
-              
-              {/* Door */}
-              <svg className="logout-door" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="3" y="3" width="18" height="18" rx="2" className="door-frame"/>
-                <rect x="3" y="3" width="9" height="18" className="door-left"/>
-                <rect x="12" y="3" width="9" height="18" className="door-right"/>
-                <circle cx="17" cy="12" r="1" className="door-knob"/>
-              </svg>
+          
+      { role==='student' && (<div className="sidebar-user-info">
+            <div className="sidebar-user-avatar">
+              {getUserInitials()}
             </div>
+            <div className="sidebar-user-details">
+              <p className="sidebar-user-name">{fullName || username}</p>
+              <p className="sidebar-user-role">{role === 'student' ? 'Student' : 'Teacher'}</p>
+            </div>
+          </div>)}
+
+          {/* Logout Button */}
+          <button
+            className="sidebar-logout"
+            onClick={handleLogout}
+          >
+            <FontAwesomeIcon icon={faSignOutAlt} />
+            <span>Logout</span>
           </button>
         </div>
       </aside>

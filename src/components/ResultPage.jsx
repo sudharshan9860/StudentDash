@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import { getImageSrc } from '../utils/imageUtils';
 import { useMascot, MASCOT_ANIMATIONS } from '../contexts/MascotContext';
-import { InlineMascot } from './Mascot3D';
+import { FloatingMascot, useSpeechBubble } from './Mascot3D';
 import './Mascot3D.css';
 
 const ResultPage = () => {
@@ -32,6 +32,14 @@ const ResultPage = () => {
 
   // Mascot context
   const { playScoreAnimation, playActionAnimation, playAnimation, ANIMATIONS } = useMascot();
+
+  // Speech bubble for contextual mascot feedback
+  const {
+    currentBubble,
+    showBubble: isBubbleVisible,
+    showMessage: showMascotMessage,
+    hideMessage: hideMascotMessage,
+  } = useSpeechBubble();
 
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -161,11 +169,34 @@ const ResultPage = () => {
 
       // Play score-based animation (victory for high scores, sad for low)
       playScoreAnimation(obtainedValue, totalValue);
+
+      // Show contextual feedback based on score
+      const scorePercent = (obtainedValue / totalValue) * 100;
+      setTimeout(() => {
+        if (scorePercent >= 80) {
+          showMascotMessage("Excellent work! Keep it up!", 4000);
+        } else if (scorePercent >= 60) {
+          showMascotMessage("Good effort! Review the gaps.", 4000);
+        } else if (scorePercent >= 40) {
+          showMascotMessage("Keep practicing! You'll improve.", 4000);
+        } else {
+          showMascotMessage("Don't give up! Let's learn together.", 4000);
+        }
+      }, 800);
     } else {
       // For explain/solve actions, play appropriate animation
       playActionAnimation(actionType);
+
+      // Show action-specific messages
+      setTimeout(() => {
+        if (actionType === 'solve') {
+          showMascotMessage("Here's the solution!", 3000);
+        } else if (actionType === 'explain') {
+          showMascotMessage("Let me explain the concepts!", 3000);
+        }
+      }, 500);
     }
-  }, [actionType, obtained_marks, total_marks, score, question_marks, playScoreAnimation, playActionAnimation]);
+  }, [actionType, obtained_marks, total_marks, score, question_marks, playScoreAnimation, playActionAnimation, showMascotMessage]);
 
   // Apply dark mode on component mount and listen for changes
   useEffect(() => {
@@ -185,6 +216,23 @@ const ResultPage = () => {
     };
   }, []);
 
+   // Hide body scrollbar when result page is active                                    
+     useEffect(() => {                                                                    
+     // Store original styles                                                           
+      const originalBodyOverflow = document.body.style.overflow;                         
+      const originalHtmlOverflow = document.documentElement.style.overflow;              
+                                                                                       
+      // Hide body/html scrollbar                                                        
+      document.body.style.overflow = 'hidden';                                           
+      document.documentElement.style.overflow = 'hidden';                                
+                                                                                       
+      // Cleanup: restore original styles when component unmounts                        
+      return () => {                                                                     
+        document.body.style.overflow = originalBodyOverflow;                             
+        document.documentElement.style.overflow = originalHtmlOverflow;                  
+      };                                                                                 
+    }, []);                                                                              
+            
   // Cleanup object URLs when component unmounts
   useEffect(() => {
     return () => {
@@ -807,37 +855,24 @@ const ResultPage = () => {
                 </Alert>
               )}
 
-              {/* Question with Mascot */}
-              <div className="result-mascot-container">
-
-
-                 {/* Result Content Column */}
-                 <div className="result-column">
-                  <div className="result-question">
-                    <p><strong>Question {questionNumber}:</strong> <MarkdownWithMath content={question} /></p>
-                    {questionImage && (
-                      <div className="question-image-container">
-                        <img
-                          src={getImageSrc(questionImage)}
-                          alt="Question"
-                          className="question-image"
-                        />
-                      </div>
-                    )}
-                    {solution && solution.length > 0 && (
-                      <div className="result-solution">
-                        <p className="solution-header">Solution:</p>
-                        {renderSolutionSteps(solution)}
-                      </div>
-                    )}
+              {/* Question Section - Full Width */}
+              <div className="result-question">
+                <p><strong>Question {questionNumber}:</strong> <MarkdownWithMath content={question} /></p>
+                {questionImage && (
+                  <div className="question-image-container">
+                    <img
+                      src={getImageSrc(questionImage)}
+                      alt="Question"
+                      className="question-image"
+                    />
                   </div>
-                </div>
-                {/* Mascot Column */}
-                <div className="mascot-column">
-                  <InlineMascot size="medium" />
-                </div>
-
-               
+                )}
+                {solution && solution.length > 0 && (
+                  <div className="result-solution">
+                    <p className="solution-header">Solution:</p>
+                    {renderSolutionSteps(solution)}
+                  </div>
+                )}
               </div>
 
               {renderContentBasedOnAction()}
@@ -864,8 +899,15 @@ const ResultPage = () => {
         />
       )} */}
 
-      {/* Mascot Component */}
-      {/* <Mascot position="bottom-right" mode="3d" /> */}
+      {/* Floating Mascot - Non-intrusive corner placement */}
+      <FloatingMascot
+        position="bottom-right"
+        size="medium"
+        bottomOffset={80}
+        speechBubble={currentBubble}
+        showBubble={isBubbleVisible}
+        onBubbleDismiss={hideMascotMessage}
+      />
     </>
   );
 };
