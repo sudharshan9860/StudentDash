@@ -5,6 +5,8 @@ import axiosInstance from '../api/axiosInstance';
 import QuestionEvaluationCard from './shared/QuestionEvaluationCard';
 import PerformanceHeader from './shared/PerformanceHeader';
 import './StudentExamDetails.css';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const StudentExamDetails = ({ 
   studentResultId, 
@@ -129,6 +131,429 @@ const StudentExamDetails = ({
       setLoading(false);
     }
   };
+
+  // Add this useEffect to expose download function globally
+useEffect(() => {
+  window.downloadStudentExamPDF = handleDownloadPDF;
+  
+  return () => {
+    delete window.downloadStudentExamPDF;
+  };
+}, [examMetadata, questionDetails]);
+
+const handleDownloadPDF = () => {
+  try {
+    if (!examMetadata || questionDetails.length === 0) {
+      alert('No data available to download');
+      return;
+    }
+
+    const doc = new jsPDF();
+    let currentY = 20;
+    
+    // Helper function to strip LaTeX and clean text
+    const cleanLatex = (text) => {
+      if (!text) return '';
+      
+      // Remove display math delimiters
+      text = text.replace(/\$\$([^$]+)\$\$/g, '$1');
+      
+      // Remove inline math delimiters
+      text = text.replace(/\$([^$]+)\$/g, '$1');
+      
+      // Clean up common LaTeX commands
+      text = text.replace(/\\neq/g, '≠');
+      text = text.replace(/\\leq/g, '≤');
+      text = text.replace(/\\geq/g, '≥');
+      text = text.replace(/\\times/g, '×');
+      text = text.replace(/\\div/g, '÷');
+      text = text.replace(/\\pm/g, '±');
+      text = text.replace(/\\angle/g, '∠');
+      text = text.replace(/\\triangle/g, '△');
+      text = text.replace(/\\degree/g, '°');
+      text = text.replace(/\\cdot/g, '·');
+      text = text.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1/$2)');
+      text = text.replace(/\^(\d+)/g, '^$1');
+      text = text.replace(/\^{([^}]+)}/g, '^$1');
+      text = text.replace(/_(\d+)/g, '_$1');
+      text = text.replace(/_{([^}]+)}/g, '_$1');
+      text = text.replace(/\\/g, '');
+      
+      return text;
+    };
+    
+    // Helper function to parse JSON concepts
+    const parseConceptText = (concept) => {
+      if (typeof concept === 'string') {
+        try {
+          const parsed = JSON.parse(concept);
+          if (parsed.concept_name && parsed.concept_description) {
+            return `${parsed.concept_name}: ${cleanLatex(parsed.concept_description)}`;
+          }
+          return cleanLatex(concept);
+        } catch {
+          return cleanLatex(concept);
+        }
+      } else if (concept && typeof concept === 'object') {
+        if (concept.concept_name && concept.concept_description) {
+          return `${concept.concept_name}: ${cleanLatex(concept.concept_description)}`;
+        }
+        return cleanLatex(concept.concept || concept.name || concept.title || concept.text || '');
+      }
+      return '';
+    };
+    
+    // Helper function to check if we need a new page
+    const checkPageSpace = (requiredSpace) => {
+      if (currentY + requiredSpace > 270) {
+        doc.addPage();
+        currentY = 20;
+        return true;
+      }
+      return false;
+    };
+    
+    // ========================================
+    // PAGE 1: OVERVIEW
+    // ========================================
+    
+    // Title
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('Exam Details Report', 105, currentY, { align: 'center' });
+    currentY += 10;
+    
+    // Exam Name
+    doc.setFontSize(16);
+    doc.text(examMetadata.examName, 105, currentY, { align: 'center' });
+    currentY += 15;
+    
+    // Exam Overview Section
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('Exam Overview', 20, currentY);
+    currentY += 8;
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Exam Type: ${examMetadata.examType}`, 20, currentY);
+    currentY += 6;
+    doc.text(`Class/Section: ${examMetadata.classSection}`, 20, currentY);
+    currentY += 6;
+    doc.text(`Score: ${examMetadata.totalMarks} / ${examMetadata.maxMarks}`, 20, currentY);
+    currentY += 6;
+    doc.text(`Percentage: ${examMetadata.percentage.toFixed(1)}%`, 20, currentY);
+    currentY += 6;
+    
+    // Performance level
+    const perfLevel = examMetadata.percentage >= 90 ? 'Excellent' :
+                      examMetadata.percentage >= 75 ? 'Good' :
+                      examMetadata.percentage >= 60 ? 'Average' :
+                      examMetadata.percentage >= 40 ? 'Below Average' : 'Needs Improvement';
+    doc.text(`Performance: ${perfLevel}`, 20, currentY);
+    currentY += 12;
+    
+    // Strengths Section
+    if (examMetadata.strengths && examMetadata.strengths.length > 0) {
+      checkPageSpace(30);
+      doc.setFontSize(13);
+      doc.setFont(undefined, 'bold');
+      doc.text('Strengths', 20, currentY);
+      currentY += 7;
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      examMetadata.strengths.forEach((strength) => {
+        const lines = doc.splitTextToSize(`• ${strength}`, 170);
+        lines.forEach(line => {
+          checkPageSpace(5);
+          doc.text(line, 20, currentY);
+          currentY += 5;
+        });
+      });
+      currentY += 5;
+    }
+    
+    // Areas for Improvement Section
+    if (examMetadata.improvements && examMetadata.improvements.length > 0) {
+      checkPageSpace(30);
+      
+      doc.setFontSize(13);
+      doc.setFont(undefined, 'bold');
+      doc.text('Areas for Improvement', 20, currentY);
+      currentY += 7;
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      examMetadata.improvements.forEach((improvement) => {
+        const lines = doc.splitTextToSize(`• ${improvement}`, 170);
+        lines.forEach(line => {
+          checkPageSpace(5);
+          doc.text(line, 20, currentY);
+          currentY += 5;
+        });
+      });
+      currentY += 10;
+    }
+    
+    // Questions Summary Table
+    checkPageSpace(50);
+    
+    doc.setFontSize(13);
+    doc.setFont(undefined, 'bold');
+    doc.text('Questions Summary', 20, currentY);
+    currentY += 5;
+    
+    const summaryTableData = questionDetails.map((q, idx) => {
+      const percentage = q.percentage || 0;
+      const status = percentage >= 50 ? 'Pass' : 'Fail';
+      return [
+        q.question_number || `Q${idx + 1}`,
+        q.total_score || 0,
+        q.max_marks || 0,
+        `${percentage.toFixed(1)}%`,
+        status
+      ];
+    });
+    
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Question', 'Scored', 'Total', 'Percentage']],
+      body: summaryTableData,
+      theme: 'grid',
+      headStyles: { 
+        fillColor: [139, 92, 246], 
+        textColor: 255, 
+        fontStyle: 'bold',
+        fontSize: 10
+      },
+      styles: { 
+        fontSize: 9, 
+        cellPadding: 3,
+        halign: 'center'
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 30 },
+        1: { halign: 'center', cellWidth: 25 },
+        2: { halign: 'center', cellWidth: 25 },
+        3: { halign: 'center', cellWidth: 30 },
+        4: { halign: 'center', cellWidth: 25 }
+      }
+    });
+    
+    currentY = doc.lastAutoTable.finalY + 10;
+    
+    // Footer for first page
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'italic');
+    doc.setTextColor(100, 100, 100);
+    const timestamp = new Date().toLocaleString();
+    const totalPages = Math.ceil(questionDetails.length / 3) + 1; // Estimate
+    doc.text(`Generated: ${timestamp} | Page 1`, 105, 285, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+    
+    // ========================================
+    // DETAILED QUESTIONS EVALUATION
+    // Multiple questions per page
+    // ========================================
+    
+    doc.addPage();
+    currentY = 20;
+    
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('Detailed Questions Evaluation', 105, currentY, { align: 'center' });
+    currentY += 10;
+    
+    questionDetails.forEach((question, idx) => {
+      const qNum = question.question_number || `Q${idx + 1}`;
+      const score = question.total_score || 0;
+      const maxMarks = question.max_marks || 0;
+      const percentage = question.percentage || 0;
+      const errorType = question.error_type || 'unattempted';
+      
+      // Determine status
+      let status = 'Incorrect';
+      if (errorType === 'no_error') status = 'Correct';
+      else if (percentage >= 50) status = 'Partially Correct';
+      
+      // Estimate space needed for this question (minimum 40, adjust based on content)
+      let estimatedSpace = 40;
+      if (question.question_text && question.question_text !== 'N/A') estimatedSpace += 15;
+      if (question.concepts_required && question.concepts_required.length > 0) estimatedSpace += 20;
+      if (question.mistakes_made && question.mistakes_made !== 'N/A' && question.mistakes_made !== 'None') estimatedSpace += 15;
+      if (question.gap_analysis && question.gap_analysis !== 'N/A') estimatedSpace += 15;
+      
+      // Check if we need a new page for this question
+      checkPageSpace(estimatedSpace);
+      
+      // Question Header with status badge
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${qNum}`, 20, currentY);
+      
+      // Status badge
+      doc.setFontSize(10);
+      const statusColor = status === 'Correct' ? [16, 185, 129] : 
+                          status === 'Partially Correct' ? [245, 158, 11] : [239, 68, 68];
+      doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+      doc.text(status, 45, currentY);
+      doc.setTextColor(0, 0, 0);
+      
+      // Score on right
+      doc.setFontSize(11);
+      doc.text(`Score: ${score}/${maxMarks}`, 160, currentY);
+      currentY += 3;
+      
+      // Percentage bar
+      const barWidth = 170;
+      const fillWidth = (percentage / 100) * barWidth;
+      doc.setFillColor(220, 220, 220);
+      doc.rect(20, currentY, barWidth, 3, 'F');
+      doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
+      doc.rect(20, currentY, fillWidth, 3, 'F');
+      
+      doc.setFontSize(8);
+      doc.text(`${percentage.toFixed(1)}%`, 195, currentY + 2, { align: 'right' });
+      currentY += 8;
+      
+      // Question Text
+      if (question.question_text && question.question_text !== 'N/A') {
+        checkPageSpace(20);
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('Question:', 20, currentY);
+        currentY += 5;
+        
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        const cleanedQuestion = cleanLatex(question.question_text);
+        const questionLines = doc.splitTextToSize(cleanedQuestion, 170);
+        questionLines.forEach(line => {
+          checkPageSpace(5);
+          doc.text(line, 20, currentY);
+          currentY += 4;
+        });
+        currentY += 3;
+      }
+      
+      // Concepts Required
+      if (question.concepts_required && question.concepts_required.length > 0) {
+        checkPageSpace(20);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('Concepts Required:', 20, currentY);
+        currentY += 5;
+        
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
+        
+        const concepts = Array.isArray(question.concepts_required) 
+          ? question.concepts_required 
+          : [question.concepts_required];
+        
+        concepts.forEach((concept) => {
+          const conceptText = parseConceptText(concept);
+          
+          if (conceptText && conceptText !== 'N/A' && conceptText.trim() !== '') {
+            checkPageSpace(10);
+            const conceptLines = doc.splitTextToSize(`• ${conceptText}`, 165);
+            conceptLines.forEach(line => {
+              checkPageSpace(4);
+              doc.text(line, 25, currentY);
+              currentY += 4;
+            });
+          }
+        });
+        currentY += 3;
+      }
+      
+      // Mistakes Made
+      if (question.mistakes_made && question.mistakes_made !== 'N/A' && question.mistakes_made !== 'None' && question.mistakes_made !== 'No attempt made.') {
+        checkPageSpace(15);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('Mistakes Made:', 20, currentY);
+        currentY += 5;
+        
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        const mistakes = Array.isArray(question.mistakes_made) 
+          ? question.mistakes_made.join('. ') 
+          : question.mistakes_made;
+        const cleanedMistakes = cleanLatex(mistakes);
+        const mistakeLines = doc.splitTextToSize(cleanedMistakes, 170);
+        mistakeLines.forEach(line => {
+          checkPageSpace(4);
+          doc.text(line, 20, currentY);
+          currentY += 4;
+        });
+        currentY += 3;
+      }
+      
+      // Gap Analysis
+      if (question.gap_analysis && question.gap_analysis !== 'N/A' && question.gap_analysis !== 'No gaps identified') {
+        checkPageSpace(15);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('Gap Analysis:', 20, currentY);
+        currentY += 5;
+        
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        const cleanedGap = cleanLatex(question.gap_analysis);
+        const gapLines = doc.splitTextToSize(cleanedGap, 170);
+        gapLines.forEach(line => {
+          checkPageSpace(4);
+          doc.text(line, 20, currentY);
+          currentY += 4;
+        });
+        currentY += 3;
+      }
+      
+      // Separator line between questions
+      if (idx < questionDetails.length - 1) {
+        checkPageSpace(8);
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, currentY, 190, currentY);
+        currentY += 8;
+      }
+    });
+    
+    // Add page numbers to all pages
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'italic');
+      doc.setTextColor(100, 100, 100);
+      if (i > 1) {
+        doc.text(`Generated: ${timestamp} | Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+      }
+      doc.setTextColor(0, 0, 0);
+    }
+    
+    // Save PDF
+    const filename = `${examMetadata.examName.replace(/[^a-z0-9]/gi, '_')}_${examMetadata.rollNumber}_Details_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(filename);
+    
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    alert('Failed to generate PDF. Please try again.');
+  }
+};
+
+// Helper function for performance label
+const getPerformanceLabel = (percentage) => {
+  if (percentage >= 90) return 'Excellent';
+  if (percentage >= 75) return 'Good';
+  if (percentage >= 60) return 'Average';
+  if (percentage >= 40) return 'Below Average';
+  return 'Needs Improvement';
+};
 
   const calculateGrade = (percentage) => {
     if (percentage >= 90) return 'A+';
@@ -282,7 +707,7 @@ const StudentExamDetails = ({
                   <td>{q.max_marks || 0}</td>
                   <td>
                     <span className={`percentage-badge ${getPerformanceClass(q.percentage || 0)}`}>
-                      {(q.percentage || 0).toFixed(1)}%
+                      {q.percentage || 0}%
                     </span>
                   </td>
                   {/* <td>

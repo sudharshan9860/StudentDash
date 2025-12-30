@@ -55,12 +55,12 @@ const QuestionEvaluationCard = ({ questionNumber, questionData, isTeacherView })
 }}>
   <div className="header-left">
     <span className="question-number1">{questionNumber}</span>
-    <span className="question-marks1">
-      {totalScore.toFixed(1)} / {maxMarks.toFixed(1)}
-    </span>
-    <span className="question-percentage">
-      {Math.round(percentage)}%
-    </span>
+   <span className="question-marks1">
+    {totalScore} / {maxMarks}
+  </span>
+  <span className="question-percentage">
+    {percentage}%
+  </span>
     {hasDiagram === 'yes' && (
       <span className="diagram-indicator" title="Has diagram">📊</span>
     )}

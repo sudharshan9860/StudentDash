@@ -688,9 +688,23 @@ const ExamAnalytics = () => {
                   summaryData={selectedStudentResult}
                 />
               </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={handleCloseStudentDetails}>Close</button>
-              </div>
+<div className="modal-footer">
+  <button 
+    className="btn btn-primary download-pdf-modal-btn" 
+    onClick={() => {
+      if (window.downloadStudentExamPDF) {
+        window.downloadStudentExamPDF();
+      } else {
+        alert('PDF download function not available. Please try again.');
+      }
+    }}
+  >
+    📄 Download PDF
+  </button>
+  <button className="btn btn-secondary" onClick={handleCloseStudentDetails}>
+    Close
+  </button>
+</div>
             </div>
           </div>
         )}
