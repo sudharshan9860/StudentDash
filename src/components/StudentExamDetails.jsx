@@ -76,8 +76,8 @@ const StudentExamDetails = ({
           examName: examName || summaryData.exam_name || 'Exam',
           examType: summaryData.exam_type || 'N/A',
           classSection: summaryData.class_section || 'N/A',
-          totalMarks: Math.round(summaryData.total_marks_obtained || 0),
-          maxMarks: Math.round(summaryData.total_max_marks || 0),
+          totalMarks: summaryData.total_marks_obtained || 0,
+          maxMarks: summaryData.total_max_marks || 0,
           percentage: summaryData.overall_percentage || 0,
           grade: summaryData.grade || 'N/A',
           strengths: strengthsArray,
@@ -109,8 +109,8 @@ const StudentExamDetails = ({
           examName: examName || data.exam_name || 'Exam',
           examType: data.exam_type || 'N/A',
           classSection: data.class_section || 'N/A',
-          totalMarks: Math.round(totalMarksObtained),
-          maxMarks: Math.round(totalMaxMarks),
+          totalMarks: totalMarksObtained,
+          maxMarks: totalMaxMarks,
           percentage: overallPercentage,
           grade: grade,
           strengths: strengths,
@@ -271,25 +271,25 @@ const StudentExamDetails = ({
                 <th>Marks Obtained</th>
                 <th>Total Marks</th>
                 <th>Percentage</th>
-                <th>Status</th>
+                {/* <th>Status</th> */}
               </tr>
             </thead>
             <tbody>
               {questionDetails.map((q, idx) => (
                 <tr key={idx}>
                   <td>{q.question_number || `Q${idx + 1}`}</td>
-                  <td>{Math.round(q.total_score || 0)}</td>
-                  <td>{Math.round(q.max_marks || 0)}</td>
+                  <td>{q.total_score || 0}</td>
+                  <td>{q.max_marks || 0}</td>
                   <td>
                     <span className={`percentage-badge ${getPerformanceClass(q.percentage || 0)}`}>
                       {(q.percentage || 0).toFixed(1)}%
                     </span>
                   </td>
-                  <td>
+                  {/* <td>
                     <span className={`status-badge ${(q.error_type || 'unattempted').toLowerCase().replace('_', '-')}`}>
                       {getStatusLabel(q.error_type || 'unattempted')}
                     </span>
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>

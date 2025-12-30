@@ -822,7 +822,7 @@ useEffect(() => {
                     <th className="text-center">Marks Obtained</th>
                     <th className="text-center">Total Marks</th>
                     <th className="text-center">Percentage</th>
-                    <th className="text-center">Status</th>
+                    {/* <th className="text-center">Status</th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -843,11 +843,11 @@ useEffect(() => {
                             {qPercentage.toFixed(1)}%
                           </Badge>
                         </td>
-                        <td className="text-center">
+                        {/* <td className="text-center">
                           <Badge bg={statusClass}>
                             {question.error_type === 'no_error' ? 'Pass' : 'Fail'}
                           </Badge>
-                        </td>
+                        </td> */}
                       </tr>
                     );
                   })}
