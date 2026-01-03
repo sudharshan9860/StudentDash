@@ -497,3 +497,49 @@
   }
 }
 
+/* Overall Summary Row Styles */
+.questions-summary-table .overall-summary-row {
+  background-color: #f3f4f6;
+  border-top: 2px solid #d1d5db;
+  font-weight: 600;
+}
+
+.questions-summary-table .overall-summary-row td {
+  padding: 1rem;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.questions-summary-table .percentage-summary-row {
+  background-color: #fef3c7;
+  border-top: 2px solid #fbbf24;
+}
+
+.questions-summary-table .percentage-summary-row td {
+  padding: 1rem;
+  font-size: 1rem;
+  color: #78350f;
+}
+
+.questions-summary-table .percentage-summary-row .percentage-badge {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* Dark mode support */
+.dark-mode .questions-summary-table .overall-summary-row {
+  background-color: #1e293b;
+}
+
+.dark-mode .questions-summary-table .overall-summary-row td {
+  color: #f8fafc;
+}
+
+.dark-mode .questions-summary-table .percentage-summary-row {
+  background-color: #451a03;
+}
+
+.dark-mode .questions-summary-table .percentage-summary-row td {
+  color: #fef3c7;
+}
