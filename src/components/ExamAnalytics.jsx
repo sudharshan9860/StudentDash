@@ -102,6 +102,7 @@ const ExamAnalytics = () => {
       exam_name: selectedExam.name,
       exam_type: selectedExam.exam_type,
       class_section: examStats?.classSection || 'N/A',
+      student_fullname: studentResult.student_fullname,  
       student_name: studentResult.student_name,
       roll_number: studentResult.roll_number,
       total_marks_obtained: studentResult.total_marks_obtained,
@@ -110,7 +111,8 @@ const ExamAnalytics = () => {
       grade: studentResult.grade,
       strengths: studentResult.strengths,
       areas_for_improvement: studentResult.areas_for_improvement,
-      detailed_analysis: studentResult.detailed_analysis
+      detailed_analysis: studentResult.detailed_analysis,
+      remedial_action: studentResult.remedial_action  
     };
     
     setSelectedStudentResult(transformedData);
@@ -680,13 +682,13 @@ const ExamAnalytics = () => {
                 <button className="modal-close-btn" onClick={handleCloseStudentDetails}>✕</button>
               </div>
               <div className="modal-body">
-                <StudentExamDetails 
-                  studentResultId={selectedStudentResult.result_id}
-                  studentName={selectedStudentResult.student_fullname || selectedStudentResult.student_name}
-                  examName={selectedExam.name}
-                  isTeacherView={true}
-                  summaryData={selectedStudentResult}
-                />
+              <StudentExamDetails 
+                studentResultId={selectedStudentResult.result_id}
+                studentName={selectedStudentResult.student_fullname}  // ← FIXED!
+                examName={selectedExam.name}
+                isTeacherView={true}
+                summaryData={selectedStudentResult}  // ← FIXED!
+              />
               </div>
 <div className="modal-footer">
   <button 

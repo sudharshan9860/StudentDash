@@ -1,3 +1,4 @@
+// src/components/SolveQuestion.jsx
 import React, { useState, useContext, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Form, Button, Spinner, Alert, Row, Col } from "react-bootstrap";
@@ -82,6 +83,12 @@ function SolveQuestion() {
     return stored === null ? false : stored === "true";
   });
   const [isContextExpanded, setIsContextExpanded] = useState(false);
+
+  // JEE-specific states
+const [jeeQuestionType, setJeeQuestionType] = useState(null);
+const [selectedOption, setSelectedOption] = useState(null);
+const [numericalAnswer, setNumericalAnswer] = useState('');
+const [mcqOptions, setMcqOptions] = useState([]);
 
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -251,6 +258,23 @@ function SolveQuestion() {
         question_id: location.state?.question_id || newQuestionId,
         context: location.state?.context || null
       };
+
+      const jeeType = location.state?.jeeQuestionType;
+      if (jeeType) {
+        setJeeQuestionType(jeeType);
+        console.log("📐 JEE Question Type:", jeeType);
+        
+        if (jeeType === 'mcq' && location.state.question) {
+          const options = parseMCQOptions(location.state.question);
+          setMcqOptions(options);
+          console.log("✅ Parsed options:", options);
+        }
+      } else {
+        setJeeQuestionType(null);
+        setSelectedOption(null);
+        setNumericalAnswer('');
+        setMcqOptions([]);
+      }
 
       // Prepare metadata for API calls
       const metadata = {
@@ -435,6 +459,19 @@ function SolveQuestion() {
     formData.append("study_time_seconds", Math.floor((timeSpentMs % 60000) / 1000));
     formData.append("study_time_minutes", timeSpentMinutes);
     formData.append("question_id", currentQuestion.question_id || currentQuestion.id);
+
+    if (jeeQuestionType === 'mcq') {
+      formData.append("jee_question_type", "mcq");
+      formData.append("selected_option", selectedOption);
+      console.log("📐 MCQ - Selected:", selectedOption);
+    } else if (jeeQuestionType === 'nvtq') {
+      formData.append("jee_question_type", "nvtq");
+      formData.append("numerical_answer", numericalAnswer);
+      console.log("📐 NVTQ - Answer:", numericalAnswer);
+    } else if (jeeQuestionType === 'theorem') {
+      formData.append("jee_question_type", "theorem");
+      console.log("📐 THEOREM - Image required");
+    }
     // console.log("time in minutes :",timeSpentMinutes);
     // console.log("time spent in seconds :",Math.floor((timeSpentMs % 60000) / 1000));
 
@@ -754,6 +791,41 @@ function SolveQuestion() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount/unmount
 
+    const parseMCQOptions = (questionText) => {
+      const options = [];
+      const optionRegex = /\(([a-d])\)\s*([^\(]+?)(?=\([a-d]\)|$)/gi;
+      
+      let match;
+      while ((match = optionRegex.exec(questionText)) !== null) {
+        let cleanText = match[2]
+          .replace(/\\/g, '')      // ← Remove backslashes
+          .replace(/\s+/g, ' ')    // ← Clean spaces
+          .trim();
+        
+        options.push({
+          key: match[1].toLowerCase(),
+          text: cleanText
+        });
+      }
+      
+      return options;
+    };
+
+    // Remove MCQ options from question text so they don't appear twice
+    const removeOptionsFromQuestion = (questionText) => {
+      const optionStartIndex = questionText.search(/\(a\)\s*/i);
+      
+      if (optionStartIndex > 0) {
+        let cleanText = questionText.substring(0, optionStartIndex);
+        // Remove ALL backslashes (not just at the end)
+        cleanText = cleanText.replace(/\\/g, '').trim();
+        return cleanText;
+      }
+      
+      // Also remove all backslashes if no options found
+      return questionText.replace(/\\/g, '').trim();
+    };
+
   return (
     <div className={`solve-question-wrapper ${isDarkMode ? 'dark-mode' : ''}`}>
       {/* Animated Background with floating math/science symbols */}
@@ -860,7 +932,205 @@ function SolveQuestion() {
                 className="question-image"
               />
             )}
-            <div className="question-text"><MarkdownWithMath content={currentQuestion.question} /></div>
+            <div className="question-text">
+              <MarkdownWithMath 
+                content={
+                  jeeQuestionType === 'mcq' 
+                    ? removeOptionsFromQuestion(currentQuestion.question)
+                    : currentQuestion.question
+                } 
+              />
+            </div>            
+            {/* ✅ ADD MCQ OPTIONS HERE */}
+            {jeeQuestionType === 'mcq' && mcqOptions.length > 0 && (
+              <div style={{
+                marginTop: '24px',
+                marginBottom: '24px',
+                padding: '20px',
+                background: isDarkMode 
+                  ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' 
+                  : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                borderRadius: '12px',
+                border: `2px solid ${isDarkMode ? '#475569' : '#e2e8f0'}`,
+                boxShadow: isDarkMode 
+                  ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' 
+                  : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '16px',
+                  paddingBottom: '12px',
+                  borderBottom: `2px solid ${isDarkMode ? '#334155' : '#e5e7eb'}`,
+                }}>
+                  <span style={{ fontSize: '24px', marginRight: '10px' }}>📝</span>
+                  <h6 style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    margin: 0,
+                    color: isDarkMode ? '#f1f5f9' : '#1e293b',
+                    letterSpacing: '0.5px',
+                  }}>
+                    Select Your Answer
+                  </h6>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {mcqOptions.map((option) => (
+                    <label
+                      key={option.key}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '14px 16px',
+                        background: selectedOption === option.key
+                          ? (isDarkMode ? 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)')
+                          : (isDarkMode ? '#1e293b' : '#ffffff'),
+                        color: selectedOption === option.key ? '#ffffff' : (isDarkMode ? '#f1f5f9' : '#1f2937'),
+                        borderRadius: '8px',
+                        border: `2px solid ${selectedOption === option.key ? (isDarkMode ? '#a78bfa' : '#818cf8') : (isDarkMode ? '#374151' : '#d1d5db')}`,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: selectedOption === option.key ? (isDarkMode ? '0 4px 12px rgba(124, 58, 237, 0.4)' : '0 4px 12px rgba(102, 126, 234, 0.3)') : 'none',
+                        transform: selectedOption === option.key ? 'translateX(4px)' : 'translateX(0)',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedOption !== option.key) {
+                          e.currentTarget.style.borderColor = isDarkMode ? '#6366f1' : '#818cf8';
+                          e.currentTarget.style.transform = 'translateX(2px)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedOption !== option.key) {
+                          e.currentTarget.style.borderColor = isDarkMode ? '#374151' : '#d1d5db';
+                          e.currentTarget.style.transform = 'translateX(0)';
+                        }
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="mcq-option"
+                        value={option.key}
+                        checked={selectedOption === option.key}
+                        onChange={() => {
+                          setSelectedOption(option.key);
+                          console.log("✅ Selected:", option.key);
+                        }}
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          marginRight: '12px',
+                          cursor: 'pointer',
+                          accentColor: isDarkMode ? '#7c3aed' : '#667eea',
+                        }}
+                      />
+                    <div style={{
+                      fontSize: '16px',
+                      fontWeight: selectedOption === option.key ? '600' : '400',
+                      lineHeight: '1.5',
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}>
+                      <span style={{ fontWeight: '700', minWidth: '30px' }}>({option.key})</span>
+                      <MarkdownWithMath content={option.text} />
+                    </div>
+                    </label>
+                  ))}
+                </div>
+                
+                {selectedOption && (
+                  <div style={{
+                    marginTop: '16px',
+                    padding: '12px 16px',
+                    background: isDarkMode ? 'rgba(34, 197, 94, 0.1)' : '#dcfce7',
+                    borderLeft: `4px solid ${isDarkMode ? '#22c55e' : '#16a34a'}`,
+                    borderRadius: '8px',
+                    color: isDarkMode ? '#86efac' : '#16a34a',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}>
+                    <span>✅</span>
+                    <span>Selected: Option ({selectedOption.toUpperCase()})</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* ✅ ADD NVTQ INPUT HERE */}
+            {jeeQuestionType === 'nvtq' && (
+              <div style={{
+                marginTop: '20px',
+                marginBottom: '20px',
+                padding: '16px',
+                background: isDarkMode ? '#1e293b' : '#f8fafc',
+                borderRadius: '8px',
+                border: `2px solid ${isDarkMode ? '#475569' : '#e2e8f0'}`,
+              }}>
+                <h6 style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  marginBottom: '12px',
+                  color: isDarkMode ? '#f1f5f9' : '#1e293b',
+                }}>
+                  🔢 Enter Your Numerical Answer
+                </h6>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: isDarkMode ? '#94a3b8' : '#64748b',
+                  }}>
+                    Answer:
+                  </span>
+                  
+                  <input
+                    type="text"
+                    value={numericalAnswer}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
+                        setNumericalAnswer(value);
+                        console.log("📝 Answer:", value);
+                      }
+                    }}
+                    placeholder="Write Your Answer Here"
+                    style={{
+                      flex: 1,
+                      padding: '12px 20px',
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      background: isDarkMode ? '#334155' : '#ffffff',
+                      color: isDarkMode ? '#f1f5f9' : '#1e293b',
+                      border: `2px solid ${numericalAnswer ? (isDarkMode ? '#7c3aed' : '#667eea') : (isDarkMode ? '#475569' : '#e2e8f0')}`,
+                      borderRadius: '6px',
+                      outline: 'none',
+                      textAlign: 'center',
+                    }}
+                  />
+                </div>
+                
+                {numericalAnswer && (
+                  <div style={{
+                    marginTop: '10px',
+                    padding: '10px',
+                    background: isDarkMode ? '#22c55e20' : '#dcfce7',
+                    borderRadius: '6px',
+                    color: isDarkMode ? '#86efac' : '#16a34a',
+                    fontSize: '14px',
+                    textAlign: 'center',
+                  }}>
+                    ✅ Your answer: {numericalAnswer}
+                  </div>
+                )}
+              </div>
+            )}
+            
             <div className="mt-2">
               <Form.Check
                 type="switch"
@@ -1109,8 +1379,13 @@ function SolveQuestion() {
                 variant="primary"
                 onClick={handleCorrect}
                 className="w-100 btn-correct"
-                disabled={images.length === 0 || isAnyButtonProcessing()}
-              >
+                disabled={
+                  (jeeQuestionType === 'mcq' && !selectedOption) ||
+                  (jeeQuestionType === 'nvtq' && !numericalAnswer.trim()) ||
+                  (jeeQuestionType === 'theorem' && images.length === 0) ||
+                  (!jeeQuestionType && images.length === 0) ||
+                  isAnyButtonProcessing()
+                }              >
                 {isButtonProcessing("correct") ? (
                   <>
                     <Spinner

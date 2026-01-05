@@ -66,6 +66,18 @@ const AppRoutes = () => {
           }
         />
 
+        {/* NEW JEE dashboard route */}
+        <Route
+          path="/jee-dashboard"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <StudentDash jeeMode={true} />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/teacher-dash"
           element={

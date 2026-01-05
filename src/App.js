@@ -15,7 +15,7 @@ import { TutorialProvider } from "./contexts/TutorialContext";
 import { TimerProvider } from "./contexts/TimerContext";
 import { MascotProvider } from "./contexts/MascotContext";
 import MascotPreloader from "./components/MascotPreloader";
-
+import { JeeModeProvider } from './contexts/JeeModeContext';
 import RouteTracker from "./components/RouteTracker";
 
 // Wrapper component to use location hook
@@ -41,6 +41,7 @@ function AppContent() {
 
 function App() {
   return (
+  <JeeModeProvider>
     <AuthProvider>
       <NotificationProvider>
         <ProgressProvider>
@@ -68,6 +69,7 @@ function App() {
         </ProgressProvider>
       </NotificationProvider>
     </AuthProvider>
+  </JeeModeProvider>
   );
 }
 export default App;

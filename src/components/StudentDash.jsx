@@ -1,4 +1,3 @@
-// Enhanced StudentDash.jsx - Modern Design with Better UX and Chapter Debugging - FIXED
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import 'katex/dist/katex.min.css';
 import { Form, Button, Row, Col, Container } from "react-bootstrap";
@@ -10,6 +9,7 @@ import Select from "react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AuthContext } from "./AuthContext";
 import { useAlert } from './AlertBox';
+import { useJeeMode } from '../contexts/JeeModeContext';
 import {
   faSchool,
   faBookOpen,
@@ -42,8 +42,7 @@ import { useTutorial } from "../contexts/TutorialContext";
 import ProgressGraph from "./ProgressGraph";
 import ProgressComparison from "./ProgressComparison"
 
-function StudentDash() {
-  const navigate = useNavigate();
+function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
   const { username, fullName, role } = useContext(AuthContext);
   const { showAlert, AlertContainer } = useAlert();
 
@@ -181,6 +180,14 @@ function StudentDash() {
     // Don't mark as complete yet - will continue to next page when user clicks generate
   };
 
+  // JEE Mode Context
+    const { isJeeMode, setIsJeeMode } = useJeeMode();
+
+    // Set JEE mode based on prop
+    useEffect(() => {
+      setIsJeeMode(jeeMode);
+      console.log(`🎯 Dashboard Mode: ${jeeMode ? 'JEE' : 'Board'}`);
+    }, [jeeMode, setIsJeeMode]);
 
   // Apply dark mode on component mount
   useEffect(() => {
@@ -386,9 +393,23 @@ const isGenerateButtonEnabled = () => {
         // console.log("🔍 Fetching classes...");
         const classResponse = await axiosInstance.get("/classes/");
         // console.log("📋 Classes API Response:", classResponse.data);
-
         const classesData = classResponse.data.data;
-        setClasses(classesData);
+
+      // Filter classes based on mode
+      let filteredClasses = classesData;
+
+        if (isJeeMode) {
+        // JEE Mode: Only classes 11 and 12
+        filteredClasses = classesData.filter(cls => {
+          const className = cls.class_name.toLowerCase();
+          return className.includes('11') || className.includes('12');
+        });
+        console.log("📐 JEE Mode - Classes:", filteredClasses.map(c => c.class_name));
+      } else {
+        // Board Mode: All classes
+        console.log("📚 Board Mode - Classes:", filteredClasses.map(c => c.class_name));
+      }
+        setClasses(filteredClasses);
 
         // Set default class based on username
         const defaultClass = extractClassFromUsername(username);
@@ -410,7 +431,7 @@ const isGenerateButtonEnabled = () => {
       }
     }
     fetchData();
-  }, [username]);
+  }, [username, isJeeMode]);
 
   // Fetch subjects and set default with enhanced debugging
   useEffect(() => {
@@ -426,17 +447,46 @@ const isGenerateButtonEnabled = () => {
           // console.log("📚 Subjects API Response:", subjectResponse.data);
 
           const subjectsData = subjectResponse.data.data;
-          setSubjects(subjectsData);
 
-          // Set default subject to Mathematics
-          const mathSubject = subjectsData.find(subject =>
-            subject.subject_name.toLowerCase().includes('math')
-          );
-          if (mathSubject) {
-            setSelectedSubject(mathSubject.subject_code);
-            // console.log("📐 Auto-selected Math subject:", mathSubject);
+          // Filter subjects based on mode
+          let filteredSubjects = subjectsData;
+
+          if (isJeeMode) {
+            // JEE Mode: Only JEE subjects
+            filteredSubjects = subjectsData.filter(subject => {
+              const sn = subject.subject_name.toLowerCase();
+              return sn.includes('jee') || 
+                    sn.includes('mathematics_mains') ||
+                    sn.includes('mathematics_advanced') ||
+                    sn.includes('physics_mains') ||
+                    sn.includes('chemistry_mains');
+            });
+            console.log("📐 JEE Subjects:", filteredSubjects.map(s => s.subject_name));
           } else {
-            // console.log("⚠ No Math subject found, available subjects:", subjectsData);
+            // Board Mode: Exclude JEE subjects
+            filteredSubjects = subjectsData.filter(subject => {
+              const sn = subject.subject_name.toLowerCase();
+              return !(sn.includes('jee') || 
+                      sn.includes('mathematics_mains') ||
+                      sn.includes('mathematics_advanced') ||
+                      sn.includes('physics_mains') ||
+                      sn.includes('chemistry_mains'));
+            });
+            console.log("📚 Board Subjects:", filteredSubjects.map(s => s.subject_name));
+          }
+
+          setSubjects(filteredSubjects);
+
+          // Set default subject
+          if (filteredSubjects.length > 0) {
+            const mathSubject = filteredSubjects.find(subject =>
+              subject.subject_name.toLowerCase().includes('math')
+            );
+            if (mathSubject) {
+              setSelectedSubject(mathSubject.subject_code);
+            } else {
+              setSelectedSubject(filteredSubjects[0].subject_code);
+            }
           }
 
           // Reset dependent fields
@@ -452,7 +502,7 @@ const isGenerateButtonEnabled = () => {
       }
     }
     fetchSubjects();
-  }, [selectedClass]);
+  }, [selectedClass, isJeeMode]);
 
   // Fetch chapters with comprehensive debugging - FIXED
   useEffect(() => {
@@ -705,6 +755,7 @@ else if (isJEESubject()) {
       image,
       context: context || null,
       selectedQuestions: selectedQuestions,
+      jeeQuestionType: isJEESubject() ? questionType : null,
     };
 
     // Save session before navigating
@@ -745,6 +796,7 @@ else if (isJEESubject()) {
       image: firstQuestion.image,
       context: firstQuestion.context || null,
       selectedQuestions: selectedQuestionsData,
+      jeeQuestionType: isJEESubject() ? questionType : null, 
     };
 
     // Save session before navigating
@@ -929,31 +981,26 @@ else if (isJEESubject()) {
       <div className={`student-dash-wrapper ${isDarkMode ? 'dark-mode' : ''}`}>
         {/* Main Content - Sidebar removed (now in Layout.jsx) */}
         <div className="main-content-fixed ">
-          {/* Enhanced Greeting Header with Dynamic Content & Dark Mode Toggle */}
-          {/* <div className="greeting-header dashboard-grid-layout">
-            
-          </div> */}
-
-          {/* Enhanced Motivational Quote */}
-          {/* <div className="motivational-quote">
-          <FontAwesomeIcon icon={faMagic} className="quote-icon" />
-          <div className="quote-content">
-            <h3>"Mathematics is not about numbers, equations, or algorithms: it is about understanding!"</h3>
-            <p>— William Paul Thurston</p>
-          </div>
-        </div> */}
-
           <Container className="py-4">
             {/* 3:1 Grid Layout - Main Content and Right Sidebar */}
             <div className="dashboard-grid-layout">
               {/* Left Side - Main Content (3 parts) */}
               <div className="dashboard-main-content">
                 <div className="greeting-content">
-                  <div className="greeting-text">
-                    <h1>
-                      {getTimeBasedGreeting()}, {localStorage.getItem("fullName") || username}! 👋
-                    </h1>
-                  </div>
+                <div className="greeting-text">
+                  <h1>
+                    {getTimeBasedGreeting()}, {localStorage.getItem("fullName") || username}! 👋
+                  </h1>
+                  <p style={{ 
+                    fontSize: '14px', 
+                    color: isJeeMode ? '#7c3aed' : '#667eea',
+                    fontWeight: '600',
+                    marginTop: '8px',
+                    marginBottom: '0'
+                  }}>
+                    {isJeeMode ? '🎯 JEE Preparation Mode' : '📚 Board Exam Mode'}
+                  </p>
+                </div>
                   <div className="current-date-wrapper">
                     <div className="current-date">
                       <span className="date-label">Today</span>
@@ -1015,14 +1062,6 @@ else if (isJEESubject()) {
 
                 {/* Enhanced Learning Adventure Section */}
                 <div className="learning-adventure-section">
-                  {/* <div className="section-header">
-              <h2>
-                <FontAwesomeIcon icon={faRocket} className="me-2" />
-                🚀 Start Your Learning Adventure
-              </h2>
-              <p>Select your preferences and let's begin this exciting mathematical journey!</p>
-            </div> */}
-
                   <div className="form-container">
                     <Form onSubmit={handleSubmit}>
                       <Row className="form-row">
@@ -1212,15 +1251,6 @@ else if (isJEESubject()) {
 
                             {/* Enhanced action buttons */}
                             <div className="mt-2 d-flex gap-2 flex-wrap">
-                              {/* <Button
-          variant="outline-primary"
-          size="sm"
-          onClick={() => setSelectedChapters(chapters.map(ch => ch.topic_code))}
-          disabled={!chapters.length}
-          style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '6px' }}
-        >
-          Select All ({chapters.length})
-        </Button> */}
                               <Button
                                 variant="outline-secondary"
                                 size="sm"
@@ -1230,18 +1260,6 @@ else if (isJEESubject()) {
                               >
                                 Clear ({selectedChapters.length})
                               </Button>
-                              {/* <Button
-          variant="outline-info"
-          size="sm"
-          onClick={() => {
-            // console.log("📊 Chapter Debug Info:");
-            // console.log("Total chapters loaded:", chapters.length);
-            // console.log("Chapters:", chapters.map(ch => ch.name));
-            // console.log("Selected chapters:", selectedChapters.length);
-          }}
-          style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '6px' }}
-        >
-        </Button> */}
                             </div>
 
 
@@ -1311,41 +1329,6 @@ else if (isJEESubject()) {
 </Form.Group>
                         </Col>
                       </Row>
-
-                      {/* Debug info - Remove after confirming all chapters work
-{chapters.length > 0 && (
-  <div style={{ 
-    background: '#e8f5e8', 
-    padding: '15px', 
-    borderRadius: '8px', 
-    margin: '15px 0',
-    fontSize: '14px',
-    border: '1px solid #4ade80'
-  }}>
-    <strong>✅ Chapter Status:</strong>
-    <br />• <strong>Total Loaded:</strong> {chapters.length} chapters
-    <br />• <strong>Currently Selected:</strong> {selectedChapters.length} chapters
-    <br />• <strong>Available Chapters:</strong>
-    <div style={{ 
-      maxHeight: '120px', 
-      overflow: 'auto', 
-      marginTop: '8px',
-      fontSize: '12px',
-      background: 'white',
-      padding: '8px',
-      borderRadius: '4px'
-    }}>
-      {chapters.map((ch, idx) => (
-        <div key={ch.topic_code} style={{ 
-          color: selectedChapters.includes(ch.topic_code) ? '#059669' : '#374151',
-          fontWeight: selectedChapters.includes(ch.topic_code) ? 'bold' : 'normal'
-        }}>
-          {idx + 1}. {ch.name} {selectedChapters.includes(ch.topic_code) ? '✓' : ''}
-        </div>
-      ))}
-    </div>
-  </div>
-)} */}
 
                       {/* Only show this for non-Science subjects with external question type */}
                     {!isScienceSubject() && questionType === "external" && (

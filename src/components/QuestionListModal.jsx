@@ -1,3 +1,4 @@
+// src/components/QuestionListModal.jsx
 import React, { useState } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +9,106 @@ import { faClipboardCheck, faCheckCircle, faBookOpenReader, faQuestionCircle } f
 import { useAlert } from './AlertBox';
 import Tutorial from './Tutorial';
 import { useTutorial } from '../contexts/TutorialContext';
+
+// ✅ ADD THESE 3 FUNCTIONS
+// ✅ FIXED VERSION - Replace your existing parseMCQOptions function with this one
+
+const parseMCQOptions = (questionText) => {
+  if (!questionText || typeof questionText !== 'string') return [];
+  
+  const optionsMap = new Map(); // Use Map to automatically deduplicate by key
+  
+  // Split by \\\n delimiter
+  if (questionText.includes('\\\\\\n')) {
+    const parts = questionText.split('\\\\\\n');
+    
+    parts.forEach(part => {
+      const trimmed = part.trim();
+      const match = /^\(([a-d])\)\s*(.+)$/i.exec(trimmed);
+      if (match) {
+        const key = match[1].toLowerCase();
+        
+        // Only add if this key hasn't been seen before
+        if (!optionsMap.has(key)) {
+          // Clean the option text - remove trailing backslashes
+          let optionText = match[2].trim();
+          // Remove trailing backslash(es)
+          optionText = optionText.replace(/\\+$/, '');
+          // Remove any remaining escaped characters
+          optionText = optionText.replace(/\\/g, '');
+          
+          optionsMap.set(key, optionText);
+        }
+      }
+    });
+    
+    if (optionsMap.size > 0) {
+      // Convert Map to array of objects
+      return Array.from(optionsMap.entries()).map(([key, text]) => ({
+        key,
+        text
+      }));
+    }
+  }
+  
+  // Fallback to regex
+  const optionRegex = /\(([a-d])\)\s*([^\(]+?)(?=\([a-d]\)|$)/gi;
+  let match;
+  while ((match = optionRegex.exec(questionText)) !== null) {
+    const key = match[1].toLowerCase();
+    
+    // Only add if this key hasn't been seen before
+    if (!optionsMap.has(key)) {
+      let optionText = match[2].replace(/\\\\/g, '').replace(/\s+/g, ' ').trim();
+      optionText = optionText.replace(/\\+$/, ''); // Remove trailing backslashes
+      optionText = optionText.replace(/\\/g, ''); // Remove all backslashes
+      
+      optionsMap.set(key, optionText);
+    }
+  }
+  
+  // Convert Map to array of objects
+  return Array.from(optionsMap.entries()).map(([key, text]) => ({
+    key,
+    text
+  }));
+};
+
+// Keep the other two functions the same
+const removeOptionsFromQuestion = (questionText) => {
+  if (!questionText || typeof questionText !== 'string') return '';
+  
+  // Split by \\\n and return first part (question)
+  if (questionText.includes('\\\\\\n')) {
+    const parts = questionText.split('\\\\\\n');
+    let cleanQuestion = parts[0].trim();
+    // Remove trailing backslashes from question
+    cleanQuestion = cleanQuestion.replace(/\\+$/, '');
+    return cleanQuestion;
+  }
+  
+  // Fallback: find where (a) starts
+  const optionStartIndex = questionText.search(/\(a\)\s*/i);
+  if (optionStartIndex > 0) {
+    let cleanQuestion = questionText.substring(0, optionStartIndex).trim();
+    cleanQuestion = cleanQuestion.replace(/\\+$/, '');
+    return cleanQuestion;
+  }
+  
+  return questionText.trim();
+};
+
+const hasMCQOptions = (questionText) => {
+  if (!questionText) return false;
+  
+  // Check for \\\n delimiter format
+  if (questionText.includes('\\\\\\n(a)') || questionText.includes('\\\\\\n(b)')) {
+    return true;
+  }
+  
+  // Check for standard (a) pattern
+  return /\(a\)\s*/.test(questionText);
+};
 
 const QuestionListModal = ({
   show,
@@ -197,16 +298,76 @@ const handleQuestionClick = (questionData, index) => {
     onHide();
   };
 
-  // Render question content
-  const renderQuestionContent = (questionData) => {
-    if (typeof questionData.question === 'string') {
-      return <MarkdownWithMath content={questionData.question} />;
-    } else if (typeof questionData.question === 'object' && questionData.question.text) {
-      return <MarkdownWithMath content={questionData.question.text} />;
-    } else {
-      return <span>{JSON.stringify(questionData.question)}</span>;
-    }
-  };
+  const renderQuestionContent = (questionData, questionIndex) => {  let questionText = '';
+  
+  // Add console log to see full data
+  console.log('Full question data:', questionData);
+  
+  if (typeof questionData.question === 'string') {
+    questionText = questionData.question;
+    console.log('Question text length:', questionText.length);
+    console.log('Full question text:', questionText);
+  } else if (typeof questionData.question === 'object' && questionData.question.text) {
+    questionText = questionData.question.text;
+  } else {
+    return <span>{JSON.stringify(questionData.question)}</span>;
+  }
+
+  const isMCQ = hasMCQOptions(questionText);
+  console.log('Is MCQ?', isMCQ);
+
+  if (isMCQ) {
+    const options = parseMCQOptions(questionText);
+    const cleanQuestionText = removeOptionsFromQuestion(questionText);
+    
+    console.log('Clean question:', cleanQuestionText);
+    console.log('Parsed options:', options);
+
+    return (
+      <div className="mcq-preview">
+        <div style={{ marginBottom: '10px', fontWeight: '500' }}>
+          <MarkdownWithMath content={cleanQuestionText} />
+        </div>
+        
+        {options.length > 0 && (
+          <div style={{
+            marginTop: '12px',
+            paddingLeft: '8px',
+            background: 'rgba(0, 193, 212, 0.05)',
+            padding: '10px',
+            borderRadius: '6px',
+            borderLeft: '3px solid rgba(0, 193, 212, 0.3)',
+          }}>
+            {options.map((option) => (
+              <div key={`${questionIndex}-${option.key}`} style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '6px',
+                marginBottom: '6px',
+                fontSize: '14px',
+                lineHeight: '1.5',
+              }}>
+                <span style={{ 
+                  fontWeight: '600',
+                  minWidth: '28px',
+                  flexShrink: 0,
+                  color: '#555',
+                }}>
+                  ({option.key})
+                </span>
+                <div style={{ flex: 1 }}>
+                  <MarkdownWithMath content={option.text} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return <MarkdownWithMath content={questionText} />;
+};
 
   // Determine if we're in teacher mode with worksheet
   const isTeacherMode = window.location.pathname.includes('teacher-dash');
@@ -276,7 +437,7 @@ const handleQuestionClick = (questionData, index) => {
                   <div className="question-number">{index + 1}</div>
                   <div className="question-content">
                     <div className="question-text">
-                      {renderQuestionContent(questionData)}
+                      {renderQuestionContent(questionData, index)}                    
                     </div>
 
                     {questionData.context && (

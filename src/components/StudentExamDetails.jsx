@@ -68,13 +68,16 @@ const StudentExamDetails = ({
       // If summaryData is provided, use it directly
       if (summaryData) {
         console.log('Using summary data from student-results API');
+        console.log('student_fullname:', summaryData.student_fullname);  // ADD DEBUG
+        console.log('student_name:', summaryData.student_name);          // ADD DEBUG
+        console.log('roll_number:', summaryData.roll_number); 
         
         const strengthsArray = normalizeToArray(summaryData.strengths);
         const improvementsArray = normalizeToArray(summaryData.areas_for_improvement);
 
         setExamMetadata({
-          studentName: studentName || summaryData.student_name || 'Student',
-          rollNumber: summaryData.roll_number || 'N/A',
+          studentName: summaryData.student_fullname || summaryData.student_name || studentName || 'Student',
+          rollNumber: summaryData.student_name || summaryData.roll_number || 'N/A',
           examName: examName || summaryData.exam_name || 'Exam',
           examType: summaryData.exam_type || 'N/A',
           classSection: summaryData.class_section || 'N/A',
@@ -83,7 +86,14 @@ const StudentExamDetails = ({
           percentage: summaryData.overall_percentage || 0,
           grade: summaryData.grade || 'N/A',
           strengths: strengthsArray,
-          improvements: improvementsArray
+          improvements: improvementsArray,
+          remedialAction: summaryData.remedial_action || null,  // ← NEW! Add remedial action
+          detailedAnalysis: summaryData.detailed_analysis || null  // ← ADD THIS LINE
+        });
+          // ADD DEBUG LOG
+        console.log('Exam Metadata Set:', {
+          studentName: summaryData.student_fullname || summaryData.student_name || studentName,
+          rollNumber: summaryData.student_name || summaryData.roll_number
         });
       } else {
         // Fallback: Calculate from questions
@@ -106,19 +116,21 @@ const StudentExamDetails = ({
         const improvements = extractImprovements(questionsArray);
 
         setExamMetadata({
-          studentName: studentName || 'Student',
-          rollNumber: data.roll_number || 'N/A',
-          examName: examName || data.exam_name || 'Exam',
-          examType: data.exam_type || 'N/A',
-          classSection: data.class_section || 'N/A',
-          totalMarks: totalMarksObtained,
-          maxMarks: totalMaxMarks,
-          percentage: overallPercentage,
-          grade: grade,
-          strengths: strengths,
-          improvements: improvements
-        });
-      }
+            studentName: data.student_fullname || studentName || 'Student',  // ← FIXED!
+            rollNumber: data.student_name || data.roll_number || 'N/A',      // ← FIXED!
+            examName: examName || data.exam_name || 'Exam',
+            examType: data.exam_type || 'N/A',
+            classSection: data.class_section || 'N/A',
+            totalMarks: totalMarksObtained,
+            maxMarks: totalMaxMarks,
+            percentage: overallPercentage,
+            grade: grade,
+            strengths: strengths,
+            improvements: improvements,
+            remedialAction: data.remedial_action || null,  // ← NEW!
+            detailedAnalysis: data.detailed_analysis || null  // ← ADD THIS LINE
+          });
+        }
 
       setQuestionDetails(questionsArray);
       
@@ -250,15 +262,21 @@ const handleDownloadPDF = () => {
     doc.text('Exam Overview', 25, currentY + 5.5);
     doc.setTextColor(0, 0, 0);
     currentY += 12;
-    
-    // Overview content box
+
+    // Overview content box (INCREASED HEIGHT to accommodate new fields)
     doc.setDrawColor(209, 213, 219);
     doc.setLineWidth(0.5);
-    doc.rect(20, currentY, pageWidth - 40, 32, 'S');
-    
+    doc.rect(20, currentY, pageWidth - 40, 42, 'S'); 
+
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     currentY += 6;
+    doc.text(`Student Name: ${examMetadata.studentName || 'N/A'}`, 25, currentY);
+    currentY += 5;
+    doc.text(`Roll Number: ${examMetadata.rollNumber || 'N/A'}`, 25, currentY);
+    currentY += 5;
+
+    // EXISTING FIELDS
     doc.text(`Exam Type: ${examMetadata.examType}`, 25, currentY);
     currentY += 5;
     doc.text(`Class/Section: ${examMetadata.classSection}`, 25, currentY);
@@ -267,7 +285,7 @@ const handleDownloadPDF = () => {
     currentY += 5;
     doc.text(`Percentage: ${examMetadata.percentage.toFixed(1)}%`, 25, currentY);
     currentY += 5;
-    
+
     const perfLevel = examMetadata.percentage >= 90 ? 'Excellent' :
                       examMetadata.percentage >= 75 ? 'Good' :
                       examMetadata.percentage >= 60 ? 'Average' :
@@ -482,13 +500,15 @@ const handleDownloadPDF = () => {
       
       // Determine status
       let status = 'Incorrect';
-      let statusColor = [239, 68, 68];
-      if (errorType === 'no_error') {
+      let statusColor = [239, 68, 68]; // Red
+
+      if (score === maxMarks && maxMarks > 0) {
         status = 'Correct';
-        statusColor = [16, 185, 129];
-      } else if (percentage >= 50) {
+        statusColor = [16, 185, 129]; // Green
+      }
+      else if (score > 0 && score < maxMarks) {
         status = 'Partially Correct';
-        statusColor = [245, 158, 11];
+        statusColor = [245, 158, 11]; // Orange
       }
       
       // Better space estimation (REDUCED)
@@ -524,7 +544,7 @@ const handleDownloadPDF = () => {
       // ========================================
       // QUESTION TEXT (if exists)
       // ========================================
-      if (question.question_text && question.question_text !== 'N/A') {
+      if (question.question && question.question !== 'N/A') {  // ← FIXED! Use "question" not "question_text"
         checkPageSpace(15);
         
         doc.setFillColor(243, 244, 246);
@@ -538,7 +558,7 @@ const handleDownloadPDF = () => {
         
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        const cleanedQuestion = cleanLatex(question.question_text);
+        const cleanedQuestion = cleanLatex(question.question);  // ← FIXED! Use "question" not "question_text"
         const questionLines = doc.splitTextToSize(cleanedQuestion, pageWidth - 40);
         questionLines.forEach(line => {
           checkPageSpace(4);
@@ -678,19 +698,111 @@ const handleDownloadPDF = () => {
       }
     });
     
+    // ========================================
+    // REMEDIAL ACTION SECTION (NEW)
+    // ========================================
+    if (examMetadata.remedialAction && examMetadata.remedialAction.trim() !== '') {
+      checkPageSpace(40);
+      
+      // Add some space before section
+      currentY += 5;
+      
+      // Section title with background
+      doc.setFillColor(254, 243, 199); // Light yellow/orange (similar to Areas for Improvement)
+      doc.rect(10, currentY - 5, pageWidth - 20, 12, 'F');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(146, 64, 14); // Brown/orange text
+      doc.text('Remedial Action', pageWidth / 2, currentY + 2, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+      currentY += 12;
+      
+      // Content box with border
+      const startY = currentY;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const remedialLines = doc.splitTextToSize(examMetadata.remedialAction, pageWidth - 40);
+      
+      // Calculate box height
+      const contentHeight = remedialLines.length * 5 + 10;
+      
+      // Draw border
+      doc.setDrawColor(251, 191, 36); // Yellow/orange border
+      doc.setLineWidth(0.5);
+      doc.rect(15, startY, pageWidth - 30, contentHeight, 'S');
+      
+      currentY += 5;
+      
+      // Add content
+      remedialLines.forEach(line => {
+        checkPageSpace(5);
+        doc.text(line, 20, currentY);
+        currentY += 5;
+      });
+      
+      currentY += 8;
+    }
+
+    // ========================================
+    // OVERALL PERFORMANCE ANALYSIS SECTION (NEW!)
+    // ========================================
+    if (examMetadata.detailedAnalysis && examMetadata.detailedAnalysis.trim() !== '') {
+      checkPageSpace(40);
+      
+      currentY += 5;
+      
+      // Section title with green background
+      doc.setFillColor(220, 252, 231); // Light green
+      doc.rect(10, currentY - 5, pageWidth - 20, 12, 'F');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(22, 101, 52); // Dark green text
+      doc.text('Overall Performance Analysis', pageWidth / 2, currentY + 2, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+      currentY += 12;
+      
+      // Content box with border
+      const startY = currentY;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const analysisLines = doc.splitTextToSize(examMetadata.detailedAnalysis, pageWidth - 40);
+      
+      // Calculate box height
+      const contentHeight = analysisLines.length * 5 + 10;
+      
+      // Draw green border
+      doc.setDrawColor(34, 197, 94); // Green border
+      doc.setLineWidth(0.5);
+      doc.rect(15, startY, pageWidth - 30, contentHeight, 'S');
+      
+      currentY += 5;
+      
+      // Add content
+      analysisLines.forEach(line => {
+        checkPageSpace(5);
+        doc.text(line, 20, currentY);
+        currentY += 5;
+      });
+      
+      currentY += 8;
+    }
+
+
     // Add page numbers to all pages
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setFont('helvetica', 'italic');
-      doc.setTextColor(107, 114, 128);
+      doc.setTextColor(107, 114, 128); // Gray
       if (i > 1) {
         doc.text(`Generated: ${timestamp} | Page ${i} of ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
       }
       doc.setTextColor(0, 0, 0);
     }
-    
+
     // Save PDF
     const filename = `${examMetadata.examName.replace(/[^a-z0-9]/gi, '_')}_${examMetadata.rollNumber}_Details_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(filename);
@@ -890,6 +1002,19 @@ const getPerformanceLabel = (percentage) => {
               isTeacherView={isTeacherView}
             />
           ))}
+        </div>
+      )}
+
+      {/* Remedial Action Section (NEW) */}
+      {examMetadata?.remedialAction && (
+        <div className="remedial-action-section">
+          <div className="remedial-header">
+            <span className="remedial-icon">💊</span>
+            <h3 className="remedial-title">Remedial Action</h3>
+          </div>
+          <div className="remedial-content">
+            <p className="remedial-text">{examMetadata.remedialAction}</p>
+          </div>
         </div>
       )}
 

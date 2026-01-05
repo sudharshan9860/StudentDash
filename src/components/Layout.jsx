@@ -1,244 +1,245 @@
-import React, { useContext, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+  ///Layout.Jsx
+  import React, { useContext, useState } from 'react';
+  import { useNavigate, useLocation } from 'react-router-dom';
+  import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+  import {
+    faSignOutAlt,
+    faChartLine,
+    faVolumeUp,
+    faVolumeMute,
+    faTrophy,
+    faUser,
+    faGraduationCap,
+    faBell,
+    faBars,
+    faTimes,
+    faHome,
+    faCommentDots,
+    faComments
+  } from '@fortawesome/free-solid-svg-icons';
+  import './Layout.css';
+  import { AuthContext } from './AuthContext';
+  import NotificationDropdown from './NotificationDropdown';
+  import SoundConfigModal from './SoundConfigModal';
+  import { soundManager } from '../utils/SoundManager';
+  import FeedbackBox from './FeedbackBox';
 
-import {
-  faSignOutAlt,
-  faChartLine,
-  faVolumeUp,
-  faVolumeMute,
-  faTrophy,
-  faUser,
-  faGraduationCap,
-  faBell,
-  faBars,
-  faTimes,
-  faHome,
-  faCommentDots,
-  faComments
-} from '@fortawesome/free-solid-svg-icons';
-import './Layout.css';
-import { AuthContext } from './AuthContext';
-import NotificationDropdown from './NotificationDropdown';
-import SoundConfigModal from './SoundConfigModal';
-import { soundManager } from '../utils/SoundManager';
-import FeedbackBox from './FeedbackBox';
+  const Layout = ({ children }) => {
+    const navigate = useNavigate();
+    const currentLocation = useLocation();
+    const { username, logout, role, fullName } = useContext(AuthContext);
+  // const school=localStorage.getItem("school")
 
-const Layout = ({ children }) => {
-  const navigate = useNavigate();
-  const currentLocation = useLocation();
-  const { username, logout, role, fullName } = useContext(AuthContext);
-// const school=localStorage.getItem("school")
+    // Sound configuration state
+    const [showSoundConfig, setShowSoundConfig] = useState(false);
+    const [isSoundEnabled, setIsSoundEnabled] = useState(soundManager.isSoundEnabled);
 
-  // Sound configuration state
-  const [showSoundConfig, setShowSoundConfig] = useState(false);
-  const [isSoundEnabled, setIsSoundEnabled] = useState(soundManager.isSoundEnabled);
+    // Mobile sidebar toggle
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Mobile sidebar toggle
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // Feedback modal state
+    const [showFeedback, setShowFeedback] = useState(false);
 
-  // Feedback modal state
-  const [showFeedback, setShowFeedback] = useState(false);
+    // Check if current route is teacher dashboard
+    const isTeacherDashboard = currentLocation.pathname === '/teacher-dash';
 
-  // Check if current route is teacher dashboard
-  const isTeacherDashboard = currentLocation.pathname === '/teacher-dash';
+    // Get current active tab from URL or location state
+    const getCurrentTab = () => {
+      if (currentLocation.pathname !== '/teacher-dash') return null;
+      if (currentLocation.state?.activeTab) return currentLocation.state.activeTab;
+      const params = new URLSearchParams(currentLocation.search);
+      return params.get('tab') || 'homework';
+    };
 
-  // Get current active tab from URL or location state
-  const getCurrentTab = () => {
-    if (currentLocation.pathname !== '/teacher-dash') return null;
-    if (currentLocation.state?.activeTab) return currentLocation.state.activeTab;
-    const params = new URLSearchParams(currentLocation.search);
-    return params.get('tab') || 'homework';
-  };
+    // Handle navigation for teachers with tab state
+    const handleNavigation  = (link) => {
+      if (role === 'teacher' && link.tabName) {
+        navigate(`/teacher-dash?tab=${link.tabName}`, { state: { activeTab: link.tabName } });
+      } else {
+        navigate(link.path);
+      }
+      setIsSidebarOpen(false);
+    };
 
-  // Handle navigation for teachers with tab state
-  const handleTeacherNavigation = (link) => {
-    if (role === 'teacher' && link.tabName) {
-      navigate(`/teacher-dash?tab=${link.tabName}`, { state: { activeTab: link.tabName } });
-    } else {
-      navigate(link.path);
-    }
-    setIsSidebarOpen(false);
-  };
+    const handleLogout = () => {
+      console.log('Logging out...');
+      logout();
+      navigate('/');
+    };
 
-  const handleLogout = () => {
-    console.log('Logging out...');
-    logout();
-    navigate('/');
-  };
+    // Navigation links based on role
+    const studentLinks = [
+      { path: '/student-dash', label: 'Dashboard', icon: faHome },
+      { path: '/jee-dashboard', label: 'JEE Preparation', icon: faGraduationCap, isJEE: true }, // ← ADD
+      { path: '/exam-mode', label: 'Exam Mode', icon: faGraduationCap },
+      { path: '/analytics', label: 'Analytics', icon: faChartLine },
+      // { path: '/chat', label: 'Chat Rooms', icon: faComments }, // <-- Chat link for students
+    ];
 
-  // Navigation links based on role
-  const studentLinks = [
-    { path: '/student-dash', label: 'Dashboard', icon: faHome },
-    { path: '/exam-mode', label: 'Exam Mode', icon: faGraduationCap },
-    { path: '/analytics', label: 'Analytics', icon: faChartLine },
-    // { path: '/chat', label: 'Chat Rooms', icon: faComments }, // <-- Chat link for students
-  ];
+    const teacherLinks = [
+      { path: '/teacher-dash?tab=exam-correction', label: 'Exam Correction', icon: '📄', tabName: 'exam-correction' },
+      
+      // ...(school!=="HPS"?
+        // [
+      { path: '/student-dash', label: 'Dashboard', icon: faHome },
+      { path: '/teacher-dash?tab=exercise', label: 'Homework', icon: '📝', tabName: 'exercise' },
+      { path: '/teacher-dash?tab=upload-homework', label: 'Upload Homework', icon: '📑', tabName: 'upload-homework' },
+      { path: '/teacher-dash?tab=classwork', label: 'Classwork', icon: '✏', tabName: 'classwork' },
+      // { path: '/teacher-dash?tab=upload-classwork', label: 'Upload Classwork', icon: '📑', tabName: 'upload-classwork' },
+      { path: '/teacher-dash?tab=homework', label: 'Worksheets', icon: '📄', tabName: 'homework' },
+      { path: '/teacher-dash?tab=class', label: 'Class Analysis', icon: '📊', tabName: 'class' },
+      { path: '/teacher-dash?tab=student', label: 'Student Analysis', icon: '👤', tabName: 'student' },
+      { path: '/teacher-dash?tab=progress', label: 'Progress', icon: '📈', tabName: 'progress' },
+    // ]:[])
+      // Teachers may not need chat UI for 'A' option, but you can include if desired:
+      // { path: '/chat', label: 'Chat Rooms', icon: faComments },
+    ];
 
-  const teacherLinks = [
-    { path: '/teacher-dash?tab=exam-correction', label: 'Exam Correction', icon: '📄', tabName: 'exam-correction' },
-     
-    // ...(school!=="HPS"?
-      // [
-    { path: '/student-dash', label: 'Dashboard', icon: faHome },
-    { path: '/teacher-dash?tab=exercise', label: 'Homework', icon: '📝', tabName: 'exercise' },
-    { path: '/teacher-dash?tab=upload-homework', label: 'Upload Homework', icon: '📑', tabName: 'upload-homework' },
-    { path: '/teacher-dash?tab=classwork', label: 'Classwork', icon: '✏', tabName: 'classwork' },
-    // { path: '/teacher-dash?tab=upload-classwork', label: 'Upload Classwork', icon: '📑', tabName: 'upload-classwork' },
-    { path: '/teacher-dash?tab=homework', label: 'Worksheets', icon: '📄', tabName: 'homework' },
-    { path: '/teacher-dash?tab=class', label: 'Class Analysis', icon: '📊', tabName: 'class' },
-    { path: '/teacher-dash?tab=student', label: 'Student Analysis', icon: '👤', tabName: 'student' },
-    { path: '/teacher-dash?tab=progress', label: 'Progress', icon: '📈', tabName: 'progress' },
-  // ]:[])
-    // Teachers may not need chat UI for 'A' option, but you can include if desired:
-    // { path: '/chat', label: 'Chat Rooms', icon: faComments },
-  ];
+    // Get the appropriate links based on role
+    const navigationLinks = role === 'teacher' ? teacherLinks : studentLinks;
 
-  // Get the appropriate links based on role
-  const navigationLinks = role === 'teacher' ? teacherLinks : studentLinks;
+    // Get user initials for avatar
+    const getUserInitials = () => {
+      const name = fullName || username || 'U';
+      const names = name.split(' ');
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[1][0]}`.toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    };
 
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    const name = fullName || username || 'U';
-    const names = name.split(' ');
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
+    const toggleSidebar = () => {
+      setIsSidebarOpen(!isSidebarOpen);
+    };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+    return (
+      <div id="main-content1">
+        {/* Mobile menu toggle button */}
+        <button
+          className="mobile-menu-toggle d-md-none"
+          onClick={toggleSidebar}
+          aria-label="Toggle menu"
+        >
+          <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
+        </button>
 
-  return (
-    <div id="main-content1">
-      {/* Mobile menu toggle button */}
-      <button
-        className="mobile-menu-toggle d-md-none"
-        onClick={toggleSidebar}
-        aria-label="Toggle menu"
-      >
-        <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
-      </button>
+        {/* Overlay for mobile */}
+        <div
+          className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
+          onClick={toggleSidebar}
+        />
 
-      {/* Overlay for mobile */}
-      <div
-        className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
-        onClick={toggleSidebar}
-      />
-
-      {/* Side Navigation */}
-      <aside className={`sidebar-navigation ${isSidebarOpen ? 'open' : ''}`}>
-        {/* Brand/Logo */}
-        <div className="">
-          <div className="sidebar-brand">
-            <img src="/images/logo.png" alt="Logo" style={{ width: '15vw', height: '20vh', objectFit: 'cover' }} />
+        {/* Side Navigation */}
+        <aside className={`sidebar-navigation ${isSidebarOpen ? 'open' : ''}`}>
+          {/* Brand/Logo */}
+          <div className="">
+            <div className="sidebar-brand">
+              <img src="/images/logo.png" alt="Logo" style={{ width: '15vw', height: '20vh', objectFit: 'cover' }} />
+            </div>
           </div>
-        </div>
 
-        {/* Navigation Menu */}
-        <nav className="sidebar-menu">
-          <ul className="sidebar-menu-list">
-            <li className="sidebar-menu-item sidebar-notification-wrapper">
-              <NotificationDropdown />
-            </li>
-            {navigationLinks.map((link) => {
-              const currentTab = getCurrentTab();
-              const isActive = role === 'teacher' && link.tabName
-                ? currentTab === link.tabName
-                : currentLocation.pathname === link.path;
+          {/* Navigation Menu */}
+          <nav className="sidebar-menu">
+            <ul className="sidebar-menu-list">
+              <li className="sidebar-menu-item sidebar-notification-wrapper">
+                <NotificationDropdown />
+              </li>
+              {navigationLinks.map((link) => {
+                const currentTab = getCurrentTab();
+                const isActive = role === 'teacher' && link.tabName
+                  ? currentTab === link.tabName
+                  : currentLocation.pathname === link.path;
 
-              return (
-                <li key={link.path} className="sidebar-menu-item">
+                return (
+                  <li key={link.path} className="sidebar-menu-item">
                   <a
                     className={`sidebar-menu-link ${isActive ? 'active' : ''}`}
-                    onClick={() => handleTeacherNavigation(link)}
-                  >
-                    {typeof link.icon === 'string' ? (
-                      <span className="sidebar-menu-icon">{link.icon}</span>
-                    ) : (
-                      <FontAwesomeIcon icon={link.icon} className="sidebar-menu-icon" />
-                    )}
-                    <span className="sidebar-menu-text">{link.label}</span>
-                  </a>
-                </li>
-              );
-            })}
+                    onClick={() => handleNavigation(link)}
+                    >
+                      {typeof link.icon === 'string' ? (
+                        <span className="sidebar-menu-icon">{link.icon}</span>
+                      ) : (
+                        <FontAwesomeIcon icon={link.icon} className="sidebar-menu-icon" />
+                      )}
+                      <span className="sidebar-menu-text">{link.label}</span>
+                    </a>
+                  </li>
+                );
+              })}
 
-            {/* Notifications Dropdown */}
+              {/* Notifications Dropdown */}
 
-            {/* Sound Toggle as menu item */}
-            {/* <li className="sidebar-menu-item">
-              <div
-                className="sidebar-menu-link"
-                onClick={() => setShowSoundConfig(true)}
-              >
-                <FontAwesomeIcon
-                  icon={isSoundEnabled ? faVolumeUp : faVolumeMute}
-                  className="sidebar-menu-icon"
-                />
-                <span className="sidebar-menu-text">Sound</span>
+              {/* Sound Toggle as menu item */}
+              {/* <li className="sidebar-menu-item">
+                <div
+                  className="sidebar-menu-link"
+                  onClick={() => setShowSoundConfig(true)}
+                >
+                  <FontAwesomeIcon
+                    icon={isSoundEnabled ? faVolumeUp : faVolumeMute}
+                    className="sidebar-menu-icon"
+                  />
+                  <span className="sidebar-menu-text">Sound</span>
+                </div>
+              </li> */}
+
+              {/* Feedback menu item */}
+              <li className="sidebar-menu-item">
+                <div
+                  className={`sidebar-menu-link ${showFeedback ? 'active' : ''}`}
+                  onClick={() => setShowFeedback(!showFeedback)}
+                >
+                  <FontAwesomeIcon icon={faCommentDots} className="sidebar-menu-icon" />
+                  <span className="sidebar-menu-text">Feedback</span>
+                </div>
+              </li>
+            </ul>
+          </nav>
+
+          {/* Sidebar Footer */}
+          <div className="sidebar-footer">
+            {/* User Info */}
+
+            
+        { role==='student' && (<div className="sidebar-user-info">
+              <div className="sidebar-user-avatar">
+                {getUserInitials()}
               </div>
-            </li> */}
-
-            {/* Feedback menu item */}
-            <li className="sidebar-menu-item">
-              <div
-                className={`sidebar-menu-link ${showFeedback ? 'active' : ''}`}
-                onClick={() => setShowFeedback(!showFeedback)}
-              >
-                <FontAwesomeIcon icon={faCommentDots} className="sidebar-menu-icon" />
-                <span className="sidebar-menu-text">Feedback</span>
+              <div className="sidebar-user-details">
+                <p className="sidebar-user-name">{fullName || username}</p>
+                <p className="sidebar-user-role">{role === 'student' ? 'Student' : 'Teacher'}</p>
               </div>
-            </li>
-          </ul>
-        </nav>
+            </div>)}
 
-        {/* Sidebar Footer */}
-        <div className="sidebar-footer">
-          {/* User Info */}
+            {/* Logout Button */}
+            <button
+              className="sidebar-logout"
+              onClick={handleLogout}
+            >
+              <FontAwesomeIcon icon={faSignOutAlt} />
+              <span>Logout</span>
+            </button>
+          </div>
+        </aside>
 
-          
-      { role==='student' && (<div className="sidebar-user-info">
-            <div className="sidebar-user-avatar">
-              {getUserInitials()}
-            </div>
-            <div className="sidebar-user-details">
-              <p className="sidebar-user-name">{fullName || username}</p>
-              <p className="sidebar-user-role">{role === 'student' ? 'Student' : 'Teacher'}</p>
-            </div>
-          </div>)}
+        {/* Main Content Area */}
+        <main className="main-content-area">
+          {children}
+        </main>
 
-          {/* Logout Button */}
-          <button
-            className="sidebar-logout"
-            onClick={handleLogout}
-          >
-            <FontAwesomeIcon icon={faSignOutAlt} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
+        {/* Sound Configuration Modal */}
+        <SoundConfigModal
+          show={showSoundConfig}
+          onHide={() => setShowSoundConfig(false)}
+        />
 
-      {/* Main Content Area */}
-      <main className="main-content-area">
-        {children}
-      </main>
+        {/* Feedback Box */}
+        <FeedbackBox
+          isOpen={showFeedback}
+          onClose={() => setShowFeedback(false)}
+        />
+      </div>
+    );
+  };
 
-      {/* Sound Configuration Modal */}
-      <SoundConfigModal
-        show={showSoundConfig}
-        onHide={() => setShowSoundConfig(false)}
-      />
-
-      {/* Feedback Box */}
-      <FeedbackBox
-        isOpen={showFeedback}
-        onClose={() => setShowFeedback(false)}
-      />
-    </div>
-  );
-};
-
-export default Layout;
+  export default Layout;
