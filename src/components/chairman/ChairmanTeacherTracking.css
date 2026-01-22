@@ -1,0 +1,173 @@
+/* ChairmanTeacherTracking.css */
+
+.chairman-teacher-tracking {
+  padding: 0;
+}
+
+.tracking-header {
+  margin-bottom: 24px;
+}
+
+.tracking-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 8px;
+}
+
+.tracking-header p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Filters */
+.tracking-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+/* Classes List */
+.classes-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.class-badge {
+  padding: 4px 10px;
+  background: #e0e7ff;
+  color: #4338ca;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Submitted Count */
+.submitted-count {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Pending Count */
+.pending-count {
+  font-weight: 600;
+  color: #64748b;
+}
+
+.pending-count.warning {
+  color: #ef4444;
+  background: #fee2e2;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Rate Display */
+.rate-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rate-bar {
+  flex: 1;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.rate-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.rate-bar.excellent .rate-fill {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.rate-bar.good .rate-fill {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.rate-bar.average .rate-fill {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.rate-bar.poor .rate-fill {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+.rate-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a202c;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* Action Buttons */
+.action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.action-btn:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.action-btn.reminder {
+  background: #fee2e2;
+  color: #991b1b;
+  margin-left: 8px;
+}
+
+.action-btn.reminder:hover {
+  background: #fecaca;
+}
+
+/* Table Container */
+.table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 2px solid #f1f5f9;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .tracking-filters {
+    flex-direction: column;
+  }
+  
+  .rate-display {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .rate-text {
+    text-align: left;
+  }
+}
+
+@media (max-width: 768px) {
+  .classes-list {
+    max-width: 100%;
+  }
+  
+  .action-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}

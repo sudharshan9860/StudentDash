@@ -17,6 +17,7 @@ import StudentAnalysis from './StudentAnalysis';
 import UploadHomework from './UploadHomework';
 import UploadClasswork from './UploadClasswork';
 import ExamCorrection from './ExamCorrection';
+import QuestionPaperGenerator from './QuestionPaperGenerator';
 import { useAlert } from './AlertBox';
 import { progress } from 'framer-motion';
 
@@ -409,11 +410,15 @@ const fetchTeacherData = async () => {
                 <ExamAnalytics />
                 </div>
             ) : activeTab === 'progress' ? (
-              <ProgressTab 
+              <ProgressTab
               teacherData={teacherData}
               selectedClass={selectedClass}
               onClassChange={handleClassChange}
               />
+            ) : activeTab === 'question-paper' ? (
+              <div style={{ padding: '20px', height: 'calc(100vh - 100px)', overflow: 'auto' }}>
+                <QuestionPaperGenerator />
+              </div>
             ) : null}
       </div>
     </>

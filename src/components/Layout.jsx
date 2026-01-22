@@ -95,9 +95,21 @@
       // { path: '/chat', label: 'Chat Rooms', icon: faComments },
     ];
 
-    // Get the appropriate links based on role
-    const navigationLinks = role === 'teacher' ? teacherLinks : studentLinks;
+    const chairmanLinks = [
+      { path: '/chairman-dash?tab=overview', label: 'Overview', icon: faHome, tabName: 'overview' },
+      { path: '/chairman-dash?tab=exam-analytics', label: 'Exam Analytics', icon: '📝', tabName: 'exam-analytics' },
+      { path: '/chairman-dash?tab=teacher-tracking', label: 'Teacher Tracking', icon: '👨‍🏫', tabName: 'teacher-tracking' },
+      { path: '/chairman-dash?tab=student-submissions', label: 'Student Submissions', icon: '📤', tabName: 'student-submissions' },
+      { path: '/chairman-dash?tab=gap-analysis', label: 'Gap Analysis', icon: '📈', tabName: 'gap-analysis' },
+      { path: '/chairman-dash?tab=leaderboard', label: 'Leaderboard', icon: '🏆', tabName: 'leaderboard' },
+      { path: '/chairman-dash?tab=grade-table', label: 'Grade Table', icon: '📋', tabName: 'grade-table' },
+      { path: '/chairman-dash?tab=parent-comm', label: 'Parent Communication', icon: '📧', tabName: 'parent-comm' },
+    ];
 
+    // Get the appropriate links based on role
+const navigationLinks = role === 'chairman' ? chairmanLinks : 
+                       role === 'teacher' ? teacherLinks : 
+                       studentLinks;
     // Get user initials for avatar
     const getUserInitials = () => {
       const name = fullName || username || 'U';

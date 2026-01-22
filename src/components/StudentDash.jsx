@@ -38,6 +38,8 @@ import StreakTracker from "./StreakTracker";
 import LiveNotifications from "./LiveNotifications";
 import Tutorial from "./Tutorial";
 import { useTutorial } from "../contexts/TutorialContext";
+import TrialModal from "./TrialModal";
+import FeedbackBox from "./FeedbackBox";
 
 import ProgressGraph from "./ProgressGraph";
 import ProgressComparison from "./ProgressComparison"
@@ -83,11 +85,28 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
   const [questionList, setQuestionList] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
 
+  // Pagination state for JEE questions
+  const [paginationInfo, setPaginationInfo] = useState({
+    next: null,
+    previous: null,
+    count: 0,
+    currentPage: 1,
+    totalPages: 0,
+    isLoading: false
+  });
+
   const [scienceSubtopics, setScienceSubtopics] = useState([]);
 
   // Resume Learning state
   const [lastSession, setLastSession] = useState(null);
   const [canResume, setCanResume] = useState(false);
+
+  // Trial Modal state
+  const [showTrialModal, setShowTrialModal] = useState(false);
+  const [trialStartDate, setTrialStartDate] = useState(null);
+
+  // Feedback Modal state (auto-show after 3 mins of app usage, only once)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   // Extract class from username (e.g., 10HPS24 -> 10, 12ABC24 -> 12)
   const extractClassFromUsername = (username) => {
@@ -194,6 +213,61 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
     document.body.classList.toggle('dark-mode', isDarkMode);
   }, [isDarkMode]);
 
+  // Trial Modal - Show after every login for students
+  useEffect(() => {
+    if (role === "student" && username) {
+      // Check if trial info exists in localStorage
+      const trialKey = `trial_${username}`;
+      let trialData = localStorage.getItem(trialKey);
+
+      if (!trialData) {
+        // First time login - start trial now
+        const startDate = new Date().toISOString();
+        const trialInfo = {
+          startDate: startDate,
+        };
+        localStorage.setItem(trialKey, JSON.stringify(trialInfo));
+        trialData = JSON.stringify(trialInfo);
+      }
+
+      const trial = JSON.parse(trialData);
+      setTrialStartDate(trial.startDate);
+
+      // Always show modal after login
+      setShowTrialModal(true);
+    }
+  }, [role, username]);
+
+  // Feedback Modal - Auto-show after 3 minutes of app usage (only once ever)
+  useEffect(() => {
+    if (role === "student" && username) {
+      const feedbackShownKey = `feedback_auto_shown_${username}`;
+      const alreadyShown = localStorage.getItem(feedbackShownKey);
+
+      // If already shown before, don't set timer
+      if (alreadyShown === 'true') {
+        console.log('📝 Feedback already shown before, skipping auto-show');
+        return;
+      }
+
+      console.log('⏱️ Starting 3-minute timer for feedback modal...');
+
+      // Set 3-minute timer (180000ms)
+      const timer = setTimeout(() => {
+        console.log('✅ 3 minutes passed, showing feedback modal');
+        setShowFeedbackModal(true);
+        // Mark as shown in localStorage - will never auto-show again
+        localStorage.setItem(feedbackShownKey, 'true');
+      }, 3 * 60 * 1000); // 3 minutes
+
+      // Cleanup timer on unmount
+      return () => {
+        clearTimeout(timer);
+        console.log('🧹 Feedback timer cleared');
+      };
+    }
+  }, [role, username]);
+
   // Mascot animation handled in SolveQuestion and ResultPage only
 
   // Load last session on component mount
@@ -268,6 +342,7 @@ const JEE_SUBTOPIC_MAPPING = [
 const getQuestionTypeOptions = () => {
   // For Science subjects
   if (isScienceSubject()) {
+    // Filter question types based on available subtopics from backend
     if (scienceSubtopics.length > 0) {
       return QUESTION_TYPE_MAPPING.filter(type => 
         scienceSubtopics.includes(type.id)
@@ -308,7 +383,7 @@ useEffect(() => {
     if (isScienceSubject() && selectedClass && selectedSubject && selectedChapters.length > 0) {
       try {
         console.log("🔬 Fetching Science subtopics...");
-        const response = await axiosInstance.post("/question-images/", {
+        const response = await axiosInstance.post("/question-images-paginator/", {
           classid: selectedClass,
           subjectid: selectedSubject,
           topicid: selectedChapters,
@@ -332,7 +407,7 @@ useEffect(() => {
     else if (isJEESubject() && selectedClass && selectedSubject && selectedChapters.length > 0) {
       try {
         console.log("📐 Fetching JEE subtopics...");
-        const response = await axiosInstance.post("/question-images/", {
+        const response = await axiosInstance.post("/question-images-paginator/", {
           classid: selectedClass,
           subjectid: selectedSubject,
           topicid: selectedChapters,
@@ -567,7 +642,7 @@ const isGenerateButtonEnabled = () => {
         selectedChapters.length > 0
       ) {
         try {
-          const response = await axiosInstance.post("/question-images/", {
+          const response = await axiosInstance.post("/question-images-paginator/", {
             classid: selectedClass,
             subjectid: selectedSubject,
             topicid: selectedChapters[0], // Using first chapter for subtopics
@@ -594,7 +669,7 @@ const isGenerateButtonEnabled = () => {
         selectedChapters.length > 0
       ) {
         try {
-          const response = await axiosInstance.post("/question-images/", {
+          const response = await axiosInstance.post("/question-images-paginator/", {
             classid: selectedClass,
             subjectid: selectedSubject,
             topicid: selectedChapters[0], // Using first chapter for worksheets
@@ -658,7 +733,7 @@ else if (isJEESubject()) {
   console.log("📤 Request data for question generation:", requestData);
 
   try {
-    const response = await axiosInstance.post("/question-images/", requestData);
+    const response = await axiosInstance.post("/question-images-paginator/", requestData);
     console.log("📥 Response data:", response.data);
 
     // Process questions with images and context
@@ -672,10 +747,31 @@ else if (isJEESubject()) {
         ? `${question.question_image}`
         : null,
     }));
-    
+
     console.log("✅ Processed questions with images:", questionsWithImages);
     setQuestionList(questionsWithImages);
     setSelectedQuestions([]);
+
+    // Handle pagination info (for JEE subjects)
+    const pageSize = 15; // Questions per page
+    const totalCount = response.data.count || questionsWithImages.length;
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    setPaginationInfo({
+      next: response.data.next || null,
+      previous: response.data.previous || null,
+      count: totalCount,
+      currentPage: 1,
+      totalPages: totalPages,
+      isLoading: false
+    });
+
+    console.log("📄 Pagination info:", {
+      count: totalCount,
+      totalPages,
+      next: response.data.next,
+      previous: response.data.previous
+    });
 
     // Show the modal
     setShowQuestionList(true);
@@ -684,6 +780,73 @@ else if (isJEESubject()) {
     showAlert("Failed to generate questions. Please try again.", "error");
   }
 };
+
+  // Fetch paginated questions (for Next/Previous)
+  const fetchPaginatedQuestions = async (url) => {
+    if (!url) return;
+
+    setPaginationInfo(prev => ({ ...prev, isLoading: true }));
+
+    try {
+      // Extract page number from URL
+      const urlObj = new URL(url);
+      const pageNum = parseInt(urlObj.searchParams.get('page')) || 1;
+
+      console.log(`📄 Fetching page ${pageNum}...`);
+
+      const response = await axiosInstance.get(url);
+      console.log("📥 Paginated response:", response.data);
+
+      // Process questions with images and context
+      const questionsWithImages = (response.data.questions || []).map((question, index) => ({
+        ...question,
+        id: index,
+        question_id: question.id,
+        question: question.question,
+        context: question.context || null,
+        image: question.question_image
+          ? `${question.question_image}`
+          : null,
+      }));
+
+      setQuestionList(questionsWithImages);
+      setSelectedQuestions([]);
+
+      // Update pagination info
+      const pageSize = 15;
+      const totalCount = response.data.count || questionsWithImages.length;
+      const totalPages = Math.ceil(totalCount / pageSize);
+
+      setPaginationInfo({
+        next: response.data.next || null,
+        previous: response.data.previous || null,
+        count: totalCount,
+        currentPage: pageNum,
+        totalPages: totalPages,
+        isLoading: false
+      });
+
+      console.log(`✅ Page ${pageNum} loaded successfully`);
+    } catch (error) {
+      console.error("❌ Error fetching paginated questions:", error);
+      showAlert("Failed to load questions. Please try again.", "error");
+      setPaginationInfo(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  // Handle Next Page
+  const handleNextPage = () => {
+    if (paginationInfo.next && !paginationInfo.isLoading) {
+      fetchPaginatedQuestions(paginationInfo.next);
+    }
+  };
+
+  // Handle Previous Page
+  const handlePrevPage = () => {
+    if (paginationInfo.previous && !paginationInfo.isLoading) {
+      fetchPaginatedQuestions(paginationInfo.previous);
+    }
+  };
 
   // Save session data to localStorage
   const saveSessionData = (sessionData) => {
@@ -978,6 +1141,25 @@ else if (isJEESubject()) {
   return (
     <>
       <AlertContainer />
+
+      {/* Trial Modal - Shows for students */}
+      {role === "student" && (
+        <TrialModal
+          isOpen={showTrialModal}
+          onClose={() => setShowTrialModal(false)}
+          trialStartDate={trialStartDate}
+          trialDays={7}
+          redirectUrl="https://smartlearners.ai/get-started"
+          userData=""
+        />
+      )}
+
+      {/* Feedback Modal - Auto-shows after 3 mins, only once */}
+      <FeedbackBox
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
+
       <div className={`student-dash-wrapper ${isDarkMode ? 'dark-mode' : ''}`}>
         {/* Main Content - Sidebar removed (now in Layout.jsx) */}
         <div className="main-content-fixed ">
@@ -1606,7 +1788,9 @@ else if (isJEESubject()) {
           isMultipleSelect={questionType === "external"}
           onMultipleSelectSubmit={handleMultipleSelectSubmit}
           worksheetName={questionType === "worksheets" ? selectedWorksheet : ""}
-
+          paginationInfo={paginationInfo}
+          onNextPage={handleNextPage}
+          onPrevPage={handlePrevPage}
         />
 
         {/* Tutorial Component */}

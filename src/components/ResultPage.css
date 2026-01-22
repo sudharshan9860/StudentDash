@@ -224,6 +224,32 @@ html:has(.result-page-container) {
   border-radius: 8px;
 }
 
+/* Patterns List Styling */
+.patterns-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.patterns-list li {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.patterns-list li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
 .result-explanation {
   background: rgba(255, 255, 255, 0.9);
   margin-bottom: 30px;
@@ -831,6 +857,15 @@ html:has(.result-page-container) {
 
 .dark-mode .result-question p {
   color: #cbd5e1;
+}
+
+.dark-mode .patterns-list li {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+}
+
+.dark-mode .patterns-list li:hover {
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.5);
 }
 
 .dark-mode .result-explanation {

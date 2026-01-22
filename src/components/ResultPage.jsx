@@ -63,23 +63,30 @@ const ResultPage = () => {
     context
   } = state || {};
   console.log('question_id from explain state:', question_id);
-  const { 
-    question, 
-    ai_explaination, 
-    student_answer, 
-    concepts, 
+  const {
+    question,
+    ai_explaination,
+    student_answer,
+    concepts,
     comment,gap_analysis,time_analysis,error_type,mistakes_made,
     concepts_used,
-    solution, 
-    score, 
-    obtained_marks, 
-    total_marks, 
+    solution,
+    score,
+    obtained_marks,
+    total_marks,
     question_marks,
     question_image_base64,
     student_answer_base64, // Add this to get the processed student image from API
     videos = [],
-    real_world_videos = []
+    real_world_videos = [],
+    bridges_used,
+    patterns_required,
+    pattern_explanation,
+    pattern_based_solution
   } = ai_data || {};
+
+  // Determine which AI explanation to use - prioritize pattern_based_solution if available
+  const effectiveAiExplaination = pattern_based_solution?.ai_explaination || ai_explaination;
   console.log('AI Data:', ai_data);
   const formated_concepts_used = Array.isArray(concepts_used)
     ? concepts_used.join(', ')
@@ -589,8 +596,8 @@ const ResultPage = () => {
             )}
           </>
         );
-        case 'correct':   
-        return (         
+        case 'correct':
+        return (
         <>
             {/* <div className="result-question">
               <p><strong>Student Answer:</strong></p>
@@ -599,7 +606,9 @@ const ResultPage = () => {
               </div>
             </div> */}
           <div className="result-question">
-            <p className="solution-header">AI Solution:</p>
+            <p className="solution-header">
+              {pattern_based_solution ? 'Pattern-Based AI Solution:' : 'AI Solution:'}
+            </p>
             {question_image_base64 && (
               <div className="solution-image-container">
                 <img
@@ -609,7 +618,7 @@ const ResultPage = () => {
                 />
               </div>
             )}
-            {renderSolutionSteps(ai_explaination)}
+            {renderSolutionSteps(effectiveAiExplaination)}
             </div>
             {renderScore()}
             {comment && (
@@ -632,8 +641,26 @@ const ResultPage = () => {
                 <p><strong>Mistakes Made:</strong> <MarkdownWithMath content={mistakes_made} /></p>
               </div>
             )}
-
-            
+            {patterns_required && patterns_required.length > 0 && (
+              <div className="result-question">
+                <p><strong>Patterns Required:</strong></p>
+                <ul className="patterns-list">
+                  {patterns_required.map((pattern, index) => (
+                    <li key={index}><MarkdownWithMath content={pattern} /></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {bridges_used && (
+              <div className="result-question">
+                <p><strong>Bridges Used:</strong> <MarkdownWithMath content={bridges_used} /></p>
+              </div>
+            )}
+            {pattern_explanation && (
+              <div className="result-question">
+                <p><strong>Pattern Explanation:</strong> <MarkdownWithMath content={pattern_explanation} /></p>
+              </div>
+            )}
             {time_analysis && (
               <div className="result-question">
                 <p><strong>Time-Management:</strong><MarkdownWithMath content={time_analysis} /> </p>

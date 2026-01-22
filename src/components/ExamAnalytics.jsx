@@ -1,8 +1,10 @@
+///ExamAnalytics.jsx
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import { AuthContext } from './AuthContext';
 import StudentExamDetails from './StudentExamDetails';
+import PdfModal from './PdfModal';
 import './ExamAnalytics.css';
 
 // FIXED: Correct import for jsPDF with autoTable
@@ -30,6 +32,11 @@ const ExamAnalytics = () => {
   // Modal state for student details
   const [selectedStudentResult, setSelectedStudentResult] = useState(null);
   const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
+
+  // PDF Modal state
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState('');
+  const [selectedPdfTitle, setSelectedPdfTitle] = useState('');
   
   useEffect(() => {
     if (role === 'teacher') {
@@ -122,6 +129,47 @@ const ExamAnalytics = () => {
   const handleCloseStudentDetails = () => {
     setSelectedStudentResult(null);
     setShowStudentDetailsModal(false);
+  };
+
+  // PDF Modal handlers
+  const handleViewAnswerSheet = (e, result) => {
+    e.stopPropagation();
+    // answer_sheet_snapshot is an array of objects with file_url
+    const snapshot = result.answer_sheet_snapshot;
+    if (snapshot && snapshot.length > 0 && snapshot[0].file_url) {
+      setSelectedPdfUrl(snapshot[0].file_url);
+      setSelectedPdfTitle(`Answer Sheet - ${result.student_fullname || result.student_name || 'Student'}`);
+      setPdfModalOpen(true);
+    }
+  };
+
+  // Helper to check if answer sheet exists
+  const hasAnswerSheet = (result) => {
+    return result.answer_sheet_snapshot &&
+           result.answer_sheet_snapshot.length > 0 &&
+           result.answer_sheet_snapshot[0].file_url;
+  };
+
+  // Helper to check if question paper exists
+  const hasQuestionPaper = (exam) => {
+    return exam?.question_paper_snapshot &&
+           exam.question_paper_snapshot.length > 0 &&
+           exam.question_paper_snapshot[0].file_url;
+  };
+
+  // Handler to view question paper
+  const handleViewQuestionPaper = () => {
+    if (hasQuestionPaper(selectedExam)) {
+      setSelectedPdfUrl(selectedExam.question_paper_snapshot[0].file_url);
+      setSelectedPdfTitle(`Question Paper - ${selectedExam.name}`);
+      setPdfModalOpen(true);
+    }
+  };
+
+  const handleClosePdfModal = () => {
+    setPdfModalOpen(false);
+    setSelectedPdfUrl('');
+    setSelectedPdfTitle('');
   };
 
   const handleExamSelect = (exam) => {
@@ -264,6 +312,51 @@ const ExamAnalytics = () => {
     } catch (error) {
       console.error('PDF generation error:', error);
       setError(`PDF generation failed: ${error.message}`);
+    }
+  };
+
+  const handleDownloadParentNotesCSV = () => {
+    try {
+      setError(null);
+
+      // Create CSV content with headers
+      const headers = ['Rank','Exam Name','Student Name','Class','Parent Notes'];
+      const rows = studentResults.map((result, index) => [
+        index + 1,
+        selectedExam.name,
+        result.student_fullname || result.student_name || 'N/A',
+        examStats?.classSection || selectedExam.class_section || 'N/A',
+        result.parent_note || 'N/A'
+      ]);
+
+      // Escape and format CSV cells properly
+      const escapeCSV = (cell) => {
+        const str = String(cell);
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(escapeCSV).join(','))
+      ].join('\n');
+
+      // Create blob and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${selectedExam.name.replace(/[^a-z0-9]/gi, '_')}_parent_notes.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating CSV:', error);
+      setError('Failed to generate parent notes CSV file.');
     }
   };
 
@@ -526,18 +619,49 @@ const ExamAnalytics = () => {
               </p>
             </div>
           </div>
-          <button 
-            className="download-pdf-btn"
-            onClick={handleDownloadPDF}
-            disabled={studentResults.length === 0}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            <span>Download PDF</span>
-          </button>
+          <div className="header-buttons">
+            {hasQuestionPaper(selectedExam) && (
+              <button
+                className="view-qp-btn"
+                onClick={handleViewQuestionPaper}
+                title="View Question Paper"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                <span>Question Paper</span>
+              </button>
+            )}
+            <button
+              className="parent-notes-btn"
+              onClick={handleDownloadParentNotesCSV}
+              disabled={studentResults.length === 0}
+              title="Download Parent Notes CSV"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <polyline points="9 15 12 18 15 15"/>
+              </svg>
+              <span>Parent Note</span>
+            </button>
+            <button
+              className="download-pdf-btn"
+              onClick={handleDownloadPDF}
+              disabled={studentResults.length === 0}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>Download PDF</span>
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -580,6 +704,7 @@ const ExamAnalytics = () => {
                   <th className="col-grade">Grade</th>
                   <th className="col-strengths">Strengths</th>
                   <th className="col-improvements">Areas for Improvement</th>
+                  <th className="col-sheet">Answer Sheet</th>
                   <th className="col-actions">Actions</th>
                 </tr>
               </thead>
@@ -633,6 +758,25 @@ const ExamAnalytics = () => {
                     <td className="col-improvements">
                       <div className="insights-text">{result.areas_for_improvement || 'N/A'}</div>
                     </td>
+                    <td className="col-sheet" onClick={(e) => e.stopPropagation()}>
+                      {hasAnswerSheet(result) ? (
+                        <button
+                          className="view-sheet-btn"
+                          onClick={(e) => handleViewAnswerSheet(e, result)}
+                          title="View Answer Sheet"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                          </svg>
+                          <span>View</span>
+                        </button>
+                      ) : (
+                        <span className="no-sheet-badge">N/A</span>
+                      )}
+                    </td>
                     <td className="col-actions" onClick={(e) => e.stopPropagation()}>
                       {editingRow === result.student_result_id ? (
                         <div className="edit-actions">
@@ -682,17 +826,17 @@ const ExamAnalytics = () => {
                 <button className="modal-close-btn" onClick={handleCloseStudentDetails}>✕</button>
               </div>
               <div className="modal-body">
-              <StudentExamDetails 
-                studentResultId={selectedStudentResult.result_id}
-                studentName={selectedStudentResult.student_fullname}  // ← FIXED!
-                examName={selectedExam.name}
-                isTeacherView={true}
-                summaryData={selectedStudentResult}  // ← FIXED!
-              />
+                <StudentExamDetails 
+                  studentResultId={selectedStudentResult.result_id}
+                  studentName={selectedStudentResult.student_fullname || selectedStudentResult.student_name}
+                  examName={selectedExam.name}
+                  isTeacherView={true}
+                  summaryData={selectedStudentResult}
+                />
               </div>
 <div className="modal-footer">
-  <button 
-    className="btn btn-primary download-pdf-modal-btn" 
+  <button
+    className="btn btn-primary download-pdf-modal-btn"
     onClick={() => {
       if (window.downloadStudentExamPDF) {
         window.downloadStudentExamPDF();
@@ -710,6 +854,14 @@ const ExamAnalytics = () => {
             </div>
           </div>
         )}
+
+        {/* PDF Viewer Modal */}
+        <PdfModal
+          isOpen={pdfModalOpen}
+          onClose={handleClosePdfModal}
+          pdfUrl={selectedPdfUrl}
+          title={selectedPdfTitle}
+        />
       </div>
     );
   }

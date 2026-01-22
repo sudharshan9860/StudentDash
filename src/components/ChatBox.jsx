@@ -144,6 +144,7 @@ const ChatBox = forwardRef((props, ref) => {
   const { username } = useContext(AuthContext);
   const { showAlert, AlertContainer } = useAlert();
   const className = localStorage.getItem("className");
+  const userRole = localStorage.getItem("userRole");
   const { currentQuestion, questionMetadata } = useCurrentQuestion();
   const { resetTutorial, startTutorialForPage } = useTutorial();
   // const { setTeaching, setThinking, setHappy } = useMascot();
@@ -163,15 +164,25 @@ const ChatBox = forwardRef((props, ref) => {
   const [studentInfo, setStudentInfo] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("checking");
 
-  // Chat
-  const [messages, setMessages] = useState([
-    {
+  // Chat - Different initial message based on user role
+  const getInitialMessage = () => {
+    if (userRole === "teacher") {
+      return {
+        id: "hello",
+        text: "👋 Hi! I'm your Teaching Assistant. You can analyze student performance, check exam results, or get class insights.",
+        sender: "ai",
+        timestamp: new Date(),
+      };
+    }
+    return {
       id: "hello",
       text: "👋 Hi! I'm your Math Assistant. Ask a doubt or upload a problem image.",
       sender: "ai",
       timestamp: new Date(),
-    },
-  ]);
+    };
+  };
+
+  const [messages, setMessages] = useState([getInitialMessage()]);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [language, setLanguage] = useState("en");
@@ -253,6 +264,28 @@ const ChatBox = forwardRef((props, ref) => {
       ];
     }
 
+    // Teacher-specific suggestions
+    if (userRole === "teacher") {
+      return [
+        {
+          text: "Show class performance overview",
+          icon: faChartLine,
+          isTutorial: false,
+          isApiAction: false,
+        },
+       
+        {
+          text: "Give me exam-wise analysis in tabular format",
+          icon: faLightbulb,
+          isTutorial: false,
+          isApiAction: false,
+        },
+       
+        
+      ];
+    }
+
+    // Student suggestions (default)
     return [
       {
         text: "What is my progress?",
@@ -367,11 +400,39 @@ const ChatBox = forwardRef((props, ref) => {
     }
   }
 
+  // Fetch exam details for teachers
+  const fetchTeacherExamDetails = async () => {
+    try {
+      console.log("📚 Fetching exam details for teacher...")
+      const response = await axiosInstance.get("exam-details/")
+
+      if (response.data) {
+        console.log("📦 Exam details fetched successfully:", response.data)
+        return response.data
+      } else {
+        console.warn("⚠ No exam details found")
+        return null
+      }
+    } catch (error) {
+      console.error("❌ Error fetching exam details:", error)
+      return null
+    }
+  }
+
   const fetchStudentDataAndCreateSession = async () => {
     setConnectionStatus("checking")
     // console.log("Fetching student data and creating session for:", username)
 
     try {
+      // For teachers, fetch exam details instead of student-specific data
+      if (userRole === "teacher") {
+        const teacherExamDetails = await fetchTeacherExamDetails()
+        console.log("📚 Teacher exam details:", teacherExamDetails)
+        await createSessionWithData(null, null, null, teacherExamDetails)
+        return
+      }
+
+      // For students, fetch student-specific data
       const data = await fetchStudentData()
       const examdata = await fetchExamData()
       const selfdata = await fetchSelfData()
@@ -386,7 +447,7 @@ const ChatBox = forwardRef((props, ref) => {
         console.warn("⚠️ No student data found for", username)
       }
 
-      await createSessionWithData(filteredData, examdata, selfdata)
+      await createSessionWithData(filteredData, examdata, selfdata, null)
 
     } catch (err) {
       console.error("❌ Failed to fetch student data or create session:", err)
@@ -400,7 +461,7 @@ const ChatBox = forwardRef((props, ref) => {
     }
   }
 
-  const createSessionWithData = async (studentData, examData, selfdata) => {
+  const createSessionWithData = async (studentData, examData, selfdata, teacherExamDetails = null) => {
     try {
       const filteredStudentInfo = {
         data: studentData || {},
@@ -413,12 +474,26 @@ const ChatBox = forwardRef((props, ref) => {
 
       // Create FormData object
       const formData = new FormData();
-      formData.append("student_name", localStorage.getItem("fullName") || username || "guest_user");
-      formData.append("json_data", JSON.stringify(filteredStudentInfo));  // serialize JSON
-      formData.append("exam_data", JSON.stringify(examData || {}));       // serialize JSON
-      formData.append("class_name", className || "default_class");
-      formData.append("self_data", JSON.stringify(selfdata || {}));
-
+      if (userRole === "student") {
+        formData.append("student_name", localStorage.getItem("fullName") || username || "guest_user");
+        formData.append("json_data", JSON.stringify(filteredStudentInfo));  // serialize JSON
+        formData.append("exam_data", JSON.stringify(examData || {}));       // serialize JSON
+        formData.append("class_name", className || "default_class");
+        formData.append("user_type", userRole || "student");
+        formData.append("self_data", JSON.stringify(selfdata || {}));
+      } else if (userRole === "teacher") {
+        formData.append("user_type", "teacher");
+        formData.append("student_name", localStorage.getItem("fullName") || username || "guest_user");
+        formData.append("class_name", className || "default_class");
+        formData.append("exam_data", JSON.stringify(teacherExamDetails || {})); 
+        formData.append("detailed_exam_data", JSON.stringify(teacherExamDetails || {})); 
+        // Teacher exam details
+        // console.log("📤 Sending teacher session with exam_details:", teacherExamDetails);
+      } else {
+        formData.append("user_role", userRole || "student");
+        formData.append("student_name", localStorage.getItem("fullName") || username || "guest_user");
+        formData.append("class_name", className || "default_class");
+      }
       // Log formData entries for debugging
       for (let [key, value] of formData.entries()) {
         // console.log(`${key}:`, value);
@@ -465,7 +540,9 @@ const ChatBox = forwardRef((props, ref) => {
       setMessages([
         {
           id: "cleared",
-          text: "🧹 Chat cleared. Starting a fresh session… Ask your next question!",
+          text: userRole === "teacher"
+            ? "🧹 Chat cleared. Starting a fresh session… Ask about class performance or student analytics!"
+            : "🧹 Chat cleared. Starting a fresh session… Ask your next question!",
           sender: "ai",
           timestamp: new Date(),
         },
@@ -888,7 +965,9 @@ const ChatBox = forwardRef((props, ref) => {
         ...prev,
         {
           id: Date.now(),
-          text: "🎓 Tutorial started! I'll guide you through the platform. Navigating to dashboard...",
+          text: userRole === "teacher"
+            ? "🎓 Tutorial started! I'll guide you through the teacher dashboard. Navigating..."
+            : "🎓 Tutorial started! I'll guide you through the platform. Navigating to dashboard...",
           sender: "ai",
           timestamp: new Date(),
         },
@@ -899,12 +978,18 @@ const ChatBox = forwardRef((props, ref) => {
         setIsOpen(false);
         // Reset any previous tutorial state
         resetTutorial();
-        // Navigate to dashboard
-        navigate('/student-dash');
-        // Start the tutorial after a short delay to ensure navigation completes
-        setTimeout(() => {
-          startTutorialForPage('studentDash');
-        }, 300);
+        // Navigate to appropriate dashboard based on role
+        if (userRole === "teacher") {
+          navigate('/teacher-dash');
+          setTimeout(() => {
+            startTutorialForPage('teacherDash');
+          }, 300);
+        } else {
+          navigate('/student-dash');
+          setTimeout(() => {
+            startTutorialForPage('studentDash');
+          }, 300);
+        }
       }, 500);
       return;
     }
@@ -1091,7 +1176,11 @@ const ChatBox = forwardRef((props, ref) => {
             transition={{ duration: 0.4 }} />
 
           {/* <FontAwesomeIcon icon={isOpen ? faTimes : faCommentDots} /> */}
-          {!isOpen && <strong className="chat-label">Need help, champ?</strong>}
+          {!isOpen && (
+            <strong className="chat-label">
+              {userRole === "teacher" ? "Class Analytics" : "Need help, champ?"}
+            </strong>
+          )}
         </button>
 
         {/* Chat Window */}
@@ -1099,7 +1188,9 @@ const ChatBox = forwardRef((props, ref) => {
           {/* Header */}
           <div className="chat-header">
             <h5>
-              {`${className} Class`} Math Assistant
+              {userRole === "teacher"
+                ? `${className} Class Analytics Assistant`
+                : `${className} Class Math Assistant`}
             </h5>
             <div className="flex-grow" />
 
@@ -1253,7 +1344,9 @@ const ChatBox = forwardRef((props, ref) => {
                 type="text"
                 placeholder={
                   connectionStatus === "connected"
-                    ? "Type your question..."
+                    ? userRole === "teacher"
+                      ? "Ask about student performance, exams..."
+                      : "Type your question..."
                     : "Connecting to AI service..."
                 }
                 value={newMessage}

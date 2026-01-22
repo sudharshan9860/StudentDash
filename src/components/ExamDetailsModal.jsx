@@ -327,10 +327,13 @@ useEffect(() => {
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('Exam Details Report', pageWidth / 2, 20, { align: 'center' });
-  
+  doc.text(`Exam Details Report`, pageWidth / 2, 20, { align: 'center' });
+  //  doc.setFontSize(24);
+  // doc.setFont('helvetica', 'bold');
+  // doc.setTextColor(255, 255, 255);
+  // doc.text(`(${localStorage.getItem('username')})`, pageWidth / 2, 30, { align: 'center' });
   doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('helvetica', 'bold');
   doc.text(result?.exam_name || 'Exam', pageWidth / 2, 30, { align: 'center' });
   
   yPosition = 50;
@@ -424,55 +427,62 @@ useEffect(() => {
   }
 
   // ========== QUESTIONS SUMMARY TABLE ========== (FIXED: No special characters)
-  if (questionsEvaluation?.questions_evaluation?.length > 0) {
-    checkPageBreak(40);
-    
-    doc.setFillColor(220, 240, 255);
-    doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(13, 110, 253);
-    doc.text('Questions Summary', 15, yPosition + 6); // REMOVED emoji
-    yPosition += 15;
+ if (questionsEvaluation?.questions_evaluation?.length > 0) {
+  checkPageBreak(40);
 
-    const tableData = questionsEvaluation.questions_evaluation.map((q, index) => [
-      q.question_number || `Q${index + 1}`,
-      `${q.total_score || 0}`,
-      `${q.max_marks || 0}`,
-      `${q.percentage?.toFixed(1) || 0}%`,
-      q.error_type === 'no_error' ? 'Pass' : 'Fail'
-    ]);
+  doc.setFillColor(220, 240, 255);
+  doc.rect(10, yPosition, pageWidth - 20, 8, 'F');
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(13, 110, 253);
+  doc.text('Questions Summary', 15, yPosition + 6);
 
-    autoTable(doc, {
-      startY: yPosition,
-      head: [['Question', 'Scored', 'Total', 'Percentage', 'Status']],
-      body: tableData,
-      theme: 'grid',
-      headStyles: {
-        fillColor: [102, 126, 234],
-        textColor: 255,
-        fontSize: 10,
-        fontStyle: 'bold',
-        halign: 'center'
-      },
-      bodyStyles: {
-        fontSize: 9,
-        halign: 'center'
-      },
-      alternateRowStyles: {
-        fillColor: [249, 250, 251]
-      },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 30 },
-        1: { halign: 'center', cellWidth: 30 },
-        2: { halign: 'center', cellWidth: 30 },
-        3: { halign: 'center', cellWidth: 40 },
-        4: { halign: 'center', cellWidth: 30 }
-      }
-    });
-    
-    yPosition = doc.lastAutoTable.finalY + 15;
-  }
+  yPosition += 15;
+
+  const tableData = questionsEvaluation.questions_evaluation.map((q, index) => [
+    q.question_number || `Q${index + 1}`,
+    `${q.total_score || 0}`,
+    `${q.max_marks || 0}`,
+    `${q.percentage?.toFixed(1) || 0}%`,
+    q.error_type === 'no_error' ? 'Pass' : 'Fail'
+  ]);
+
+  const tableWidth = 160; // sum of column widths
+  const leftMargin = (pageWidth - tableWidth) / 2;
+
+  autoTable(doc, {
+    startY: yPosition,
+    margin: { left: leftMargin },
+    head: [['Question', 'Scored', 'Total', 'Percentage']],
+    body: tableData,
+    theme: 'grid',
+
+    headStyles: {
+      fillColor: [102, 126, 234],
+      textColor: 255,
+      fontSize: 10,
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      halign: 'center'
+    },
+    alternateRowStyles: {
+      fillColor: [249, 250, 251]
+    },
+    columnStyles: {
+      0: { cellWidth: 30 },
+      1: { cellWidth: 30 },
+      2: { cellWidth: 30 },
+      3: { cellWidth: 40 },
+      4: { cellWidth: 30 }
+    }
+  });
+
+  yPosition = doc.lastAutoTable.finalY + 15;
+}
+
 
   // ========== DETAILED QUESTIONS EVALUATION ==========
   if (questionsEvaluation?.questions_evaluation?.length > 0) {

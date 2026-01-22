@@ -1,0 +1,152 @@
+/* ChairmanOverview.css */
+
+.chairman-overview {
+  padding: 0;
+}
+
+.overview-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 24px;
+}
+
+/* Submission Rate Display */
+.submission-rate-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.rate-circle {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.rate-value {
+  font-size: 48px;
+  font-weight: 700;
+  color: white;
+}
+
+.rate-label {
+  font-size: 14px;
+  color: #64748b;
+  text-align: center;
+}
+
+/* Recent Exams Section */
+.recent-exams-section {
+  margin-top: 32px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+}
+
+.view-all-btn {
+  padding: 8px 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-all-btn:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Quick Actions */
+.quick-actions-section {
+  margin-top: 32px;
+}
+
+.quick-actions-section h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 16px;
+}
+
+.action-card {
+  background: white;
+  border: 2px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.action-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+  transform: translateY(-4px);
+}
+
+.action-icon {
+  font-size: 40px;
+}
+
+.action-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.action-count {
+  font-size: 14px;
+  color: #64748b;
+  padding: 4px 12px;
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .overview-title {
+    font-size: 20px;
+  }
+  
+  .rate-circle {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .rate-value {
+    font-size: 36px;
+  }
+  
+  .action-card {
+    padding: 16px;
+  }
+}

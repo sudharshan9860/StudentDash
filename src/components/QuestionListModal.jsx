@@ -1,11 +1,11 @@
 // src/components/QuestionListModal.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "./QuestionListModal.css";
 import MarkdownWithMath from "./MarkdownWithMath";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faClipboardCheck, faCheckCircle, faBookOpenReader, faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
+import { faClipboardCheck, faCheckCircle, faBookOpenReader, faQuestionCircle, faChevronLeft, faChevronRight, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useAlert } from './AlertBox';
 import Tutorial from './Tutorial';
 import { useTutorial } from '../contexts/TutorialContext';
@@ -119,11 +119,23 @@ const QuestionListModal = ({
   onMultipleSelectSubmit,
   worksheetName = "",
   setName = "", // Add this prop
-  mode = "" // Add mode prop (homework/classwork)
+  mode = "", // Add mode prop (homework/classwork)
+  // Pagination props
+  paginationInfo = null,
+  onNextPage = null,
+  onPrevPage = null,
 }) => {
   const navigate = useNavigate();
   const { showAlert, AlertContainer } = useAlert();
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const questionListRef = useRef(null);
+
+  // Scroll to top when questions change (pagination)
+  useEffect(() => {
+    if (questionListRef.current && questionList.length > 0) {
+      questionListRef.current.scrollTop = 0;
+    }
+  }, [questionList]);
 
   // Tutorial context
   const {
@@ -201,11 +213,18 @@ const handleQuestionClick = (questionData, index) => {
 
   // Update the modal title
   const getModalTitle = () => {
+    const countText = paginationInfo?.count > 0 ? ` (${paginationInfo.count} total)` : '';
+
     if (setName) {
-      return `🎯 ${setName} - Select up to 20 Questions`;
+      return `🎯 ${setName} - Select up to 20 Questions${countText}`;
     }
     if (worksheetName) {
-      return `📄 ${worksheetName} - Select up to 20 Questions`;
+      return `📄 ${worksheetName} - Select up to 20 Questions${countText}`;
+    }
+    if (paginationInfo?.count > 0) {
+      return isMultipleSelect
+        ? `Select up to 20 Questions${countText}`
+        : `Question List${countText}`;
     }
     return isMultipleSelect ? "Select up to 20 Questions" : "Question List";
   };
@@ -414,7 +433,33 @@ const handleQuestionClick = (questionData, index) => {
         </button>
       </Modal.Header>
       <Modal.Body>
-        <div className="question-list-container">
+        <div className="question-list-container" ref={questionListRef} style={{ position: 'relative' }}>
+          {/* Loading Overlay */}
+          {paginationInfo?.isLoading && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(255, 255, 255, 0.9)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10,
+              borderRadius: '8px'
+            }}>
+              <FontAwesomeIcon
+                icon={faSpinner}
+                spin
+                style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }}
+              />
+              <span style={{ fontSize: '16px', fontWeight: '600', color: '#4a5568' }}>
+                Loading questions...
+              </span>
+            </div>
+          )}
           {Array.isArray(questionList) && questionList.length > 0 ? (
             <ul className="question-list">
               {questionList.map((questionData, index) => (
@@ -480,38 +525,171 @@ const handleQuestionClick = (questionData, index) => {
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <div className="d-flex justify-content-between w-200">
-          <div>
-            {/* {selectedQuestions.length > 0 && (
-              <span className="text-muted">
-                {selectedQuestions.length}/20 questions selected
-              </span>
-            )} */}
-          </div>
-          <div>
-            {worksheetName && !isTeacherMode && (
-              <Button
-                variant="success"
-                onClick={handleSolveWorksheet}
-                className="me-2"
+        <div className="modal-footer-content" style={{ width: '100%' }}>
+          {/* Pagination Controls - Top Row */}
+          {paginationInfo && paginationInfo.count > 0 && (
+            <div className="pagination-controls" style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '16px',
+              padding: '12px 0',
+              marginBottom: '12px',
+              borderBottom: '1px solid #e2e8f0',
+              width: '100%'
+            }}>
+              {/* Previous Button */}
+              <button
+                onClick={onPrevPage}
+                disabled={!paginationInfo.previous || paginationInfo.isLoading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: paginationInfo.previous && !paginationInfo.isLoading
+                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                    : '#e2e8f0',
+                  color: paginationInfo.previous && !paginationInfo.isLoading ? 'white' : '#a0aec0',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  cursor: paginationInfo.previous && !paginationInfo.isLoading ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s ease',
+                  boxShadow: paginationInfo.previous && !paginationInfo.isLoading
+                    ? '0 4px 12px rgba(102, 126, 234, 0.3)'
+                    : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (paginationInfo.previous && !paginationInfo.isLoading) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = paginationInfo.previous && !paginationInfo.isLoading
+                    ? '0 4px 12px rgba(102, 126, 234, 0.3)'
+                    : 'none';
+                }}
               >
-                <FontAwesomeIcon icon={faClipboardCheck} className="me-2" />
-                Solve Worksheet
-              </Button>
-            )}
-            {showSubmitButton && (
-              <Button
-                variant="primary"
-                onClick={handleMultipleSubmit}
-                disabled={selectedQuestions.length === 0}
-                className="me-2"
+                <FontAwesomeIcon icon={faChevronLeft} />
+                Previous
+              </button>
+
+              {/* Page Info */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                minWidth: '150px'
+              }}>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#2d3748',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  {paginationInfo.isLoading ? (
+                    <>
+                      <FontAwesomeIcon icon={faSpinner} spin />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      Page {paginationInfo.currentPage} of {paginationInfo.totalPages}
+                    </>
+                  )}
+                </span>
+                <span style={{
+                  fontSize: '12px',
+                  color: '#718096',
+                  fontWeight: '500'
+                }}>
+                  Total: {paginationInfo.count} questions
+                </span>
+              </div>
+
+              {/* Next Button */}
+              <button
+                onClick={onNextPage}
+                disabled={!paginationInfo.next || paginationInfo.isLoading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: paginationInfo.next && !paginationInfo.isLoading
+                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                    : '#e2e8f0',
+                  color: paginationInfo.next && !paginationInfo.isLoading ? 'white' : '#a0aec0',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  cursor: paginationInfo.next && !paginationInfo.isLoading ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s ease',
+                  boxShadow: paginationInfo.next && !paginationInfo.isLoading
+                    ? '0 4px 12px rgba(102, 126, 234, 0.3)'
+                    : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (paginationInfo.next && !paginationInfo.isLoading) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = paginationInfo.next && !paginationInfo.isLoading
+                    ? '0 4px 12px rgba(102, 126, 234, 0.3)'
+                    : 'none';
+                }}
               >
-                Submit Selected Questions ({selectedQuestions.length}/20)
+                Next
+                <FontAwesomeIcon icon={faChevronRight} />
+              </button>
+            </div>
+          )}
+
+          {/* Action Buttons - Bottom Row */}
+          <div className="d-flex justify-content-between w-100">
+            <div>
+              {selectedQuestions.length > 0 && (
+                <span className="text-muted" style={{ fontSize: '14px', fontWeight: '500' }}>
+                  {selectedQuestions.length}/20 questions selected
+                </span>
+              )}
+            </div>
+            <div>
+              {worksheetName && !isTeacherMode && (
+                <Button
+                  variant="success"
+                  onClick={handleSolveWorksheet}
+                  className="me-2"
+                >
+                  <FontAwesomeIcon icon={faClipboardCheck} className="me-2" />
+                  Solve Worksheet
+                </Button>
+              )}
+              {showSubmitButton && (
+                <Button
+                  variant="primary"
+                  onClick={handleMultipleSubmit}
+                  disabled={selectedQuestions.length === 0}
+                  className="me-2"
+                >
+                  Submit Selected Questions ({selectedQuestions.length}/20)
+                </Button>
+              )}
+              <Button variant="secondary" onClick={handleModalClose}>
+                Close
               </Button>
-            )}
-            <Button variant="secondary" onClick={handleModalClose}>
-              Close
-            </Button>
+            </div>
           </div>
         </div>
       </Modal.Footer>
