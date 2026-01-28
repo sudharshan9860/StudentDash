@@ -84,6 +84,7 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
   const [showQuestionList, setShowQuestionList] = useState(false);
   const [questionList, setQuestionList] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Pagination state for JEE questions
   const [paginationInfo, setPaginationInfo] = useState({
@@ -340,9 +341,8 @@ const JEE_SUBTOPIC_MAPPING = [
 ];
 
 const getQuestionTypeOptions = () => {
-  // For Science subjects
+  // For Science subjects - existing logic
   if (isScienceSubject()) {
-    // Filter question types based on available subtopics from backend
     if (scienceSubtopics.length > 0) {
       return QUESTION_TYPE_MAPPING.filter(type => 
         scienceSubtopics.includes(type.id)
@@ -351,18 +351,56 @@ const getQuestionTypeOptions = () => {
     return QUESTION_TYPE_MAPPING;
   } 
   
-  // For JEE subjects - Always show all 3 options
-  if (isJEESubject()) {
-    console.log("🎯 JEE Subject detected! Showing options:", JEE_SUBTOPIC_MAPPING);
-    return JEE_SUBTOPIC_MAPPING;  // ALWAYS return all 3 options
+  // For JEE Mains/Advanced subjects - MCQ/NVTQ/Theorem
+  if (isJEEMainsAdvancedSubject()) {
+    console.log("🎯 JEE Mains/Advanced Subject detected! Showing MCQ/NVTQ/Theorem options");
+    return JEE_SUBTOPIC_MAPPING;
   }
   
-  // For other subjects
+  // For JEE Traditional subjects (Physics, Mathematics, Mathematics_1) - Board-like flow
+  if (isJEETraditionalSubject()) {
+    console.log("📚 JEE Traditional Subject detected! Showing Solved/Exercise/Worksheet options");
+    return [
+      { value: 'solved', label: 'Solved Examples' },
+      { value: 'external', label: 'Book Exercises' },
+      { value: 'worksheets', label: 'Take it to next level with Worksheets' }
+    ];
+  }
+  
+  // For other subjects - existing logic
   return [
     { value: 'solved', label: 'Solved Examples' },
     { value: 'external', label: 'Book Exercises' },
     { value: 'worksheets', label: 'Take it to next level with Worksheets' }
   ];
+};
+
+// Helper function to check if selected subject is JEE Mains/Advanced (MCQ/NVTQ/Theorem flow)
+const isJEEMainsAdvancedSubject = () => {
+  if (!selectedSubject || !subjects.length) return false;
+  const subject = subjects.find(s => s.subject_code === selectedSubject);
+  const subjectName = subject?.subject_name?.toLowerCase() || '';
+  
+  // Only JEE Mathematics Mains and Advanced use MCQ/NVTQ/Theorem
+  return subjectName.includes('mathematics_mains') ||
+         subjectName.includes('mathematics_advanced') ||
+         subjectName.includes('jee_mathematics_mains') ||
+         subjectName.includes('jee_mathematics_advanced');
+};
+
+// Helper function to check if subject is JEE but uses traditional flow (Solved/Exercise/Worksheet)
+const isJEETraditionalSubject = () => {
+  if (!selectedSubject || !subjects.length) return false;
+  const subject = subjects.find(s => s.subject_code === selectedSubject);
+  const subjectName = subject?.subject_name?.toLowerCase() || '';
+  
+  // JEE Physics, JEE_Mathematics, JEE_Mathematics_1 use traditional flow
+  return (subjectName.includes('jee') && 
+          !subjectName.includes('mathematics_mains') &&
+          !subjectName.includes('mathematics_advanced')) ||
+         subjectName === 'jee_physics' ||
+         subjectName === 'jee_mathematics' ||
+         subjectName === 'jee_mathematics_1';
 };
 
 // Reset question type when subject changes
@@ -379,7 +417,7 @@ useEffect(() => {
 // Fetch available subtopics for Science OR JEE subjects when selected with chapters
 useEffect(() => {
   async function fetchSubtopics() {
-    // Handle Science subjects
+    // Handle Science subjects (EXISTING - NO CHANGE)
     if (isScienceSubject() && selectedClass && selectedSubject && selectedChapters.length > 0) {
       try {
         console.log("🔬 Fetching Science subtopics...");
@@ -389,8 +427,6 @@ useEffect(() => {
           topicid: selectedChapters,
           external: true,
         });
-        
-        console.log("📊 Science subtopics response:", response.data);
         
         if (response.data && response.data.subtopics) {
           setScienceSubtopics(response.data.subtopics);
@@ -403,18 +439,16 @@ useEffect(() => {
         setScienceSubtopics([]);
       }
     } 
-    // Handle JEE subjects (NEW FUNCTIONALITY)
-    else if (isJEESubject() && selectedClass && selectedSubject && selectedChapters.length > 0) {
+    // Handle JEE Mains/Advanced subjects (NEW - MCQ/NVTQ/Theorem)
+    else if (isJEEMainsAdvancedSubject() && selectedClass && selectedSubject && selectedChapters.length > 0) {
       try {
-        console.log("📐 Fetching JEE subtopics...");
+        console.log("📐 Fetching JEE Mains/Advanced subtopics...");
         const response = await axiosInstance.post("/question-images-paginator/", {
           classid: selectedClass,
           subjectid: selectedSubject,
           topicid: selectedChapters,
           external: true,
         });
-        
-        console.log("📊 JEE subtopics response:", response.data);
         
         if (response.data && response.data.subtopics) {
           setJeeSubtopics(response.data.subtopics);
@@ -427,17 +461,33 @@ useEffect(() => {
         setJeeSubtopics([]);
       }
     } 
-    // Clear both if neither Science nor JEE
+    // Handle JEE Traditional subjects (NEW - fetch subtopics for external only)
+    else if (isJEETraditionalSubject() && questionType === "external" && 
+             selectedClass && selectedSubject && selectedChapters.length > 0) {
+      try {
+        console.log("📚 Fetching JEE Traditional subtopics...");
+        const response = await axiosInstance.post("/question-images-paginator/", {
+          classid: selectedClass,
+          subjectid: selectedSubject,
+          topicid: selectedChapters[0],
+          external: true,
+        });
+        setSubTopics(response.data.subtopics || []);
+      } catch (error) {
+        console.error("❌ Error fetching subtopics:", error);
+        setSubTopics([]);
+      }
+    }
+    // Clear all if none match
     else {
       setScienceSubtopics([]);
       setJeeSubtopics([]);
     }
   }
   fetchSubtopics();
-}, [selectedClass, selectedSubject, selectedChapters]);
+}, [selectedClass, selectedSubject, selectedChapters, questionType]);  // Added questionType dependency
 
 const isGenerateButtonEnabled = () => {
-  // Basic validations
   if (!selectedClass || !selectedSubject || selectedChapters.length === 0 || !questionType) {
     return false;
   }
@@ -447,9 +497,17 @@ const isGenerateButtonEnabled = () => {
     return true;
   }
 
-  // For JEE subjects - all subtypes can be generated immediately (NEW)
-  if (isJEESubject()) {
+  // For JEE Mains/Advanced subjects - MCQ/NVTQ/Theorem can be generated immediately
+  if (isJEEMainsAdvancedSubject()) {
     return true;
+  }
+
+  // For JEE Traditional subjects - check like regular subjects
+  if (isJEETraditionalSubject()) {
+    if (questionType === "worksheets") return selectedWorksheet !== "";
+    if (questionType === "external") return questionLevel !== "";
+    if (questionType === "solved") return true;
+    return false;
   }
 
   // For non-Science, non-JEE subjects
@@ -694,7 +752,6 @@ const handleSubmit = async (e) => {
     return;
   }
 
-  // API request structure
   const requestData = {
     classid: Number(selectedClass),
     subjectid: Number(selectedSubject),
@@ -712,16 +769,23 @@ const handleSubmit = async (e) => {
       console.log("🔬 Sending Science request with subtopic:", selectedQuestionType.id);
     }
   } 
-else if (isJEESubject()) {
-  // Map dropdown value to subtopic ID (same as Science)
-  const idMap = { 'mcq': '1', 'nvtq': '2', 'theorem': '3' };
-  
-  if (questionType && idMap[questionType]) {
-    requestData.subtopic = idMap[questionType];
-    // ✅ NO external flag - same as Science flow
-    console.log("📐 Sending JEE request with subtopic:", idMap[questionType]);
+  // ✅ For JEE Mains/Advanced subjects
+  else if (isJEEMainsAdvancedSubject()) {
+    const idMap = { 'mcq': '1', 'nvtq': '2', 'theorem': '3' };
+    
+    if (questionType && idMap[questionType]) {
+      requestData.subtopic = idMap[questionType];
+      console.log("📐 Sending JEE Mains/Advanced request with subtopic:", idMap[questionType]);
+    }
   }
-}
+  // ✅ For JEE Traditional subjects
+  else if (isJEETraditionalSubject()) {
+    requestData.solved = questionType === "solved";
+    requestData.exercise = questionType === "exercise";
+    requestData.subtopic = questionType === "external" ? questionLevel : null;
+    requestData.worksheet_name = questionType === "worksheets" ? selectedWorksheet : null;
+    console.log("📚 Sending JEE Traditional request:", requestData);
+  }
   // ✅ For other subjects
   else {
     requestData.solved = questionType === "solved";
@@ -730,54 +794,69 @@ else if (isJEESubject()) {
     requestData.worksheet_name = questionType === "worksheets" ? selectedWorksheet : null;
   }
 
-  console.log("📤 Request data for question generation:", requestData);
-
   try {
-    const response = await axiosInstance.post("/question-images-paginator/", requestData);
-    console.log("📥 Response data:", response.data);
+    setIsLoading(true);
+    console.log("Requesting questions with:", requestData);
 
-    // Process questions with images and context
-    const questionsWithImages = (response.data.questions || []).map((question, index) => ({
-      ...question,
-      id: index,
-      question_id: question.id,
-      question: question.question,
-      context: question.context || null,
-      image: question.question_image
-        ? `${question.question_image}`
-        : null,
-    }));
+    const response = await axiosInstance.post("/question-images/", requestData);
+    console.log("Questions response:", response.data);
 
-    console.log("✅ Processed questions with images:", questionsWithImages);
-    setQuestionList(questionsWithImages);
-    setSelectedQuestions([]);
+    // Process questions if they exist
+    if (response.data && response.data.questions && Array.isArray(response.data.questions)) {
+      console.log("Questions found:", response.data.questions.length);
+      const questionsWithImages = response.data.questions.map((question, index) => ({
+        ...question,
+        id: index,
+        question_id: question.id,
+        question: question.question,
+        context: question.context || null,
+        image: question.question_image
+          ? `${question.question_image}`
+          : null,
+      }));
 
-    // Handle pagination info (for JEE subjects)
-    const pageSize = 15; // Questions per page
-    const totalCount = response.data.count || questionsWithImages.length;
-    const totalPages = Math.ceil(totalCount / pageSize);
+      setQuestionList(questionsWithImages);
+      setSelectedQuestions([]);
 
-    setPaginationInfo({
-      next: response.data.next || null,
-      previous: response.data.previous || null,
-      count: totalCount,
-      currentPage: 1,
-      totalPages: totalPages,
-      isLoading: false
-    });
+      // Set pagination info if available
+      if (response.data.next || response.data.previous) {
+        const pageSize = 15;
+        const totalCount = response.data.count || questionsWithImages.length;
+        const totalPages = Math.ceil(totalCount / pageSize);
 
-    console.log("📄 Pagination info:", {
-      count: totalCount,
-      totalPages,
-      next: response.data.next,
-      previous: response.data.previous
-    });
+        setPaginationInfo({
+          next: response.data.next || null,
+          previous: response.data.previous || null,
+          count: totalCount,
+          currentPage: 1,
+          totalPages: totalPages,
+          isLoading: false
+        });
+      } else {
+        setPaginationInfo({
+          next: null,
+          previous: null,
+          count: questionsWithImages.length,
+          currentPage: 1,
+          totalPages: 1,
+          isLoading: false
+        });
+      }
 
-    // Show the modal
-    setShowQuestionList(true);
+      setShowQuestionList(true);
+    } else {
+      console.error("No questions found in response");
+      showAlert("No questions available for this selection", "warning");
+    }
+
+    setIsLoading(false);
   } catch (error) {
-    console.error("❌ Error generating questions:", error);
-    showAlert("Failed to generate questions. Please try again.", "error");
+    console.error("Error generating questions:", error);
+    showAlert(
+      error.response?.data?.message || "Failed to generate questions. Please try again.",
+      "error"
+    );
+    setIsLoading(false);
   }
 };
 
@@ -903,23 +982,24 @@ else if (isJEESubject()) {
     // Get subject name
     const subjectName = subjects.find(s => s.subject_code === selectedSubject)?.subject_name || 'Unknown Subject';
 
-    const sessionData = {
-      question,
-      question_id: question_id,
-      questionNumber: index + 1,
-      questionList,
-      class_id: selectedClass,
-      subject_id: selectedSubject,
-      subject_name: subjectName,
-      topic_ids: selectedChapters,
-      chapter_names: chapterNames,
-      subtopic: questionType === "external" ? questionLevel : "",
-      worksheet_id: questionType === "worksheets" ? selectedWorksheet : "",
-      image,
-      context: context || null,
-      selectedQuestions: selectedQuestions,
-      jeeQuestionType: isJEESubject() ? questionType : null,
-    };
+const sessionData = {
+  question,
+  question_id: question_id,
+  questionNumber: index + 1,
+  questionList,
+  class_id: selectedClass,
+  subject_id: selectedSubject,
+  subject_name: subjectName,
+  topic_ids: selectedChapters,
+  chapter_names: chapterNames,
+  subtopic: questionType === "external" ? questionLevel : "",
+  worksheet_id: questionType === "worksheets" ? selectedWorksheet : "",
+  image,
+  context: context || null,
+  selectedQuestions: selectedQuestions,
+  // MODIFIED: Only pass jeeQuestionType for Mains/Advanced subjects
+  jeeQuestionType: isJEEMainsAdvancedSubject() ? questionType : null,
+};
 
     // Save session before navigating
     saveSessionData(sessionData);
@@ -959,7 +1039,7 @@ else if (isJEESubject()) {
       image: firstQuestion.image,
       context: firstQuestion.context || null,
       selectedQuestions: selectedQuestionsData,
-      jeeQuestionType: isJEESubject() ? questionType : null, 
+      jeeQuestionType: isJEEMainsAdvancedSubject() ? questionType : null,
     };
 
     // Save session before navigating
@@ -1448,123 +1528,151 @@ else if (isJEESubject()) {
                           </Form.Group>
                         </Col>
 
-                        <Col md={6}>
-<Form.Group>
-  <Form.Label>
-    <FontAwesomeIcon icon={faClipboardQuestion} className="form-icon" />
-    Question Type
-  </Form.Label>
-  
-  {/* For JEE subjects - use simple HTML select */}
-{isJEESubject() ? (
-  <Form.Control
-    as="select"
-    value={questionType}
-    onChange={(e) => {
-      console.log("📝 JEE Question type selected:", e.target.value);
-      setQuestionType(e.target.value);
-    }}
-    className="form-control-enhanced"
-    disabled={!selectedChapters.length || jeeSubtopics.length === 0}
-  >
-    <option value="">
-      {jeeSubtopics.length === 0 && selectedChapters.length > 0
-        ? "Loading available question types..."
-        : "Choose question type..."}
-    </option>
-    {/* Show only available options from backend */}
-    {jeeSubtopics.includes("1") && (
-      <option value="mcq">Multiple Choice Questions (MCQ)</option>
+<Col md={6}>
+  <Form.Group>
+    <Form.Label>
+      <FontAwesomeIcon icon={faClipboardQuestion} className="form-icon" />
+      Question Type
+    </Form.Label>
+    
+    {/* For JEE Mains/Advanced subjects */}
+    {isJEEMainsAdvancedSubject() ? (
+      <Form.Control
+        as="select"
+        value={questionType}
+        onChange={(e) => {
+          console.log("📝 JEE Mains/Advanced Question type selected:", e.target.value);
+          setQuestionType(e.target.value);
+        }}
+        className="form-control-enhanced"
+        disabled={!selectedChapters.length || jeeSubtopics.length === 0}
+      >
+        <option value="">
+          {jeeSubtopics.length === 0 && selectedChapters.length > 0
+            ? "Loading available question types..."
+            : "Choose question type..."}
+        </option>
+        {jeeSubtopics.includes("1") && (
+          <option value="mcq">Multiple Choice Questions (MCQ)</option>
+        )}
+        {jeeSubtopics.includes("2") && (
+          <option value="nvtq">Numerical Value Type Questions (NVTQ)</option>
+        )}
+        {jeeSubtopics.includes("3") && (
+          <option value="theorem">Theorem Based Questions</option>
+        )}
+      </Form.Control>
+    ) 
+    /* For JEE Traditional subjects */
+    : isJEETraditionalSubject() ? (
+      <Form.Control
+        as="select"
+        value={questionType}
+        onChange={(e) => {
+          console.log("📚 JEE Traditional Question type selected:", e.target.value);
+          setQuestionType(e.target.value);
+        }}
+        className="form-control-enhanced"
+        disabled={!selectedChapters.length}
+      >
+        <option value="">Choose question type...</option>
+        <option value="solved">Solved Examples</option>
+        <option value="external">Book Exercises</option>
+        <option value="worksheets">Take it to next level with Worksheets</option>
+      </Form.Control>
+    )
+    /* ✅ FIXED: Science subjects - Use HTML select (same as older version) */
+    : isScienceSubject() ? (
+      <Form.Control
+        as="select"
+        value={questionType}
+        onChange={(e) => {
+          console.log("🔬 Science Question type selected:", e.target.value);
+          setQuestionType(e.target.value);
+        }}
+        className="form-control-enhanced"
+        disabled={!selectedChapters.length || scienceSubtopics.length === 0}
+      >
+        <option value="">Choose question type...</option>
+        {getQuestionTypeOptions().map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </Form.Control>
+    ) 
+    /* For other subjects */
+    : (
+      <Form.Control
+        as="select"
+        value={questionType}
+        onChange={(e) => setQuestionType(e.target.value)}
+        className="form-control-enhanced"
+        disabled={!selectedChapters.length}
+      >
+        <option value="">Choose question type...</option>
+        <option value="solved">Solved Examples</option>
+        <option value="external">Book Exercises</option>
+        <option value="worksheets">Take it to next level with Worksheets</option>
+      </Form.Control>
     )}
-    {jeeSubtopics.includes("2") && (
-      <option value="nvtq">Numerical Value Type Questions (NVTQ)</option>
-    )}
-    {jeeSubtopics.includes("3") && (
-      <option value="theorem">Theorem Based Questions</option>
-    )}
-  </Form.Control>
-  ) : isScienceSubject() ? (
-    /* For Science subjects - use React-Select */
-    <Select
-      options={getQuestionTypeOptions()}
-      value={getQuestionTypeOptions().find(opt => opt.value === questionType) || null}
-      onChange={(selected) => setQuestionType(selected?.value || "")}
-      placeholder="Choose question type..."
-      styles={selectStyles}
-      isClearable
-    />
-  ) : (
-    /* For other subjects - use simple HTML select */
-    <Form.Control
-      as="select"
-      value={questionType}
-      onChange={(e) => setQuestionType(e.target.value)}
-      className="form-control-enhanced"
-      disabled={!selectedChapters.length}
-    >
-      <option value="">Choose question type...</option>
-      <option value="solved">Solved Examples</option>
-      <option value="external">Book Exercises</option>
-      <option value="worksheets">Take it to next level with Worksheets</option>
-    </Form.Control>
-  )}
-</Form.Group>
-                        </Col>
+  </Form.Group>
+</Col>
                       </Row>
 
-                      {/* Only show this for non-Science subjects with external question type */}
-                    {!isScienceSubject() && questionType === "external" && (
-                      <Row className="form-row">
-                        <Col md={6}>
-                          <Form.Group>
-                            <Form.Label>
-                              <FontAwesomeIcon icon={faBookmark} className="me-2" />
-                              Select The Set
-                            </Form.Label>
-                            <Form.Control
-                              as="select"
-                              value={questionLevel}
-                              onChange={(e) => setQuestionLevel(e.target.value)}
-                              className="form-control-enhanced"
-                            >
-                              <option value="">Select The Set</option>
-                              {subTopics.map((subTopic, index) => (
-                                <option key={subTopic} value={subTopic}>
-                                  Exercise {index + 1}
-                                </option>
-                              ))}
-                            </Form.Control>
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                    )}
+{/* Exercise selector for non-Science AND non-JEE-Mains/Advanced subjects */}
+{(!isScienceSubject() && !isJEEMainsAdvancedSubject() && questionType === "external") && (
+  <Row className="form-row">
+    <Col md={6}>
+      <Form.Group>
+        <Form.Label>
+          <FontAwesomeIcon icon={faBookmark} className="me-2" />
+          Select The Set
+        </Form.Label>
+        <Form.Control
+          as="select"
+          value={questionLevel}
+          onChange={(e) => setQuestionLevel(e.target.value)}
+          className="form-control-enhanced"
+        >
+          <option value="">Select The Set</option>
+          {subTopics.map((subTopic, index) => (
+            <option key={subTopic} value={subTopic}>
+              Exercise {index + 1}
+            </option>
+          ))}
+        </Form.Control>
+      </Form.Group>
+    </Col>
+  </Row>
+)}
 
-                    {/* Only show this for non-Science subjects with worksheets question type */}
-                    {!isScienceSubject() && questionType === "worksheets" && (
-                      <Row className="form-row">
-                        <Col md={6}>
-                          <Form.Group>
-                            <Form.Label>
-                              <FontAwesomeIcon icon={faUsers} className="me-2" />
-                              Select Worksheet
-                            </Form.Label>
-                            <Form.Control
-                              as="select"
-                              value={selectedWorksheet}
-                              onChange={(e) => setSelectedWorksheet(e.target.value)}
-                              className="form-control-enhanced"
-                            >
-                              <option value="">Select Worksheet</option>
-                              {worksheets.map((worksheet) => (
-                                <option key={worksheet.id} value={worksheet.worksheet_name}>
-                                  {worksheet.worksheet_name}
-                                </option>
-                              ))}
-                            </Form.Control>
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                    )}
+{/* Worksheet selector for non-Science AND non-JEE-Mains/Advanced subjects */}
+{(!isScienceSubject() && !isJEEMainsAdvancedSubject() && questionType === "worksheets") && (
+  <Row className="form-row">
+    <Col md={6}>
+      <Form.Group>
+        <Form.Label>
+          <FontAwesomeIcon icon={faUsers} className="me-2" />
+          Select Worksheet
+        </Form.Label>
+        <Form.Control
+          as="select"
+          value={selectedWorksheet}
+          onChange={(e) => setSelectedWorksheet(e.target.value)}
+          className="form-control-enhanced"
+        >
+          <option value="">Select Worksheet</option>
+          {worksheets.map((worksheet) => (
+            <option key={worksheet.id} value={worksheet.worksheet_name}>
+              {worksheet.worksheet_name}
+            </option>
+          ))}
+        </Form.Control>
+      </Form.Group>
+    </Col>
+  </Row>
+)}
 
                       <div className="new-button form-actions">
                         <button
