@@ -439,46 +439,41 @@ useEffect(() => {
 
   yPosition += 15;
 
-  const tableData = questionsEvaluation.questions_evaluation.map((q, index) => [
-    q.question_number || `Q${index + 1}`,
-    `${q.total_score || 0}`,
-    `${q.max_marks || 0}`,
-    `${q.percentage?.toFixed(1) || 0}%`,
-    q.error_type === 'no_error' ? 'Pass' : 'Fail'
-  ]);
+const tableData = questionsEvaluation.questions_evaluation.map((q, index) => [
+  q.question_number || `Q${index + 1}`,
+  `${q.total_score || 0} / ${q.max_marks || 0}`,
+  q.mistakes_made || 'None',
+  q.gap_analysis || 'No gaps identified'
+]);
 
   const tableWidth = 160; // sum of column widths
   const leftMargin = (pageWidth - tableWidth) / 2;
 
-  autoTable(doc, {
-    startY: yPosition,
-    margin: { left: leftMargin },
-    head: [['Question', 'Scored', 'Total', 'Percentage']],
-    body: tableData,
-    theme: 'grid',
-
-    headStyles: {
-      fillColor: [102, 126, 234],
-      textColor: 255,
-      fontSize: 10,
-      fontStyle: 'bold',
-      halign: 'center'
-    },
-    bodyStyles: {
-      fontSize: 9,
-      halign: 'center'
-    },
-    alternateRowStyles: {
-      fillColor: [249, 250, 251]
-    },
-    columnStyles: {
-      0: { cellWidth: 30 },
-      1: { cellWidth: 30 },
-      2: { cellWidth: 30 },
-      3: { cellWidth: 40 },
-      4: { cellWidth: 30 }
-    }
-  });
+autoTable(doc, {
+  startY: yPosition,
+  margin: { left: 10, right: 10 },
+  head: [['Question No.', 'Marks', 'Mistakes Made', 'Gap Analysis']],
+  body: tableData,
+  theme: 'grid',
+  headStyles: {
+    fillColor: [102, 126, 234],
+    textColor: 255,
+    fontSize: 9,
+    fontStyle: 'bold',
+    halign: 'center'
+  },
+  styles: {
+    fontSize: 8,
+    cellPadding: 2,
+    overflow: 'linebreak'
+  },
+  columnStyles: {
+    0: { cellWidth: 25, halign: 'center' },  // Question No.
+    1: { cellWidth: 25, halign: 'center' },  // Marks
+    2: { cellWidth: 60, halign: 'left' },    // Mistakes Made
+    3: { cellWidth: 80, halign: 'left' }     // Gap Analysis
+  }
+});
 
   yPosition = doc.lastAutoTable.finalY + 15;
 }

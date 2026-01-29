@@ -5,6 +5,7 @@ import axiosInstance from '../api/axiosInstance';
 import QuestionEvaluationCard from './shared/QuestionEvaluationCard';
 import PerformanceHeader from './shared/PerformanceHeader';
 import './StudentExamDetails.css';
+import MarkdownWithMath from './MarkdownWithMath'; 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -370,41 +371,87 @@ const handleDownloadPDF = () => {
     doc.setTextColor(0, 0, 0);
     currentY += 12;
     
-    const summaryTableData = questionDetails.map((q, idx) => {
-      return [
-        q.question_number || `Q${idx + 1}`,
-        q.total_score || 0,
-        q.max_marks || 0,
-      ];
-    });
+// Helper function to clean LaTeX for PDF (add before summaryTableData if not already present)
+const cleanLatexForPDF = (text) => {
+  if (!text) return '';
+  
+  // Remove display math delimiters
+  text = text.replace(/\$\$([^$]+)\$\$/g, '$1');
+  
+  // Remove inline math delimiters
+  text = text.replace(/\$([^$]+)\$/g, '$1');
+  
+  // Clean up common LaTeX commands
+  text = text.replace(/\\neq/g, '≠');
+  text = text.replace(/\\leq/g, '≤');
+  text = text.replace(/\\geq/g, '≥');
+  text = text.replace(/\\times/g, '×');
+  text = text.replace(/\\div/g, '÷');
+  text = text.replace(/\\pm/g, '±');
+  text = text.replace(/\\angle/g, '∠');
+  text = text.replace(/\\triangle/g, '△');
+  text = text.replace(/\\degree/g, '°');
+  text = text.replace(/\\cdot/g, '·');
+  text = text.replace(/\\approx/g, '≈');
+  text = text.replace(/\\infty/g, '∞');
+  text = text.replace(/\\sqrt\{([^}]+)\}/g, '√($1)');
+  text = text.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1/$2)');
+  text = text.replace(/\^(\d+)/g, '^$1');
+  text = text.replace(/\^{([^}]+)}/g, '^$1');
+  text = text.replace(/_(\d+)/g, '_$1');
+  text = text.replace(/_{([^}]+)}/g, '_$1');
+  text = text.replace(/\\left/g, '');
+  text = text.replace(/\\right/g, '');
+  text = text.replace(/\\/g, '');
+  
+  return text;
+};
+
+const summaryTableData = questionDetails.map((q, idx) => {
+  const marks = `${q.total_score || 0} / ${q.max_marks || 0}`;
+  const errorType = q.error_type || 'Unknown';
+  const mistakesMade = cleanLatexForPDF(q.mistakes_made || 'None');
+  const gapAnalysis = cleanLatexForPDF(q.gap_analysis || 'No gaps identified');
+  
+  // Get error type label
+  const getErrorTypeLabel = (type) => {
+    const labels = {
+      'None': 'No Error',
+      'no_error': 'No Error',
+      'Conceptual Error': 'Conceptual',
+      'conceptual_error': 'Conceptual',
+      'Numerical Error': 'Numerical',
+      'numerical_error': 'Numerical',
+      'incomplete': 'Incomplete',
+      'unattempted': 'Not Attempted',
+      'Unknown': 'Unknown'
+    };
+    return labels[type] || type;
+  };
+  
+  return [
+    q.question_number || `Q${idx + 1}`,
+    marks,
+    getErrorTypeLabel(errorType),
+    mistakesMade,
+    gapAnalysis
+  ];
+});
     
-    // Add overall summary rows with better styling
-    summaryTableData.push([
-      { 
-        content: 'Overall', 
-        styles: { 
-          fontStyle: 'bold', 
-          fillColor: [243, 244, 246],
-          textColor: [31, 41, 55]
-        } 
-      },
-      { 
-        content: examMetadata.totalMarks || 0, 
-        styles: { 
-          fontStyle: 'bold', 
-          fillColor: [243, 244, 246],
-          textColor: [31, 41, 55]
-        } 
-      },
-      { 
-        content: examMetadata.maxMarks || 0, 
-        styles: { 
-          fontStyle: 'bold', 
-          fillColor: [243, 244, 246],
-          textColor: [31, 41, 55]
-        } 
-      }
-    ]);
+// Add overall percentage row spanning all columns
+summaryTableData.push([
+  { 
+    content: `Overall Percentage: ${(examMetadata.percentage || 0).toFixed(1)}%`,
+    colSpan: 5, // Changed from 4 to 5
+    styles: { 
+      fontStyle: 'bold', 
+      fillColor: [254, 243, 199],
+      textColor: [120, 53, 15],
+      halign: 'center',
+      fontSize: 10
+    } 
+  }
+]);
     
     // Percentage row with color coding
     const percentageColor = examMetadata.percentage >= 75 
@@ -433,35 +480,52 @@ const handleDownloadPDF = () => {
       }
     ]);
     
-    // Calculate table width and center it
-    const tableWidth = 120;
-    const tableStartX = (pageWidth - tableWidth) / 2;
-    
-    autoTable(doc, {
-      startY: currentY,
-      margin: { left: tableStartX },
-      head: [['Question', 'Marks Obtained', 'Total Marks']],
-      body: summaryTableData,
-      theme: 'grid',
-      tableWidth: tableWidth,
-      headStyles: { 
-        fillColor: [139, 92, 246], 
-        textColor: 255, 
-        fontStyle: 'bold',
-        fontSize: 10,
-        halign: 'center'
-      },
-      styles: { 
-        fontSize: 9, 
-        cellPadding: 3,
-        halign: 'center'
-      },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 40 },
-        1: { halign: 'center', cellWidth: 40 },
-        2: { halign: 'center', cellWidth: 40 }
+// Update table width for 4 columns
+// Update table width for 5 columns
+const tableWidth = 185; // Increased from 180
+const tableStartX = (pageWidth - tableWidth) / 2;
+
+autoTable(doc, {
+  startY: currentY,
+  margin: { left: tableStartX },
+  head: [['Q.No.', 'Marks', 'Error Type', 'Mistakes Made', 'Gap Analysis']], // 5 columns
+  body: summaryTableData,
+  theme: 'grid',
+  tableWidth: tableWidth,
+  headStyles: { 
+    fillColor: [30, 41, 59], // Dark slate color
+    textColor: 255, 
+    fontStyle: 'bold',
+    fontSize: 9,
+    halign: 'center'
+  },
+  styles: { 
+    fontSize: 8, 
+    cellPadding: 2,
+    overflow: 'linebreak',
+    cellWidth: 'wrap'
+  },
+  columnStyles: {
+    0: { halign: 'center', cellWidth: 20 },  // Question No.
+    1: { halign: 'center', cellWidth: 22 },  // Marks
+    2: { halign: 'center', cellWidth: 25 },  // Error Type (NEW)
+    3: { halign: 'left', cellWidth: 50 },    // Mistakes Made
+    4: { halign: 'left', cellWidth: 68 }     // Gap Analysis
+  },
+  didParseCell: function(data) {
+    // Color code rows based on error type
+    if (data.section === 'body' && data.column.index === 2) {
+      const errorType = data.cell.text[0];
+      if (errorType === 'No Error') {
+        data.row.cells[0].styles.fillColor = [240, 253, 244]; // Light green
+      } else if (errorType === 'Not Attempted') {
+        data.row.cells[0].styles.fillColor = [249, 250, 251]; // Light gray
+      } else if (errorType !== 'Error Type') { // Not header
+        data.row.cells[0].styles.fillColor = [254, 242, 242]; // Light red
       }
-    });
+    }
+  }
+});
     
     currentY = doc.lastAutoTable.finalY + 10;
     
@@ -920,118 +984,191 @@ const getPerformanceLabel = (percentage) => {
     );
   }
 
-  return (
-    <div className="student-exam-details-container">
-      <PerformanceHeader 
-        metadata={examMetadata}
-        isTeacherView={isTeacherView}
-      />
+return (
+  <div className="student-exam-details-container">
+    <PerformanceHeader 
+      metadata={examMetadata}
+      isTeacherView={isTeacherView}
+    />
 
-      {(examMetadata.strengths.length > 0 || examMetadata.improvements.length > 0) && (
-        <div className="insights-section">
-          {examMetadata.strengths.length > 0 && (
-            <div className="strengths-box">
-              <h3>✅ Strengths</h3>
-              <ul>
-                {examMetadata.strengths.map((strength, idx) => (
-                  <li key={idx}>{strength}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {examMetadata.improvements.length > 0 && (
-            <div className="improvements-box">
-              <h3>💡 Areas for Improvement</h3>
-              <ul>
-                {examMetadata.improvements.map((improvement, idx) => (
-                  <li key={idx}>{improvement}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-
-      {questionDetails.length > 0 && (
-        <div className="questions-summary-section">
-          <h3>📋 Questions Summary</h3>
-          <table className="questions-summary-table">
-            <thead>
-              <tr>
-                <th>Question</th>
-                <th>Marks Obtained</th>
-                <th>Total Marks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {questionDetails.map((q, idx) => (
-                <tr key={idx}>
-                  <td>{q.question_number || `Q${idx + 1}`}</td>
-                  <td>{q.total_score || 0}</td>
-                  <td>{q.max_marks || 0}</td>
-                </tr>
+    {(examMetadata.strengths.length > 0 || examMetadata.improvements.length > 0) && (
+      <div className="insights-section">
+        {examMetadata.strengths.length > 0 && (
+          <div className="strengths-box">
+            <h3>✅ Strengths</h3>
+            <ul>
+              {examMetadata.strengths.map((strength, idx) => (
+                <li key={idx}>{strength}</li>
               ))}
-               {/* Overall Summary Row */}
-                <tr className="overall-summary-row">
-                  <td><strong>Overall</strong></td>
-                  <td><strong>{examMetadata.totalMarks || 0}</strong></td>
-                  <td><strong>{examMetadata.maxMarks || 0}</strong></td>
-                </tr>
-                <tr className="percentage-summary-row">
-                  <td colSpan="2"><strong>Percentage</strong></td>
-                  <td>
-                    <span className={`percentage-badge ${getPerformanceClass(examMetadata.percentage || 0)}`}>
-                      <strong>{(examMetadata.percentage || 0).toFixed(1)}%</strong>
-                    </span>
-                  </td>
-                </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
+            </ul>
+          </div>
+        )}
 
-      {questionDetails.length > 0 && (
-        <div className="detailed-evaluation-section">
-          <h3>🔍 Detailed Questions Evaluation</h3>
-          {questionDetails.map((question, idx) => (
-            <QuestionEvaluationCard 
-              key={idx}
-              questionNumber={question.question_number || idx + 1}
-              questionData={question}
-              isTeacherView={isTeacherView}
-            />
-          ))}
-        </div>
-      )}
+        {examMetadata.improvements.length > 0 && (
+          <div className="improvements-box">
+            <h3>💡 Areas for Improvement</h3>
+            <ul>
+              {examMetadata.improvements.map((improvement, idx) => (
+                <li key={idx}>{improvement}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    )}
 
-      {/* Remedial Action Section (NEW) */}
-      {examMetadata?.remedialAction && (
-        <div className="remedial-action-section">
-          <div className="remedial-header">
-            <span className="remedial-icon">💊</span>
-            <h3 className="remedial-title">Remedial Action</h3>
-          </div>
-          <div className="remedial-content">
-            <p className="remedial-text">{examMetadata.remedialAction}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Overall Detailed Analysis */}
-      {summaryData?.detailed_analysis && (
-        <div className="overall-analysis-section">
-          <div className="analysis-header">
-            <span className="analysis-icon">📊</span>
-            <h3 className="analysis-title">Overall Performance Analysis</h3>
-          </div>
-          <div className="analysis-content">
-            <p className="analysis-text">{summaryData.detailed_analysis}</p>
-          </div>
-        </div>
-      )}
+    {/* FIXED: Questions Summary Table */}
+{questionDetails.length > 0 && (
+  <div className="questions-summary-section">
+    <h3>📋 Questions Summary</h3>
+    <div className="table-wrapper">
+      <table className="questions-summary-table">
+        <thead>
+          <tr>
+            <th className="th-question-no">Question No.</th>
+            <th className="th-marks">Marks</th>
+            <th className="th-error-type">Error Type</th>
+            <th className="th-mistakes">Mistakes Made</th>
+            <th className="th-gap">Gap Analysis</th>
+          </tr>
+        </thead>
+        <tbody>
+          {questionDetails.map((q, idx) => {
+            const marks = `${q.total_score || 0} / ${q.max_marks || 0}`;
+            const errorType = q.error_type || 'Unknown';
+            const mistakesMade = q.mistakes_made || 'None';
+            const gapAnalysis = q.gap_analysis || 'No gaps identified';
+            
+            // Determine row status
+            const isCorrect = errorType === 'None' || errorType === 'no_error';
+            const hasError = !isCorrect && errorType !== 'unattempted';
+            const isUnattempted = errorType === 'unattempted';
+            
+            // Get error type display label and badge color
+            const getErrorTypeLabel = (type) => {
+              const labels = {
+                'None': 'No Error',
+                'no_error': 'No Error',
+                'Conceptual Error': 'Conceptual',
+                'conceptual_error': 'Conceptual',
+                'Numerical Error': 'Numerical',
+                'numerical_error': 'Numerical',
+                'incomplete': 'Incomplete',
+                'unattempted': 'Not Attempted',
+                'Unknown': 'Unknown'
+              };
+              return labels[type] || type;
+            };
+            
+            const getErrorTypeBadgeClass = (type) => {
+              if (type === 'None' || type === 'no_error') return 'error-badge-none';
+              if (type === 'unattempted') return 'error-badge-unattempted';
+              if (type === 'incomplete') return 'error-badge-incomplete';
+              return 'error-badge-error';
+            };
+            
+            return (
+              <tr 
+                key={idx} 
+                className={
+                  isCorrect ? 'correct-row' : 
+                  isUnattempted ? 'unattempted-row' : 
+                  hasError ? 'error-row' : ''
+                }
+              >
+                <td className="question-number-cell">
+                  <strong>{q.question_number || `Q${idx + 1}`}</strong>
+                </td>
+                
+                <td className="marks-cell">
+                  <span className="marks-display">{marks}</span>
+                </td>
+                
+                <td className="error-type-cell">
+                  <span className={`error-type-badge ${getErrorTypeBadgeClass(errorType)}`}>
+                    {getErrorTypeLabel(errorType)}
+                  </span>
+                </td>
+                
+                <td className="mistakes-cell">
+                  <div className="mistakes-content">
+                    {mistakesMade === 'None' || mistakesMade === 'N/A' ? (
+                      <span className="mistakes-badge no-mistake">None</span>
+                    ) : (
+                      <MarkdownWithMath content={mistakesMade} />
+                    )}
+                  </div>
+                </td>
+                
+                <td className="gap-analysis-cell">
+                  <div className="gap-content">
+                    <MarkdownWithMath content={gapAnalysis} />
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+          
+          {/* Overall Summary Row - Now spans 5 columns */}
+          <tr className="overall-summary-row">
+            <td colSpan="5">
+              <div className="overall-summary-content">
+                <div className="summary-item">
+                  <span className="summary-label">Overall Percentage:</span>
+                  <span className={`percentage-badge ${getPerformanceClass(examMetadata.percentage || 0)}`}>
+                    <strong>{(examMetadata.percentage || 0).toFixed(1)}%</strong>
+                  </span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  );
+  </div>
+)}
+
+    {questionDetails.length > 0 && (
+      <div className="detailed-evaluation-section">
+        <h3>🔍 Detailed Questions Evaluation</h3>
+        {questionDetails.map((question, idx) => (
+          <QuestionEvaluationCard 
+            key={idx}
+            questionNumber={question.question_number || idx + 1}
+            questionData={question}
+            isTeacherView={isTeacherView}
+          />
+        ))}
+      </div>
+    )}
+
+    {/* Remedial Action Section */}
+    {examMetadata?.remedialAction && (
+      <div className="remedial-action-section">
+        <div className="remedial-header">
+          <span className="remedial-icon">💊</span>
+          <h3 className="remedial-title">Remedial Action</h3>
+        </div>
+        <div className="remedial-content">
+          <p className="remedial-text">{examMetadata.remedialAction}</p>
+        </div>
+      </div>
+    )}
+
+    {/* Overall Detailed Analysis */}
+    {summaryData?.detailed_analysis && (
+      <div className="overall-analysis-section">
+        <div className="analysis-header">
+          <span className="analysis-icon">📊</span>
+          <h3 className="analysis-title">Overall Performance Analysis</h3>
+        </div>
+        <div className="analysis-content">
+          <p className="analysis-text">{summaryData.detailed_analysis}</p>
+        </div>
+      </div>
+    )}
+  </div>
+);
 };
 
 const getPerformanceClass = (percentage) => {
