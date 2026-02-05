@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useEffect } from "react";
+import React, { useState, useRef, useContext, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTimes,
@@ -12,6 +12,9 @@ import "./FeedbackBox.css";
 import { useAlert } from './AlertBox';
 import { AuthContext } from './AuthContext';
 import axiosInstance from "../api/axiosInstance";
+
+const AUTO_SHOW_DELAY_MS = 2 * 60 * 1000; // 2 minutes
+const FEEDBACK_SHOWN_KEY = 'feedback_modal_shown_session';
 
 const REACTIONS = [
   { emoji: "😤", label: "Frustrated", value: 1, color: "#ef4444" },
@@ -33,13 +36,58 @@ const FeedbackBox = ({ isOpen = false, onClose = () => {} }) => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [hoveredReaction, setHoveredReaction] = useState(null);
+  const [autoShowOpen, setAutoShowOpen] = useState(false);
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
+  const timerRef = useRef(null);
+
+  // Check feedback status and auto-show modal after 2 mins if user hasn't submitted feedback
+  useEffect(() => {
+    // Skip if already shown this session
+    if (sessionStorage.getItem(FEEDBACK_SHOWN_KEY)) {
+      return;
+    }
+
+    const checkFeedbackStatus = async () => {
+      try {
+        const response = await axiosInstance.get('/api/user-info/');
+        const feedbackStatus = response.data?.feedback_status;
+
+        if (feedbackStatus === false) {
+          // User hasn't submitted feedback - show after 2 minutes
+          timerRef.current = setTimeout(() => {
+            // Double-check it wasn't shown while waiting
+            if (!sessionStorage.getItem(FEEDBACK_SHOWN_KEY)) {
+              sessionStorage.setItem(FEEDBACK_SHOWN_KEY, 'true');
+              setAutoShowOpen(true);
+            }
+          }, AUTO_SHOW_DELAY_MS);
+        }
+      } catch (error) {
+        console.error('Error fetching user info for feedback status:', error);
+      }
+    };
+
+    checkFeedbackStatus();
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setAutoShowOpen(false);
+    onClose();
+  }, [onClose]);
+
+  const isModalOpen = isOpen || autoShowOpen;
 
   // Reset state when closing
   useEffect(() => {
-    if (!isOpen) {
+    if (!isModalOpen) {
       const timer = setTimeout(() => {
         setStep(1);
         setSelectedReaction(null);
@@ -51,7 +99,7 @@ const FeedbackBox = ({ isOpen = false, onClose = () => {} }) => {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isModalOpen]);
 
   // Focus textarea when entering step 2
   useEffect(() => {
@@ -117,9 +165,15 @@ const FeedbackBox = ({ isOpen = false, onClose = () => {} }) => {
       setIsSuccess(true);
       setStep(3);
 
+      // Clear the auto-show timer since user submitted feedback
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+
       // Auto close after success
       setTimeout(() => {
-        onClose();
+        handleClose();
       }, 2500);
 
     } catch (error) {
@@ -166,12 +220,12 @@ const FeedbackBox = ({ isOpen = false, onClose = () => {} }) => {
 
       {/* Backdrop */}
       <div
-        className={`fb-backdrop ${isOpen ? "active" : ""}`}
-        onClick={onClose}
+        className={`fb-backdrop ${isModalOpen ? "active" : ""}`}
+        onClick={handleClose}
       />
 
       {/* Main Container */}
-      <div className={`fb-container ${isOpen ? "open" : ""}`}>
+      <div className={`fb-container ${isModalOpen ? "open" : ""}`}>
         {/* Decorative gradient orb */}
         <div
           className="fb-orb"
@@ -188,7 +242,7 @@ const FeedbackBox = ({ isOpen = false, onClose = () => {} }) => {
           </div>
           <button
             className="fb-close"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close feedback"
           >
             <FontAwesomeIcon icon={faTimes} />

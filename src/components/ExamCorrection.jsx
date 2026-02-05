@@ -1,4 +1,4 @@
-// ExamCorrection.jsx - Improved Layout with Side-by-Side Mode Selection and Grid View
+// ExamCorrection.jsx 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
@@ -56,9 +56,11 @@ const ExamCorrection = () => {
 
   // Cleanup timeout on unmount
   useEffect(() => {
+    let redirectTimeout;
+
     return () => {
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
+      if (redirectTimeout) {
+        clearTimeout(redirectTimeout);
       }
     };
   }, []);
@@ -106,9 +108,9 @@ const ExamCorrection = () => {
         setError('Question paper must be a PDF file');
         return;
       }
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setError('Question paper file size must be less than 10MB');
+      // Validate file size (max 100MB)
+      if (file.size > 100 * 1024 * 1024) {
+        setError('Question paper file size must be less than 100MB');
         return;
       }
       setQuestionPaper(file);
@@ -116,22 +118,30 @@ const ExamCorrection = () => {
     }
   };
 
-  // Handle answer sheets file selection
+  // Handle answer sheets file selection (supports adding multiple files incrementally)
   const handleAnswerSheetsChange = (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Validate files
     const invalidFiles = files.filter(file => {
-      return file.type !== 'application/pdf' || file.size > 20 * 1024 * 1024;
+      return file.type !== 'application/pdf' || file.size > 100 * 1024 * 1024;
     });
 
     if (invalidFiles.length > 0) {
-      setError('All answer sheets must be PDF files under 20MB each');
+      setError('All answer sheets must be PDF files under 100MB each');
       return;
     }
 
-    setAnswerSheets(files);
+    // Append new files to existing ones (avoid duplicates by name)
+    setAnswerSheets(prev => {
+      const existingNames = new Set(prev.map(f => f.name));
+      const newFiles = files.filter(f => !existingNames.has(f.name));
+      return [...prev, ...newFiles];
+    });
     setError(null);
+
+    // Reset the input so the same file can be selected again if needed
+    e.target.value = '';
   };
 
   // Remove question paper
@@ -213,12 +223,12 @@ const ExamCorrection = () => {
       });
 
     // NEW: Determine API endpoint based on upload mode
-    const apiEndpoint = uploadMode === 'group' 
-      ? 'api/exam-correction-group/' 
+    const apiEndpoint = uploadMode === 'group'
+      ? 'api/exam-correction-group/'
       : 'api/exam-correction/';
 
       // Make API call with progress tracking
-      const response = await axiosInstance.post('api/exam-correction/', formData, {
+      const response = await axiosInstance.post(apiEndpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -239,11 +249,11 @@ const ExamCorrection = () => {
       }
       
       // Redirect to analytics after 3 seconds
-      setTimeout(() => {
-        if (window.handleExamAnalyticsView) {
-          window.handleExamAnalyticsView();
-        }
-      }, 3000);
+      // setTimeout(() => {
+      //   if (window.handleExamAnalyticsView) {
+      //     window.handleExamAnalyticsView();
+      //   }
+      // }, 3000);
 
     } catch (error) {
       console.error('Error submitting exam correction:', error);
@@ -548,7 +558,7 @@ const ExamCorrection = () => {
       </div>
 
       {/* FULL WIDTH FORM (NO SIDEBAR) */}
-      <div className="form-container-full-width">
+      <div className="exam1-form-container-full-width">
         <form onSubmit={handleSubmit} className="exam-form">
           {/* Error Message */}
           {error && (
@@ -741,7 +751,7 @@ const ExamCorrection = () => {
           <div className="upload-icon-small">📄</div>
           <div className="upload-info">
             <span className="upload-title">Choose PDF</span>
-            <span className="upload-hint">Max 10MB</span>
+            <span className="upload-hint">Max 100MB</span>
           </div>
           <input
             type="file"
@@ -782,11 +792,12 @@ const ExamCorrection = () => {
       <label className="upload-label">
         Answer Sheets <span className="required-mark">*</span>
         {answerSheets.length > 0 && (
-          <span className="file-counter">({answerSheets.length})</span>
+          <span className="file-counter">({answerSheets.length} files)</span>
         )}
       </label>
-      
-      {answerSheets.length === 0 ? (
+
+      {/* Always show upload box when no files */}
+      {answerSheets.length === 0 && (
         <label htmlFor="answerSheetsInput" className="upload-box compact">
           <div className="upload-icon-small">📑</div>
           <div className="upload-info">
@@ -794,7 +805,7 @@ const ExamCorrection = () => {
               {uploadMode === 'group' ? 'Choose PDFs (Batch)' : 'Choose PDFs'}
             </span>
             <span className="upload-hint">
-              {uploadMode === 'group' ? 'Multiple students per file' : 'One per student'}
+              {uploadMode === 'group' ? 'Multiple students per file' : 'One per student'} • Select multiple
             </span>
           </div>
           <input
@@ -807,7 +818,10 @@ const ExamCorrection = () => {
             className="hidden-input"
           />
         </label>
-      ) : (
+      )}
+
+      {/* Show files list and add more button when files exist */}
+      {answerSheets.length > 0 && (
         <div className="files-container">
           <div className="files-scroll">
             {answerSheets.map((sheet, index) => (
@@ -834,14 +848,32 @@ const ExamCorrection = () => {
               </div>
             ))}
           </div>
-          <button
-            type="button"
-            className="clear-all-link"
-            onClick={handleClearAllAnswerSheets}
-            disabled={loading}
-          >
-            Clear All
-          </button>
+          <div className="files-actions">
+            <label htmlFor="answerSheetsInputMore" className="add-more-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add More PDFs
+              <input
+                type="file"
+                id="answerSheetsInputMore"
+                accept=".pdf"
+                multiple
+                onChange={handleAnswerSheetsChange}
+                disabled={loading}
+                className="hidden-input"
+              />
+            </label>
+            <button
+              type="button"
+              className="clear-all-link"
+              onClick={handleClearAllAnswerSheets}
+              disabled={loading}
+            >
+              Clear All
+            </button>
+          </div>
         </div>
       )}
     </div>

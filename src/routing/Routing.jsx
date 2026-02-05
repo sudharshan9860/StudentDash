@@ -1,5 +1,5 @@
 // src/routing/Routing.jsx
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "../components/LoginPage";
 import StudentDash from "../components/StudentDash";
@@ -34,23 +34,170 @@ import TeacherStudentDetailsView from "../components/TeacherStudentDetailsView";
 import MascotTest from "../components/MascotTest";
 // import ThreeJSScene from "../components/ThreeJSScene";
 
+// Marketing Layout and Pages
+import MarketingLayout from "../components/layouts/MarketingLayout";
+import Home from "../pages/marketing/Home";
+
+// Lazy load other marketing pages for better performance
+const About = lazy(() => import("../pages/marketing/About"));
+const Features = lazy(() => import("../pages/marketing/Features"));
+const Courses = lazy(() => import("../pages/marketing/Courses"));
+const Contact = lazy(() => import("../pages/marketing/Contact"));
+const Students = lazy(() => import("../pages/marketing/Students"));
+const Schools = lazy(() => import("../pages/marketing/Schools"));
+const Privacy = lazy(() => import("../pages/marketing/Privacy"));
+const Terms = lazy(() => import("../pages/marketing/Terms"));
+const Refund = lazy(() => import("../pages/marketing/Refund"));
+const GetStarted = lazy(() => import("../pages/marketing/GetStarted"));
+const FreeTrial = lazy(() => import("../pages/marketing/FreeTrial"));
+const PaymentSuccess = lazy(() => import("../pages/marketing/PaymentSuccess"));
+
+// Loading component for lazy-loaded pages
+const PageLoader = () => (
+  <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
+
 
 const AppRoutes = () => {
-  // Read last visited route from localStorage
-  const lastRoute = localStorage.getItem("lastRoute");
-
   return (
     <>
       {/* This tracks and stores the current route */}
       <RouteTracker />
 
       <Routes>
-        {/* Root path → go to lastRoute if exists, else login */}
+        {/* ========== MARKETING ROUTES (Public) ========== */}
         <Route
           path="/"
-          element={<Navigate to={lastRoute || "/login"} replace />}
+          element={
+            <MarketingLayout>
+              <Home />
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <About />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/features"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Features />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/courses"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Courses />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Contact />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/students"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Students />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/schools"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Schools />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/privacy"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Privacy />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Terms />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/refund"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Refund />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/get-started"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <GetStarted />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/free-trial"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <FreeTrial />
+              </Suspense>
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/payment-success"
+          element={
+            <MarketingLayout>
+              <Suspense fallback={<PageLoader />}>
+                <PaymentSuccess />
+              </Suspense>
+            </MarketingLayout>
+          }
         />
 
+        {/* ========== AUTH ROUTES ========== */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/mascot-test" element={<MascotTest />} />

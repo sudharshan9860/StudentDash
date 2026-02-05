@@ -1,4 +1,4 @@
-  ///Layout.Jsx
+ ///Layout.Jsx
   import React, { useContext, useState } from 'react';
   import { useNavigate, useLocation } from 'react-router-dom';
   import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,7 +15,8 @@
     faTimes,
     faHome,
     faCommentDots,
-    faComments
+    faComments,
+    faEdit
   } from '@fortawesome/free-solid-svg-icons';
   import './Layout.css';
   import { AuthContext } from './AuthContext';
@@ -23,6 +24,8 @@
   import SoundConfigModal from './SoundConfigModal';
   import { soundManager } from '../utils/SoundManager';
   import FeedbackBox from './FeedbackBox';
+  import axiosInstance from '../api/axiosInstance';
+  import { Form } from 'react-bootstrap';
 
   const Layout = ({ children }) => {
     const navigate = useNavigate();
@@ -39,6 +42,41 @@
 
     // Feedback modal state
     const [showFeedback, setShowFeedback] = useState(false);
+
+    // Edit profile state
+    const [showEditProfile, setShowEditProfile] = useState(false);
+    const [profileData, setProfileData] = useState({
+      fullname: "",
+      phone_number: "",
+    });
+    const [profileLoading, setProfileLoading] = useState(false);
+
+    const fetchProfile = async () => {
+      try {
+        setProfileLoading(true);
+        const res = await axiosInstance.get("api/auth/edit-profile/");
+        setProfileData({
+          fullname: res.data.fullname || "",
+          phone_number: res.data.phone_number || "",
+        });
+      } catch (error) {
+        console.error("Failed to fetch profile", error);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    const updateProfile = async () => {
+      try {
+        await axiosInstance.post("api/auth/edit-profile/", profileData);
+        setShowEditProfile(false);
+        // Update local name
+        localStorage.setItem("fullName", profileData.fullname);
+        window.location.reload(); // Refresh to show updated name
+      } catch (error) {
+        console.error("Profile update failed", error);
+      }
+    };
 
     // Check if current route is teacher dashboard
     const isTeacherDashboard = currentLocation.pathname === '/teacher-dash';
@@ -76,40 +114,29 @@
       // { path: '/chat', label: 'Chat Rooms', icon: faComments }, // <-- Chat link for students
     ];
 
-    const teacherLinks = [
-      { path: '/teacher-dash?tab=exam-correction', label: 'Exam Correction', icon: '📄', tabName: 'exam-correction' },
-      
-      // ...(school!=="HPS"?
-        // [
-      { path: '/student-dash', label: 'Dashboard', icon: faHome },
-      { path: '/teacher-dash?tab=exercise', label: 'Homework', icon: '📝', tabName: 'exercise' },
-      { path: '/teacher-dash?tab=upload-homework', label: 'Upload Homework', icon: '📑', tabName: 'upload-homework' },
-      { path: '/teacher-dash?tab=classwork', label: 'Classwork', icon: '✏', tabName: 'classwork' },
-      // { path: '/teacher-dash?tab=upload-classwork', label: 'Upload Classwork', icon: '📑', tabName: 'upload-classwork' },
-      { path: '/teacher-dash?tab=homework', label: 'Worksheets', icon: '📄', tabName: 'homework' },
-      { path: '/teacher-dash?tab=class', label: 'Class Analysis', icon: '📊', tabName: 'class' },
-      { path: '/teacher-dash?tab=student', label: 'Student Analysis', icon: '👤', tabName: 'student' },
-      { path: '/teacher-dash?tab=progress', label: 'Progress', icon: '📈', tabName: 'progress' },
-    // ]:[])
-      // Teachers may not need chat UI for 'A' option, but you can include if desired:
-      // { path: '/chat', label: 'Chat Rooms', icon: faComments },
-    ];
+  const teacherLinks = [
+    { path: '/teacher-dash?tab=exam-correction', label: 'Exam Correction', icon: '📄', tabName: 'exam-correction' },
 
-    const chairmanLinks = [
-      { path: '/chairman-dash?tab=overview', label: 'Overview', icon: faHome, tabName: 'overview' },
-      { path: '/chairman-dash?tab=exam-analytics', label: 'Exam Analytics', icon: '📝', tabName: 'exam-analytics' },
-      { path: '/chairman-dash?tab=teacher-tracking', label: 'Teacher Tracking', icon: '👨‍🏫', tabName: 'teacher-tracking' },
-      { path: '/chairman-dash?tab=student-submissions', label: 'Student Submissions', icon: '📤', tabName: 'student-submissions' },
-      { path: '/chairman-dash?tab=gap-analysis', label: 'Gap Analysis', icon: '📈', tabName: 'gap-analysis' },
-      { path: '/chairman-dash?tab=leaderboard', label: 'Leaderboard', icon: '🏆', tabName: 'leaderboard' },
-      { path: '/chairman-dash?tab=grade-table', label: 'Grade Table', icon: '📋', tabName: 'grade-table' },
-      { path: '/chairman-dash?tab=parent-comm', label: 'Parent Communication', icon: '📧', tabName: 'parent-comm' },
-    ];
+    // ...(school!=="HPS"?
+      // [
+        { path: '/teacher-dash?tab=question-paper', label: 'Question Paper', icon: '📋', tabName: 'question-paper' },
+    { path: '/student-dash', label: 'Dashboard', icon: faHome },
+    { path: '/teacher-dash?tab=exercise', label: 'Homework', icon: '📝', tabName: 'exercise' },
+    { path: '/teacher-dash?tab=upload-homework', label: 'Upload Homework', icon: '📑', tabName: 'upload-homework' },
+    { path: '/teacher-dash?tab=classwork', label: 'Classwork', icon: '✏', tabName: 'classwork' },
+    // { path: '/teacher-dash?tab=upload-classwork', label: 'Upload Classwork', icon: '📑', tabName: 'upload-classwork' },
+    { path: '/teacher-dash?tab=homework', label: 'Worksheets', icon: '📄', tabName: 'homework' },
+    { path: '/teacher-dash?tab=class', label: 'Class Analysis', icon: '📊', tabName: 'class' },
+    { path: '/teacher-dash?tab=student', label: 'Student Analysis', icon: '👤', tabName: 'student' },
+    { path: '/teacher-dash?tab=progress', label: 'Progress', icon: '📈', tabName: 'progress' },
+  // ]:[])
+    // Teachers may not need chat UI for 'A' option, but you can include if desired:
+    // { path: '/chat', label: 'Chat Rooms', icon: faComments },
+  ];
 
     // Get the appropriate links based on role
-const navigationLinks = role === 'chairman' ? chairmanLinks : 
-                       role === 'teacher' ? teacherLinks : 
-                       studentLinks;
+    const navigationLinks = role === 'teacher' ? teacherLinks : studentLinks;
+
     // Get user initials for avatar
     const getUserInitials = () => {
       const name = fullName || username || 'U';
@@ -212,13 +239,44 @@ const navigationLinks = role === 'chairman' ? chairmanLinks :
           <div className="sidebar-footer">
             {/* User Info */}
 
-            
+
         { role==='student' && (<div className="sidebar-user-info">
               <div className="sidebar-user-avatar">
                 {getUserInitials()}
               </div>
               <div className="sidebar-user-details">
-                <p className="sidebar-user-name">{fullName || username}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <p className="sidebar-user-name" style={{ margin: 0 }}>{fullName || username}</p>
+                  <button
+                    onClick={() => {
+                      fetchProfile();
+                      setShowEditProfile(true);
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#667eea',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease',
+                    }}
+                    title="Edit Profile"
+                    onMouseEnter={(e) => {
+                      e.target.style.background = 'rgba(102, 126, 234, 0.1)';
+                      e.target.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'transparent';
+                      e.target.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faEdit} style={{ fontSize: '14px' }} />
+                  </button>
+                </div>
                 <p className="sidebar-user-role">{role === 'student' ? 'Student' : 'Teacher'}</p>
               </div>
             </div>)}
@@ -250,6 +308,88 @@ const navigationLinks = role === 'chairman' ? chairmanLinks :
           isOpen={showFeedback}
           onClose={() => setShowFeedback(false)}
         />
+
+        {/* Edit Profile Modal */}
+        {showEditProfile && (
+          <div className="modal-backdrop-custom" style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}>
+            <div className="edit-profile-modal" style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              width: '90%',
+              maxWidth: '400px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            }}>
+              <h3 style={{ marginBottom: '20px', color: '#333' }}>Edit Profile</h3>
+
+              <Form>
+                <Form.Group className="mb-3">
+                  <Form.Label>Full Name</Form.Label>
+                  <Form.Control
+                    value={profileData.fullname}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, fullname: e.target.value })
+                    }
+                    disabled={profileLoading}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Phone Number</Form.Label>
+                  <Form.Control
+                    value={profileData.phone_number}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, phone_number: e.target.value })
+                    }
+                    disabled={profileLoading}
+                  />
+                </Form.Group>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowEditProfile(false)}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: '8px',
+                      border: '1px solid #ddd',
+                      background: 'white',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={updateProfile}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+              </Form>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

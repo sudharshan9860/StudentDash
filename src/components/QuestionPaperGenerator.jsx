@@ -12,6 +12,49 @@ const MathText = React.memo(({ text }) => {
 });
 MathText.displayName = 'MathText';
 
+// Format question text with line breaks for paper preview
+const formatQuestionText = (text) => {
+  if (!text) return text;
+  let formatted = text;
+
+  // Replace literal \n with newline
+  formatted = formatted.replace(/\\n/g, '\n');
+
+  // Step 1: Mark combined patterns to keep them together on same line
+  // Handle (i)(a), (i) (a), (ii)(b), (ii) (b), etc. - mark the alpha part
+  formatted = formatted.replace(/\((viii|vii|vi|iv|iii|ii|ix|v|i|x)\)\s*\(([a-z])\)/gi, '($1){{ALPHA:$2}}');
+
+  // Handle i.(a), i. (a), ii.(b), ii. (b), etc. - mark the alpha part
+  formatted = formatted.replace(/(\s|^)(viii|vii|vi|iv|iii|ii|ix|v|i|x)\.\s*\(([a-z])\)/gi, '$1$2.{{ALPHA:$3}}');
+
+  // Step 2: Add newlines before Roman numerals with parentheses
+  formatted = formatted.replace(/(\s|^)\((viii|vii|vi|iv|iii|ii|ix|v|i|x)\)/gi, '$1\n($2)');
+
+  // Add newlines before Roman numerals with dot
+  formatted = formatted.replace(/(\s|^)(viii|vii|vi|iv|iii|ii|ix|v|i|x)\./gi, '$1\n$2.');
+
+  // Step 3: Add newlines before standalone alphabetic options (unmarked ones only)
+  formatted = formatted.replace(/(\s|^)\(([a-z])\)/gi, '$1\n($2)');
+
+  // Step 4: Restore marked alpha patterns with space
+  formatted = formatted.replace(/\{\{ALPHA:([a-z])\}\}/gi, ' ($1)');
+
+  // Clean up multiple newlines
+  formatted = formatted.replace(/\n{3,}/g, '\n\n');
+  // Remove leading newline
+  formatted = formatted.replace(/^\n+/, '');
+
+  return formatted.trim();
+};
+
+// Paper Question Text Renderer with formatting
+const PaperQuestionText = React.memo(({ text }) => {
+  if (!text) return null;
+  const formattedText = formatQuestionText(text);
+  return <span className="math-text-content"><MarkdownWithMath content={formattedText} /></span>;
+});
+PaperQuestionText.displayName = 'PaperQuestionText';
+
 // Custom Hooks
 const useLocalStorage = (key, initialValue) => {
   const [storedValue, setStoredValue] = useState(() => {
@@ -547,13 +590,14 @@ export default function QuestionPaperGenerator() {
                   <span>Section {section}</span>
                   <span>{sectionQs.length} Questions • {sectionMarks} Marks</span>
                 </div>
-                <ol className="qpg-paper-questions" start={qNum}>
+                <div className="qpg-paper-questions">
                   {sectionQs.map((q, i) => {
                     const num = qNum++;
                     return (
-                      <li key={i} className="qpg-paper-q">
+                      <div key={i} className="qpg-paper-q">
+                        <span className="qpg-paper-q-num">{num}.</span>
                         <div className="qpg-paper-q-content">
-                          <MathText text={q.question_text} />
+                          <PaperQuestionText text={q.question_text} />
                           {q.figure && (
                           <div className="qpg-paper-q-figure">
                             <img src={q.figure.startsWith('data:') ? q.figure : q.figure.startsWith('/9j/') || q.figure.startsWith('9j/') ? `data:image/jpeg;base64,${q.figure.startsWith('/') ? q.figure : '/' + q.figure}` : `data:image/png;base64,${q.figure}`} alt="Figure" />
@@ -561,10 +605,10 @@ export default function QuestionPaperGenerator() {
                         )}
                         </div>
                         <span className="qpg-paper-q-marks" style={{ background: style.bg, color: style.text }}>[{q.marks}M]</span>
-                      </li>
+                      </div>
                     );
                   })}
-                </ol>
+                </div>
               </section>
             );
           })}

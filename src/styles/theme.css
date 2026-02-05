@@ -129,11 +129,7 @@
   background: linear-gradient(to right, #00c1d4, #001b6c) !important;
 }
 
-.question-item {
-  
- 
 
-}
 
 /* ProgressDashboard.css */
 .progress-card {
@@ -400,8 +396,8 @@
   font-size: 0.95rem;
   border-radius: 0.75rem;
   overflow: hidden;
-  color: #fff;
-  background: #0094d4;
+  color: #0094d4;
+  background: #fff;
   border: none;
   position: relative;
   padding: 0.9rem 2.5rem;
@@ -416,7 +412,7 @@
 
 .button--mimas span {
   position: relative;
-  color: #00c1d4;
+  color: #fff;
   /* Initial color */
   z-index: 2;
   display: inline-block;
@@ -424,7 +420,7 @@
 }
 
 .button--mimas:hover span {
-  color: #fff; /* Change color to white on hover */
+  color:  #0094d4; /* Change color to white on hover */
   mix-blend-mode: normal; /* Reset blend mode to normal on hover */
 }
 
@@ -433,7 +429,7 @@
   position: absolute;
   top: 0;
   left: -10%;
-  background: rgb(255, 255, 255);
+  background:  #0094d4;;
   color: #000;
   width: 120%;
   height: 100%;

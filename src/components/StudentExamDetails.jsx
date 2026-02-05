@@ -1150,7 +1150,9 @@ return (
           <h3 className="remedial-title">Remedial Action</h3>
         </div>
         <div className="remedial-content">
-          <p className="remedial-text">{examMetadata.remedialAction}</p>
+          <div className="remedial-text">
+            <MarkdownWithMath content={examMetadata.remedialAction} />
+          </div>
         </div>
       </div>
     )}

@@ -1168,7 +1168,7 @@ const ChatBox = forwardRef((props, ref) => {
               height: "12vh",
               borderRadius: "50%", // makes it a circle
               objectFit: "cover",
-
+              maxWidth: "max-content",
             }}
             src={isDarkMode ? darkModeGif : lightModeGif}
             initial={{ opacity: 0 }}

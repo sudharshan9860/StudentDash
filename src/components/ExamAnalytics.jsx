@@ -131,13 +131,34 @@ const ExamAnalytics = () => {
     setShowStudentDetailsModal(false);
   };
 
+  // Helper to extract PDF URL from answer_sheet_snapshot (handles multiple formats)
+  const getAnswerSheetUrl = (snapshot) => {
+    if (!snapshot) return null;
+
+    // Case 1: Direct string URL
+    if (typeof snapshot === 'string') {
+      return snapshot;
+    }
+
+    // Case 2: Object with file_url property
+    if (typeof snapshot === 'object' && !Array.isArray(snapshot) && snapshot.file_url) {
+      return snapshot.file_url;
+    }
+
+    // Case 3: Array of objects with file_url
+    if (Array.isArray(snapshot) && snapshot.length > 0 && snapshot[0].file_url) {
+      return snapshot[0].file_url;
+    }
+
+    return null;
+  };
+
   // PDF Modal handlers
   const handleViewAnswerSheet = (e, result) => {
     e.stopPropagation();
-    // answer_sheet_snapshot is an array of objects with file_url
-    const snapshot = result.answer_sheet_snapshot;
-    if (snapshot && snapshot.length > 0 && snapshot[0].file_url) {
-      setSelectedPdfUrl(snapshot[0].file_url);
+    const pdfUrl = getAnswerSheetUrl(result.answer_sheet_snapshot);
+    if (pdfUrl) {
+      setSelectedPdfUrl(pdfUrl);
       setSelectedPdfTitle(`Answer Sheet - ${result.student_fullname || result.student_name || 'Student'}`);
       setPdfModalOpen(true);
     }
@@ -145,9 +166,7 @@ const ExamAnalytics = () => {
 
   // Helper to check if answer sheet exists
   const hasAnswerSheet = (result) => {
-    return result.answer_sheet_snapshot &&
-           result.answer_sheet_snapshot.length > 0 &&
-           result.answer_sheet_snapshot[0].file_url;
+    return !!getAnswerSheetUrl(result.answer_sheet_snapshot);
   };
 
   // Helper to check if question paper exists

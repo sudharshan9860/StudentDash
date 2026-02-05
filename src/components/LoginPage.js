@@ -6,7 +6,8 @@ import axiosInstance from "../api/axiosInstance";
 import "./Login.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { motion } from "framer-motion";
-
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 
 import {
   faEye,
@@ -16,7 +17,9 @@ import {
   faGraduationCap,
   faBook,
   faUser,
+  faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom";
 import Markdown from "react-markdown";
 import MarkdownWithMath from "./MarkdownWithMath";
 
@@ -68,6 +71,24 @@ function LoginPage() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await axios.post("https://autogen.aieducator.com/api/auth/google/", {
+        id_token: credentialResponse.credential,
+      });
+
+      const { access, user } = res.data;
+
+      // AuthContext login
+      login(user.email, access, "student", null);
+
+      navigate("/student-dash");
+    } catch (err) {
+      console.error("Google login failed", err);
+      setError("Google login failed. Try again.");
+    }
+  };
+
   return (
     <div className="login-wrapper">
       <div className="background-container">
@@ -100,9 +121,14 @@ function LoginPage() {
       </div>
 
       <div className="login-form-container">
-        <div className="logo-section">
-          <h3 className="platform-name1">SMART LEARNERS</h3>
+        {/* Back to Home Link */}
+        <Link to="/" className="back-to-home">
+          <FontAwesomeIcon icon={faArrowLeft} />
+          <span>Back to Home</span>
+        </Link>
 
+        <div className="logo-section">
+          <h3 className="platform-name1">SMARTLEARNERS<span>.AI</span></h3>
         </div>
 
         <div className="portal-section">
@@ -158,17 +184,38 @@ function LoginPage() {
             Start Learning
           </button>
 
-          <div className="form-footer">
+          {/* Divider */}
+          <div className="divider">
+            <span>OR</span>
+          </div>
+
+          {/* Google Button */}
+          <div className="google-login-wrapper">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError("Google login failed")}
+            />
+          </div>
+
+          {/* <div className="form-footer">
             <a href="/reset-password" className="reset-link">
               Reset Password
             </a>
             <a href="/support" className="support-link">
               Support
             </a>
-          </div>
+          </div> */}
         </Form>
+
+        {/* Register Link */}
+        <div className="register-section">
+          <span>Don't have an account?</span>
+          <Link to="/free-trial" className="register-link">
+            Register for Free Trial
+          </Link>
+        </div>
+
         <div className="copyright">
-       
           © 2025 AI EDUCATOR. All rights reserved.
         </div>
       </div>

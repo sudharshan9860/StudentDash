@@ -396,11 +396,10 @@ body.dark-mode .chatbot-thinking-indicator {
   overflow-x: auto; 
 }
 
-/* ---- Content-driven TABLES (with horizontal scroll) ---- */
+/* ---- Content-driven TABLES (wrap columns instead of horizontal scroll) ---- */
 .chat-messages .message-bubble table {
-  table-layout: auto;      /* let content decide widths */
-  width: max-content;      /* allow table to grow wider than bubble */
-  min-width: 100%;         /* but never smaller than the bubble */
+  table-layout: fixed;       /* distribute columns evenly within available width */
+  width: 100%;               /* constrain table to bubble width */
   border-collapse: collapse;
   margin: 8px 0;
   font-size: 14px;
@@ -413,16 +412,9 @@ body.dark-mode .chatbot-thinking-indicator {
   text-align: left;
   vertical-align: top;
 
-  /* key: don't break words into letters; keep columns tight */
-  white-space: nowrap;
-  word-break: normal;
-  overflow-wrap: normal;
-}
-
-/* Opt-in wrapping for specific cells/columns */
-.chat-messages .message-bubble th.wrap,
-.chat-messages .message-bubble td.wrap {
+  /* wrap long content instead of scrolling */
   white-space: normal;
+  word-break: break-word;
   overflow-wrap: anywhere;
 }
 

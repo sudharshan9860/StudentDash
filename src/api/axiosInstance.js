@@ -187,4 +187,69 @@ axiosInstance.uploadFile = async (url, formData, progressCallback) => {
   }
 };
 
+// =============================
+// Marketing API Instance (for registration, payments)
+// =============================
+const marketingApi = axios.create({
+  baseURL: "https://smartgen.smartlearners.ai",
+  headers: { "Content-Type": "application/json" },
+  timeout: 60000,
+});
+
+// Marketing API does not need JWT auth
+marketingApi.interceptors.request.use(
+  (config) => {
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+marketingApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const errorMessage = error.response?.data?.detail || error.message || "An error occurred";
+    return Promise.reject(new Error(errorMessage));
+  }
+);
+
+// =============================
+// Marketing API methods
+// =============================
+
+// Register a new user (paid subscription)
+marketingApi.registerUser = async (data) => {
+  const response = await marketingApi.post("/api/register", data);
+  return response.data;
+};
+
+// Initiate payment with PhonePe
+marketingApi.initiatePayment = async (registrationId) => {
+  const response = await marketingApi.post("/api/payment/initiate", {
+    registration_id: registrationId,
+  });
+  return response.data;
+};
+
+// Check payment status
+marketingApi.checkPaymentStatus = async (orderId) => {
+  const response = await marketingApi.get(`/api/payment/status/${orderId}`);
+  return response.data;
+};
+
+// Register free trial user
+marketingApi.createFreeTrialUser = async (data) => {
+  const response = await marketingApi.post("/api/free-trial/register", data);
+  return response.data;
+};
+
+// Contact form submission
+marketingApi.submitContactForm = async (data) => {
+  const response = await marketingApi.post("/api/contact", data);
+  return response.data;
+};
+
+export { marketingApi };
 export default axiosInstance;

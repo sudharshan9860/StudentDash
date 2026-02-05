@@ -218,6 +218,7 @@ function ExamQuestion() {
       return {
         questionId: q.question_id,
         question: q.question,
+        question_image: q.question_image || null,
         userAnswer: userAnswer || "Not Attempted",
         correctAnswer: q.correct_answer,
         isCorrect,
@@ -521,6 +522,7 @@ function ExamQuestion() {
         return {
           questionId: q.question_id,
           question: q.question,
+          question_image: q.question_image || null,
           questionLevel: q.question_level || resultItem.difficulty || "Medium",
           userAnswer: userAnswer || "Not Attempted",
           correctAnswer: q.correct_answer || "N/A",
@@ -713,16 +715,21 @@ function ExamQuestion() {
 
           {/* Question Content */}
           <div className="question-content">
-            {currentQuestion.question_image && (
-              <img
-                src={getImageSrc(currentQuestion.question_image)}
-                alt="Question"
-                className="question-image"
-              />
-            )}
             <div className="question-text">
               <MarkdownWithMath content={currentQuestion.question} />
             </div>
+            {currentQuestion.question_image &&
+              currentQuestion.question_image !== "No image for question" &&
+              currentQuestion.question_image.length > 50 && (
+              <div className="question-image-container" style={{ marginTop: "16px", textAlign: "center" }}>
+                <img
+                  src={getImageSrc(currentQuestion.question_image)}
+                  alt="Question"
+                  className="question-image"
+                  style={{ display: "block", maxWidth: "100%", height: "auto", objectFit: "contain" }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Options */}
@@ -1036,16 +1043,19 @@ function ExamQuestion() {
                     </div>
                   </div>
                   <div className="question-item-content">
-                    {question.question_image && (
+                    <div className="question-item-text">
+                      <MarkdownWithMath content={question.question} />
+                    </div>
+                    {question.question_image &&
+                      question.question_image !== "No image for question" &&
+                      question.question_image.length > 50 && (
                       <img
                         src={getImageSrc(question.question_image)}
                         alt={`Question ${index + 1}`}
                         className="question-item-image"
+                        style={{ display: "block", maxWidth: "100%", height: "auto", objectFit: "contain", marginTop: "8px" }}
                       />
                     )}
-                    <div className="question-item-text">
-                      <MarkdownWithMath content={question.question} />
-                    </div>
                   </div>
                 </div>
               );

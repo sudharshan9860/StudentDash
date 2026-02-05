@@ -431,6 +431,13 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
+/* Bootstrap sets visibility:collapse on .collapse which persists even with .show.
+   Override it so expanded accordion body is actually visible. */
+.concepts-accordion .accordion-collapse.collapse.show {
+  visibility: visible !important;
+  display: block !important;
+}
+
 .concepts-accordion .accordion-button {
   background: #f8fafc;
   padding: 18px 24px;
@@ -462,15 +469,28 @@
   background: #1e293b;
 }
 
-.concept-explanation,
-.concept-example,
-.concept-application {
+.lpr-concept-block {
   margin-bottom: 20px;
 }
 
-.explanation-content,
-.example-content,
-.application-content {
+.lpr-concept-block:last-child {
+  margin-bottom: 0;
+}
+
+.lpr-concept-heading {
+  color: #374151;
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.dark-mode .lpr-concept-heading {
+  color: #e2e8f0;
+}
+
+.lpr-concept-text {
   background: #f8fafc;
   padding: 16px;
   border-radius: 12px;
@@ -478,20 +498,26 @@
   line-height: 1.7;
 }
 
-.dark-mode .explanation-content,
-.dark-mode .example-content,
-.dark-mode .application-content {
+.dark-mode .lpr-concept-text {
   background: #0f172a;
   color: #cbd5e1;
 }
 
-.example-solution {
+.lpr-concept-block--example .lpr-concept-text {
+  border-left: 3px solid #3b82f6;
+}
+
+.lpr-concept-block--application .lpr-concept-text {
+  border-left: 3px solid #8b5cf6;
+}
+
+.lpr-concept-solution {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid #e2e8f0;
 }
 
-.dark-mode .example-solution {
+.dark-mode .lpr-concept-solution {
   border-top-color: #334155;
 }
 

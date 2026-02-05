@@ -297,7 +297,7 @@ function ExamMode() {
       question_id: `${String(q.id)}`,
       question: q.question,
       question_level: q.question_level || "Medium",
-      question_image: null,
+      question_image: q.question_image || null,
       context: null,
       options: [], // API returns subjective questions without options
       correct_answer: null, // No predefined answer for subjective questions

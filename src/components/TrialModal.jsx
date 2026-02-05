@@ -14,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "./TrialModal.css";
 import { AuthContext } from './AuthContext';
+import axiosInstance from "../api/axiosInstance";
 
 const FEATURES = [
   { icon: faBolt, text: "Unlimited AI-powered learning" },
@@ -35,6 +36,28 @@ const TrialModal = ({
   const [daysRemaining, setDaysRemaining] = useState(trialDays);
   const [isExpired, setIsExpired] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isPaid, setIsPaid] = useState(null); // null = loading, true/false = loaded
+
+  // Fetch user info to check paid status
+  useEffect(() => {
+    if (isOpen) {
+      const fetchUserInfo = async () => {
+        try {
+          const response = await axiosInstance.get('/api/user-info/', {
+            credentials: 'include',
+          });
+
+            const data = await response.data;
+            setIsPaid(data.paid === true);
+        
+        } catch (error) {
+          console.error('Error fetching user info:', error);
+          setIsPaid(false); // Show modal if API fails
+        }
+      };
+      fetchUserInfo();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (trialStartDate) {
@@ -119,7 +142,8 @@ const TrialModal = ({
 
   const trialMessage = getTrialMessage();
 
-  if (!isOpen) return null;
+  // Don't show if not open, still loading, or user has paid
+  if (!isOpen || isPaid === null || isPaid === true) return null;
 
   return (
     <>

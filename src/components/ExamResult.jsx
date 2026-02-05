@@ -403,8 +403,21 @@ function ExamResult() {
                       <MarkdownWithMath content={result.question} />
                     </div> */}
 
-                    {/* Uploaded Images */}
-                   
+                    {/* Question Image */}
+                    {result.question_image && (
+                      <div className="evaluation-section">
+                        <h6 className="section-title">
+                          <FontAwesomeIcon icon={faImage} className="me-2" />
+                          Question Image
+                        </h6>
+                        <img
+                          src={getImageSrc(result.question_image)}
+                          alt={`Question ${index + 1}`}
+                          className="question-result-image"
+                          style={{ maxWidth: "100%", borderRadius: "8px", marginTop: "8px" }}
+                        />
+                      </div>
+                    )}
 
                     {/* Score Breakdown */}
                     {result.evaluation && (

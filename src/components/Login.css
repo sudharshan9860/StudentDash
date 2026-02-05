@@ -319,6 +319,64 @@
 }
 
 
+/* Back to Home Link */
+.back-to-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #00c1d4;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(0, 193, 212, 0.1);
+  transition: all 0.3s ease;
+}
+
+.back-to-home:hover {
+  background: rgba(0, 193, 212, 0.2);
+  color: #001b6c;
+  transform: translateX(-4px);
+}
+
+/* Register Section */
+.register-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0, 193, 212, 0.2);
+}
+
+.register-section span {
+  color: #666;
+  font-size: 14px;
+}
+
+.register-link {
+  color: #001b6c;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(0, 193, 212, 0.1), rgba(0, 27, 108, 0.1));
+  border: 1px solid rgba(0, 193, 212, 0.3);
+  transition: all 0.3s ease;
+}
+
+.register-link:hover {
+  background: linear-gradient(135deg, #00c1d4, #001b6c);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 193, 212, 0.3);
+}
+
 .copyright {
   text-align: center;
   color: #666;
@@ -338,4 +396,17 @@
   .portal-title {
     font-size: 20px;
   }
+}
+
+.divider {
+  text-align: center;
+  margin: 16px 0;
+  color: #aaa;
+  font-size: 14px;
+}
+
+.google-login-wrapper {
+  display: flex;
+  justify-content: center;
+
 }

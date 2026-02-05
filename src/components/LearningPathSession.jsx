@@ -433,7 +433,7 @@ function LearningPathSession() {
                 {activeDay.checklist.map((item, idx) => (
                   <li key={idx} className="checklist-item">
                     <FontAwesomeIcon icon={faCheckCircle} className="check-icon" />
-                    <span>{item}</span>
+                    <MarkdownWithMath content={item} />
                   </li>
                 ))}
               </ul>

@@ -301,11 +301,19 @@
 }
 
 .question-image {
+  display: block;
   max-width: 100%;
-  max-height: 300px;
+  height: auto;
+  object-fit: contain;
   border-radius: 12px;
   margin-bottom: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.question-image-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
 .question-text {

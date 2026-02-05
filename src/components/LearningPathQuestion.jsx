@@ -76,7 +76,7 @@ function LearningPathQuestion() {
   const [currentIndex, setCurrentIndex] = useState(currentQuestionIndex || 0);
   const [currentQuestion, setCurrentQuestion] = useState({
     question: question,
-    questionId: questionId,
+    questionId: questionId || allDayQuestions?.[currentQuestionIndex]?.question_id || allDayQuestions?.[currentQuestionIndex]?.id,
     image: questionImage,
     level: questionLevel,
     topic: topic,
@@ -245,8 +245,21 @@ function LearningPathQuestion() {
     return completedQuestions[key] === true;
   };
 
+  // Get the resolved question ID with fallback
+  const getResolvedQuestionId = () => {
+    return currentQuestion.questionId
+      || allDayQuestions?.[currentIndex]?.question_id
+      || allDayQuestions?.[currentIndex]?.id;
+  };
+
   // Handle Explain (Concepts) button
   const handleExplain = async () => {
+    const resolvedQuestionId = getResolvedQuestionId();
+    if (!resolvedQuestionId) {
+      setError("Could not identify the question. Please go back and try again.");
+      return;
+    }
+
     setProcessingButton("explain");
     setError(null);
 
@@ -257,7 +270,7 @@ function LearningPathQuestion() {
     const formData = new FormData();
     formData.append("plan_id", planId);
     formData.append("day_number", dayNumber);
-    formData.append("question_id", currentQuestion.questionId);
+    formData.append("question_id", resolvedQuestionId);
     formData.append("answer_type", "explain");
 
     try {
@@ -270,7 +283,7 @@ function LearningPathQuestion() {
           actionType: "explain",
           question: currentQuestion.question,
           questionImage: currentQuestion.image,
-          questionId: currentQuestion.questionId,
+          questionId: resolvedQuestionId,
           dayNumber,
           dayTopic,
           planId,
@@ -292,12 +305,18 @@ function LearningPathQuestion() {
       console.error("API Error:", error);
       setError(error.response?.data?.error || error.message || "Failed to get concepts. Please try again.");
       setProcessingButton(null);
-      startTimer(`lp-${currentQuestion.questionId}`);
+      startTimer(`lp-${resolvedQuestionId}`);
     }
   };
 
   // Handle Solve (AI Solution) button
   const handleSolve = async () => {
+    const resolvedQuestionId = getResolvedQuestionId();
+    if (!resolvedQuestionId) {
+      setError("Could not identify the question. Please go back and try again.");
+      return;
+    }
+
     setProcessingButton("solve");
     setError(null);
 
@@ -308,7 +327,7 @@ function LearningPathQuestion() {
     const formData = new FormData();
     formData.append("plan_id", planId);
     formData.append("day_number", dayNumber);
-    formData.append("question_id", currentQuestion.questionId);
+    formData.append("question_id", resolvedQuestionId);
     formData.append("answer_type", "solve");
 
     try {
@@ -320,7 +339,7 @@ function LearningPathQuestion() {
           actionType: "solve",
           question: currentQuestion.question,
           questionImage: currentQuestion.image,
-          questionId: currentQuestion.questionId,
+          questionId: resolvedQuestionId,
           dayNumber,
           dayTopic,
           planId,
@@ -342,7 +361,7 @@ function LearningPathQuestion() {
       console.error("API Error:", error);
       setError(error.response?.data?.error || error.message || "Failed to get solution. Please try again.");
       setProcessingButton(null);
-      startTimer(`lp-${currentQuestion.questionId}`);
+      startTimer(`lp-${resolvedQuestionId}`);
     }
   };
 
@@ -350,6 +369,12 @@ function LearningPathQuestion() {
   const handleCorrect = async () => {
     if (images.length === 0) {
       setError("Please capture or upload your solution image first.");
+      return;
+    }
+
+    const resolvedQuestionId = getResolvedQuestionId();
+    if (!resolvedQuestionId) {
+      setError("Could not identify the question. Please go back and try again.");
       return;
     }
 
@@ -363,7 +388,7 @@ function LearningPathQuestion() {
     const formData = new FormData();
     formData.append("plan_id", planId);
     formData.append("day_number", dayNumber);
-    formData.append("question_id", currentQuestion.questionId);
+    formData.append("question_id", resolvedQuestionId);
     formData.append("answer_type", "correct");
     formData.append("study_time_minutes", timeSpentMinutes);
     formData.append("study_time_seconds", timeSpentSeconds);
@@ -382,7 +407,7 @@ function LearningPathQuestion() {
       );
 
       // Mark question as completed
-      const key = `${activeDayIndex}-${currentQuestion.questionId}`;
+      const key = `${activeDayIndex}-${resolvedQuestionId}`;
       const updatedCompletedQuestions = {
         ...completedQuestions,
         [key]: true,
@@ -402,7 +427,7 @@ function LearningPathQuestion() {
           actionType: "correct",
           question: currentQuestion.question,
           questionImage: currentQuestion.image,
-          questionId: currentQuestion.questionId,
+          questionId: resolvedQuestionId,
           dayNumber,
           dayTopic,
           planId,
@@ -430,7 +455,7 @@ function LearningPathQuestion() {
       }
       setProcessingButton(null);
       setUploadProgress(0);
-      startTimer(`lp-${currentQuestion.questionId}`);
+      startTimer(`lp-${resolvedQuestionId}`);
     }
   };
 
@@ -447,6 +472,7 @@ function LearningPathQuestion() {
         learningPathForm,
         nextDayData,
       },
+      replace: true,
     });
   };
 

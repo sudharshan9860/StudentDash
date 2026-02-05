@@ -584,11 +584,16 @@ const isGenerateButtonEnabled = () => {
           // Filter subjects based on mode
           let filteredSubjects = subjectsData;
 
+          // Check if selected class is 8, 9, or 10 (for JEE Foundation)
+          const isFoundationClass = ['8', '9', '10'].some(cls =>
+            selectedClass.toString().includes(cls)
+          );
+
           if (isJeeMode) {
             // JEE Mode: Only JEE subjects
             filteredSubjects = subjectsData.filter(subject => {
               const sn = subject.subject_name.toLowerCase();
-              return sn.includes('jee') || 
+              return sn.includes('jee') ||
                     sn.includes('mathematics_mains') ||
                     sn.includes('mathematics_advanced') ||
                     sn.includes('physics_mains') ||
@@ -596,16 +601,26 @@ const isGenerateButtonEnabled = () => {
             });
             console.log("📐 JEE Subjects:", filteredSubjects.map(s => s.subject_name));
           } else {
-            // Board Mode: Exclude JEE subjects
+            // Board Mode: Exclude JEE subjects BUT include JEE Foundation for classes 8, 9, 10
             filteredSubjects = subjectsData.filter(subject => {
               const sn = subject.subject_name.toLowerCase();
-              return !(sn.includes('jee') || 
+
+              // Allow JEE Foundation subjects for classes 8, 9, 10
+              if (isFoundationClass && (sn.includes('jee_foundation') || sn.includes('jee foundation'))) {
+                return true;
+              }
+
+              // Exclude other JEE subjects
+              return !(sn.includes('jee') ||
                       sn.includes('mathematics_mains') ||
                       sn.includes('mathematics_advanced') ||
                       sn.includes('physics_mains') ||
                       sn.includes('chemistry_mains'));
             });
             console.log("📚 Board Subjects:", filteredSubjects.map(s => s.subject_name));
+            if (isFoundationClass) {
+              console.log("🎯 JEE Foundation enabled for class:", selectedClass);
+            }
           }
 
           setSubjects(filteredSubjects);
@@ -1223,7 +1238,7 @@ const sessionData = {
       <AlertContainer />
 
       {/* Trial Modal - Shows for students */}
-      {role === "student" && (
+      {/* {role === "student" && (
         <TrialModal
           isOpen={showTrialModal}
           onClose={() => setShowTrialModal(false)}
@@ -1232,7 +1247,7 @@ const sessionData = {
           redirectUrl="https://smartlearners.ai/get-started"
           userData=""
         />
-      )}
+      )} */}
 
       {/* Feedback Modal - Auto-shows after 3 mins, only once */}
       <FeedbackBox

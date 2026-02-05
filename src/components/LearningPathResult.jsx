@@ -138,6 +138,7 @@ function LearningPathResult() {
           activeDayIndex,
           nextDayData,
         },
+        replace: true,
       });
     }
   };
@@ -169,6 +170,7 @@ function LearningPathResult() {
           activeDayIndex,
           nextDayData,
         },
+        replace: true,
       });
     }
   };
@@ -199,6 +201,7 @@ function LearningPathResult() {
         activeDayIndex,
         nextDayData,
       },
+      replace: true,
     });
   };
 
@@ -215,6 +218,7 @@ function LearningPathResult() {
         learningPathForm,
         nextDayData,
       },
+      replace: true,
     });
   };
 
@@ -266,30 +270,30 @@ function LearningPathResult() {
         return (
           <>
             {concepts && concepts.length > 0 && (
-              <Accordion defaultActiveKey="0" className="concepts-accordion">
+              <Accordion defaultActiveKey={['0']} alwaysOpen className="concepts-accordion">
                 {concepts.map((conceptItem, index) => (
                   <Accordion.Item eventKey={index.toString()} key={index}>
                     <Accordion.Header>
                       <strong>Concept {index + 1}: {conceptItem.concept}</strong>
                     </Accordion.Header>
                     <Accordion.Body>
-                      <div className="concept-explanation">
-                        <h6 className="section-label">
+                      <div className="lpr-concept-block">
+                        <h6 className="lpr-concept-heading">
                           <FontAwesomeIcon icon={faLightbulb} className="me-2" />
                           Explanation
                         </h6>
-                        <div className="explanation-content">
+                        <div className="lpr-concept-text">
                           <MarkdownWithMath content={conceptItem.explanation} />
                         </div>
                       </div>
 
                       {conceptItem.example && (
-                        <div className="concept-example mt-3">
-                          <h6 className="section-label">
+                        <div className="lpr-concept-block lpr-concept-block--example">
+                          <h6 className="lpr-concept-heading">
                             <FontAwesomeIcon icon={faBookOpen} className="me-2" />
                             Example
                           </h6>
-                          <div className="example-content">
+                          <div className="lpr-concept-text">
                             {typeof conceptItem.example === "string" ? (
                               <MarkdownWithMath content={conceptItem.example} />
                             ) : (
@@ -298,7 +302,7 @@ function LearningPathResult() {
                                   <MarkdownWithMath content={conceptItem.example.problem} />
                                 )}
                                 {conceptItem.example.solution && (
-                                  <div className="example-solution mt-2">
+                                  <div className="lpr-concept-solution">
                                     <strong>Solution:</strong>
                                     <MarkdownWithMath content={conceptItem.example.solution} />
                                   </div>
@@ -310,12 +314,12 @@ function LearningPathResult() {
                       )}
 
                       {conceptItem.application && (
-                        <div className="concept-application mt-3">
-                          <h6 className="section-label">
+                        <div className="lpr-concept-block lpr-concept-block--application">
+                          <h6 className="lpr-concept-heading">
                             <FontAwesomeIcon icon={faGraduationCap} className="me-2" />
                             Application
                           </h6>
-                          <div className="application-content">
+                          <div className="lpr-concept-text">
                             <MarkdownWithMath content={conceptItem.application} />
                           </div>
                         </div>
