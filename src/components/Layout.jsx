@@ -171,9 +171,13 @@
         {/* Side Navigation */}
         <aside className={`sidebar-navigation ${isSidebarOpen ? 'open' : ''}`}>
           {/* Brand/Logo */}
-          <div className="">
+          <div className="sidebar-brand-wrapper">
             <div className="sidebar-brand">
-              <img src="/images/logo.png" alt="Logo" style={{ width: '15vw', height: '20vh', objectFit: 'cover' }} />
+              <img 
+                src="/images/SmartLearners2.png" 
+                alt="SmartLearners.AI" 
+                className="sidebar-logo-image"
+              />
             </div>
           </div>
 

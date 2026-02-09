@@ -569,6 +569,7 @@ body {
 .dashboard-grid-layout {
   display: grid;
   grid-template-columns: 3fr 1fr;
+  align-items: start;
   gap: 2rem;
   padding: 0 2rem;
   margin-top: 0 !important;
@@ -606,10 +607,13 @@ body {
 
 /* Right Sidebar Area (Right - 1 part) */
 .dashboard-right-sidebar {
-  min-width: 0; /* Prevent grid overflow */
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  position: sticky;
+  top: 20px;
+  align-self: flex-start;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
 }
 
 /* ========================================
@@ -2039,11 +2043,10 @@ body {
 ======================================== */
 
 @media (max-width: 992px) {
-  .unified-tabs .nav-link,
-  .session-tabs .nav-link,
-  .nav-tabs .nav-link {
-    padding: 10px 15px;
-    font-size: 0.95rem;
+  .dashboard-right-sidebar {
+    position: relative;
+    top: 0;
+    max-height: none;
   }
 }
 
