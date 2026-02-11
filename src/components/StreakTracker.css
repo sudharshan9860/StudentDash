@@ -3,14 +3,14 @@
 ======================================== */
 
 .streak-tracker-card {
-  background: var(--card-bg, #ffffff);
+  background: #ffffff;
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: var(--border-radius-lg, 16px);
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
   height: fit-content;
- 
+
   top: 20px;
 }
 
@@ -29,7 +29,6 @@
 /* Header */
 .streak-header {
   margin-bottom: 1.5rem;
-
 }
 
 .dark-mode .streak-header {
@@ -51,12 +50,13 @@
 }
 
 .streak-icon {
-  color: #FF5722;
+  color: #ff5722;
   animation: flame-pulse 2s ease-in-out infinite;
 }
 
 @keyframes flame-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -69,7 +69,6 @@
 /* Current Streak Display */
 .streak-current {
   text-align: center;
-
 }
 
 .streak-flame-container {
@@ -90,7 +89,8 @@
 }
 
 @keyframes flame-dance {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
   25% {
@@ -106,14 +106,14 @@
   font-weight: 900;
   color: var(--text-primary);
   margin-top: -0.5rem;
-  background: linear-gradient(135deg, #FF5722 0%, #FF9800 100%);
+  background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .dark-mode .streak-number {
-  background: linear-gradient(135deg, #FF6B35 0%, #FFA726 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #ffa726 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -122,14 +122,14 @@
 .streak-label {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--primary-color, #00BCD4);
+  color: var(--primary-color, #00bcd4);
   margin-bottom: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .dark-mode .streak-label {
-  color: #00BCD4 !important;
+  color: #00bcd4 !important;
 }
 
 .streak-description {
@@ -199,8 +199,8 @@
 }
 
 .streak-day-circle.completed {
-  background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
-  border-color: #4CAF50;
+  background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+  border-color: #4caf50;
   color: white;
   box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
   animation: check-pop 0.3s ease-out;
@@ -256,11 +256,11 @@
 
 .stat-icon {
   font-size: 1.5rem;
-  color: var(--primary-color, #00BCD4);
+  color: var(--primary-color, #00bcd4);
 }
 
 .dark-mode .stat-icon {
-  color: #00BCD4 !important;
+  color: #00bcd4 !important;
   filter: drop-shadow(0 2px 4px rgba(0, 188, 212, 0.3));
 }
 
@@ -307,17 +307,25 @@
   text-align: center;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--primary-color, #00BCD4);
+  color: var(--primary-color, #00bcd4);
   padding: 0.75rem;
-  background: linear-gradient(135deg, rgba(0, 188, 212, 0.1), rgba(33, 150, 243, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 188, 212, 0.1),
+    rgba(33, 150, 243, 0.1)
+  );
   border-radius: var(--border-radius, 12px);
   border: 1px solid rgba(0, 188, 212, 0.2);
 }
 
 .dark-mode .streak-motivation {
-  background: linear-gradient(135deg, rgba(0, 188, 212, 0.15), rgba(33, 150, 243, 0.15));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 188, 212, 0.15),
+    rgba(33, 150, 243, 0.15)
+  );
   border-color: rgba(0, 188, 212, 0.3);
-  color: #00BCD4 !important;
+  color: #00bcd4 !important;
 }
 
 /* Loading State */

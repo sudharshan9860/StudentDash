@@ -3,7 +3,7 @@
 ======================================== */
 
 .live-notifications-card {
-  background: var(--card-bg, #ffffff);
+  background: #ffffff;
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: var(--border-radius-lg, 16px);
   padding: 1.5rem;
