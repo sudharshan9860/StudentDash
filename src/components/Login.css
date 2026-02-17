@@ -209,7 +209,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgb(255 247 247 / 78%);
   z-index: 0;
 }
 
@@ -384,7 +384,7 @@
 
 .form-input-new {
   width: 100%;
-  background: #ffffff;
+  background: #cad5e7;
   border: 1.5px solid #d1d5db;
   border-radius: 12px;
 
