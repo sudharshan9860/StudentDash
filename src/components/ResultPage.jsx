@@ -812,7 +812,7 @@ const ResultPage = () => {
       </div>
 
       {/* Fixed Bottom Buttons */}
-      <div className="fixed-bottom-buttons">
+      {/* <div className="fixed-bottom-buttons">
         <Button
           variant="outline-primary"
           onClick={handleShowQuestionList}
@@ -827,7 +827,7 @@ const ResultPage = () => {
         >
           Similar Questions
         </Button>
-      </div>
+      </div> */}
 
       {/* Main Content Container */}
       <Container fluid className={`result-page-container ${isDarkMode ? 'dark-mode' : ''}`}>

@@ -56,16 +56,17 @@ const questionWiseFeatures = [
 
 export default function Schools() {
   return (
-    <div className="overflow-hidden bg-white min-h-screen">
-      {/* Floating Background - Light Theme */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="floating-shape" style={{ width: 400, height: 400, background: '#9334e9', top: '10%', right: '-10%', opacity: 0.08 }} />
-        <div className="floating-shape" style={{ width: 300, height: 300, background: '#1a73e8', top: '60%', left: '-5%', animationDelay: '2s', opacity: 0.08 }} />
-        <div className="floating-shape" style={{ width: 250, height: 250, background: '#d93025', bottom: '10%', right: '30%', animationDelay: '4s', opacity: 0.05 }} />
+    <div className="overflow-hidden bg-white min-h-screen marketing-page-bg">
+      {/* Floating Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <div className="marketing-orb marketing-orb--purple" style={{ width: 500, height: 500, top: '8%', right: '-12%' }} />
+        <div className="marketing-orb marketing-orb--blue" style={{ width: 400, height: 400, top: '55%', left: '-8%' }} />
+        <div className="marketing-orb marketing-orb--pink" style={{ width: 350, height: 350, bottom: '8%', right: '25%' }} />
+        <div className="marketing-orb marketing-orb--cyan" style={{ width: 280, height: 280, top: '35%', left: '40%' }} />
       </div>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="relative pt-32 pb-20 bg-gradient-to-b from-gray-50 to-white hero-grid-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="badge badge-secondary mb-6">
@@ -129,7 +130,7 @@ export default function Schools() {
                   <p className="text-gray-600 text-lg leading-relaxed">{item.desc}</p>
                 </div>
                 <div className={`${index % 2 === 1 ? 'lg:order-1' : ''}`}>
-                  <div className="glass-card p-2 overflow-hidden">
+                  <div className="glass-card-premium p-2 overflow-hidden">
                     <div className="relative w-full h-72 md:h-80 lg:h-96">
                       <img
                         src={item.image}
@@ -181,7 +182,7 @@ export default function Schools() {
             </div>
 
             {/* Sample Student Report Visual */}
-            <div className="glass-card p-6">
+            <div className="glass-card-premium p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Sample Student Report</h3>
                 <span className="text-xs text-gray-500">PDF Exportable</span>
@@ -250,7 +251,7 @@ export default function Schools() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Sample Question Report Visual */}
-            <div className="glass-card p-6 lg:order-1">
+            <div className="glass-card-premium p-6 lg:order-1">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Question-Wise Report</h3>
                 <span className="text-xs text-gray-500">Class Overview</span>
@@ -353,7 +354,7 @@ export default function Schools() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="glass-card p-8 text-center hover-lift"
+              className="glass-card-premium p-8 text-center hover-lift"
             >
               <div className="w-20 h-20 mx-auto rounded-2xl bg-blue-100 flex items-center justify-center text-4xl mb-6">
                 📄
@@ -382,7 +383,7 @@ export default function Schools() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               viewport={{ once: true }}
-              className="glass-card p-8 text-center hover-lift"
+              className="glass-card-premium p-8 text-center hover-lift"
             >
               <div className="w-20 h-20 mx-auto rounded-2xl bg-purple-100 flex items-center justify-center text-4xl mb-6">
                 📚
@@ -411,7 +412,7 @@ export default function Schools() {
       {/* AI Analysis Visual */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="glass-card p-8 md:p-12 text-center max-w-4xl mx-auto relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
+          <div className="glass-card-premium p-8 md:p-12 text-center max-w-4xl mx-auto relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
             <div className="absolute top-0 left-0 w-40 h-40 bg-purple-200 rounded-full blur-3xl opacity-50" />
             <div className="absolute bottom-0 right-0 w-60 h-60 bg-blue-200 rounded-full blur-3xl opacity-50" />
 
@@ -427,17 +428,17 @@ export default function Schools() {
               </p>
 
               <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
-                <div className="glass-card p-4 bg-white">
+                <div className="glass-card-premium p-4 bg-white">
                   <div className="text-2xl mb-2">📖</div>
                   <div className="text-gray-900 font-semibold">Reads</div>
                   <div className="text-gray-500 text-xs">Handwriting</div>
                 </div>
-                <div className="glass-card p-4 bg-white">
+                <div className="glass-card-premium p-4 bg-white">
                   <div className="text-2xl mb-2">⚖️</div>
                   <div className="text-gray-900 font-semibold">Compares</div>
                   <div className="text-gray-500 text-xs">With Answer Key</div>
                 </div>
-                <div className="glass-card p-4 bg-white">
+                <div className="glass-card-premium p-4 bg-white">
                   <div className="text-2xl mb-2">📊</div>
                   <div className="text-gray-900 font-semibold">Generates</div>
                   <div className="text-gray-500 text-xs">Reports</div>

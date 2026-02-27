@@ -71,16 +71,16 @@ const pricingPlans = [
 
 export default function Courses() {
   return (
-    <div className="min-h-screen bg-white overflow-hidden">
-      {/* Floating Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
-        <div className="absolute rounded-full" style={{ width: 400, height: 400, background: '#dbeafe', top: '10%', left: '-10%', filter: 'blur(80px)', opacity: 0.6 }} />
-        <div className="absolute rounded-full" style={{ width: 300, height: 300, background: '#f3e8ff', top: '60%', right: '-5%', filter: 'blur(80px)', opacity: 0.6 }} />
-        <div className="absolute rounded-full" style={{ width: 250, height: 250, background: '#fce7f3', bottom: '10%', left: '30%', filter: 'blur(80px)', opacity: 0.6 }} />
+    <div className="min-h-screen bg-white overflow-hidden marketing-page-bg">
+      {/* Floating Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <div className="marketing-orb marketing-orb--blue" style={{ width: 480, height: 480, top: '5%', left: '-10%' }} />
+        <div className="marketing-orb marketing-orb--pink" style={{ width: 400, height: 400, top: '50%', right: '-8%' }} />
+        <div className="marketing-orb marketing-orb--purple" style={{ width: 320, height: 320, bottom: '10%', left: '25%' }} />
       </div>
 
       {/* Hero Section */}
-      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white relative">
+      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white relative hero-grid-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div
@@ -118,7 +118,7 @@ export default function Courses() {
               transition={{ delay: 0.3 }}
               className="flex flex-wrap justify-center gap-4"
             >
-              <Link to="/signup" className="button button--mimas text-lg px-8 py-4 no-underline">
+              <Link to="/free-trial" className="button button--mimas text-lg px-8 py-4 no-underline">
                 <span>Enroll Now</span>
               </Link>
               <a href="#courses" className="btn-secondary text-lg px-8 py-4 no-underline">
@@ -147,7 +147,7 @@ export default function Courses() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className={`glass-card p-6 relative hover-lift ${plan.popular ? 'border-2 shadow-lg' : ''}`}
+                className={`glass-card-premium p-6 relative hover-lift ${plan.popular ? 'border-2 shadow-lg' : ''}`}
                 style={{ borderColor: plan.popular ? plan.color : 'transparent' }}
               >
                 {plan.popular && (
@@ -176,7 +176,7 @@ export default function Courses() {
                   ))}
                 </ul>
                 <Link
-                  to="/signup"
+                  to="/free-trial"
                   className="btn-primary w-full text-center block py-3 rounded-xl text-white font-semibold no-underline"
                   style={{ background: `linear-gradient(135deg, ${plan.color}, ${plan.color}dd)` }}
                 >
@@ -229,7 +229,7 @@ export default function Courses() {
                       whileInView={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                       viewport={{ once: true }}
-                      className="glass-card p-6 hover-lift cursor-pointer group"
+                      className="glass-card-premium p-6 hover-lift cursor-pointer group"
                     >
                       <div className="flex justify-between items-start mb-4">
                         <h4 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
@@ -246,7 +246,7 @@ export default function Courses() {
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-400">1 Month</span>
                         <Link
-                          to="/signup"
+                          to="/free-trial"
                           className="text-sm font-semibold transition-colors no-underline"
                           style={{ color: category.color }}
                         >
@@ -280,7 +280,7 @@ export default function Courses() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="glass-card p-6 text-center hover-lift cursor-pointer"
+                className="glass-card-premium p-6 text-center hover-lift cursor-pointer"
                 style={{ minWidth: '160px' }}
               >
                 <div
@@ -314,7 +314,7 @@ export default function Courses() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="glass-card p-6 hover-lift"
+                className="glass-card-premium p-6 hover-lift"
               >
                 <div
                   className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl mb-4"
@@ -331,7 +331,7 @@ export default function Courses() {
       {/* Free Trial CTA */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="glass-card p-12 text-center bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+          <div className="glass-card-premium p-12 text-center bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Not Sure Which Course?</h2>
             <p className="text-gray-700 mb-8">Try our platform free for 1 week and see the difference for yourself.</p>
             <Link to="/free-trial" className="button button--mimas no-underline" style={{ background: '#1e8e3e' }}>
@@ -355,7 +355,7 @@ export default function Courses() {
                 Join thousands of students already excelling with SmartLearners.ai
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Link to="/signup" className="button button--mimas text-lg px-8 py-4 no-underline">
+                <Link to="/free-trial" className="button button--mimas text-lg px-8 py-4 no-underline">
                   <span>Get Started Free</span>
                 </Link>
                 <Link to="/contact" className="btn-secondary text-lg px-8 py-4 no-underline">

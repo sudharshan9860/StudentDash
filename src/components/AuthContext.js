@@ -69,6 +69,9 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Error during logout:", error);
     } finally {
+      // Clear sessionStorage so trial modal shows again on next login
+      sessionStorage.clear();
+
       // Clear localStorage
       localStorage.removeItem("accessToken");
       localStorage.removeItem("username");

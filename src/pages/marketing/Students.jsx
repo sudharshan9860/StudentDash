@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import AIDashboardHero from '../../components/marketing/AIDashboardHero'
 
 export default function Students() {
   const features = [
@@ -13,8 +14,15 @@ export default function Students() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
-      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-white marketing-page-bg">
+      {/* Floating Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <div className="marketing-orb marketing-orb--blue" style={{ width: 450, height: 450, top: '5%', right: '-10%' }} />
+        <div className="marketing-orb marketing-orb--pink" style={{ width: 380, height: 380, top: '50%', left: '-8%' }} />
+        <div className="marketing-orb marketing-orb--purple" style={{ width: 300, height: 300, bottom: '10%', right: '20%' }} />
+      </div>
+
+      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white hero-grid-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -49,7 +57,7 @@ export default function Students() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="glass-card p-6 text-center"
+                className="glass-card-premium p-6 text-center"
               >
                 <div className="text-4xl mb-4" dangerouslySetInnerHTML={{ __html: feature.icon }}></div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
@@ -59,6 +67,8 @@ export default function Students() {
           </div>
         </div>
       </section>
+
+      <AIDashboardHero />
 
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

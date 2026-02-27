@@ -407,29 +407,15 @@ const handleQuestionClick = (questionData, index) => {
         <Modal.Title>{getModalTitle()}</Modal.Title>
         {/* Tutorial Toggle Button */}
         <button
-          className="tutorial-toggle-btn-modal"
+          className="tutorial-toggle-btn tutorial-toggle-btn-modal"
           onClick={(e) => {
             e.stopPropagation();
             startTutorialForPage("questionListModal");
           }}
           title="Start Tutorial"
-          style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '6px 12px',
-            color: 'white',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '500',
-            marginLeft: '10px',
-            transition: 'transform 0.2s',
-          }}
-          onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-          onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
         >
-          <FontAwesomeIcon icon={faQuestionCircle} style={{ marginRight: '5px' }} />
-          Tutorial
+          <FontAwesomeIcon icon={faQuestionCircle} />
+          <span>Tutorial</span>
         </button>
       </Modal.Header>
       <Modal.Body>
@@ -683,7 +669,7 @@ const handleQuestionClick = (questionData, index) => {
                   disabled={selectedQuestions.length === 0}
                   className="me-2"
                 >
-                  Submit Selected Questions ({selectedQuestions.length}/20)
+                  Attempt Selected Questions ({selectedQuestions.length}/20)
                 </Button>
               )}
               <Button variant="secondary" onClick={handleModalClose}>

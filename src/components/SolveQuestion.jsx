@@ -841,22 +841,9 @@ const [mcqOptions, setMcqOptions] = useState([]);
             className="tutorial-toggle-btn"
             onClick={() => startTutorialForPage("solveQuestion")}
             title="Start Tutorial"
-            style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '8px 16px',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'transform 0.2s',
-            }}
-            onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
           >
-            <FontAwesomeIcon icon={faQuestionCircle} style={{ marginRight: '5px' }} />
-            Tutorial
+            <FontAwesomeIcon icon={faQuestionCircle} />
+            <span>Tutorial</span>
           </button>
         </div>
 

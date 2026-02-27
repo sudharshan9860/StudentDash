@@ -188,6 +188,27 @@ axiosInstance.uploadFile = async (url, formData, progressCallback) => {
 };
 
 // =============================
+// Quiz CRUD (JWT-authenticated)
+// =============================
+axiosInstance.createQuiz = async (data) => {
+  const response = await axiosInstance.post('/api/quizzes/', data);
+  return response.data;
+};
+
+axiosInstance.fetchQuizzes = async () => {
+  const response = await axiosInstance.get('/api/quizzes/');
+  return response.data;
+};
+
+axiosInstance.updateQuizQuestions = async (quizId, questions) => {
+  const response = await axiosInstance.put('/api/quizz/questions/update/', {
+    quiz_id: quizId,
+    questions,
+  });
+  return response.data;
+};
+
+// =============================
 // Marketing API Instance (for registration, payments)
 // =============================
 const marketingApi = axios.create({

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChartLine, faArrowUp, faArrowDown, faMinus, faTrophy, faBolt, faStar, faFire, faCrown, faMedal, faGem, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faChartLine, faArrowUp, faArrowDown, faMinus, faTrophy, faBolt, faStar, faFire, faCrown, faMedal, faGem, faSpinner, faRocket } from '@fortawesome/free-solid-svg-icons';
 import './ProgressComparison.css';
 import mascotGif from '../assets/newbot.gif';
 import axiosInstance from '../api/axiosInstance';
@@ -118,7 +119,7 @@ const ProgressComparison = () => {
     const safeZoneThreshold = 8; // 8 points below target is the danger threshold
 
     // Draw animated grid
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 5; i++) {
       const y = padding.top + (graphHeight / 5) * i;
@@ -129,9 +130,9 @@ const ProgressComparison = () => {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Y-axis labels - DARKER for visibility
+      // Y-axis labels with glow
       const pointsLabel = Math.round(maxPoints - (pointsRange / 5) * i);
-      ctx.fillStyle = '#475569'; 
+      ctx.fillStyle = 'rgba(226, 232, 240, 0.9)';
       ctx.font = 'bold 12px Arial';
       ctx.textAlign = 'right';
       ctx.fillText(`${pointsLabel}%`, padding.left - 10, y + 4);
@@ -166,8 +167,9 @@ const ProgressComparison = () => {
       ctx.closePath();
 
       const areaGradient = ctx.createLinearGradient(0, padding.top, 0, height - padding.bottom);
-      areaGradient.addColorStop(0, 'rgba(30, 64, 175, 0.15)'); // Navy with low opacity
-      areaGradient.addColorStop(1, 'rgba(30, 64, 175, 0.03)');
+      areaGradient.addColorStop(0, 'rgba(102, 126, 234, 0.4)');
+      areaGradient.addColorStop(0.4, 'rgba(240, 147, 251, 0.3)');
+      areaGradient.addColorStop(1, 'rgba(255, 215, 0, 0.1)');
       ctx.fillStyle = areaGradient;
       ctx.fill();
     }
@@ -275,10 +277,19 @@ const ProgressComparison = () => {
         actualGraphPoints[actualGraphPoints.length - 1].y
       );
 
-      ctx.strokeStyle = '#1e40af';
+      const lineGradient = ctx.createLinearGradient(
+        actualGraphPoints[0].x, 0,
+        actualGraphPoints[actualGraphPoints.length - 1].x, 0
+      );
+      lineGradient.addColorStop(0, '#667eea');
+      lineGradient.addColorStop(0.3, '#ef4444');
+      lineGradient.addColorStop(0.6, '#f093fb');
+      lineGradient.addColorStop(1, '#ffd700');
+      
+      ctx.strokeStyle = lineGradient;
       ctx.lineWidth = 4;
-      ctx.shadowColor = 'rgba(30, 64, 175, 0.4)'; 
-      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+      ctx.shadowBlur = 15;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.stroke();
@@ -360,27 +371,27 @@ const ProgressComparison = () => {
       ctx.fillText(d.icon, point.x, height - padding.bottom + 20);
     });
 
-    // Draw "SAFE ZONE" label - MORE VISIBLE
+    // Draw "SAFE ZONE" label on the band
     if (targetGraphPoints.length > 1) {
       const midIndex = Math.floor(targetGraphPoints.length / 2);
       const midPoint = targetGraphPoints[midIndex];
 
       ctx.save();
-      ctx.font = 'bold 12px Arial';
+      ctx.font = 'bold 11px Arial';
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#059669'; 
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.8)'; 
-      ctx.shadowBlur = 3;
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.9)';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 4;
       ctx.fillText('SAFE ZONE', midPoint.x, midPoint.y + 4);
       ctx.restore();
     }
 
-    // X-axis milestone labels - DARKER for visibility
+    // X-axis milestone labels
     progressData.forEach((d, i) => {
       const x = actualGraphPoints[i].x;
       const lines = d.label.split('\n');
       
-      ctx.fillStyle = '#1e293b'; // Dark slate instead of light gray
+      ctx.fillStyle = 'rgba(226, 232, 240, 0.95)';
       ctx.font = '11px Arial';
       ctx.textAlign = 'center';
       
@@ -389,7 +400,7 @@ const ProgressComparison = () => {
       });
       
       // Day number
-      ctx.fillStyle = '#64748b'; // Medium slate instead of very light
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
       ctx.font = '9px Arial';
       ctx.fillText(`Day ${d.day}`, x, height - padding.bottom + 60);
     });
@@ -445,11 +456,12 @@ const ProgressComparison = () => {
   // No plans available
   if (plans.length === 0) {
     return (
-      <div className="progress-comparison-container gamified">
-        <div className="empty-container">
-          <p>No learning path data available yet.</p>
-          <p>Start a learning path to see your progress here!</p>
-        </div>
+      <div className="empty-state-wrapper">
+        <img src={mascotGif} alt="Study Buddy" className="empty-mascot" />
+        <p className="empty-description">Take an exam to unlock your personalized learning path!</p>
+        <Link to="/exam-mode" className="empty-cta-link">
+          <FontAwesomeIcon icon={faBolt} /> Get Started
+        </Link>
       </div>
     );
   }

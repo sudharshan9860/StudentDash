@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+import { FaWhatsapp } from 'react-icons/fa'
 import { marketingApi } from '../../api/axiosInstance'
 
 const contactInfo = [
@@ -22,12 +23,12 @@ const contactInfo = [
     color: '#a855f7'
   },
   {
-    icon: '&#x1F4AC;',
+    icon: 'whatsapp',
     title: 'WhatsApp',
     desc: 'Chat with us instantly',
     value: '+91 6303974827',
     href: 'https://wa.me/6303974827',
-    color: '#22c55e'
+    color: '#25D366'
   },
   {
     icon: '&#x1F4CD;',
@@ -108,15 +109,16 @@ export default function Contact() {
   }
 
   return (
-    <div className="min-h-screen bg-white overflow-hidden">
-      {/* Floating Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
-        <div className="absolute rounded-full" style={{ width: 400, height: 400, background: '#dbeafe', top: '10%', left: '-10%', filter: 'blur(80px)', opacity: 0.6 }} />
-        <div className="absolute rounded-full" style={{ width: 300, height: 300, background: '#f3e8ff', top: '60%', right: '-5%', filter: 'blur(80px)', opacity: 0.6 }} />
+    <div className="min-h-screen bg-white overflow-hidden marketing-page-bg">
+      {/* Floating Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <div className="marketing-orb marketing-orb--blue" style={{ width: 450, height: 450, top: '8%', left: '-10%' }} />
+        <div className="marketing-orb marketing-orb--purple" style={{ width: 380, height: 380, top: '55%', right: '-6%' }} />
+        <div className="marketing-orb marketing-orb--cyan" style={{ width: 300, height: 300, bottom: '15%', left: '20%' }} />
       </div>
 
       {/* Hero Section */}
-      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white relative">
+      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white relative hero-grid-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div
@@ -161,13 +163,16 @@ export default function Contact() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="glass-card p-6 text-center hover-lift cursor-pointer group no-underline"
+                className="glass-card-premium p-6 text-center hover-lift cursor-pointer group no-underline"
               >
                 <div
                   className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center text-2xl mb-4 transition-all group-hover:scale-110"
                   style={{ background: `${info.color}15`, border: `2px solid ${info.color}40` }}
-                  dangerouslySetInnerHTML={{ __html: info.icon }}
-                />
+                >
+                  {info.icon === 'whatsapp'
+                    ? <FaWhatsapp style={{ color: info.color, fontSize: '1.6rem' }} />
+                    : <span dangerouslySetInnerHTML={{ __html: info.icon }} />}
+                </div>
                 <h3 className="font-semibold text-gray-900 mb-1">{info.title}</h3>
                 <p className="text-gray-500 text-xs mb-2">{info.desc}</p>
                 <p className="text-sm font-medium" style={{ color: info.color }}>{info.value}</p>
@@ -186,7 +191,7 @@ export default function Contact() {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="glass-card p-8"
+              className="glass-card-premium p-8"
             >
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Send us a Message</h2>
               <p className="text-gray-600 mb-8">Fill out the form and we will get back to you within 24 hours.</p>
@@ -317,7 +322,7 @@ export default function Contact() {
               className="space-y-6"
             >
               {/* Quick Contact */}
-              <div className="glass-card p-8">
+              <div className="glass-card-premium p-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Contact</h3>
                 <div className="space-y-4">
                   <a href="mailto:hello@smartlearners.ai" className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors no-underline">
@@ -328,7 +333,7 @@ export default function Contact() {
                     </div>
                   </a>
                   <a href="https://wa.me/916303974827" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors no-underline">
-                    <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-xl">&#x1F4AC;</div>
+                    <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-xl"><FaWhatsapp style={{ color: '#25D366', fontSize: '1.4rem' }} /></div>
                     <div>
                       <p className="text-gray-900 font-medium">WhatsApp Support</p>
                       <p className="text-green-600 text-sm">Chat with us now</p>
@@ -345,7 +350,7 @@ export default function Contact() {
               </div>
 
               {/* Office Hours */}
-              <div className="glass-card p-8">
+              <div className="glass-card-premium p-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Office Hours</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
@@ -390,7 +395,7 @@ export default function Contact() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="glass-card overflow-hidden"
+                className="glass-card-premium overflow-hidden"
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}

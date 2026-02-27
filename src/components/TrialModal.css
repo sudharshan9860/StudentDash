@@ -13,6 +13,17 @@
   animation: trialFadeIn 0.3s ease;
 }
 
+/* When trial expired — lock down everything, no interaction possible */
+.trial-backdrop.expired-blocker {
+  z-index: 99999;
+  cursor: not-allowed;
+  pointer-events: all;
+}
+
+.trial-backdrop.expired-blocker ~ .trial-modal {
+  z-index: 100000;
+}
+
 .trial-backdrop.closing {
   animation: trialFadeOut 0.25s ease forwards;
 }
@@ -31,12 +42,12 @@
 .trial-modal {
   position: fixed;
   top: 5vh;
-  left: 20vw;
+left:38vw;
   transform: translate(-5, -5);
-  width: 440px;
+ 
   max-width: 94vw;
   max-height: 90vh;
-  overflow-y: auto;
+ 
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   border-radius: 28px;
   box-shadow:
@@ -45,7 +56,7 @@
   z-index: 10001;
   padding: 32px;
   animation: trialSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
+
   overflow: hidden;
 }
 

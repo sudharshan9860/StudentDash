@@ -29,15 +29,16 @@ const principles = [
 
 export default function Privacy() {
   return (
-    <div className="min-h-screen bg-white overflow-hidden">
-      {/* Floating Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
-        <div className="absolute rounded-full" style={{ width: 400, height: 400, background: '#e8f0fe', top: '10%', left: '-10%', filter: 'blur(80px)', opacity: 0.6 }} />
-        <div className="absolute rounded-full" style={{ width: 300, height: 300, background: '#fce8f4', top: '60%', right: '-5%', filter: 'blur(80px)', opacity: 0.6 }} />
+    <div className="min-h-screen bg-white overflow-hidden marketing-page-bg">
+      {/* Floating Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <div className="marketing-orb marketing-orb--blue" style={{ width: 450, height: 450, top: '5%', left: '-10%' }} />
+        <div className="marketing-orb marketing-orb--purple" style={{ width: 350, height: 350, top: '55%', right: '-6%' }} />
+        <div className="marketing-orb marketing-orb--cyan" style={{ width: 280, height: 280, bottom: '10%', left: '30%' }} />
       </div>
 
       {/* Hero Section */}
-      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white relative">
+      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white relative hero-grid-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="text-center max-w-4xl mx-auto"
@@ -70,7 +71,7 @@ export default function Privacy() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="glass-card p-6 text-center hover-lift"
+                className="glass-card-premium p-6 text-center hover-lift"
               >
                 <div
                   className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-3xl mb-4"
@@ -90,7 +91,7 @@ export default function Privacy() {
       {/* Policy Content */}
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="glass-card p-8 md:p-12">
+          <div className="glass-card-premium p-8 md:p-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">1. Information We Collect</h2>
 
             <h3 className="text-2xl font-semibold text-gray-800 mb-4">Personal Information</h3>

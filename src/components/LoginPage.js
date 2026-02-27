@@ -225,12 +225,15 @@ function LoginPage() {
       <div ref={cardRef} className="login-container-new">
         <div className="login-header">
           <Link to="/" className="back-link">
-            <FontAwesomeIcon icon={faArrowLeft} />
-            <span>Back</span>
+            {/* <FontAwesomeIcon icon={faArrowLeft} /> */}
+            {/* <span>Back</span> */}
           </Link>
-          <Link to="/free-trial" className="create-account-link">
+          <a
+            href="https://www.smartlearners.ai/free-trial"
+            className="create-account-link"
+          >
             Create an account
-          </Link>
+          </a>
         </div>
 
         <div className="logo-section-new">
@@ -241,13 +244,13 @@ function LoginPage() {
           />
         </div>
 
-        <h1 className="login-main-title">Log in</h1>
+        <h1 className="login-main-title">Login</h1>
 
         {error && <div className="error-alert-new">{error}</div>}
 
         <div className="login-columns">
           <div className="login-left-column">
-            <h2 className="column-title">Log in</h2>
+          
 
             <Form onSubmit={handleSubmit} className="login-form-new">
               {/* Floating label inputs need placeholder=" " */}
@@ -288,7 +291,7 @@ function LoginPage() {
                   </button>
                 </div>
 
-                {password?.length > 0 && (
+                {/* {password?.length > 0 && (
                   <div className="password-meter">
                     <div className="meter-bars">
                       {[1, 2, 3, 4].map((idx) => (
@@ -300,7 +303,7 @@ function LoginPage() {
                     </div>
                     <span className="meter-label">{strength.label}</span>
                   </div>
-                )}
+                )} */}
               </div>
 
               <button
@@ -341,9 +344,12 @@ function LoginPage() {
               <span>OR</span>
             </div>
 
-            <Link to="/free-trial" className="register-button-new">
+            <a
+              href="https://www.smartlearners.ai/free-trial"
+              className="register-button-new"
+            >
               Register for free trial
-            </Link>
+            </a>
           </div>
         </div>
         {showReset && (
@@ -414,6 +420,22 @@ function LoginPage() {
             </div>
           </div>
         )}
+
+        <div className="playstore-section">
+          <span className="playstore-text">Download our app</span>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.smartlearners.mobile"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="playstore-badge"
+          >
+            <img
+              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+              alt="Get it on Google Play"
+              height="48"
+            />
+          </a>
+        </div>
       </div>
     </div>
   );

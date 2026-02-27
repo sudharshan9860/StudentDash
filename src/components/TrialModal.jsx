@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTimes,
   faCrown,
   faRocket,
-  faCheck,
   faClock,
   faGift,
   faArrowRight,
@@ -24,98 +24,121 @@ const FEATURES = [
 ];
 
 const TrialModal = ({
-  isOpen = false,
-  onClose = () => {},
-  trialStartDate = null, // Pass the date when trial started
-  trialDays = 7,
-  redirectUrl = "https://smartlearners.ai/get-started",
-  // Data to send with redirect
-  userData = null, // { username, email, fullName, class, plan, etc. }
+  userData = null,
 }) => {
-  const { username, fullName } = useContext(AuthContext);
-  const [daysRemaining, setDaysRemaining] = useState(trialDays);
+  const { username, fullName, isAuthenticated } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [daysRemaining, setDaysRemaining] = useState(0);
+  const [totalTrialDays, setTotalTrialDays] = useState(0);
   const [isExpired, setIsExpired] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isPaid, setIsPaid] = useState(null); // null = loading, true/false = loaded
+  const [trialExpiryDate, setTrialExpiryDate] = useState(null);
+  const [dismissed, setDismissed] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
 
-  // Fetch user info to check paid status
+  // Fetch user info on mount
   useEffect(() => {
-    if (isOpen) {
-      const fetchUserInfo = async () => {
-        try {
-          const response = await axiosInstance.get('/api/user-info/', {
-            credentials: 'include',
-          });
+    const fetchUserInfo = async () => {
+      try {
+        const response = await axiosInstance.get('/api/user-info/', {
+          credentials: 'include',
+        });
 
-            const data = await response.data;
-            setIsPaid(data.paid === true);
-        
-        } catch (error) {
-          console.error('Error fetching user info:', error);
-          setIsPaid(false); // Show modal if API fails
+        const data = response.data;
+        setIsPaid(data.paid === true);
+        setUserInfo(data);
+
+        // Use trial_expiry from API to calculate remaining days
+        const expiryValue = data.trial_expiry || data.trial_expiry_date;
+        if (expiryValue) {
+          setTrialExpiryDate(expiryValue);
+
+          // Strip time — compare dates only to avoid off-by-one
+          const now = new Date();
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const expiry = new Date(expiryValue);
+          const expiryDay = new Date(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
+
+          const remaining = Math.round((expiryDay - today) / (1000 * 60 * 60 * 24));
+
+          if (remaining <= 0) {
+            setIsExpired(true);
+            setDaysRemaining(0);
+            setTotalTrialDays(0);
+          } else {
+            setDaysRemaining(remaining);
+            setTotalTrialDays(remaining);
+            setIsExpired(false);
+
+            // For active trials, check if already dismissed this session
+            const sessionKey = `trial_dismissed_${data.username || username}`;
+            if (sessionStorage.getItem(sessionKey)) {
+              setDismissed(true);
+            }
+          }
         }
-      };
-      fetchUserInfo();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (trialStartDate) {
-      const start = new Date(trialStartDate);
-      const now = new Date();
-      const diffTime = now - start;
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      const remaining = trialDays - diffDays;
-
-      if (remaining <= 0) {
-        setIsExpired(true);
-        setDaysRemaining(0);
-      } else {
-        setDaysRemaining(remaining);
-        setIsExpired(false);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        setIsPaid(false);
       }
+    };
+    fetchUserInfo();
+  }, [username]);
+
+  // Lock body scroll and interaction when trial is expired
+  useEffect(() => {
+    if (isExpired && isPaid === false) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.pointerEvents = 'none';
+      // Allow only the modal itself to receive events
+      const modal = document.querySelector('.trial-modal');
+      const backdrop = document.querySelector('.trial-backdrop');
+      if (modal) modal.style.pointerEvents = 'auto';
+      if (backdrop) backdrop.style.pointerEvents = 'auto';
     }
-  }, [trialStartDate, trialDays, isOpen]);
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.pointerEvents = '';
+    };
+  }, [isExpired, isPaid]);
 
   const handleClose = () => {
     if (isExpired) return; // Can't close if expired
     setIsClosing(true);
+    const sessionKey = `trial_dismissed_${userInfo?.username || username}`;
+    sessionStorage.setItem(sessionKey, 'true');
     setTimeout(() => {
       setIsClosing(false);
-      onClose();
+      setDismissed(true);
     }, 250);
   };
 
   const handleUpgrade = () => {
-    // Build URL with query parameters
-    const url = new URL(redirectUrl);
+    if (!isAuthenticated) {
+      alert('Please login first to proceed.');
+      navigate('/login');
+      return;
+    }
 
-    // Add user data as query parameters
-    const dataToSend = {
-      // Default data from AuthContext
-      username: username || '',
-      fullName: fullName || localStorage.getItem('fullName') || '',
-      // Trial info
-      trialDaysRemaining: daysRemaining,
-      trialExpired: isExpired,
-      trialStartDate: trialStartDate || '',
-      // Timestamp
-      timestamp: new Date().toISOString(),
-      // Source tracking
-      source: 'trial_modal',
-      // Merge with any custom userData passed as prop
-      ...userData,
-    };
+    // Unlock body so navigation works (expired state locks it)
+    document.body.style.overflow = '';
+    document.body.style.pointerEvents = '';
 
-    // Add each parameter to URL
-    Object.entries(dataToSend).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
-        url.searchParams.append(key, String(value));
-      }
+    navigate('/get-started', {
+      state: {
+        username: username || userInfo?.username || '',
+        fullName: fullName || localStorage.getItem('fullName') || userInfo?.fullname || '',
+        email: userInfo?.email || '',
+        phone: userInfo?.phone_number || '',
+        className: userInfo?.class_name || localStorage.getItem('className') || '',
+        school: userInfo?.school || localStorage.getItem('school') || '',
+        trialDaysRemaining: daysRemaining,
+        trialExpired: isExpired,
+        trialExpiryDate: trialExpiryDate || '',
+        source: 'trial_modal',
+      },
     });
-
-    // Open the URL with parameters
-    window.open(url.toString(), '_blank', 'noopener,noreferrer');
   };
 
   const getTrialMessage = () => {
@@ -142,14 +165,17 @@ const TrialModal = ({
 
   const trialMessage = getTrialMessage();
 
-  // Don't show if not open, still loading, or user has paid
-  if (!isOpen || isPaid === null || isPaid === true) return null;
+  // Don't show if still loading or user has paid
+  if (isPaid === null || isPaid === true) return null;
+  // Expired trial — always block, never dismiss
+  // Active trial — show once per session, then dismiss
+  if (!isExpired && dismissed) return null;
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Full-screen blocker — covers sidebar, content, everything */}
       <div
-        className={`trial-backdrop ${isClosing ? 'closing' : ''}`}
+        className={`trial-backdrop ${isClosing ? 'closing' : ''} ${isExpired ? 'expired-blocker' : ''}`}
         onClick={handleClose}
       />
 
@@ -186,17 +212,17 @@ const TrialModal = ({
         </div>
 
         {/* Progress bar - only show if not expired */}
-        {!isExpired && (
+        {!isExpired && totalTrialDays > 0 && (
           <div className="trial-progress-wrap">
             <div className="trial-progress-bar">
               <div
                 className="trial-progress-fill"
-                style={{ width: `${((trialDays - daysRemaining) / trialDays) * 100}%` }}
+                style={{ width: `${(daysRemaining / totalTrialDays) * 100}%` }}
               />
             </div>
             <div className="trial-progress-labels">
-              <span>Day 1</span>
-              <span>Day {trialDays}</span>
+              <span>{daysRemaining} days left</span>
+              {/* <span>{totalTrialDays} days total</span> */}
             </div>
           </div>
         )}
@@ -231,10 +257,10 @@ const TrialModal = ({
             </button>
           )}
 
-          <p className="trial-guarantee">
+          {/* <p className="trial-guarantee">
             <FontAwesomeIcon icon={faShieldAlt} />
             <span>30-day money-back guarantee</span>
-          </p>
+          </p> */}
         </div>
 
         {/* Floating particles for visual interest */}

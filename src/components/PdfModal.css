@@ -231,10 +231,60 @@
     max-height: 100vh;
   }
 
+  .pdf-modal-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .pdf-modal-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+  }
+
   .pdf-modal-title span {
-    max-width: 200px;
+    max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .pdf-modal-actions {
+    flex-shrink: 0;
+    gap: 6px;
+  }
+
+  .pdf-action-btn,
+  .pdf-close-btn {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .pdf-modal-header {
+    padding: 8px 10px;
+  }
+
+  .pdf-modal-title svg {
+    display: none;
+  }
+
+  .pdf-modal-title span {
+    max-width: 100px;
+    font-size: 13px;
+  }
+
+  .pdf-action-btn,
+  .pdf-close-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .pdf-action-btn svg,
+  .pdf-close-btn svg {
+    width: 16px;
+    height: 16px;
   }
 }

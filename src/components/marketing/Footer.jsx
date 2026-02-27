@@ -93,12 +93,30 @@ export default function Footer() {
                 <span className="text-base">&#x1F4CD;</span> <span>Flat 302, Kaizen Imperial Heights, Begumpet, Hyderabad - 500016</span>
               </p>
             </div>
+
+            {/* Google Play Badge */}
+            <div className="mt-6">
+              <p className="text-gray-500 text-sm mb-2">Download our app</p>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.smartlearners.mobile"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <img
+                  src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                  alt="Get it on Google Play"
+                  height="48"
+                  style={{ height: '48px' }}
+                />
+              </a>
+            </div>
           </div>
 
           {/* Product Links */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Product</h4>
-            <ul className="space-y-3">
+            <h6 className="font-semibold text-gray-900 mb-4">Product</h6>
+            <ul className="space-y-3 p-0">
               <li>
                 <Link to="/features" className="text-gray-600 hover:text-blue-600 text-sm transition-colors no-underline">
                   Features
@@ -124,8 +142,8 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Company</h4>
-            <ul className="space-y-3">
+            <h6 className="font-semibold text-gray-900 mb-4">Company</h6>
+            <ul className="space-y-3 p-0">
               <li>
                 <Link to="/about" className="text-gray-600 hover:text-blue-600 text-sm transition-colors no-underline">
                   About Us
@@ -141,8 +159,8 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Legal</h4>
-            <ul className="space-y-3">
+            <h6 className="font-semibold text-gray-900 mb-4">Legal</h6>
+            <ul className="space-y-3 p-0">
               <li>
                 <Link to="/privacy" className="text-gray-600 hover:text-blue-600 text-sm transition-colors no-underline">
                   Privacy Policy

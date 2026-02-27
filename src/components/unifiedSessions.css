@@ -135,7 +135,7 @@
 }
 
 /* Space around session cards */
-.session-card, 
+.session-card,
 .submission-card {
   margin-bottom: 20px !important;
   margin-top: 10px !important;
@@ -166,6 +166,41 @@
 /* Card body padding */
 .card-body {
   padding: 1.25rem !important;
+}
+
+/* Reduce all font sizes inside card bodies to 80% */
+.unified-sessions-container .session-card .card-body,
+.unified-sessions-container .submission-card .card-body {
+  font-size: 0.88rem !important;
+}
+
+.unified-sessions-container .session-title,
+.unified-sessions-container .submission-title {
+  font-size: 0.91rem !important;
+}
+
+.unified-sessions-container .session-time,
+.unified-sessions-container .session-score {
+  font-size: 0.8rem !important;
+}
+
+.unified-sessions-container .submission-meta .text-muted {
+  font-size: 0.8rem !important;
+}
+
+.unified-sessions-container .submission-card .badge {
+  font-size: 0.75rem !important;
+}
+
+.unified-sessions-container .submission-card .btn,
+.unified-sessions-container .session-card .btn {
+  font-size: 0.78rem !important;
+  padding: 4px 10px !important;
+}
+
+.unified-sessions-container .submission-card small,
+.unified-sessions-container .session-card small {
+  font-size: 0.7rem !important;
 }
 
 /* Empty state messages styling and spacing */
@@ -372,5 +407,95 @@
   .unified-tabs .nav-link {
     padding: 6px 10px !important;
     font-size: 0.85rem !important;
+  }
+
+  .unified-tabs {
+    flex-wrap: wrap !important;
+    gap: 4px;
+  }
+
+  .unified-tabs .nav-link {
+    flex: 1 1 auto;
+    text-align: center;
+    margin-right: 0 !important;
+  }
+
+  /* Card body responsive */
+  .session-card .card-body,
+  .submission-card .card-body {
+    padding: 0.85rem !important;
+  }
+
+  .session-icon-container {
+    width: 38px;
+    height: 38px;
+  }
+
+  .session-icon {
+    font-size: 1rem;
+  }
+
+  .session-title,
+  .submission-title {
+    font-size: 0.95rem !important;
+  }
+
+  .session-time,
+  .session-score,
+  .submission-meta .text-muted {
+    font-size: 0.78rem !important;
+  }
+
+  /* Stack buttons vertically on very small screens */
+  .submission-card .d-flex.gap-2 {
+    flex-direction: column;
+    gap: 6px !important;
+  }
+
+  .submission-card .d-flex.gap-2 .btn {
+    width: 100%;
+    font-size: 0.8rem !important;
+    padding: 5px 8px !important;
+  }
+
+  /* Badge sizing */
+  .submission-card .badge {
+    font-size: 0.7rem !important;
+    padding: 0.25em 0.5em !important;
+  }
+
+  .section-title {
+    font-size: 1.15rem;
+  }
+
+  .content-container {
+    margin-top: 10px !important;
+    padding-top: 5px !important;
+  }
+}
+
+/* Extra small screens (below 400px) */
+@media (max-width: 400px) {
+  .unified-tabs .nav-link {
+    padding: 5px 6px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .unified-tabs .nav-link .me-2 {
+    display: none;
+  }
+
+  .tab-badge {
+    display: none !important;
+  }
+
+  .session-card .card-body,
+  .submission-card .card-body {
+    padding: 0.65rem !important;
+  }
+
+  .session-title,
+  .submission-title {
+    font-size: 0.88rem !important;
   }
 }

@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
@@ -34,17 +35,93 @@ const milestones = [
   { year: '2024', title: '50K+ Students', desc: 'Growing strong with 50,000+ students and 200+ schools' },
 ]
 
+const VIDEO_PATHS = [
+  '/videos/getstarted.mp4',
+  '/getstarted.mp4',
+]
+
 export default function About() {
+  const [showDemo, setShowDemo] = useState(false)
+  const [videoUrl, setVideoUrl] = useState(null)
+  const [videoLoading, setVideoLoading] = useState(false)
+  const [videoError, setVideoError] = useState(null)
+  const videoRef = useRef(null)
+
+  const loadVideo = useCallback(async () => {
+    setVideoLoading(true)
+    setVideoError(null)
+
+    for (const path of VIDEO_PATHS) {
+      try {
+        const res = await fetch(path)
+        const contentType = res.headers.get('content-type') || ''
+
+        // Skip if server returned HTML instead of video
+        if (contentType.includes('text/html')) continue
+
+        if (res.ok && contentType.includes('video')) {
+          const blob = await res.blob()
+          const blobUrl = URL.createObjectURL(blob)
+          setVideoUrl(blobUrl)
+          setVideoLoading(false)
+          return
+        }
+      } catch {
+        continue
+      }
+    }
+
+    // All paths failed — try Vite asset import as last resort
+    try {
+      const mod = await import('../../assets/videos/getstarted.mp4')
+      const assetUrl = mod.default || mod
+      const res = await fetch(assetUrl)
+      const contentType = res.headers.get('content-type') || ''
+      if (res.ok && !contentType.includes('text/html')) {
+        const blob = await res.blob()
+        setVideoUrl(URL.createObjectURL(blob))
+        setVideoLoading(false)
+        return
+      }
+    } catch {
+      // ignore
+    }
+
+    setVideoError('Unable to load video. Please try again later.')
+    setVideoLoading(false)
+  }, [])
+
+  useEffect(() => {
+    if (showDemo && !videoUrl && !videoLoading) {
+      loadVideo()
+    }
+  }, [showDemo, videoUrl, videoLoading, loadVideo])
+
+  useEffect(() => {
+    if (!showDemo && videoRef.current) {
+      videoRef.current.pause()
+      videoRef.current.currentTime = 0
+    }
+    // Cleanup blob URL on unmount
+    return () => {
+      if (!showDemo && videoUrl) {
+        URL.revokeObjectURL(videoUrl)
+        setVideoUrl(null)
+      }
+    }
+  }, [showDemo])
+
   return (
-    <div className="min-h-screen bg-white overflow-hidden">
-      {/* Floating Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
-        <div className="absolute rounded-full" style={{ width: 400, height: 400, background: '#e8f0fe', top: '10%', left: '-10%', filter: 'blur(80px)', opacity: 0.6 }} />
-        <div className="absolute rounded-full" style={{ width: 300, height: 300, background: '#fce8f4', top: '60%', right: '-5%', filter: 'blur(80px)', opacity: 0.6 }} />
+    <div className="min-h-screen bg-white overflow-hidden marketing-page-bg">
+      {/* Floating Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <div className="marketing-orb marketing-orb--purple" style={{ width: 500, height: 500, top: '5%', left: '-10%' }} />
+        <div className="marketing-orb marketing-orb--cyan" style={{ width: 400, height: 400, top: '55%', right: '-8%' }} />
+        <div className="marketing-orb marketing-orb--pink" style={{ width: 350, height: 350, bottom: '10%', left: '30%' }} />
       </div>
 
       {/* Hero Section */}
-      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white relative">
+      <section className="py-20 md:py-28 bg-gradient-to-b from-gray-50 to-white relative hero-grid-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="badge badge-primary mb-6">
@@ -75,21 +152,21 @@ export default function About() {
                 Developed by <span className="text-blue-600 font-semibold">Orcalex Technologies LLP</span>, we combine cutting-edge artificial intelligence with deep educational expertise to create learning experiences that truly make a difference.
               </p>
               <div className="flex items-center gap-4">
-                <div className="glass-card px-6 py-4 text-center">
+                <div className="glass-card-premium px-6 py-4 text-center">
                   <div className="text-3xl font-bold gradient-text">50K+</div>
                   <div className="text-gray-500 text-sm">Students</div>
                 </div>
-                <div className="glass-card px-6 py-4 text-center">
+                <div className="glass-card-premium px-6 py-4 text-center">
                   <div className="text-3xl font-bold gradient-text">200+</div>
                   <div className="text-gray-500 text-sm">Schools</div>
                 </div>
-                <div className="glass-card px-6 py-4 text-center">
+                <div className="glass-card-premium px-6 py-4 text-center">
                   <div className="text-3xl font-bold gradient-text">95%</div>
                   <div className="text-gray-500 text-sm">Success Rate</div>
                 </div>
               </div>
             </div>
-            <div className="glass-card p-8">
+            <div className="glass-card-premium p-8">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h3>
               <p className="text-gray-600 leading-relaxed mb-6">
                 To become India's most trusted AI-powered education platform, empowering millions of students to achieve their academic goals and build a brighter future.
@@ -120,7 +197,7 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="glass-card p-8 text-center hover-lift"
+                className="glass-card-premium p-8 text-center hover-lift"
               >
                 {/* Avatar */}
                 <div
@@ -148,7 +225,7 @@ export default function About() {
       {/* Orcalex Technologies Section */}
       <section className="py-16 bg-gradient-to-r from-blue-50 to-purple-50 border-y border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="glass-card p-8 md:p-12 text-center max-w-4xl mx-auto">
+          <div className="glass-card-premium p-8 md:p-12 text-center max-w-4xl mx-auto">
             <div className="w-20 h-20 mx-auto rounded-2xl bg-blue-600 flex items-center justify-center mb-6 shadow-lg">
               <span className="text-4xl text-white">O</span>
             </div>
@@ -194,7 +271,7 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="glass-card p-6 text-center hover-lift"
+                className="glass-card-premium p-6 text-center hover-lift"
               >
                 <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-100 flex items-center justify-center text-2xl mb-4" dangerouslySetInnerHTML={{ __html: value.icon }} />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{value.title}</h3>
@@ -231,7 +308,7 @@ export default function About() {
                     <div className="w-0.5 h-full bg-gradient-to-b from-blue-400 to-transparent mt-2"></div>
                   )}
                 </div>
-                <div className="glass-card p-6 flex-1">
+                <div className="glass-card-premium p-6 flex-1">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{milestone.title}</h3>
                   <p className="text-gray-600">{milestone.desc}</p>
                 </div>
@@ -252,12 +329,95 @@ export default function About() {
               <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">Be part of the education revolution. Start learning with SmartLearners.ai today.</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/signup" className="button button--mimas text-lg px-8 py-4"><span>Get Started Free</span></Link>
+                <button
+                  onClick={() => setShowDemo(true)}
+                  className="btn-secondary text-lg px-8 py-4"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  Watch Demo
+                </button>
                 <Link to="/contact" className="btn-secondary text-lg px-8 py-4">Contact Us</Link>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Demo Video Modal */}
+      {showDemo && (
+        <div
+          onClick={() => setShowDemo(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.85)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '24px',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              width: '100%', maxWidth: '900px',
+              borderRadius: '16px', overflow: 'hidden',
+              background: '#000',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            <button
+              onClick={() => setShowDemo(false)}
+              style={{
+                position: 'absolute', top: '12px', right: '12px', zIndex: 10,
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(4px)',
+                border: 'none', color: '#fff', fontSize: '20px',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              &times;
+            </button>
+            {videoLoading && (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '80px 20px', color: '#fff', fontSize: '16px',
+                flexDirection: 'column', gap: '16px',
+              }}>
+                <div style={{
+                  width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.2)',
+                  borderTopColor: '#fff', borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                Loading video...
+              </div>
+            )}
+            {videoError && (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '80px 20px', color: '#f87171', fontSize: '16px',
+                flexDirection: 'column', gap: '12px',
+              }}>
+                <span>{videoError}</span>
+                <button onClick={loadVideo} style={{
+                  padding: '8px 20px', borderRadius: '8px', border: '1px solid #f87171',
+                  background: 'transparent', color: '#f87171', cursor: 'pointer',
+                }}>Retry</button>
+              </div>
+            )}
+            {videoUrl && !videoLoading && (
+              <video
+                ref={videoRef}
+                src={videoUrl}
+                controls
+                autoPlay
+                playsInline
+                style={{ width: '100%', display: 'block' }}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

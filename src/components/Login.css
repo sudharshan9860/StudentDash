@@ -789,3 +789,29 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   transform: translateY(-1px);
 }
+
+/* Play Store Section */
+.playstore-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--card-border);
+}
+
+.playstore-text {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.playstore-badge img {
+  height: 48px;
+  transition: transform 0.2s ease;
+}
+
+.playstore-badge:hover img {
+  transform: scale(1.05);
+}

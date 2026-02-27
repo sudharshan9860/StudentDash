@@ -23,6 +23,7 @@ import './UnifiedSessions.css';
 import HomeworkDetailsModal from './HomeworkDetailsModal';
 import ClassworkDetailsModal from './ClassworkDetailsModal ';
 import ExamDetailsModal from './ExamDetailsModal';
+import PdfModal from './PdfModal';
 
 const UnifiedSessions = () => {
   // State for active tab
@@ -64,6 +65,11 @@ const UnifiedSessions = () => {
   // Selection state for exams
   const [selectedExam, setSelectedExam] = useState(null);
   const [showExamModal, setShowExamModal] = useState(false);
+
+  // PDF Modal state
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState('');
+  const [selectedPdfTitle, setSelectedPdfTitle] = useState('');
 
   const navigate = useNavigate();
 
@@ -598,6 +604,37 @@ useEffect(() => {
     return 'danger';
   };
 
+  // Helper to extract PDF URL from answer_sheet_snapshot (handles multiple formats)
+  const getAnswerSheetUrl = (snapshot) => {
+    if (!snapshot) return null;
+    if (typeof snapshot === 'string') return snapshot;
+    if (typeof snapshot === 'object' && !Array.isArray(snapshot) && snapshot.file_url) {
+      return snapshot.file_url;
+    }
+    if (Array.isArray(snapshot) && snapshot.length > 0 && snapshot[0].file_url) {
+      return snapshot[0].file_url;
+    }
+    return null;
+  };
+
+  const handleViewAnswerSheet = (e, result) => {
+    e.stopPropagation();
+    const pdfUrl = getAnswerSheetUrl(result.answer_sheet_snapshot);
+    if (pdfUrl) {
+      setSelectedPdfUrl(pdfUrl);
+      setSelectedPdfTitle(
+        `Answer Sheet - ${result.exam_name || 'Exam'}`
+      );
+      setPdfModalOpen(true);
+    }
+  };
+
+  const handleClosePdfModal = () => {
+    setPdfModalOpen(false);
+    setSelectedPdfUrl('');
+    setSelectedPdfTitle('');
+  };
+
   // Render exam result card
   const renderExamCard = (result, index) => {
     const percentage = result.overall_percentage || 0;
@@ -635,7 +672,7 @@ useEffect(() => {
                   </small>
                 </div>
 
-                <div className="mt-3">
+                <div className="mt-3 d-flex gap-2">
                   <Button
                     variant="outline-primary"
                     size="sm"
@@ -648,6 +685,16 @@ useEffect(() => {
                   >
                     View Details
                   </Button>
+                  {getAnswerSheetUrl(result.answer_sheet_snapshot) && (
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      className="view-details-btn"
+                      onClick={e => handleViewAnswerSheet(e, result)}
+                    >
+                      View Answer Sheet
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -830,6 +877,14 @@ useEffect(() => {
           result={selectedExam}
         />
       )}
+
+      {/* PDF Viewer Modal */}
+      <PdfModal
+        isOpen={pdfModalOpen}
+        onClose={handleClosePdfModal}
+        pdfUrl={selectedPdfUrl}
+        title={selectedPdfTitle}
+      />
     </Container>
   );
 };

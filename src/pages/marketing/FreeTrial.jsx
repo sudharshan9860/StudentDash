@@ -131,12 +131,12 @@ export default function FreeTrial() {
   }
 
   return (
-    <div className="min-h-screen pt-20 relative overflow-hidden">
-      {/* Floating background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
-        <div className="absolute rounded-full" style={{ width: 400, height: 400, background: '#e8f0fe', top: '10%', left: '-10%', filter: 'blur(80px)', opacity: 0.6 }} />
-        <div className="absolute rounded-full" style={{ width: 300, height: 300, background: '#fce8f4', top: '60%', right: '-5%', filter: 'blur(80px)', opacity: 0.6 }} />
-        <div className="absolute rounded-full" style={{ width: 250, height: 250, background: '#e6f4ea', bottom: '10%', left: '30%', filter: 'blur(80px)', opacity: 0.6 }} />
+    <div className="min-h-screen pt-20 relative overflow-hidden marketing-page-bg">
+      {/* Floating Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <div className="marketing-orb marketing-orb--blue" style={{ width: 450, height: 450, top: '5%', left: '-10%' }} />
+        <div className="marketing-orb marketing-orb--purple" style={{ width: 380, height: 380, top: '50%', right: '-6%' }} />
+        <div className="marketing-orb marketing-orb--cyan" style={{ width: 300, height: 300, bottom: '8%', left: '30%' }} />
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-12 relative z-10">
@@ -152,7 +152,7 @@ export default function FreeTrial() {
             Experience Smart Learners AI-powered platform with a free trial - no payment required!
           </p>
 
-          <div className="glass-card p-8">
+          <div className="glass-card-premium p-8">
             <div className="flex items-center justify-center mb-6">
               <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg">
                 <FaUser />
@@ -194,6 +194,8 @@ export default function FreeTrial() {
                   <option value="8">8</option>
                   <option value="9">9</option>
                   <option value="10">10</option>
+                  <option value="9">11</option>
+                  <option value="10">12</option>
                 </select>
               </div>
 
@@ -262,7 +264,7 @@ export default function FreeTrial() {
                     onChange={handleInputChange}
                     className="mt-1 mr-3 w-4 h-4 accent-blue-500 cursor-pointer"
                   />
-                  <span className="text-sm text-gray-300">
+                  <span className="text-sm text-black-300">
                     I agree to the{' '}
                     <Link
                       to="/terms"

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useUserType } from '../../contexts/UserTypeContext'
 import UserTypeSelection from '../../components/marketing/UserTypeSelection'
 import { FaTimes, FaPlay } from 'react-icons/fa'
+import AIDashboardHero from '../../components/marketing/AIDashboardHero'
 
 // The Real Problem - Parent Pain Points
 const realProblems = [
@@ -74,7 +75,7 @@ const testimonials = [
 ]
 
 export default function Home() {
-  const { userType } = useUserType()
+  const { userType, setUserType } = useUserType()
   const [showVideoModal, setShowVideoModal] = useState(false)
 
   // Determine content based on user type
@@ -82,16 +83,17 @@ export default function Home() {
   const isSchool = userType === 'school'
 
   return (
-    <div className="overflow-hidden bg-white">
-      {/* ========== FLOATING BACKGROUND ========== */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
-        <div className="absolute rounded-full" style={{ width: 400, height: 400, background: '#e8f0fe', top: '10%', left: '-10%', filter: 'blur(80px)', opacity: 0.6 }} />
-        <div className="absolute rounded-full" style={{ width: 300, height: 300, background: '#fce8f4', top: '60%', right: '-5%', filter: 'blur(80px)', opacity: 0.6 }} />
-        <div className="absolute rounded-full" style={{ width: 250, height: 250, background: '#e6f4ea', bottom: '10%', left: '30%', filter: 'blur(80px)', opacity: 0.6 }} />
+    <div className="overflow-hidden bg-white marketing-page-bg">
+      {/* ========== FLOATING BACKGROUND ORBS ========== */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <div className="marketing-orb marketing-orb--blue" style={{ width: 500, height: 500, top: '5%', left: '-12%' }} />
+        <div className="marketing-orb marketing-orb--pink" style={{ width: 400, height: 400, top: '50%', right: '-8%' }} />
+        <div className="marketing-orb marketing-orb--purple" style={{ width: 350, height: 350, bottom: '5%', left: '25%' }} />
+        <div className="marketing-orb marketing-orb--cyan" style={{ width: 300, height: 300, top: '30%', right: '20%' }} />
       </div>
 
       {/* ========== HERO SECTION ========== */}
-      <section className="relative pt-20 pb-4">
+      <section className="relative pt-20 pb-4 hero-grid-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             {isParent ? (
@@ -190,8 +192,9 @@ export default function Home() {
       {userType && (
         <>
           {/* ========== STATS BAR ========== */}
-          <section className="py-12 bg-gradient-to-r from-blue-50 to-purple-50 border-y border-gray-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="py-12 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/80 via-purple-50/60 to-pink-50/80 backdrop-blur-sm" />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="flex flex-wrap justify-center gap-16 md:gap-24 lg:gap-32">
                 {isParent ? (
                   <>
@@ -228,6 +231,9 @@ export default function Home() {
             </div>
           </section>
 
+          {/* ========== AI DASHBOARD SHOWCASE ========== */}
+          <AIDashboardHero />
+
           {/* ========== FEATURES/BENEFITS SECTION ========== */}
           <section className="py-20 md:py-28 bg-white" id="features">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -262,7 +268,7 @@ export default function Home() {
                     </div>
                     <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
                       {/* Traditional Card */}
-                      <div className="glass-card p-6 border-l-4 border-l-red-500">
+                      <div className="glass-card-premium p-6 border-l-4 border-l-red-500">
                         <div className="text-center mb-4">
                           <span className="inline-block px-4 py-2 rounded-full bg-red-50 text-red-600 font-bold border border-red-200">Traditional Learning</span>
                         </div>
@@ -281,7 +287,7 @@ export default function Home() {
                       </div>
 
                       {/* SmartLearners Card */}
-                      <div className="glass-card p-6 border-l-4 border-l-green-500">
+                      <div className="glass-card-premium p-6 border-l-4 border-l-green-500">
                         <div className="text-center mb-4">
                           <span className="inline-block px-4 py-2 rounded-full bg-green-50 text-green-600 font-bold border border-green-200">SmartLearners.ai</span>
                         </div>
@@ -315,7 +321,7 @@ export default function Home() {
                         { step: '2', title: 'AI finds mistakes', desc: 'Shows exact wrong line + concept gap', icon: '2' },
                         { step: '3', title: 'Learn & improve', desc: 'Step-by-step correction + concept clarity', icon: '3' },
                       ].map((item, index) => (
-                        <div key={index} className="glass-card p-6 text-center">
+                        <div key={index} className="glass-card-premium p-6 text-center">
                           <div className="w-16 h-16 mx-auto rounded-full bg-blue-600 flex items-center justify-center text-2xl font-bold text-white mb-4">
                             {item.icon}
                           </div>
@@ -337,7 +343,7 @@ export default function Home() {
                       </h2>
                       <p className="text-gray-600">7-Day Exam Guide</p>
                     </div>
-                    <div className="glass-card p-6 max-w-3xl mx-auto">
+                    <div className="glass-card-premium p-6 max-w-3xl mx-auto">
                       <div className="space-y-3 mb-6">
                         {examGuide.map((item, index) => (
                           <div key={index} className="flex items-center gap-4 p-3 rounded-xl bg-gray-50">
@@ -362,7 +368,7 @@ export default function Home() {
                     </div>
                     <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                       {parentTestimonials.map((t, index) => (
-                        <div key={index} className="glass-card p-6">
+                        <div key={index} className="glass-card-premium p-6">
                           <div className="text-green-600 font-bold mb-3">&quot;{t.result}&quot;</div>
                           <p className="text-gray-700 italic mb-4">&quot;{t.quote}&quot;</p>
                           <p className="text-gray-500 text-sm">- {t.name}, {t.location}</p>
@@ -385,7 +391,7 @@ export default function Home() {
                         { icon: '&#x1F4A1;', title: 'Concept Videos', desc: '3-5 min videos that make hard topics easy' },
                         { icon: '&#x1F916;', title: '24/7 AI Chatbot', desc: 'Ask doubts anytime, get instant answers' },
                       ].map((item, index) => (
-                        <div key={index} className="glass-card p-5 text-center">
+                        <div key={index} className="glass-card-premium p-5 text-center">
                           <div className="text-3xl mb-3" dangerouslySetInnerHTML={{ __html: item.icon }}></div>
                           <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
                           <p className="text-gray-600 text-sm">{item.desc}</p>
@@ -400,7 +406,7 @@ export default function Home() {
                   </div>
 
                   {/* WHAT YOU GET AS A PARENT - WhatsApp Section */}
-                  <div className="glass-card p-8 bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 mb-16">
+                  <div className="glass-card-premium p-8 bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 mb-16">
                     <div className="grid md:grid-cols-2 gap-8 items-center">
                       <div>
                         <div className="flex items-center gap-3 mb-4">
@@ -436,7 +442,7 @@ export default function Home() {
                   </div>
 
                   {/* FINAL MESSAGE FOR PARENTS */}
-                  <div className="glass-card p-8 md:p-12 text-center bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+                  <div className="glass-card-premium p-8 md:p-12 text-center bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
                     <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Final Message for Parents</h2>
                     <p className="text-gray-700 text-lg mb-4">
                       You invest in school, tuition, and books.<br />
@@ -465,7 +471,7 @@ export default function Home() {
                   {/* What Teachers Get & How It Helps Schools */}
                   <div className="mb-12">
                     <div className="grid md:grid-cols-2 gap-8">
-                      <div className="glass-card p-8 border-l-4 border-l-purple-500">
+                      <div className="glass-card-premium p-8 border-l-4 border-l-purple-500">
                         <div className="flex items-center gap-3 mb-6">
                           <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center text-3xl">&#x1F469;&#x200D;&#x1F3EB;</div>
                           <h3 className="text-2xl font-bold text-gray-900">What Teachers Get</h3>
@@ -480,7 +486,7 @@ export default function Home() {
                         </ul>
                       </div>
 
-                      <div className="glass-card p-8 border-l-4 border-l-pink-500">
+                      <div className="glass-card-premium p-8 border-l-4 border-l-pink-500">
                         <div className="flex items-center gap-3 mb-6">
                           <div className="w-14 h-14 rounded-xl bg-pink-100 flex items-center justify-center text-3xl">&#x1F4A1;</div>
                           <h3 className="text-2xl font-bold text-gray-900">How It Helps Schools</h3>
@@ -498,7 +504,7 @@ export default function Home() {
                   </div>
 
                   {/* School CTA */}
-                  <div className="glass-card p-8 md:p-12 text-center">
+                  <div className="glass-card-premium p-8 md:p-12 text-center">
                     <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Want to Try Exam Correction?</h2>
                     <p className="text-gray-700 text-lg mb-6">
                       Download a free demo and see how it works for your school
@@ -547,7 +553,7 @@ export default function Home() {
                         improvement: '60% to 92%'
                       },
                     ].map((t) => (
-                      <div key={t.name} className="glass-card p-6 hover-lift bg-white">
+                      <div key={t.name} className="glass-card-premium p-6 hover-lift bg-white">
                         <div className="flex justify-between items-start mb-4">
                           <div className="text-3xl text-blue-600">&quot;</div>
                           <div className="px-3 py-1 rounded-full bg-green-100 text-green-600 text-sm font-bold border border-green-200">
@@ -577,7 +583,7 @@ export default function Home() {
                   </div>
                   <div className="grid md:grid-cols-3 gap-6">
                     {testimonials.map((t) => (
-                      <div key={t.name} className="glass-card p-6 hover-lift bg-white">
+                      <div key={t.name} className="glass-card-premium p-6 hover-lift bg-white">
                         <div className="text-3xl text-blue-600 mb-4">&quot;</div>
                         <p className="text-gray-700 mb-6 italic leading-relaxed">{t.quote}</p>
                         <div className="flex items-center gap-3">
@@ -626,6 +632,45 @@ export default function Home() {
         </>
       )}
 
+      {/* ========== FLOATING USER TYPE SWITCHER ========== */}
+      {userType && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          style={{
+            position: 'fixed', bottom: '24px', right: '24px', zIndex: 50,
+            display: 'flex', alignItems: 'center', gap: '0',
+            background: '#fff', borderRadius: '50px',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)',
+            border: '1px solid #e5e7eb', padding: '4px',
+          }}
+        >
+          <button
+            onClick={() => setUserType('parent')}
+            style={{
+              padding: '10px 20px', borderRadius: '50px', border: 'none', cursor: 'pointer',
+              fontSize: '13px', fontWeight: 600, transition: 'all 0.3s ease',
+              background: userType === 'parent' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+              color: userType === 'parent' ? '#fff' : '#6b7280',
+            }}
+          >
+            Parent
+          </button>
+          <button
+            onClick={() => setUserType('school')}
+            style={{
+              padding: '10px 20px', borderRadius: '50px', border: 'none', cursor: 'pointer',
+              fontSize: '13px', fontWeight: 600, transition: 'all 0.3s ease',
+              background: userType === 'school' ? 'linear-gradient(135deg, #9334e9, #7c3aed)' : 'transparent',
+              color: userType === 'school' ? '#fff' : '#6b7280',
+            }}
+          >
+            School
+          </button>
+        </motion.div>
+      )}
+
       {/* ========== VIDEO DEMO MODAL ========== */}
       <AnimatePresence>
         {showVideoModal && (
@@ -664,7 +709,8 @@ export default function Home() {
                   className="w-full h-full"
                   controls
                   autoPlay
-                  src="/getstarted.mp4"
+                  playsInline
+                  src="/videos/getstarted.mp4"
                 >
                   Your browser does not support the video tag.
                 </video>

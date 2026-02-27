@@ -33,7 +33,7 @@ function AppContent() {
   const location = useLocation();
 
   // Check if current path is a marketing page or exam-question (hide chatbox on these pages)
-  const isMarketingPage = MARKETING_PAGES.includes(location.pathname) || location.pathname === "/exam-question";
+  const isMarketingPage = MARKETING_PAGES.includes(location.pathname) || location.pathname === "/exam-question" || location.pathname === "/ai-assistant";
 
   return (
     <>

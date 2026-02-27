@@ -38,6 +38,7 @@ import MarkdownViewer from "./MarkdownViewer";
 import { useCurrentQuestion } from "../contexts/CurrentQuestionContext";
 import { useTutorial } from "../contexts/TutorialContext";
 import { getImageSrc } from "../utils/imageUtils";
+import { useGetStudentResultsQuery } from "../store/api/studentResultsApi";
 // import { useMascot } from "../contexts/MascotContext";
 
 // ====== API BASE ======
@@ -212,6 +213,30 @@ const ChatBox = forwardRef((props, ref) => {
 
   const [inputText, setInputText] = useState("");
 
+  // Exam dropdown state
+  const [selectedExam, setSelectedExam] = useState("");
+  const [showExamDropdown, setShowExamDropdown] = useState(false);
+
+  // Remedial duration dropdown state
+  const [showDurationDropdown, setShowDurationDropdown] = useState(false);
+  const durationOptions = [
+    { label: "1 Hour", value: "1 hour" },
+    { label: "2 Hours", value: "2 hours" },
+    { label: "5 Hours", value: "5 hours" },
+    { label: "1 Day", value: "1 day" },
+    { label: "3 Days", value: "3 days" },
+    { label: "7 Days", value: "7 days" },
+  ];
+  const { data: studentResults, isLoading: isLoadingExams } = useGetStudentResultsQuery(undefined, {
+    skip: userRole !== "student",
+  });
+  const examNames = (() => {
+    if (!studentResults) return [];
+    const results = studentResults.results || studentResults;
+    if (Array.isArray(results)) return results.map((r) => r.exam_name).filter(Boolean);
+    return [];
+  })();
+
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('darkMode') === 'true';
@@ -294,10 +319,11 @@ const ChatBox = forwardRef((props, ref) => {
         isApiAction: false,
       },
       {
-        text: "give me questionwise analysis of exam name [your exam-name] with exact errors made in tabular format",
+        text: "Give me question-wise analysis of exam",
         icon: faLightbulb,
         isTutorial: false,
         isApiAction: false,
+        isExamDropdown: true,
       },
       {
         text: "What are my weaknesses?",
@@ -306,10 +332,11 @@ const ChatBox = forwardRef((props, ref) => {
         isApiAction: false,
       },
       {
-        text: "Give remedial program for 1 week as per my weaknesses",
+        text: "Give remedial program as per my weaknesses",
         icon: faBook,
         isTutorial: false,
         isApiAction: false,
+        isDurationDropdown: true,
       },
       {
         text: "Start Tutorial Walkthrough",
@@ -1000,9 +1027,36 @@ const ChatBox = forwardRef((props, ref) => {
       return;
     }
 
+    // Handle exam dropdown suggestion - toggle dropdown instead of sending
+    if (suggestion.isExamDropdown) {
+      setShowExamDropdown((prev) => !prev);
+      setShowDurationDropdown(false);
+      return;
+    }
+
+    // Handle duration dropdown suggestion - toggle dropdown instead of sending
+    if (suggestion.isDurationDropdown) {
+      setShowDurationDropdown((prev) => !prev);
+      setShowExamDropdown(false);
+      return;
+    }
+
     // Handle regular suggestions - populate input box for user to edit before sending
     if (!sessionId || connectionStatus !== "connected" || isTyping) return;
     setNewMessage(suggestion.text);
+  };
+
+  const handleExamSelect = (examName) => {
+    setSelectedExam(examName);
+    setShowExamDropdown(false);
+    const query = `Give me question-wise analysis of exam name ${examName} with exact errors made in tabular format`;
+    setNewMessage(query);
+  };
+
+  const handleDurationSelect = (duration) => {
+    setShowDurationDropdown(false);
+    const query = `Give remedial program for ${duration} as per my weaknesses`;
+    setNewMessage(query);
   };
 
   const sendImageWithCommand = async (command) => {
@@ -1164,11 +1218,11 @@ const ChatBox = forwardRef((props, ref) => {
           )}
           <motion.img
             style={{
-              width: "12vw",
-              height: "12vh",
-              borderRadius: "50%", // makes it a circle
+              width: "clamp(48px, 12vw, 80px)",
+              height: "clamp(48px, 12vw, 80px)",
+              borderRadius: "50%",
               objectFit: "cover",
-              maxWidth: "max-content",
+              maxWidth: "none",
             }}
             src={isDarkMode ? darkModeGif : lightModeGif}
             initial={{ opacity: 0 }}
@@ -1186,51 +1240,66 @@ const ChatBox = forwardRef((props, ref) => {
         {/* Chat Window */}
         <div className={`chat-box ${isOpen ? "open" : ""}`}>
           {/* Header */}
-          <div className="chat-header">
-            <h5>
-              {userRole === "teacher"
-                ? `${className} Class Analytics Assistant`
-                : `${className} Class Math Assistant`}
-            </h5>
-            <div className="flex-grow" />
+          <div className="chat-header-v2">
+            {/* Top row: avatar + title + actions */}
+            <div className="chat-header-top">
+              <div className="chat-header-identity">
+                <div className="chat-header-avatar">
+                  <img
+                    src={isDarkMode ? darkModeGif : lightModeGif}
+                    alt="AI"
+                    className="chat-header-avatar-img"
+                  />
+                  <span
+                    className={`chat-header-status-dot ${
+                      connectionStatus === "connected"
+                        ? "online"
+                        : connectionStatus === "checking"
+                          ? "connecting"
+                          : "offline"
+                    }`}
+                  />
+                </div>
+                <div className="chat-header-info">
+                  <span className="chat-header-name">
+                    {userRole === "teacher" ? "Analytics Assistant" : "Math Assistant"}
+                  </span>
+                  <span className="chat-header-subtitle">
+                    {connectionStatus === "connected"
+                      ? `${className} Class · Online`
+                      : connectionStatus === "checking"
+                        ? "Connecting..."
+                        : "Offline"}
+                  </span>
+                </div>
+              </div>
 
-            {/* Language Selector */}
-            <Form.Select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              size="sm"
-              style={{ width: 140, marginRight: 8 }}
-            >
-              <option value="en">English</option>
-              <option value="hi">Hindi</option>
-              <option value="te">Telugu</option>
-            </Form.Select>
+              <div className="chat-header-actions">
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="chat-header-lang-select"
+                  title="Language"
+                >
+                  <option value="en">EN</option>
+                  <option value="hi">HI</option>
+                  <option value="te">TE</option>
+                </select>
 
-            {/* Clear chat */}
-            <Button
-              variant="outline-light"
-              size="sm"
-              onClick={clearChat}
-              disabled={connectionStatus !== "connected" || !sessionId}
-              title="Clear chat & start new session"
-              style={{ marginRight: 8 }}
-            >
-              <FontAwesomeIcon icon={faTrash} /> Clear
-            </Button>
+                <button
+                  className="chat-header-icon-btn"
+                  onClick={clearChat}
+                  disabled={connectionStatus !== "connected" || !sessionId}
+                  title="Clear chat"
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
 
-            {/* Connection status */}
-            <Button variant="outline-light" size="sm" disabled>
-              <FontAwesomeIcon icon={faLanguage} />{" "}
-              {connectionStatus === "connected"
-                ? "Connected"
-                : connectionStatus === "checking"
-                  ? "Connecting..."
-                  : "Disconnected"}
-            </Button>
-
-            <button className="close-btn" onClick={toggleChat}>
-              <FontAwesomeIcon icon={faXmark} />
-            </button>
+                <button className="chat-header-icon-btn chat-header-close-btn" onClick={toggleChat} title="Close">
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Messages */}
@@ -1295,46 +1364,105 @@ const ChatBox = forwardRef((props, ref) => {
 
           {/* Suggestion Chips - Above Input */}
           {!isTyping && (
-            <div className="suggestion-container">
-              {suggestionQuestions.map((suggestion, index) => (
-                <button
-                  key={index}
-                  className="suggestion-chip"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                  disabled={
-                    suggestion.isApiAction
-                      ? isTyping // API actions only need to check if typing
-                      : !suggestion.isTutorial && (connectionStatus !== "connected" || isTyping) // Regular suggestions need connection
-                  }
-                  title={
-                    suggestion.isTutorial
-                      ? "Start guided tutorial"
-                      : suggestion.isApiAction
-                        ? `Get ${suggestion.text} from AI`
-                        : `Ask: ${suggestion.text}`
-                  }
-                  style={
-                    suggestion.isTutorial
-                      ? {
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: 'white',
-                        fontWeight: '600',
-                      }
-                      : suggestion.isApiAction
+            <>
+              {/* Exam selector row - shown when dropdown is toggled */}
+              {showExamDropdown && (
+                <div className="exam-selector-row">
+                  <span className="exam-selector-label">Select exam:</span>
+                  {isLoadingExams ? (
+                    <span className="exam-selector-loading">Loading...</span>
+                  ) : examNames.length === 0 ? (
+                    <span className="exam-selector-loading">No exams found</span>
+                  ) : (
+                    examNames.map((name, i) => (
+                      <button
+                        key={i}
+                        className="exam-name-chip"
+                        onClick={() => handleExamSelect(name)}
+                      >
+                        {name}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Duration selector row - shown when remedial dropdown is toggled */}
+              {showDurationDropdown && (
+                <div className="exam-selector-row">
+                  <span className="exam-selector-label">Duration:</span>
+                  {durationOptions.map((opt, i) => (
+                    <button
+                      key={i}
+                      className="exam-name-chip"
+                      onClick={() => handleDurationSelect(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="suggestion-container">
+                {suggestionQuestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    className={`suggestion-chip ${
+                      (suggestion.isExamDropdown && showExamDropdown) ||
+                      (suggestion.isDurationDropdown && showDurationDropdown)
+                        ? "active"
+                        : ""
+                    }`}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    disabled={
+                      suggestion.isApiAction
+                        ? isTyping
+                        : !suggestion.isTutorial && !suggestion.isExamDropdown && !suggestion.isDurationDropdown && (connectionStatus !== "connected" || isTyping)
+                    }
+                    title={
+                      suggestion.isTutorial
+                        ? "Start guided tutorial"
+                        : suggestion.isApiAction
+                          ? `Get ${suggestion.text} from AI`
+                          : suggestion.isExamDropdown
+                            ? "Select an exam to analyze"
+                            : suggestion.isDurationDropdown
+                              ? "Select duration for remedial program"
+                              : `Ask: ${suggestion.text}`
+                    }
+                    style={
+                      suggestion.isTutorial
                         ? {
                           background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                           color: 'white',
                           fontWeight: '600',
-                          borderColor: '#3b82f6',
                         }
-                        : {}
-                  }
-                >
-                  <FontAwesomeIcon icon={suggestion.icon} className="suggestion-icon" />
-                  <span>{suggestion.text}</span>
-                </button>
-              ))}
-            </div>
+                        : suggestion.isApiAction
+                          ? {
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                            color: 'white',
+                            fontWeight: '600',
+                            borderColor: '#3b82f6',
+                          }
+                          : {}
+                    }
+                  >
+                    <FontAwesomeIcon icon={suggestion.icon} className="suggestion-icon" />
+                    <span>{suggestion.text}</span>
+                    {suggestion.isExamDropdown && (
+                      <span style={{ marginLeft: 4, fontSize: "0.7em" }}>
+                        {showExamDropdown ? "▲" : "▼"}
+                      </span>
+                    )}
+                    {suggestion.isDurationDropdown && (
+                      <span style={{ marginLeft: 4, fontSize: "0.7em" }}>
+                        {showDurationDropdown ? "▲" : "▼"}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
           )}
 
           {/* Input Area */}
@@ -1364,65 +1492,67 @@ const ChatBox = forwardRef((props, ref) => {
                 disabled={connectionStatus !== "connected" || isTyping}
               />
 
-              {/* Image thumbnail or Upload button */}
-              {previewUrl ? (
-                <div className="input-thumbnail-container">
-                  <div className="input-thumbnail">
-                    <img
-                      src={previewUrl}
-                      alt="Thumbnail"
-                      className="thumbnail-image"
-                    />
-                    <button
-                      className="remove-thumbnail-btn"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        clearSelectedFile();
-                      }}
-                      aria-label="Remove image"
-                      type="button"
-                    >
-                      <FontAwesomeIcon icon={faTimes} />
-                    </button>
+              {/* Action buttons */}
+              <div className="chat-input-actions">
+                {/* Image thumbnail or Upload button */}
+                {previewUrl ? (
+                  <div className="input-thumbnail-container">
+                    <div className="input-thumbnail">
+                      <img
+                        src={previewUrl}
+                        alt="Thumbnail"
+                        className="thumbnail-image"
+                      />
+                      <button
+                        className="remove-thumbnail-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          clearSelectedFile();
+                        }}
+                        aria-label="Remove image"
+                        type="button"
+                      >
+                        <FontAwesomeIcon icon={faTimes} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <Button
-                  className="ms-1 d-flex align-items-center justify-content-center"
+                ) : (
+                  <button
+                    className="chat-input-action-btn"
+                    type="button"
+                    onClick={handleFileButtonClick}
+                    title="Upload image"
+                    disabled={connectionStatus !== "connected" || isTyping}
+                  >
+                    <FontAwesomeIcon icon={faUpload} />
+                  </button>
+                )}
+
+                {/* Audio record button */}
+                <button
+                  className={`chat-input-action-btn ${isRecording ? "chat-input-action-btn--recording" : ""}`}
                   type="button"
-                  onClick={handleFileButtonClick}
-                  title="Upload image"
+                  onClick={toggleRecording}
+                  title={isRecording ? "Stop recording" : "Record audio"}
                   disabled={connectionStatus !== "connected" || isTyping}
                 >
-                  <FontAwesomeIcon icon={faUpload} />
-                </Button>
-              )}
+                  <FontAwesomeIcon icon={isRecording ? faStop : faMicrophone} />
+                </button>
 
-              {/* Audio record button */}
-              <Button
-                className="ms-1 d-flex align-items-center justify-content-center"
-                type="button"
-                onClick={toggleRecording}
-                title={isRecording ? "Stop recording" : "Record audio"}
-                disabled={connectionStatus !== "connected" || isTyping}
-                variant={isRecording ? "danger" : "primary"}
-              >
-                <FontAwesomeIcon icon={isRecording ? faStop : faMicrophone} />
-              </Button>
-
-              {/* Send button */}
-              <Button
-                className="ms-1 d-flex align-items-center justify-content-center"
-                type="submit"
-                disabled={
-                  connectionStatus !== "connected" ||
-                  isTyping ||
-                  (!newMessage.trim() && !selectedFile)
-                }
-                title="Send message"
-              >
-                <FontAwesomeIcon icon={faPaperPlane} />
-              </Button>
+                {/* Send button */}
+                <button
+                  className="chat-input-action-btn chat-input-action-btn--send"
+                  type="submit"
+                  disabled={
+                    connectionStatus !== "connected" ||
+                    isTyping ||
+                    (!newMessage.trim() && !selectedFile)
+                  }
+                  title="Send message"
+                >
+                  <FontAwesomeIcon icon={faPaperPlane} />
+                </button>
+              </div>
             </InputGroup>
           </Form>
         </div>

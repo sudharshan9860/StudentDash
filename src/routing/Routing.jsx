@@ -26,12 +26,16 @@ import ChatRoom from "../components/ChatRoom";
 import ExamMode from "../components/ExamMode";
 import ExamQuestion from "../components/ExamQuestion";
 import ExamResult from "../components/ExamResult";
+import QuizMode from "../components/QuizMode";
+import QuizQuestion from "../components/QuizQuestion";
+import QuizResult from "../components/QuizResult";
 import LearningPathSession from "../components/LearningPathSession";
 import LearningPathQuestion from "../components/LearningPathQuestion";
 import LearningPathResult from "../components/LearningPathResult";
 // import AnimationTester from '../components/AnimationTester';
 import TeacherStudentDetailsView from "../components/TeacherStudentDetailsView";
 import MascotTest from "../components/MascotTest";
+import ChatBotPage from "../components/ChatBotPage";
 // import ThreeJSScene from "../components/ThreeJSScene";
 
 // Marketing Layout and Pages
@@ -203,6 +207,17 @@ const AppRoutes = () => {
         <Route path="/mascot-test" element={<MascotTest />} />
 
         <Route
+          path="/ai-assistant"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ChatBotPage />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
           path="/student-dash"
           element={
             <PrivateRoute>
@@ -367,6 +382,40 @@ const AppRoutes = () => {
             <PrivateRoute>
               <Layout>
                 <ExamResult />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        {/* Quiz Mode Routes */}
+        <Route
+          path="/quiz-mode"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <QuizMode />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/quiz-question"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <QuizQuestion />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/quiz-result"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <QuizResult />
               </Layout>
             </PrivateRoute>
           }

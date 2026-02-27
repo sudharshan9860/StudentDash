@@ -20,7 +20,7 @@ export default function Navbar() {
       name: 'Solutions',
       href: '#',
       submenu: [
-        { name: 'For Students', href: '/students', desc: 'AI Chatbot, Gap Analysis, Exam Prep', icon: '🎓' },
+        { name: 'For Students', href: '/students', desc: 'AI Chatbot, Gap Analysis, Test Prep', icon: '🎓' },
         { name: 'For Schools', href: '/schools', desc: 'Assessment & Analytics Platform', icon: '🏫' },
       ]
     },
@@ -37,7 +37,7 @@ export default function Navbar() {
   ] : [
     { name: 'Dashboard', href: '/student-dash' },
     { name: 'JEE Prep', href: '/jee-dashboard' },
-    { name: 'Exam Mode', href: '/exam-mode' },
+    { name: 'Test Prep', href: '/exam-mode' },
     { name: 'Analytics', href: '/analytics' },
   ]
 

@@ -38,11 +38,10 @@ import StreakTracker from "./StreakTracker";
 import LiveNotifications from "./LiveNotifications";
 import Tutorial from "./Tutorial";
 import { useTutorial } from "../contexts/TutorialContext";
-import TrialModal from "./TrialModal";
 import FeedbackBox from "./FeedbackBox";
 
 import ProgressGraph from "./ProgressGraph";
-import ProgressComparison from "./ProgressComparison"
+import QuizScoreGraph from "./QuizScoreGraph";
 
 function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
   const { username, fullName, role } = useContext(AuthContext);
@@ -102,9 +101,7 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
   const [lastSession, setLastSession] = useState(null);
   const [canResume, setCanResume] = useState(false);
 
-  // Trial Modal state
-  const [showTrialModal, setShowTrialModal] = useState(false);
-  const [trialStartDate, setTrialStartDate] = useState(null);
+  // Trial Modal is now in Layout.jsx
 
   // Feedback Modal state (auto-show after 3 mins of app usage, only once)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -213,31 +210,6 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
   useEffect(() => {
     document.body.classList.toggle('dark-mode', isDarkMode);
   }, [isDarkMode]);
-
-  // Trial Modal - Show after every login for students
-  useEffect(() => {
-    if (role === "student" && username) {
-      // Check if trial info exists in localStorage
-      const trialKey = `trial_${username}`;
-      let trialData = localStorage.getItem(trialKey);
-
-      if (!trialData) {
-        // First time login - start trial now
-        const startDate = new Date().toISOString();
-        const trialInfo = {
-          startDate: startDate,
-        };
-        localStorage.setItem(trialKey, JSON.stringify(trialInfo));
-        trialData = JSON.stringify(trialInfo);
-      }
-
-      const trial = JSON.parse(trialData);
-      setTrialStartDate(trial.startDate);
-
-      // Always show modal after login
-      setShowTrialModal(true);
-    }
-  }, [role, username]);
 
   // Feedback Modal - Auto-show after 3 minutes of app usage (only once ever)
   useEffect(() => {
@@ -1011,7 +983,7 @@ const sessionData = {
   worksheet_id: questionType === "worksheets" ? selectedWorksheet : "",
   image,
   context: context || null,
-  selectedQuestions: selectedQuestions,
+  selectedQuestions: questionList,
   // MODIFIED: Only pass jeeQuestionType for Mains/Advanced subjects
   jeeQuestionType: isJEEMainsAdvancedSubject() ? questionType : null,
 };
@@ -1237,18 +1209,6 @@ const sessionData = {
     <>
       <AlertContainer />
 
-      {/* Trial Modal - Shows for students */}
-      {/* {role === "student" && (
-        <TrialModal
-          isOpen={showTrialModal}
-          onClose={() => setShowTrialModal(false)}
-          trialStartDate={trialStartDate}
-          trialDays={7}
-          redirectUrl="https://smartlearners.ai/get-started"
-          userData=""
-        />
-      )} */}
-
       {/* Feedback Modal - Auto-shows after 3 mins, only once */}
       <FeedbackBox
         isOpen={showFeedbackModal}
@@ -1275,7 +1235,7 @@ const sessionData = {
                     marginTop: '8px',
                     marginBottom: '0'
                   }}>
-                    {isJeeMode ? '🎯 JEE Preparation Mode' : '📚 Board Exam Mode'}
+                    {isJeeMode ? 'JEE Preparation Mode' : 'Board Exam Mode'}
                   </p>
                 </div>
                   <div className="current-date-wrapper">
@@ -1292,21 +1252,9 @@ const sessionData = {
                       className="tutorial-toggle-btn"
                       onClick={() => startTutorialForPage("studentDash")}
                       title="Start Tutorial"
-                      style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '8px 12px',
-                        color: 'white',
-                        cursor: 'pointer',
-                        marginRight: '8px',
-                        transition: 'transform 0.2s',
-                      }}
-                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                     >
-                      <FontAwesomeIcon icon={faQuestionCircle} style={{ marginRight: '5px' }} />
-                      Tutorial
+                      <FontAwesomeIcon icon={faQuestionCircle} />
+                      <span>Tutorial</span>
                     </button>
                     {/* Dark Mode Toggle Button */}
                     <button
@@ -1327,10 +1275,9 @@ const sessionData = {
                   marginBottom: '24px',
                   marginTop: '20px',
                 }}>
-                  {/* Left Column - Progress Graph */}
+                  {/* Left Column - Quiz Score Graph */}
                   <div className="progress-graph-column">
-                    {/* <ProgressGraph username={username} /> */}
-                    <ProgressComparison />
+                    <QuizScoreGraph />
                   </div>
 
                   {/* Right Column - Resume Learning Section */}
@@ -1908,7 +1855,7 @@ const sessionData = {
           onHide={() => setShowQuestionList(false)}
           questionList={questionList}
           onQuestionClick={handleQuestionClick}
-          isMultipleSelect={questionType === "external"}
+          isMultipleSelect={false}
           onMultipleSelectSubmit={handleMultipleSelectSubmit}
           worksheetName={questionType === "worksheets" ? selectedWorksheet : ""}
           paginationInfo={paginationInfo}
