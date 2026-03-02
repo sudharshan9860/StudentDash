@@ -1,6 +1,13 @@
-import React, { createContext, useEffect, useState, useContext, useRef } from "react";
+import React, {
+  createContext,
+  useEffect,
+  useState,
+  useContext,
+  useRef,
+} from "react";
 import axiosInstance from "../api/axiosInstance";
 import { AuthContext } from "../components/AuthContext";
+import { sanitizeNotificationMessage } from "../utils/errorHandling"; // ✅ NEW IMPORT
 
 export const NotificationContext = createContext();
 
@@ -25,7 +32,7 @@ export const NotificationProvider = ({ children }) => {
       }
 
       wsRef.current = new WebSocket(
-        `wss://autogen.aieducator.com/ws/notifications/${username}/`
+        `wss://autogen.aieducator.com/ws/notifications/${username}/`,
       );
 
       wsRef.current.onopen = () => {
@@ -44,8 +51,11 @@ export const NotificationProvider = ({ children }) => {
               id: notification?.id ?? Date.now().toString(),
               title: homework?.title || "New Homework",
               image: homework?.attachment || "/default-homework-image.jpeg",
-              message:
-                notification?.message || "You have a new homework update.",
+              message: sanitizeNotificationMessage(
+                // ✅ CHANGED
+                notification?.message,
+                "You have a new homework update.",
+              ),
               timestamp:
                 notification?.timestamp ||
                 homework?.date_assigned ||
@@ -69,7 +79,11 @@ export const NotificationProvider = ({ children }) => {
             const newNotification = {
               id: uniqueId,
               title: msg.title || "Action Acknowledged",
-              message: msg.message || "Homework successfully dispatched to class.",
+              message: sanitizeNotificationMessage(
+                // ✅ CHANGED
+                msg.message,
+                "Homework successfully dispatched to class.",
+              ),
               timestamp: msg.timestamp || new Date().toISOString(),
               read: false,
               type: "homework-dispatch",
@@ -79,13 +93,16 @@ export const NotificationProvider = ({ children }) => {
             setNotifications((prev) => [newNotification, ...prev]);
           }
 
-
           // 🎯 Classwork completion
           else if (msg.type === "classwork_completion_notification") {
             const newNotification = {
               id: msg.submission_id ?? Date.now().toString(),
               title: "Classwork Completed",
-              message: msg.message || "Your classwork has been processed.",
+              message: sanitizeNotificationMessage(
+                // ✅ CHANGED
+                msg.message,
+                "Your classwork has been processed.",
+              ),
               summary: msg.summary || null,
               timestamp: msg.timestamp || new Date().toISOString(),
               read: false,
@@ -105,7 +122,11 @@ export const NotificationProvider = ({ children }) => {
             const newNotification = {
               id: msg.submission_id ?? Date.now().toString(),
               title: "Homework Completed",
-              message: msg.message || "Your homework has been processed.",
+              message: sanitizeNotificationMessage(
+                // ✅ CHANGED
+                msg.message,
+                "Your homework has been processed.",
+              ),
               summary: msg.summary || null,
               timestamp: msg.timestamp || new Date().toISOString(),
               read: false,
@@ -118,9 +139,7 @@ export const NotificationProvider = ({ children }) => {
               const exists = prev.some((n) => n.id === newNotification.id);
               return exists ? prev : [newNotification, ...prev];
             });
-          }
-
-          else {
+          } else {
             console.log("📩 Unhandled WS message:", msg);
           }
         } catch (err) {
@@ -141,7 +160,8 @@ export const NotificationProvider = ({ children }) => {
     connectWebSocket();
 
     return () => {
-      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (reconnectTimeoutRef.current)
+        clearTimeout(reconnectTimeoutRef.current);
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
@@ -151,15 +171,13 @@ export const NotificationProvider = ({ children }) => {
 
   const markNotificationAsRead = async (id) => {
     setNotifications((prev) =>
-      prev.map((notif) =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
+      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif)),
     );
 
     try {
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
         wsRef.current.send(
-          JSON.stringify({ action: "mark_read", notification_id: id })
+          JSON.stringify({ action: "mark_read", notification_id: id }),
         );
       }
     } catch (_) {}
@@ -170,8 +188,8 @@ export const NotificationProvider = ({ children }) => {
       console.warn("⚠ Could not mark as read on server", error);
       setNotifications((prev) =>
         prev.map((notif) =>
-          notif.id === id ? { ...notif, read: false } : notif
-        )
+          notif.id === id ? { ...notif, read: false } : notif,
+        ),
       );
     }
   };
@@ -183,8 +201,8 @@ export const NotificationProvider = ({ children }) => {
     try {
       await Promise.all(
         unread.map((n) =>
-          axiosInstance.post(`/notifications/${n.id}/read/`).catch(() => null)
-        )
+          axiosInstance.post(`/notifications/${n.id}/read/`).catch(() => null),
+        ),
       );
     } catch (error) {
       console.warn("⚠ Could not clear notifications on server:", error);

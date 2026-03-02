@@ -1,30 +1,36 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { evaluateAnswers } from '../api/quizApi';
-import MarkdownWithMath from './MarkdownWithMath';
-import AlertBox from './AlertBox';
-import './QuizQuestion.css';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { evaluateAnswers } from "../api/quizApi";
+import MarkdownWithMath from "./MarkdownWithMath";
+import AlertBox from "./AlertBox";
+import "./QuizQuestion.css";
 
 const QuizQuestion = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
 
   const [isDark] = useState(() => {
-    try { return localStorage.getItem('darkMode') === 'true'; } catch { return false; }
+    try {
+      return localStorage.getItem("darkMode") === "true";
+    } catch {
+      return false;
+    }
   });
 
   const quizData = state?.quizData;
   const questions = quizData?.questions || [];
   const classNum = state?.classNum;
-  const subject = state?.subject || 'PHYSICS';
+  const subject = state?.subject || "PHYSICS";
   const learningPath = state?.learningPath || false;
+  // ── Retake mode (set by QuizResult.handleRetakeTest) ──────────────
+  const isRetake = state?.isRetake || false;
 
   const [answers, setAnswers] = useState({});
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
-  const [error, setError] = useState('');
-  const [alertMsg, setAlertMsg] = useState('');
+  const [error, setError] = useState("");
+  const [alertMsg, setAlertMsg] = useState("");
 
   // automatic evaluation only when explicitly in learning path mode
   const autoEval = learningPath;
@@ -44,7 +50,7 @@ const QuizQuestion = () => {
   const formatTime = (s) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
-    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   };
 
   const selectAnswer = useCallback((idx, optionKey) => {
@@ -53,7 +59,10 @@ const QuizQuestion = () => {
   }, []);
 
   const scrollToQuestion = (idx) => {
-    questionRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    questionRefs.current[idx]?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
   };
 
   const answeredCount = Object.keys(answers).length;
@@ -64,12 +73,19 @@ const QuizQuestion = () => {
   // Redirect if no data
   if (!quizData || questions.length === 0) {
     return (
-      <div className={`quiz-question-wrapper${isDark ? ' dark-mode' : ''}`}>
-        <div className="quiz-question-content" style={{ textAlign: 'center', paddingTop: 80 }}>
-          <h2 style={{ color: isDark ? '#e0e7ff' : '#1e293b', marginBottom: 16 }}>No quiz data found</h2>
+      <div className={`quiz-question-wrapper${isDark ? " dark-mode" : ""}`}>
+        <div
+          className="quiz-question-content"
+          style={{ textAlign: "center", paddingTop: 80 }}
+        >
+          <h2
+            style={{ color: isDark ? "#e0e7ff" : "#1e293b", marginBottom: 16 }}
+          >
+            No quiz data found
+          </h2>
           <button
             className="quiz-nav-btn next"
-            onClick={() => navigate('/quiz-mode')}
+            onClick={() => navigate("/quiz-mode")}
           >
             Go to Test Prep
           </button>
@@ -81,12 +97,12 @@ const QuizQuestion = () => {
   const handleSubmit = async () => {
     setShowSubmitModal(false);
     setEvaluating(true);
-    setError('');
+    setError("");
     clearInterval(timerRef.current);
 
     const answerPayload = questions.map((q, idx) => ({
       question_num: q.question_num,
-      selected_option: answers[idx] || '',
+      selected_option: answers[idx] || "",
     }));
 
     try {
@@ -97,7 +113,7 @@ const QuizQuestion = () => {
         subject: subject,
       });
 
-      navigate('/quiz-result', {
+      navigate("/quiz-result", {
         state: {
           evalData: res.data,
           questions,
@@ -110,18 +126,20 @@ const QuizQuestion = () => {
       });
     } catch (err) {
       setEvaluating(false);
-      setError(err.response?.data?.detail || 'Evaluation failed. Please try again.');
+      setError(
+        err.response?.data?.detail || "Evaluation failed. Please try again.",
+      );
     }
   };
 
   return (
-    <div className={`quiz-question-wrapper${isDark ? ' dark-mode' : ''}`}>
+    <div className={`quiz-question-wrapper${isDark ? " dark-mode" : ""}`}>
       {alertMsg && (
         <div className="alert-container">
           <AlertBox
             message={alertMsg}
             type="warning"
-            onClose={() => setAlertMsg('')}
+            onClose={() => setAlertMsg("")}
           />
         </div>
       )}
@@ -129,15 +147,32 @@ const QuizQuestion = () => {
       <div className="quiz-sticky-header">
         <div className="quiz-top-bar">
           <div className="quiz-top-left">
-            <div className="quiz-top-title">
-              Test Prep — Class {classNum}
-            </div>
+            <div className="quiz-top-title">Test Prep — Class {classNum}</div>
             <div className="quiz-top-subtitle">
-              {quizData.total_questions} questions | {state?.selectedChapters?.join(', ')}
-              {learningPath && <span style={{ marginLeft: 8, fontStyle: 'italic', fontSize: '0.8rem' }}>(practice mode)</span>}
+              {quizData.total_questions} questions |{" "}
+              {state?.selectedChapters?.join(", ")}
+              {learningPath && (
+                <span
+                  style={{
+                    marginLeft: 8,
+                    fontStyle: "italic",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  (practice mode)
+                </span>
+              )}
             </div>
+            {isRetake && (
+              <div className="quiz-retake-banner">
+                🔁 Retake mode — fresh questions generated. Aim for 80% to
+                unlock Self Study!
+              </div>
+            )}
           </div>
-          <div className={`quiz-timer-box ${elapsed > 1800 ? 'danger' : elapsed > 900 ? 'warning' : ''}`}>
+          <div
+            className={`quiz-timer-box ${elapsed > 1800 ? "danger" : elapsed > 900 ? "warning" : ""}`}
+          >
             <span className="quiz-timer-icon">⏱</span>
             <span className="quiz-timer-value">{formatTime(elapsed)}</span>
           </div>
@@ -153,7 +188,8 @@ const QuizQuestion = () => {
           </div>
           <div className="quiz-progress-stats">
             <span className="quiz-progress-stat">
-              <strong>{answeredCount}</strong> of <strong>{questions.length}</strong> answered
+              <strong>{answeredCount}</strong> of{" "}
+              <strong>{questions.length}</strong> answered
             </span>
           </div>
         </div>
@@ -163,7 +199,7 @@ const QuizQuestion = () => {
           {questions.map((_, idx) => (
             <button
               key={idx}
-              className={`quiz-dot ${answers[idx] ? 'answered' : ''}`}
+              className={`quiz-dot ${answers[idx] ? "answered" : ""}`}
               onClick={() => scrollToQuestion(idx)}
             >
               {idx + 1}
@@ -186,7 +222,7 @@ const QuizQuestion = () => {
             <motion.div
               key={idx}
               ref={(el) => (questionRefs.current[idx] = el)}
-              className={`quiz-question-card ${answers[idx] ? 'card-answered' : ''}`}
+              className={`quiz-question-card ${answers[idx] ? "card-answered" : ""}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
@@ -200,31 +236,38 @@ const QuizQuestion = () => {
                 {q.bridge_name && (
                   <span className="quiz-q-bridge">{q.bridge_name}</span>
                 )}
-                {answers[idx] && <span className="quiz-q-answered-tag">Answered</span>}
+                {answers[idx] && (
+                  <span className="quiz-q-answered-tag">Answered</span>
+                )}
               </div>
 
               {/* Question text */}
-              <div className="quiz-q-text"><MarkdownWithMath content={q.question} /></div>
+              <div className="quiz-q-text">
+                <MarkdownWithMath content={q.question} />
+              </div>
 
               {/* Options */}
               <div className="quiz-options">
                 {Object.entries(q.options).map(([key, value]) => {
                   const isSelected = answers[idx] === key;
-                  let extraCls = '';
+                  let extraCls = "";
                   if (autoEval && answers[idx]) {
-                    if (key === q.correct_answer) extraCls = 'correct';
-                    else if (isSelected) extraCls = 'incorrect';
+                    if (key === q.correct_answer) extraCls = "correct";
+                    else if (isSelected) extraCls = "incorrect";
                   }
+
                   return (
                     <motion.button
                       key={key}
-                      className={`quiz-option ${isSelected ? 'selected' : ''} ${extraCls}`.trim()}
+                      className={`quiz-option ${isSelected ? "selected" : ""} ${extraCls}`.trim()}
                       onClick={() => selectAnswer(idx, key)}
                       whileTap={{ scale: 0.98 }}
-                      disabled={autoEval && answers[idx]}
+                      disabled={autoEval && !!answers[idx]}
                     >
                       <span className="quiz-option-letter">{key}</span>
-                      <span className="quiz-option-text"><MarkdownWithMath content={value} /></span>
+                      <span className="quiz-option-text">
+                        <MarkdownWithMath content={value} />
+                      </span>
                     </motion.button>
                   );
                 })}
@@ -236,17 +279,22 @@ const QuizQuestion = () => {
                     <p className="correct-msg">✅ Correct</p>
                   ) : (
                     <p className="incorrect-msg">
-                      ❌ Wrong. Correct: <strong>{q.correct_answer}</strong> {q.options[q.correct_answer] ? `) ${q.options[q.correct_answer]}` : ''}
+                      ❌ Wrong. Correct: <strong>{q.correct_answer}</strong>{" "}
+                      {q.options[q.correct_answer]
+                        ? `) ${q.options[q.correct_answer]}`
+                        : ""}
                     </p>
                   )}
                   {q.solution && (
                     <div className="solution">
-                      <strong>Solution:</strong> <MarkdownWithMath content={q.solution} />
+                      <strong>Solution:</strong>{" "}
+                      <MarkdownWithMath content={q.solution} />
                     </div>
                   )}
                   {q.trap_warning && (
                     <div className="solution">
-                      <strong>Trap Warning:</strong> <MarkdownWithMath content={q.trap_warning} />
+                      <strong>Trap Warning:</strong>{" "}
+                      <MarkdownWithMath content={q.trap_warning} />
                     </div>
                   )}
                 </div>
@@ -262,7 +310,9 @@ const QuizQuestion = () => {
               className="quiz-nav-btn submit"
               onClick={() => {
                 if (answeredCount < questions.length) {
-                  setAlertMsg(`Please answer all the questions. You have ${unansweredCount} unanswered question${unansweredCount > 1 ? 's' : ''}.`);
+                  setAlertMsg(
+                    `Please answer all the questions. You have ${unansweredCount} unanswered question${unansweredCount > 1 ? "s" : ""}.`,
+                  );
                   return;
                 }
                 setShowSubmitModal(true);
@@ -274,7 +324,7 @@ const QuizQuestion = () => {
           {learningPath && (
             <button
               className="quiz-nav-btn next"
-              onClick={() => navigate('/quiz-mode')}
+              onClick={() => navigate("/quiz-mode")}
             >
               Back to Test Prep
             </button>
@@ -313,11 +363,15 @@ const QuizQuestion = () => {
                 </div>
                 {unansweredCount > 0 && (
                   <p className="quiz-submit-warning">
-                    You have {unansweredCount} unanswered question{unansweredCount > 1 ? 's' : ''}.
+                    You have {unansweredCount} unanswered question
+                    {unansweredCount > 1 ? "s" : ""}.
                   </p>
                 )}
                 <div className="quiz-submit-actions">
-                  <button className="cancel-btn" onClick={() => setShowSubmitModal(false)}>
+                  <button
+                    className="cancel-btn"
+                    onClick={() => setShowSubmitModal(false)}
+                  >
                     Go Back
                   </button>
                   <button className="confirm-btn" onClick={handleSubmit}>

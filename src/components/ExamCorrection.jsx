@@ -1,9 +1,9 @@
-// ExamCorrection.jsx 
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../api/axiosInstance';
-import AlertBox from './AlertBox';
-import './ExamCorrection.css';
+// ExamCorrection.jsx
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
+import AlertBox from "./AlertBox";
+import "./ExamCorrection.css";
 
 const ExamCorrection = () => {
   const navigate = useNavigate();
@@ -11,17 +11,19 @@ const ExamCorrection = () => {
 
   // STEP 1: Correction mode selection
   const [correctionMode, setCorrectionMode] = useState(null); // null | 'new' | 'existing'
-  
+
+  const HARDCODED_SUBJECTS = ["Maths", "Science", "Physics", "Chemistry"];
+
   // STEP 2A: For existing correction - exam selection
   const [existingExams, setExistingExams] = useState([]);
   const [selectedExistingExam, setSelectedExistingExam] = useState(null);
   const [loadingExams, setLoadingExams] = useState(false);
 
   // NEW: Upload mode selection
-  const [uploadMode, setUploadMode] = useState('individual'); // 'individual' | 'group'
+  const [uploadMode, setUploadMode] = useState("individual"); // 'individual' | 'group'
 
   // Pending section for existing exam (applied after sections API loads)
-  const [pendingSection, setPendingSection] = useState('');
+  const [pendingSection, setPendingSection] = useState("");
 
   // Classes and Sections from API
   const [availableClasses, setAvailableClasses] = useState([]);
@@ -30,36 +32,37 @@ const ExamCorrection = () => {
   const [loadingSections, setLoadingSections] = useState(false);
 
   // Form state (used for both modes)
-  const [examName, setExamName] = useState('');
-  const [examType, setExamType] = useState('');
-  const [className, setClassName] = useState('');
-  const [section, setSection] = useState('');
-  const [rollNumberPattern, setRollNumberPattern] = useState('.*');
+  const [examName, setExamName] = useState("");
+  const [examType, setExamType] = useState("");
+  const [className, setClassName] = useState("");
+  const [section, setSection] = useState("");
+  const [subject, setSubject] = useState(""); // ← ADD THIS LINE
+  const [rollNumberPattern, setRollNumberPattern] = useState(".*");
   const [maxWorkers, setMaxWorkers] = useState(5);
   const [questionPaper, setQuestionPaper] = useState(null);
   const [answerSheets, setAnswerSheets] = useState([]);
-  
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState('Ready to process');
+  const [processingStatus, setProcessingStatus] = useState("Ready to process");
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Existing exam names for validation
   const [existingExamNames, setExistingExamNames] = useState([]);
 
   // Alert
-  const [alertMsg, setAlertMsg] = useState('');
+  const [alertMsg, setAlertMsg] = useState("");
 
   // Teacher info
-  const [teacherName, setTeacherName] = useState('');
+  const [teacherName, setTeacherName] = useState("");
 
   useEffect(() => {
     // Get teacher name from localStorage
-    const fullName = localStorage.getItem('fullName');
-    const username = localStorage.getItem('username');
-    setTeacherName(fullName || username || '');
+    const fullName = localStorage.getItem("fullName");
+    const username = localStorage.getItem("username");
+    setTeacherName(fullName || username || "");
 
     // Fetch available classes and existing exam names on mount
     fetchAvailableClasses();
@@ -72,15 +75,15 @@ const ExamCorrection = () => {
       fetchAvailableSections(className);
     } else {
       setAvailableSections([]);
-      if (correctionMode !== 'existing') {
-        setSection('');
+      if (correctionMode !== "existing") {
+        setSection("");
       }
     }
   }, [className, correctionMode]);
 
   // Fetch existing exams when user selects "existing" mode
   useEffect(() => {
-    if (correctionMode === 'existing') {
+    if (correctionMode === "existing") {
       fetchExistingExams();
     }
   }, [correctionMode]);
@@ -90,7 +93,8 @@ const ExamCorrection = () => {
     if (pendingSection && availableSections.length > 0 && !loadingSections) {
       // Match by section_name from API
       const match = availableSections.find(
-        (s) => s.section_name?.trim().toLowerCase() === pendingSection.toLowerCase()
+        (s) =>
+          s.section_name?.trim().toLowerCase() === pendingSection.toLowerCase(),
       );
       if (match) {
         setSection(match.section_name);
@@ -98,7 +102,7 @@ const ExamCorrection = () => {
         // Fallback: set the parsed value directly
         setSection(pendingSection);
       }
-      setPendingSection('');
+      setPendingSection("");
     }
   }, [pendingSection, availableSections, loadingSections]);
 
@@ -117,11 +121,11 @@ const ExamCorrection = () => {
   const fetchAvailableClasses = async () => {
     try {
       setLoadingClasses(true);
-      const response = await axiosInstance.get('/api/teacher-classes/');
+      const response = await axiosInstance.get("/api/teacher-classes/");
       const classesData = response.data.classes || [];
       setAvailableClasses(classesData);
     } catch (error) {
-      console.error('Error fetching classes:', error);
+      console.error("Error fetching classes:", error);
       // Silently fail - user can still type if needed
     } finally {
       setLoadingClasses(false);
@@ -133,23 +137,27 @@ const ExamCorrection = () => {
     try {
       setLoadingSections(true);
       // Only reset section for new correction mode (not existing, where it's pre-filled)
-      if (correctionMode !== 'existing') {
-        setSection('');
+      if (correctionMode !== "existing") {
+        setSection("");
       }
 
       // Create FormData for POST request
       const formData = new FormData();
-      formData.append('class_name', selectedClass);
+      formData.append("class_name", selectedClass);
 
-      const response = await axiosInstance.post('/api/teacher-sections/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      const response = await axiosInstance.post(
+        "/api/teacher-sections/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         },
-      });
+      );
       const sectionsData = response.data.sections || [];
       setAvailableSections(sectionsData);
     } catch (error) {
-      console.error('Error fetching sections:', error);
+      console.error("Error fetching sections:", error);
       // Silently fail - user can still type if needed
     } finally {
       setLoadingSections(false);
@@ -159,16 +167,18 @@ const ExamCorrection = () => {
   // Fetch existing exam names for validation
   const fetchExistingExamNames = async () => {
     try {
-      const response = await axiosInstance.get('/api/teacher-exam-names/');
+      const response = await axiosInstance.get("/api/teacher-exam-names/");
       const names = response.data || [];
-      setExistingExamNames(names.map(name => name.toLowerCase().trim()));
+      setExistingExamNames(names.map((name) => name.toLowerCase().trim()));
     } catch (error) {
-      console.error('Error fetching exam names:', error);
+      console.error("Error fetching exam names:", error);
     }
   };
 
   // Check if the current exam name already exists
-  const isExamNameDuplicate = correctionMode === 'new' && examName.trim() !== '' &&
+  const isExamNameDuplicate =
+    correctionMode === "new" &&
+    examName.trim() !== "" &&
     existingExamNames.includes(examName.trim().toLowerCase());
 
   // Fetch list of existing exams for the teacher
@@ -176,19 +186,19 @@ const ExamCorrection = () => {
     try {
       setLoadingExams(true);
       setError(null);
-      
+
       // Using the same API as ExamAnalytics
-      const response = await axiosInstance.get('/exam-details/');
+      const response = await axiosInstance.get("/exam-details/");
       const examsData = response.data.exams || [];
-      
+
       setExistingExams(examsData);
-      
+
       if (examsData.length === 0) {
-        setError('No existing exams found. Please create a new exam instead.');
+        setError("No existing exams found. Please create a new exam instead.");
       }
     } catch (error) {
-      console.error('Error fetching existing exams:', error);
-      setError('Failed to fetch existing exams. Please try again.');
+      console.error("Error fetching existing exams:", error);
+      setError("Failed to fetch existing exams. Please try again.");
     } finally {
       setLoadingExams(false);
     }
@@ -200,12 +210,13 @@ const ExamCorrection = () => {
     // Pre-fill form with existing exam data
     setExamName(exam.name);
     setExamType(exam.exam_type);
-    const parsedClass = exam.class_section || '';
-    const parsedSection = exam.section|| '';
+    const parsedClass = exam.class_section || "";
+    const parsedSection = exam.section || "";
     setClassName(parsedClass);
     // Section will be set after sections API loads via the effect below
     // Store it so we can apply it once sections are fetched
     setPendingSection(parsedSection);
+    setSubject(exam.subject || ""); // ← ADD THIS LINE
     setError(null);
   };
 
@@ -214,13 +225,13 @@ const ExamCorrection = () => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type (PDF)
-      if (file.type !== 'application/pdf') {
-        setError('Question paper must be a PDF file');
+      if (file.type !== "application/pdf") {
+        setError("Question paper must be a PDF file");
         return;
       }
       // Validate file size (max 100MB)
       if (file.size > 500 * 1024 * 1024) {
-        setError('Question paper file size must be less than 100MB');
+        setError("Question paper file size must be less than 100MB");
         return;
       }
       setQuestionPaper(file);
@@ -233,25 +244,25 @@ const ExamCorrection = () => {
     const files = Array.from(e.target.files);
 
     // Validate files
-    const invalidFiles = files.filter(file => {
-      return file.type !== 'application/pdf' || file.size > 100 * 1024 * 1024;
+    const invalidFiles = files.filter((file) => {
+      return file.type !== "application/pdf" || file.size > 100 * 1024 * 1024;
     });
 
     if (invalidFiles.length > 0) {
-      setError('All answer sheets must be PDF files under 100MB each');
+      setError("All answer sheets must be PDF files under 100MB each");
       return;
     }
 
     // Append new files to existing ones (avoid duplicates by name)
-    setAnswerSheets(prev => {
-      const existingNames = new Set(prev.map(f => f.name));
-      const newFiles = files.filter(f => !existingNames.has(f.name));
+    setAnswerSheets((prev) => {
+      const existingNames = new Set(prev.map((f) => f.name));
+      const newFiles = files.filter((f) => !existingNames.has(f.name));
       return [...prev, ...newFiles];
     });
     setError(null);
 
     // Reset the input so the same file can be selected again if needed
-    e.target.value = '';
+    e.target.value = "";
   };
 
   // Remove question paper
@@ -261,7 +272,7 @@ const ExamCorrection = () => {
 
   // Remove specific answer sheet
   const handleRemoveAnswerSheet = (index) => {
-    setAnswerSheets(prev => prev.filter((_, i) => i !== index));
+    setAnswerSheets((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Clear all answer sheets
@@ -272,27 +283,32 @@ const ExamCorrection = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (!examName.trim()) {
-      setError('Please enter exam name');
+      setError("Please enter exam name");
+      return;
+    }
+
+    if (uploadMode === "individual" && !subject) {
+      setError("Please select a subject");
       return;
     }
 
     if (!className.trim()) {
-      setError('Please enter class name');
+      setError("Please enter class name");
       return;
     }
 
     // For NEW correction: question paper is required
     // For EXISTING correction: question paper is optional (can reuse existing one)
-    if (correctionMode === 'new' && !questionPaper) {
-      setError('Please upload question paper');
+    if (correctionMode === "new" && !questionPaper) {
+      setError("Please upload question paper");
       return;
     }
 
     if (answerSheets.length === 0) {
-      setError('Please upload at least one answer sheet');
+      setError("Please upload at least one answer sheet");
       return;
     }
 
@@ -300,88 +316,89 @@ const ExamCorrection = () => {
       setLoading(true);
       setError(null);
       setSuccess(false);
-      setProcessingStatus('Uploading files...');
+      setProcessingStatus("Uploading files...");
       setUploadProgress(0);
 
       // Create FormData
       const formData = new FormData();
-      
+
       // Common fields
-      formData.append('exam_name', examName.trim());
-      formData.append('exam_type', examType);
-      formData.append('teacher_name', teacherName);
-      formData.append('class_name', className.trim());
-      formData.append('section', section.trim());
-      formData.append('roll_number_pattern', rollNumberPattern);
-      formData.append('max_workers', maxWorkers.toString());
-      formData.append('upload_mode', uploadMode);
-      
+      formData.append("exam_name", examName.trim());
+      formData.append("exam_type", examType);
+      formData.append("teacher_name", teacherName);
+      formData.append("class_name", className.trim());
+      formData.append("section", section.trim());
+      formData.append("subject", subject); // ← ADD THIS LINE
+      formData.append("roll_number_pattern", rollNumberPattern);
+      formData.append("max_workers", maxWorkers.toString());
+      formData.append("upload_mode", uploadMode);
+
       // NEW: Add exam_id if this is an existing correction
-      if (correctionMode === 'existing' && selectedExistingExam) {
-        formData.append('exam_id', selectedExistingExam.id.toString());
-        formData.append('is_additional_correction', 'true');
+      if (correctionMode === "existing" && selectedExistingExam) {
+        formData.append("exam_id", selectedExistingExam.id.toString());
+        formData.append("is_additional_correction", "true");
       }
-      
+
       // Append question paper (only if provided - for existing, it's optional)
       if (questionPaper) {
-        formData.append('question_paper', questionPaper);
+        formData.append("question_paper", questionPaper);
       }
-      
+
       // Append answer sheets
       answerSheets.forEach((sheet) => {
-        formData.append('answer_sheets', sheet);
+        formData.append("answer_sheets", sheet);
       });
 
-    // NEW: Determine API endpoint based on upload mode
-    const apiEndpoint = uploadMode === 'group'
-      ? 'api/exam-correction-group/'
-      : 'api/exam-correction/';
+      // NEW: Determine API endpoint based on upload mode
+      const apiEndpoint =
+        uploadMode === "group"
+          ? "api/exam-correction-group/"
+          : "api/exam-correction/";
 
       // Make API call with progress tracking
       const response = await axiosInstance.post(apiEndpoint, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
+            (progressEvent.loaded * 100) / progressEvent.total,
           );
           setUploadProgress(percentCompleted);
         },
       });
-      
+
       setSuccess(true);
       setAlertMsg(
-        correctionMode === 'existing'
-          ? 'Additional students uploaded successfully! Processing in background...'
-          : 'Exam uploaded successfully! Processing in background...'
+        correctionMode === "existing"
+          ? "Additional students uploaded successfully! Processing in background..."
+          : "Exam uploaded successfully! Processing in background...",
       );
 
-      if (correctionMode === 'existing') {
-        setProcessingStatus('Adding additional students to existing exam...');
+      if (correctionMode === "existing") {
+        setProcessingStatus("Adding additional students to existing exam...");
       } else {
-        setProcessingStatus('Processing exam in background...');
+        setProcessingStatus("Processing exam in background...");
       }
 
       // Clear form inputs after successful submission
-      setExamName('');
-      setExamType('');
-      setClassName('');
-      setSection('');
-      setRollNumberPattern('.*');
+      setExamName("");
+      setExamType("");
+      setClassName("");
+      setSection("");
+      setRollNumberPattern(".*");
       setMaxWorkers(5);
       setQuestionPaper(null);
       setAnswerSheets([]);
-      setUploadMode('individual');
-
+      setUploadMode("individual");
     } catch (error) {
-      console.error('Error submitting exam correction:', error);
+      console.error("Error submitting exam correction:", error);
       setError(
-        error.response?.data?.detail || 
-        error.message || 
-        'Failed to submit exam correction. Please try again.'
+        error.response?.data?.detail ||
+          error.message ||
+          "Failed to submit exam correction. Please try again.",
       );
-      setProcessingStatus('Ready to process');
+      setProcessingStatus("Ready to process");
     } finally {
       setLoading(false);
       setUploadProgress(0);
@@ -390,20 +407,21 @@ const ExamCorrection = () => {
 
   // Reset form
   const handleReset = () => {
-    setExamName('');
-    setExamType('');
-    setClassName('');
-    setSection('');
-    setRollNumberPattern('.*');
+    setExamName("");
+    setExamType("");
+    setClassName("");
+    setSection("");
+    setSubject(""); // ← ADD THIS LINE
+    setRollNumberPattern(".*");
     setMaxWorkers(5);
     setQuestionPaper(null);
     setAnswerSheets([]);
     setError(null);
     setSuccess(false);
-    setProcessingStatus('Ready to process');
+    setProcessingStatus("Ready to process");
     setSelectedExistingExam(null);
-    setUploadMode('individual');
-    setPendingSection('');
+    setUploadMode("individual");
+    setPendingSection("");
   };
 
   // Go back to mode selection
@@ -416,16 +434,17 @@ const ExamCorrection = () => {
   // STEP 1: MODE SELECTION VIEW (SIDE BY SIDE)
   // ==========================================
   // Alert component rendered as a fixed overlay
-  const renderAlert = () => alertMsg ? (
-    <div className="alert-container">
-      <AlertBox
-        message={alertMsg}
-        type="success"
-        onClose={() => setAlertMsg('')}
-        duration={5000}
-      />
-    </div>
-  ) : null;
+  const renderAlert = () =>
+    alertMsg ? (
+      <div className="alert-container">
+        <AlertBox
+          message={alertMsg}
+          type="success"
+          onClose={() => setAlertMsg("")}
+          duration={5000}
+        />
+      </div>
+    ) : null;
 
   if (correctionMode === null) {
     return (
@@ -434,18 +453,29 @@ const ExamCorrection = () => {
         <div className="exam-correction-header">
           <div className="header-content">
             <div className="header-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14,2 14,8 20,8"/>
-                <path d="M9 15l2 2 4-4"/>
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14,2 14,8 20,8" />
+                <path d="M9 15l2 2 4-4" />
               </svg>
             </div>
             <div>
-              <h1 className="correction-header-title">📝 Exam Correction Hub</h1>
-              <p className="header-subtitle">Choose correction mode to get started</p>
+              <h1 className="correction-header-title">
+                📝 Exam Correction Hub
+              </h1>
+              <p className="header-subtitle">
+                Choose correction mode to get started
+              </p>
             </div>
           </div>
-          <button 
+          <button
             className="view-analytics-btn"
             onClick={() => {
               if (window.handleExamAnalyticsView) {
@@ -462,27 +492,45 @@ const ExamCorrection = () => {
           {/* Side-by-Side Mode Cards */}
           <div className="mode-cards-wrapper">
             {/* NEW CORRECTION CARD */}
-            <div 
+            <div
               className="mode-card mode-card-new"
-              onClick={() => setCorrectionMode('new')}
+              onClick={() => setCorrectionMode("new")}
             >
               <div className="mode-card-icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14,2 14,8 20,8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/>
-                  <line x1="9" y1="15" x2="15" y2="15"/>
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14,2 14,8 20,8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <line x1="9" y1="15" x2="15" y2="15" />
                 </svg>
               </div>
               <h2 className="mode-card-title">New Correction</h2>
               <p className="mode-card-description">
-                Start a brand new exam correction with question paper and answer sheets
+                Start a brand new exam correction with question paper and answer
+                sheets
               </p>
               <ul className="mode-card-features">
-                <li><span className="check-icon">✓</span> Upload new question paper</li>
-                <li><span className="check-icon">✓</span> Upload all student answer sheets</li>
-                <li><span className="check-icon">✓</span> Create new exam entry</li>
-                <li><span className="check-icon">✓</span> Full automated grading</li>
+                <li>
+                  <span className="check-icon">✓</span> Upload new question
+                  paper
+                </li>
+                <li>
+                  <span className="check-icon">✓</span> Upload all student
+                  answer sheets
+                </li>
+                <li>
+                  <span className="check-icon">✓</span> Create new exam entry
+                </li>
+                <li>
+                  <span className="check-icon">✓</span> Full automated grading
+                </li>
               </ul>
               <button className="mode-card-btn mode-card-btn-new">
                 Select New Correction →
@@ -490,15 +538,22 @@ const ExamCorrection = () => {
             </div>
 
             {/* EXISTING CORRECTION CARD */}
-            <div 
+            <div
               className="mode-card mode-card-existing"
-              onClick={() => setCorrectionMode('existing')}
+              onClick={() => setCorrectionMode("existing")}
             >
               <div className="mode-card-icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14,2 14,8 20,8"/>
-                  <path d="M9 15l2 2 4-4"/>
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14,2 14,8 20,8" />
+                  <path d="M9 15l2 2 4-4" />
                 </svg>
               </div>
               <h2 className="mode-card-title">Add to Existing Exam</h2>
@@ -506,10 +561,21 @@ const ExamCorrection = () => {
                 Add more students to an existing exam (batch processing)
               </p>
               <ul className="mode-card-features">
-                <li><span className="check-icon">✓</span> Select existing exam</li>
-                <li><span className="check-icon">✓</span> Reuse question paper (optional)</li>
-                <li><span className="check-icon">✓</span> Upload additional answer sheets</li>
-                <li><span className="check-icon">✓</span> Merge with existing results</li>
+                <li>
+                  <span className="check-icon">✓</span> Select existing exam
+                </li>
+                <li>
+                  <span className="check-icon">✓</span> Reuse question paper
+                  (optional)
+                </li>
+                <li>
+                  <span className="check-icon">✓</span> Upload additional answer
+                  sheets
+                </li>
+                <li>
+                  <span className="check-icon">✓</span> Merge with existing
+                  results
+                </li>
               </ul>
               <button className="mode-card-btn mode-card-btn-existing">
                 Select Existing Exam →
@@ -526,11 +592,17 @@ const ExamCorrection = () => {
             <div className="mode-info-grid">
               <div className="mode-info-item mode-info-new">
                 <strong>New Correction:</strong>
-                <p>Use when starting a completely new exam with all students at once</p>
+                <p>
+                  Use when starting a completely new exam with all students at
+                  once
+                </p>
               </div>
               <div className="mode-info-item mode-info-existing">
                 <strong>Existing Exam:</strong>
-                <p>Use when you want to add more students to an already created exam (e.g., 20 students now + 20 later)</p>
+                <p>
+                  Use when you want to add more students to an already created
+                  exam (e.g., 20 students now + 20 later)
+                </p>
               </div>
             </div>
           </div>
@@ -542,7 +614,7 @@ const ExamCorrection = () => {
   // ==========================================
   // STEP 2A: EXISTING EXAM SELECTION VIEW (GRID LAYOUT)
   // ==========================================
-  if (correctionMode === 'existing' && !selectedExistingExam) {
+  if (correctionMode === "existing" && !selectedExistingExam) {
     return (
       <div className="exam-correction-container">
         {renderAlert()}
@@ -553,10 +625,12 @@ const ExamCorrection = () => {
             </button>
             <div>
               <h1 className="correction-header-title">Select Existing Exam</h1>
-              <p className="header-subtitle">Choose an exam to add more students</p>
+              <p className="header-subtitle">
+                Choose an exam to add more students
+              </p>
             </div>
           </div>
-          <button 
+          <button
             className="view-analytics-btn"
             onClick={() => {
               if (window.handleExamAnalyticsView) {
@@ -572,10 +646,17 @@ const ExamCorrection = () => {
         <div className="existing-exams-container">
           {error && (
             <div className="alert alert-error">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <span>{error}</span>
             </div>
@@ -590,22 +671,29 @@ const ExamCorrection = () => {
             <div className="empty-state">
               <div className="empty-icon">📝</div>
               <h3>No Existing Exams Found</h3>
-              <p>You don't have any exams yet. Please create a new exam instead.</p>
-              <button className="btn btn-primary" onClick={handleBackToModeSelection}>
+              <p>
+                You don't have any exams yet. Please create a new exam instead.
+              </p>
+              <button
+                className="btn btn-primary"
+                onClick={handleBackToModeSelection}
+              >
                 Go Back
               </button>
             </div>
           ) : (
             <div className="exams-grid-container">
               {existingExams.map((exam) => (
-                <div 
-                  key={exam.id} 
+                <div
+                  key={exam.id}
                   className="exam-grid-card"
                   onClick={() => handleExistingExamSelect(exam)}
                 >
                   <div className="exam-card-header">
                     <h3 className="exam-name">{exam.name}</h3>
-                    <span className={`exam-type-badge exam-type-${exam.exam_type.toLowerCase()}`}>
+                    <span
+                      className={`exam-type-badge exam-type-${exam.exam_type.toLowerCase()}`}
+                    >
                       {exam.exam_type}
                     </span>
                   </div>
@@ -621,7 +709,9 @@ const ExamCorrection = () => {
                     <div className="exam-info-row">
                       <span className="info-label">Avg Score:</span>
                       <span className="info-value">
-                        {exam.average_score ? `${exam.average_score.toFixed(1)}%` : 'N/A'}
+                        {exam.average_score
+                          ? `${exam.average_score.toFixed(1)}%`
+                          : "N/A"}
                       </span>
                     </div>
                   </div>
@@ -645,10 +735,10 @@ const ExamCorrection = () => {
       {renderAlert()}
       <div className="exam-correction-header">
         <div className="header-content">
-          <button 
-            className="back-btn" 
+          <button
+            className="back-btn"
             onClick={() => {
-              if (correctionMode === 'existing') {
+              if (correctionMode === "existing") {
                 setSelectedExistingExam(null);
               } else {
                 handleBackToModeSelection();
@@ -658,28 +748,33 @@ const ExamCorrection = () => {
             ← Back
           </button>
           <div className="header-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14,2 14,8 20,8"/>
-              <path d="M9 15l2 2 4-4"/>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14,2 14,8 20,8" />
+              <path d="M9 15l2 2 4-4" />
             </svg>
           </div>
           <div>
             <h1 className="correction-header-title">
-              {correctionMode === 'existing' ? 
-                `📝 Add Students to: ${examName}` : 
-                '📝 New Exam Correction'
-              }
+              {correctionMode === "existing"
+                ? `📝 Add Students to: ${examName}`
+                : "📝 New Exam Correction"}
             </h1>
             <p className="header-subtitle">
-              {correctionMode === 'existing' ? 
-                'Upload additional answer sheets for this exam' : 
-                'Upload question papers and answer sheets for automated grading'
-              }
+              {correctionMode === "existing"
+                ? "Upload additional answer sheets for this exam"
+                : "Upload question papers and answer sheets for automated grading"}
             </p>
           </div>
         </div>
-        <button 
+        <button
           className="view-analytics-btn"
           onClick={() => {
             if (window.handleExamAnalyticsView) {
@@ -698,10 +793,17 @@ const ExamCorrection = () => {
           {/* Error Message */}
           {error && (
             <div className="alert alert-error">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <span>{error}</span>
             </div>
@@ -710,84 +812,119 @@ const ExamCorrection = () => {
           {/* Success Message */}
           {success && (
             <div className="alert alert-success">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
               <span>
-                {correctionMode === 'existing' ? 
-                  'Additional students uploaded successfully!' : 
-                  'Exam submitted successfully!'
-                }
+                {correctionMode === "existing"
+                  ? "Additional students uploaded successfully!"
+                  : "Exam submitted successfully!"}
                 Processing in background...
               </span>
             </div>
           )}
 
           {/* Mode Indicator */}
-          {correctionMode === 'existing' && (
+          {correctionMode === "existing" && (
             <div className="alert alert-info">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
               </svg>
               <span>
-                You're adding students to an existing exam. Current students: {selectedExistingExam?.total_students || 0}
+                You're adding students to an existing exam. Current students:{" "}
+                {selectedExistingExam?.total_students || 0}
               </span>
             </div>
           )}
 
-{/* ============================================
+          {/* ============================================
     NEW: COMPACT UPLOAD MODE SELECTION
     ============================================ */}
-<div className="upload-mode-compact">
-  <h3 className="section-label">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="17 8 12 3 7 8"/>
-      <line x1="12" y1="3" x2="12" y2="15"/>
-    </svg>
-    Upload Mode
-  </h3>
-  
-  <div className="radio-group">
-    <label className={`radio-option ${uploadMode === 'group' ? 'active' : ''}`}>
-      <input
-        type="radio"
-        name="uploadMode"
-        value="group"
-        checked={uploadMode === 'group'}
-        onChange={(e) => setUploadMode(e.target.value)}
-        disabled={loading}
-      />
-      <span className="radio-label">
-        <strong>Group of Students</strong>
-        <span className="radio-description">Multiple students per PDF (batch upload)</span>
-      </span>
-    </label>
-    
-    <label className={`radio-option ${uploadMode === 'individual' ? 'active' : ''}`}>
-      <input
-        type="radio"
-        name="uploadMode"
-        value="individual"
-        checked={uploadMode === 'individual'}
-        onChange={(e) => setUploadMode(e.target.value)}
-        disabled={loading}
-      />
-      <span className="radio-label">
-        <strong>Individual Student</strong>
-        <span className="radio-description">One student per PDF (standard upload)</span>
-      </span>
-    </label>
-  </div>
-</div>
+          <div className="upload-mode-compact">
+            <h3 className="section-label">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Upload Mode
+            </h3>
+
+            <div className="radio-group">
+              <label
+                className={`radio-option ${uploadMode === "group" ? "active" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="uploadMode"
+                  value="group"
+                  checked={uploadMode === "group"}
+                  onChange={(e) => {
+                    setUploadMode(e.target.value);
+                    if (e.target.value === "group") setSubject("");
+                  }}
+                  disabled={loading}
+                />
+                <span className="radio-label">
+                  <strong>Group of Students</strong>
+                  <span className="radio-description">
+                    Multiple students per PDF (batch upload)
+                  </span>
+                </span>
+              </label>
+
+              <label
+                className={`radio-option ${uploadMode === "individual" ? "active" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="uploadMode"
+                  value="individual"
+                  checked={uploadMode === "individual"}
+                  onChange={(e) => {
+                    setUploadMode(e.target.value);
+                    if (e.target.value === "group") setSubject("");
+                  }}
+                  disabled={loading}
+                />
+                <span className="radio-label">
+                  <strong>Individual Student</strong>
+                  <span className="radio-description">
+                    One student per PDF (standard upload)
+                  </span>
+                </span>
+              </label>
+            </div>
+          </div>
 
           {/* Exam Details Section */}
           <div className="form-section">
             <h2 className="section-title">Exam Details</h2>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="examName">
@@ -800,15 +937,18 @@ const ExamCorrection = () => {
                   placeholder="e.g., Mathematics Midterm Exam"
                   value={examName}
                   onChange={(e) => setExamName(e.target.value)}
-                  disabled={loading || (correctionMode === 'existing')}
+                  disabled={loading || correctionMode === "existing"}
                 />
-                {correctionMode === 'existing' && (
+                {correctionMode === "existing" && (
                   <small className="field-description">
                     Pre-filled from existing exam
                   </small>
                 )}
                 {isExamNameDuplicate && (
-                  <small className="field-description" style={{ color: '#e74c3c', fontWeight: 500 }}>
+                  <small
+                    className="field-description"
+                    style={{ color: "#e74c3c", fontWeight: 500 }}
+                  >
                     This exam name already exists. Please use a different name.
                   </small>
                 )}
@@ -825,7 +965,11 @@ const ExamCorrection = () => {
                   placeholder="e.g., Midterm, Final, Unit Test"
                   value={examType}
                   onChange={(e) => setExamType(e.target.value)}
-                  disabled={loading || (correctionMode === 'existing') || isExamNameDuplicate}
+                  disabled={
+                    loading ||
+                    correctionMode === "existing" ||
+                    isExamNameDuplicate
+                  }
                 />
               </div>
             </div>
@@ -841,24 +985,36 @@ const ExamCorrection = () => {
                     className="form-select"
                     value={className}
                     onChange={(e) => setClassName(e.target.value)}
-                    disabled={loading || loadingClasses || (correctionMode === 'existing')}
+                    disabled={
+                      loading || loadingClasses || correctionMode === "existing"
+                    }
                   >
                     <option value="">
-                      {loadingClasses ? 'Loading classes...' : 'Select Class'}
+                      {loadingClasses ? "Loading classes..." : "Select Class"}
                     </option>
                     {availableClasses.map((cls, index) => (
-                      <option key={cls.class_name || index} value={cls.class_name}>
+                      <option
+                        key={cls.class_name || index}
+                        value={cls.class_name}
+                      >
                         Class {cls.class_name}
                       </option>
                     ))}
                   </select>
                   <div className="select-icon">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6 9 12 15 18 9"/>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </div>
                 </div>
-                {correctionMode === 'existing' && (
+                {correctionMode === "existing" && (
                   <small className="field-description">
                     Pre-filled from existing exam
                   </small>
@@ -875,193 +1031,297 @@ const ExamCorrection = () => {
                     className="form-select"
                     value={section}
                     onChange={(e) => setSection(e.target.value)}
-                    disabled={loading || loadingSections || !className || (correctionMode === 'existing')}
+                    disabled={
+                      loading ||
+                      loadingSections ||
+                      !className ||
+                      correctionMode === "existing"
+                    }
                   >
                     <option value="">
                       {!className
-                        ? 'Select class first'
+                        ? "Select class first"
                         : loadingSections
-                          ? 'Loading sections...'
-                          : 'Select Section'
-                      }
+                          ? "Loading sections..."
+                          : "Select Section"}
                     </option>
                     {availableSections.map((sec, index) => (
-                      <option key={sec.section_name || index} value={sec.section_name}>
+                      <option
+                        key={sec.section_name || index}
+                        value={sec.section_name}
+                      >
                         {sec.section_name}
                       </option>
                     ))}
                   </select>
                   <div className="select-icon">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6 9 12 15 18 9"/>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </div>
                 </div>
-                {correctionMode === 'existing' && (
+                {correctionMode === "existing" && (
                   <small className="field-description">
                     Pre-filled from existing exam
                   </small>
                 )}
               </div>
+
+              {/* Subject Dropdown - Only for Individual mode */}
+              {uploadMode === "individual" && (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="subject">
+                      Subject <span className="required">*</span>
+                    </label>
+                    <div className="select-wrapper">
+                      <select
+                        id="subject"
+                        className="form-select"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        disabled={loading || correctionMode === "existing"}
+                      >
+                        <option value="">Select Subject</option>
+                        {HARDCODED_SUBJECTS.map((sub) => (
+                          <option key={sub} value={sub}>
+                            {sub}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="select-icon">
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </div>
+                    </div>
+                    {correctionMode === "existing" && (
+                      <small className="field-description">
+                        Pre-filled from existing exam
+                      </small>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-{/* ============================================
+          {/* ============================================
     NEW: SIDE-BY-SIDE FILE UPLOAD SECTION
     ============================================ */}
-<div className="upload-section">
-  <h3 className="section-label">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
-      <polyline points="13 2 13 9 20 9"/>
-    </svg>
-    Upload Files
-  </h3>
-  
-  <div className="upload-grid">
-    {/* LEFT: Question Paper Upload */}
-    <div className="upload-column">
-      <label className="upload-label">
-        Question Paper
-        {correctionMode === 'new' && <span className="required-mark">*</span>}
-        {correctionMode === 'existing' && (
-          <span className="optional-mark">(Optional)</span>
-        )}
-      </label>
-      
-      {!questionPaper ? (
-        <label htmlFor="questionPaperInput" className="upload-box compact">
-          <div className="upload-icon-small">📄</div>
-          <div className="upload-info">
-            <span className="upload-title">Choose PDF</span>
-            <span className="upload-hint">Max 100MB</span>
-          </div>
-          <input
-            type="file"
-            id="questionPaperInput"
-            accept=".pdf"
-            onChange={handleQuestionPaperChange}
-            disabled={loading}
-            className="hidden-input"
-          />
-        </label>
-      ) : (
-        <div className="file-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
-            <polyline points="13 2 13 9 20 9"/>
-          </svg>
-          <div className="file-details">
-            <span className="file-name">{questionPaper.name}</span>
-            <span className="file-size">
-              {(questionPaper.size / 1024 / 1024).toFixed(2)} MB
-            </span>
-          </div>
-          <button
-            type="button"
-            className="remove-btn"
-            onClick={handleRemoveQuestionPaper}
-            disabled={loading}
-            title="Remove file"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-    </div>
-
-    {/* RIGHT: Answer Sheets Upload */}
-    <div className="upload-column">
-      <label className="upload-label">
-        Answer Sheets <span className="required-mark">*</span>
-        {answerSheets.length > 0 && (
-          <span className="file-counter">({answerSheets.length} files)</span>
-        )}
-      </label>
-
-      {/* Always show upload box when no files */}
-      {answerSheets.length === 0 && (
-        <label htmlFor="answerSheetsInput" className="upload-box compact">
-          <div className="upload-icon-small">📑</div>
-          <div className="upload-info">
-            <span className="upload-title">
-              {uploadMode === 'group' ? 'Choose PDFs (Batch)' : 'Choose PDFs'}
-            </span>
-            <span className="upload-hint">
-              {uploadMode === 'group' ? 'Multiple students per file' : 'One per student'} • Select multiple
-            </span>
-          </div>
-          <input
-            type="file"
-            id="answerSheetsInput"
-            accept=".pdf"
-            multiple
-            onChange={handleAnswerSheetsChange}
-            disabled={loading}
-            className="hidden-input"
-          />
-        </label>
-      )}
-
-      {/* Show files list and add more button when files exist */}
-      {answerSheets.length > 0 && (
-        <div className="files-container">
-          <div className="files-scroll">
-            {answerSheets.map((sheet, index) => (
-              <div key={index} className="file-item">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
-                  <polyline points="13 2 13 9 20 9"/>
-                </svg>
-                <div className="file-details">
-                  <span className="file-name">{sheet.name}</span>
-                  <span className="file-size">
-                    {(sheet.size / 1024 / 1024).toFixed(2)} MB
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="remove-btn"
-                  onClick={() => handleRemoveAnswerSheet(index)}
-                  disabled={loading}
-                  title="Remove file"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="files-actions">
-            <label htmlFor="answerSheetsInputMore" className="add-more-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
+          <div className="upload-section">
+            <h3 className="section-label">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                <polyline points="13 2 13 9 20 9" />
               </svg>
-              Add More PDFs
-              <input
-                type="file"
-                id="answerSheetsInputMore"
-                accept=".pdf"
-                multiple
-                onChange={handleAnswerSheetsChange}
-                disabled={loading}
-                className="hidden-input"
-              />
-            </label>
-            <button
-              type="button"
-              className="clear-all-link"
-              onClick={handleClearAllAnswerSheets}
-              disabled={loading}
-            >
-              Clear All
-            </button>
+              Upload Files
+            </h3>
+
+            <div className="upload-grid">
+              {/* LEFT: Question Paper Upload */}
+              <div className="upload-column">
+                <label className="upload-label">
+                  Question Paper
+                  {correctionMode === "new" && (
+                    <span className="required-mark">*</span>
+                  )}
+                  {correctionMode === "existing" && (
+                    <span className="optional-mark">(Optional)</span>
+                  )}
+                </label>
+
+                {!questionPaper ? (
+                  <label
+                    htmlFor="questionPaperInput"
+                    className="upload-box compact"
+                  >
+                    <div className="upload-icon-small">📄</div>
+                    <div className="upload-info">
+                      <span className="upload-title">Choose PDF</span>
+                      <span className="upload-hint">Max 100MB</span>
+                    </div>
+                    <input
+                      type="file"
+                      id="questionPaperInput"
+                      accept=".pdf"
+                      onChange={handleQuestionPaperChange}
+                      disabled={loading}
+                      className="hidden-input"
+                    />
+                  </label>
+                ) : (
+                  <div className="file-item">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                      <polyline points="13 2 13 9 20 9" />
+                    </svg>
+                    <div className="file-details">
+                      <span className="file-name">{questionPaper.name}</span>
+                      <span className="file-size">
+                        {(questionPaper.size / 1024 / 1024).toFixed(2)} MB
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="remove-btn"
+                      onClick={handleRemoveQuestionPaper}
+                      disabled={loading}
+                      title="Remove file"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT: Answer Sheets Upload */}
+              <div className="upload-column">
+                <label className="upload-label">
+                  Answer Sheets <span className="required-mark">*</span>
+                  {answerSheets.length > 0 && (
+                    <span className="file-counter">
+                      ({answerSheets.length} files)
+                    </span>
+                  )}
+                </label>
+
+                {/* Always show upload box when no files */}
+                {answerSheets.length === 0 && (
+                  <label
+                    htmlFor="answerSheetsInput"
+                    className="upload-box compact"
+                  >
+                    <div className="upload-icon-small">📑</div>
+                    <div className="upload-info">
+                      <span className="upload-title">
+                        {uploadMode === "group"
+                          ? "Choose PDFs (Batch)"
+                          : "Choose PDFs"}
+                      </span>
+                      <span className="upload-hint">
+                        {uploadMode === "group"
+                          ? "Multiple students per file"
+                          : "One per student"}{" "}
+                        • Select multiple
+                      </span>
+                    </div>
+                    <input
+                      type="file"
+                      id="answerSheetsInput"
+                      accept=".pdf"
+                      multiple
+                      onChange={handleAnswerSheetsChange}
+                      disabled={loading}
+                      className="hidden-input"
+                    />
+                  </label>
+                )}
+
+                {/* Show files list and add more button when files exist */}
+                {answerSheets.length > 0 && (
+                  <div className="files-container">
+                    <div className="files-scroll">
+                      {answerSheets.map((sheet, index) => (
+                        <div key={index} className="file-item">
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                            <polyline points="13 2 13 9 20 9" />
+                          </svg>
+                          <div className="file-details">
+                            <span className="file-name">{sheet.name}</span>
+                            <span className="file-size">
+                              {(sheet.size / 1024 / 1024).toFixed(2)} MB
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            className="remove-btn"
+                            onClick={() => handleRemoveAnswerSheet(index)}
+                            disabled={loading}
+                            title="Remove file"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="files-actions">
+                      <label
+                        htmlFor="answerSheetsInputMore"
+                        className="add-more-btn"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Add More PDFs
+                        <input
+                          type="file"
+                          id="answerSheetsInputMore"
+                          accept=".pdf"
+                          multiple
+                          onChange={handleAnswerSheetsChange}
+                          disabled={loading}
+                          className="hidden-input"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="clear-all-link"
+                        onClick={handleClearAllAnswerSheets}
+                        disabled={loading}
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  </div>
-</div>
 
           {/* Upload Progress */}
           {loading && uploadProgress > 0 && (
@@ -1071,8 +1331,8 @@ const ExamCorrection = () => {
                 <span>{uploadProgress}%</span>
               </div>
               <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
+                <div
+                  className="progress-fill"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
@@ -1080,25 +1340,34 @@ const ExamCorrection = () => {
           )}
 
           {/* Submission Summary for Existing Correction */}
-          {correctionMode === 'existing' && selectedExistingExam && answerSheets.length > 0 && (
-            <div className="submission-summary">
-              <h3 className="summary-title">📊 Submission Summary</h3>
-              <div className="summary-grid">
-                <div className="summary-item">
-                  <span className="summary-label">Existing Students:</span>
-                  <span className="summary-value">{selectedExistingExam.total_students}</span>
-                </div>
-                <div className="summary-item">
-                  <span className="summary-label">New Students:</span>
-                  <span className="summary-value highlight">{answerSheets.length}</span>
-                </div>
-                <div className="summary-item">
-                  <span className="summary-label">Total After Upload:</span>
-                  <span className="summary-value total">{selectedExistingExam.total_students + answerSheets.length}</span>
+          {correctionMode === "existing" &&
+            selectedExistingExam &&
+            answerSheets.length > 0 && (
+              <div className="submission-summary">
+                <h3 className="summary-title">📊 Submission Summary</h3>
+                <div className="summary-grid">
+                  <div className="summary-item">
+                    <span className="summary-label">Existing Students:</span>
+                    <span className="summary-value">
+                      {selectedExistingExam.total_students}
+                    </span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="summary-label">New Students:</span>
+                    <span className="summary-value highlight">
+                      {answerSheets.length}
+                    </span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="summary-label">Total After Upload:</span>
+                    <span className="summary-value total">
+                      {selectedExistingExam.total_students +
+                        answerSheets.length}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Form Actions */}
           <div className="form-actions">
@@ -1113,7 +1382,9 @@ const ExamCorrection = () => {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={loading || answerSheets.length === 0 || isExamNameDuplicate}
+              disabled={
+                loading || answerSheets.length === 0 || isExamNameDuplicate
+              }
             >
               {loading ? (
                 <>
@@ -1123,7 +1394,9 @@ const ExamCorrection = () => {
               ) : (
                 <>
                   <span>🚀</span>
-                  {correctionMode === 'existing' ? 'Add Students' : 'Start Correction'}
+                  {correctionMode === "existing"
+                    ? "Add Students"
+                    : "Start Correction"}
                 </>
               )}
             </button>
