@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
-import 'katex/dist/katex.min.css';
+import "katex/dist/katex.min.css";
 import { Form, Button, Row, Col, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "./StudentDash.css";
@@ -8,8 +8,9 @@ import QuestionListModal from "./QuestionListModal";
 import Select from "react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AuthContext } from "./AuthContext";
-import { useAlert } from './AlertBox';
-import { useJeeMode } from '../contexts/JeeModeContext';
+import { useAlert } from "./AlertBox";
+import WizardSelector from "./WizardSelector";
+import { useJeeMode } from "../contexts/JeeModeContext";
 import {
   faSchool,
   faBookOpen,
@@ -43,7 +44,8 @@ import FeedbackBox from "./FeedbackBox";
 import ProgressGraph from "./ProgressGraph";
 import QuizScoreGraph from "./QuizScoreGraph";
 
-function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
+function StudentDash({ jeeMode = false }) {
+  const navigate = useNavigate();
   const { username, fullName, role } = useContext(AuthContext);
   const { showAlert, AlertContainer } = useAlert();
 
@@ -62,7 +64,7 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
 
   // Dark mode state with improved persistence
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('darkMode') === 'true';
+    return localStorage.getItem("darkMode") === "true";
   });
 
   // State for dropdown data
@@ -71,7 +73,7 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
   const [chapters, setChapters] = useState([]);
   const [subTopics, setSubTopics] = useState([]);
   const [worksheets, setWorksheets] = useState([]);
-  const [jeeSubtopics, setJeeSubtopics] = useState([]);  // For JEE Mathematics subtopics
+  const [jeeSubtopics, setJeeSubtopics] = useState([]); // For JEE Mathematics subtopics
 
   // State for selections with smart defaults
   const [selectedClass, setSelectedClass] = useState("");
@@ -92,7 +94,7 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
     count: 0,
     currentPage: 1,
     totalPages: 0,
-    isLoading: false
+    isLoading: false,
   });
 
   const [scienceSubtopics, setScienceSubtopics] = useState([]);
@@ -146,7 +148,7 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
       "Time to explore the fascinating world of mathematics! Every problem is a new adventure waiting to be solved! ✨",
       "Mathematics is the language of the universe - let's learn to speak it fluently! 🌟",
       "Today's learning journey begins with a single step. Let's make it count! 💪",
-      "Ready to turn complex problems into simple solutions? Your mathematical journey awaits! 🎯"
+      "Ready to turn complex problems into simple solutions? Your mathematical journey awaits! 🎯",
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
@@ -155,39 +157,47 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
-    localStorage.setItem('darkMode', newMode.toString());
-    document.body.classList.toggle('dark-mode', newMode);
+    localStorage.setItem("darkMode", newMode.toString());
+    document.body.classList.toggle("dark-mode", newMode);
 
     // Dispatch custom event for other components to listen
-    window.dispatchEvent(new CustomEvent('darkModeChange', {
-      detail: { isDarkMode: newMode }
-    }));
+    window.dispatchEvent(
+      new CustomEvent("darkModeChange", {
+        detail: { isDarkMode: newMode },
+      }),
+    );
   };
   const tutorialSteps = [
     {
-      target: '.greeting-content',
-      content: 'Welcome to your Student Dashboard! Let me guide you through how to get started with solving questions.',
+      target: ".greeting-content",
+      content:
+        "Welcome to your Student Dashboard! Let me guide you through how to get started with solving questions.",
       disableBeacon: true,
     },
     {
-      target: '#formClass',
-      content: 'First, select your class from this dropdown. Your class should be pre-selected based on your username.',
+      target: "#formClass",
+      content:
+        "First, select your class from this dropdown. Your class should be pre-selected based on your username.",
     },
     {
-      target: '#formSubject',
-      content: 'Next, choose the subject you want to study. Mathematics is usually selected by default.',
+      target: "#formSubject",
+      content:
+        "Next, choose the subject you want to study. Mathematics is usually selected by default.",
     },
     {
-      target: '.chapters-select-final',
-      content: 'Select one or more chapters you want to practice. You can select multiple chapters at once!',
+      target: ".chapters-select-final",
+      content:
+        "Select one or more chapters you want to practice. You can select multiple chapters at once!",
     },
     {
-      target: '#formQuestionType',
-      content: 'Choose the type of questions: Solved Examples (to learn), Exercises (to practice), or Worksheets (for tests).',
+      target: "#formQuestionType",
+      content:
+        "Choose the type of questions: Solved Examples (to learn), Exercises (to practice), or Worksheets (for tests).",
     },
     {
-      target: '.button--mimas',
-      content: 'Finally, click this button to generate questions based on your selections. You\'ll see a list of available questions!',
+      target: ".button--mimas",
+      content:
+        "Finally, click this button to generate questions based on your selections. You'll see a list of available questions!",
     },
   ];
 
@@ -198,17 +208,17 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
   };
 
   // JEE Mode Context
-    const { isJeeMode, setIsJeeMode } = useJeeMode();
+  const { isJeeMode, setIsJeeMode } = useJeeMode();
 
-    // Set JEE mode based on prop
-    useEffect(() => {
-      setIsJeeMode(jeeMode);
-      console.log(`🎯 Dashboard Mode: ${jeeMode ? 'JEE' : 'Board'}`);
-    }, [jeeMode, setIsJeeMode]);
+  // Set JEE mode based on prop
+  useEffect(() => {
+    setIsJeeMode(jeeMode);
+    console.log(`🎯 Dashboard Mode: ${jeeMode ? "JEE" : "Board"}`);
+  }, [jeeMode, setIsJeeMode]);
 
   // Apply dark mode on component mount
   useEffect(() => {
-    document.body.classList.toggle('dark-mode', isDarkMode);
+    document.body.classList.toggle("dark-mode", isDarkMode);
   }, [isDarkMode]);
 
   // Feedback Modal - Auto-show after 3 minutes of app usage (only once ever)
@@ -218,25 +228,28 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
       const alreadyShown = localStorage.getItem(feedbackShownKey);
 
       // If already shown before, don't set timer
-      if (alreadyShown === 'true') {
-        console.log('📝 Feedback already shown before, skipping auto-show');
+      if (alreadyShown === "true") {
+        console.log("📝 Feedback already shown before, skipping auto-show");
         return;
       }
 
-      console.log('⏱️ Starting 3-minute timer for feedback modal...');
+      console.log("⏱️ Starting 3-minute timer for feedback modal...");
 
       // Set 3-minute timer (180000ms)
-      const timer = setTimeout(() => {
-        console.log('✅ 3 minutes passed, showing feedback modal');
-        setShowFeedbackModal(true);
-        // Mark as shown in localStorage - will never auto-show again
-        localStorage.setItem(feedbackShownKey, 'true');
-      }, 3 * 60 * 1000); // 3 minutes
+      const timer = setTimeout(
+        () => {
+          console.log("✅ 3 minutes passed, showing feedback modal");
+          setShowFeedbackModal(true);
+          // Mark as shown in localStorage - will never auto-show again
+          localStorage.setItem(feedbackShownKey, "true");
+        },
+        3 * 60 * 1000,
+      ); // 3 minutes
 
       // Cleanup timer on unmount
       return () => {
         clearTimeout(timer);
-        console.log('🧹 Feedback timer cleared');
+        console.log("🧹 Feedback timer cleared");
       };
     }
   }, [role, username]);
@@ -252,9 +265,14 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
           const sessionData = JSON.parse(savedSession);
           // Check if session is recent (within last 7 days)
           const sessionDate = new Date(sessionData.timestamp);
-          const daysSinceSession = (new Date() - sessionDate) / (1000 * 60 * 60 * 24);
+          const daysSinceSession =
+            (new Date() - sessionDate) / (1000 * 60 * 60 * 24);
 
-          if (daysSinceSession <= 7 && sessionData.questionList && sessionData.questionList.length > 0) {
+          if (
+            daysSinceSession <= 7 &&
+            sessionData.questionList &&
+            sessionData.questionList.length > 0
+          ) {
             setLastSession(sessionData);
             setCanResume(true);
             console.log("✅ Last session loaded:", sessionData);
@@ -273,223 +291,266 @@ function StudentDash({ jeeMode = false }) {  const navigate = useNavigate();
     }
   }, [username]);
 
+  // Helper function to check if selected subject is Science
+  const isScienceSubject = () => {
+    if (!selectedSubject || !subjects.length) return false;
+    const subject = subjects.find((s) => s.subject_code === selectedSubject);
+    return subject && subject.subject_name.toLowerCase().includes("science");
+  };
 
-// Helper function to check if selected subject is Science
-const isScienceSubject = () => {
-  if (!selectedSubject || !subjects.length) return false;
-  const subject = subjects.find(s => s.subject_code === selectedSubject);
-  return subject && subject.subject_name.toLowerCase().includes('science');
-};
+  // Check if the selected subject is a JEE subject
+  const isJEESubject = () => {
+    if (!selectedSubject) return false;
+    const subject = subjects.find((s) => s.subject_code === selectedSubject);
+    const subjectName = subject?.subject_name?.toLowerCase() || "";
 
-// Check if the selected subject is a JEE subject
-const isJEESubject = () => {
-  if (!selectedSubject) return false;
-  const subject = subjects.find(s => s.subject_code === selectedSubject);
-  const subjectName = subject?.subject_name?.toLowerCase() || '';
-  
-  // Check if subject name contains JEE indicators
-  return subjectName.includes('jee') || 
-         subjectName.includes('mathematics_mains') ||
-         subjectName.includes('mathematics_advanced') ||
-         subjectName.includes('physics_mains') ||
-         subjectName.includes('chemistry_mains');
-};
+    // Check if subject name contains JEE indicators
+    return (
+      subjectName.includes("jee") ||
+      subjectName.includes("mathematics_mains") ||
+      subjectName.includes("mathematics_advanced") ||
+      subjectName.includes("physics_mains") ||
+      subjectName.includes("chemistry_mains")
+    );
+  };
 
-// Complete mapping of question types with IDs
-const QUESTION_TYPE_MAPPING = [
-  { id: "1", value: 'activity_based_questions', label: 'Activity Based Questions' },
-  { id: "2", value: 'conceptual_questions', label: 'Conceptual Questions' },
-  { id: "3", value: 'diagram_based_questions', label: 'Diagram Based Questions' },
-  { id: "4", value: 'fill_in_the_blanks', label: 'Fill in the Blanks' },
-  { id: "5", value: 'matching_questions', label: 'Matching Questions' },
-  { id: "6", value: 't_f_questions', label: 'True/False Questions' }
-];
-
-// JEE Mathematics Subtopic Mapping
-const JEE_SUBTOPIC_MAPPING = [
-  { id: "1", value: 'mcq', label: 'Multiple Choice Questions (MCQ)' },
-  { id: "2", value: 'nvtq', label: 'Numerical Value Type Questions (NVTQ)' },
-  { id: "3", value: 'theorem', label: 'Theorem Based Questions' }
-];
-
-const getQuestionTypeOptions = () => {
-  // For Science subjects - existing logic
-  if (isScienceSubject()) {
-    if (scienceSubtopics.length > 0) {
-      return QUESTION_TYPE_MAPPING.filter(type => 
-        scienceSubtopics.includes(type.id)
-      );
-    }
-    return QUESTION_TYPE_MAPPING;
-  } 
-  
-  // For JEE Mains/Advanced subjects - MCQ/NVTQ/Theorem
-  if (isJEEMainsAdvancedSubject()) {
-    console.log("🎯 JEE Mains/Advanced Subject detected! Showing MCQ/NVTQ/Theorem options");
-    return JEE_SUBTOPIC_MAPPING;
-  }
-  
-  // For JEE Traditional subjects (Physics, Mathematics, Mathematics_1) - Board-like flow
-  if (isJEETraditionalSubject()) {
-    console.log("📚 JEE Traditional Subject detected! Showing Solved/Exercise/Worksheet options");
-    return [
-      { value: 'solved', label: 'Solved Examples' },
-      { value: 'external', label: 'Book Exercises' },
-      { value: 'worksheets', label: 'Take it to next level with Worksheets' }
-    ];
-  }
-  
-  // For other subjects - existing logic
-  return [
-    { value: 'solved', label: 'Solved Examples' },
-    { value: 'external', label: 'Book Exercises' },
-    { value: 'worksheets', label: 'Take it to next level with Worksheets' }
+  // Complete mapping of question types with IDs
+  const QUESTION_TYPE_MAPPING = [
+    {
+      id: "1",
+      value: "activity_based_questions",
+      label: "Activity Based Questions",
+    },
+    { id: "2", value: "conceptual_questions", label: "Conceptual Questions" },
+    {
+      id: "3",
+      value: "diagram_based_questions",
+      label: "Diagram Based Questions",
+    },
+    { id: "4", value: "fill_in_the_blanks", label: "Fill in the Blanks" },
+    { id: "5", value: "matching_questions", label: "Matching Questions" },
+    { id: "6", value: "t_f_questions", label: "True/False Questions" },
   ];
-};
 
-// Helper function to check if selected subject is JEE Mains/Advanced (MCQ/NVTQ/Theorem flow)
-const isJEEMainsAdvancedSubject = () => {
-  if (!selectedSubject || !subjects.length) return false;
-  const subject = subjects.find(s => s.subject_code === selectedSubject);
-  const subjectName = subject?.subject_name?.toLowerCase() || '';
-  
-  // Only JEE Mathematics Mains and Advanced use MCQ/NVTQ/Theorem
-  return subjectName.includes('mathematics_mains') ||
-         subjectName.includes('mathematics_advanced') ||
-         subjectName.includes('jee_mathematics_mains') ||
-         subjectName.includes('jee_mathematics_advanced');
-};
+  // JEE Mathematics Subtopic Mapping
+  const JEE_SUBTOPIC_MAPPING = [
+    { id: "1", value: "mcq", label: "Multiple Choice Questions (MCQ)" },
+    { id: "2", value: "nvtq", label: "Numerical Value Type Questions (NVTQ)" },
+    { id: "3", value: "theorem", label: "Theorem Based Questions" },
+  ];
 
-// Helper function to check if subject is JEE but uses traditional flow (Solved/Exercise/Worksheet)
-const isJEETraditionalSubject = () => {
-  if (!selectedSubject || !subjects.length) return false;
-  const subject = subjects.find(s => s.subject_code === selectedSubject);
-  const subjectName = subject?.subject_name?.toLowerCase() || '';
-  
-  // JEE Physics, JEE_Mathematics, JEE_Mathematics_1 use traditional flow
-  return (subjectName.includes('jee') && 
-          !subjectName.includes('mathematics_mains') &&
-          !subjectName.includes('mathematics_advanced')) ||
-         subjectName === 'jee_physics' ||
-         subjectName === 'jee_mathematics' ||
-         subjectName === 'jee_mathematics_1';
-};
+  const getQuestionTypeOptions = () => {
+    // For Science subjects - existing logic
+    if (isScienceSubject()) {
+      if (scienceSubtopics.length > 0) {
+        return QUESTION_TYPE_MAPPING.filter((type) =>
+          scienceSubtopics.includes(type.id),
+        );
+      }
+      return QUESTION_TYPE_MAPPING;
+    }
 
-// Reset question type when subject changes
-useEffect(() => {
-  if (selectedSubject) {
-    setQuestionType("");
-    setQuestionLevel("");
-    setSelectedWorksheet("");
-    setScienceSubtopics([]);
-    setJeeSubtopics([]);  // Add this line
-  }
-}, [selectedSubject]);
+    // For JEE Mains/Advanced subjects - MCQ/NVTQ/Theorem
+    if (isJEEMainsAdvancedSubject()) {
+      console.log(
+        "🎯 JEE Mains/Advanced Subject detected! Showing MCQ/NVTQ/Theorem options",
+      );
+      return JEE_SUBTOPIC_MAPPING;
+    }
 
-// Fetch available subtopics for Science OR JEE subjects when selected with chapters
-useEffect(() => {
-  async function fetchSubtopics() {
-    // Handle Science subjects (EXISTING - NO CHANGE)
-    if (isScienceSubject() && selectedClass && selectedSubject && selectedChapters.length > 0) {
-      try {
-        console.log("🔬 Fetching Science subtopics...");
-        const response = await axiosInstance.post("/question-images-paginator/", {
-          classid: selectedClass,
-          subjectid: selectedSubject,
-          topicid: selectedChapters,
-          external: true,
-        });
-        
-        if (response.data && response.data.subtopics) {
-          setScienceSubtopics(response.data.subtopics);
-          console.log("✅ Available Science subtopics:", response.data.subtopics);
-        } else {
+    // For JEE Traditional subjects (Physics, Mathematics, Mathematics_1) - Board-like flow
+    if (isJEETraditionalSubject()) {
+      console.log(
+        "📚 JEE Traditional Subject detected! Showing Solved/Exercise/Worksheet options",
+      );
+      return [
+        { value: "solved", label: "Solved Examples" },
+        { value: "external", label: "Book Exercises" },
+        { value: "worksheets", label: "Take it to next level with Worksheets" },
+      ];
+    }
+
+    // For other subjects - existing logic
+    return [
+      { value: "solved", label: "Solved Examples" },
+      { value: "external", label: "Book Exercises" },
+      { value: "worksheets", label: "Take it to next level with Worksheets" },
+    ];
+  };
+
+  // Helper function to check if selected subject is JEE Mains/Advanced (MCQ/NVTQ/Theorem flow)
+  const isJEEMainsAdvancedSubject = () => {
+    if (!selectedSubject || !subjects.length) return false;
+    const subject = subjects.find((s) => s.subject_code === selectedSubject);
+    const subjectName = subject?.subject_name?.toLowerCase() || "";
+
+    // Only JEE Mathematics Mains and Advanced use MCQ/NVTQ/Theorem
+    return (
+      subjectName.includes("mathematics_mains") ||
+      subjectName.includes("mathematics_advanced") ||
+      subjectName.includes("jee_mathematics_mains") ||
+      subjectName.includes("jee_mathematics_advanced")
+    );
+  };
+
+  // Helper function to check if subject is JEE but uses traditional flow (Solved/Exercise/Worksheet)
+  const isJEETraditionalSubject = () => {
+    if (!selectedSubject || !subjects.length) return false;
+    const subject = subjects.find((s) => s.subject_code === selectedSubject);
+    const subjectName = subject?.subject_name?.toLowerCase() || "";
+
+    // JEE Physics, JEE_Mathematics, JEE_Mathematics_1 use traditional flow
+    return (
+      (subjectName.includes("jee") &&
+        !subjectName.includes("mathematics_mains") &&
+        !subjectName.includes("mathematics_advanced")) ||
+      subjectName === "jee_physics" ||
+      subjectName === "jee_mathematics" ||
+      subjectName === "jee_mathematics_1"
+    );
+  };
+
+  // Reset question type when subject changes
+  useEffect(() => {
+    if (selectedSubject) {
+      setQuestionType("");
+      setQuestionLevel("");
+      setSelectedWorksheet("");
+      setScienceSubtopics([]);
+      setJeeSubtopics([]); // Add this line
+    }
+  }, [selectedSubject]);
+
+  // Fetch available subtopics for Science OR JEE subjects when selected with chapters
+  useEffect(() => {
+    async function fetchSubtopics() {
+      // Handle Science subjects (EXISTING - NO CHANGE)
+      if (
+        isScienceSubject() &&
+        selectedClass &&
+        selectedSubject &&
+        selectedChapters.length > 0
+      ) {
+        try {
+          console.log("🔬 Fetching Science subtopics...");
+          const response = await axiosInstance.post(
+            "/question-images-paginator/",
+            {
+              classid: selectedClass,
+              subjectid: selectedSubject,
+              topicid: selectedChapters,
+              external: true,
+            },
+          );
+
+          if (response.data && response.data.subtopics) {
+            setScienceSubtopics(response.data.subtopics);
+            console.log(
+              "✅ Available Science subtopics:",
+              response.data.subtopics,
+            );
+          } else {
+            setScienceSubtopics([]);
+          }
+        } catch (error) {
+          console.error("❌ Error fetching Science subtopics:", error);
           setScienceSubtopics([]);
         }
-      } catch (error) {
-        console.error("❌ Error fetching Science subtopics:", error);
-        setScienceSubtopics([]);
       }
-    } 
-    // Handle JEE Mains/Advanced subjects (NEW - MCQ/NVTQ/Theorem)
-    else if (isJEEMainsAdvancedSubject() && selectedClass && selectedSubject && selectedChapters.length > 0) {
-      try {
-        console.log("📐 Fetching JEE Mains/Advanced subtopics...");
-        const response = await axiosInstance.post("/question-images-paginator/", {
-          classid: selectedClass,
-          subjectid: selectedSubject,
-          topicid: selectedChapters,
-          external: true,
-        });
-        
-        if (response.data && response.data.subtopics) {
-          setJeeSubtopics(response.data.subtopics);
-          console.log("✅ Available JEE subtopics:", response.data.subtopics);
-        } else {
+      // Handle JEE Mains/Advanced subjects (NEW - MCQ/NVTQ/Theorem)
+      else if (
+        isJEEMainsAdvancedSubject() &&
+        selectedClass &&
+        selectedSubject &&
+        selectedChapters.length > 0
+      ) {
+        try {
+          console.log("📐 Fetching JEE Mains/Advanced subtopics...");
+          const response = await axiosInstance.post(
+            "/question-images-paginator/",
+            {
+              classid: selectedClass,
+              subjectid: selectedSubject,
+              topicid: selectedChapters,
+              external: true,
+            },
+          );
+
+          if (response.data && response.data.subtopics) {
+            setJeeSubtopics(response.data.subtopics);
+            console.log("✅ Available JEE subtopics:", response.data.subtopics);
+          } else {
+            setJeeSubtopics([]);
+          }
+        } catch (error) {
+          console.error("❌ Error fetching JEE subtopics:", error);
           setJeeSubtopics([]);
         }
-      } catch (error) {
-        console.error("❌ Error fetching JEE subtopics:", error);
+      }
+      // Handle JEE Traditional subjects (NEW - fetch subtopics for external only)
+      else if (
+        isJEETraditionalSubject() &&
+        questionType === "external" &&
+        selectedClass &&
+        selectedSubject &&
+        selectedChapters.length > 0
+      ) {
+        try {
+          console.log("📚 Fetching JEE Traditional subtopics...");
+          const response = await axiosInstance.post(
+            "/question-images-paginator/",
+            {
+              classid: selectedClass,
+              subjectid: selectedSubject,
+              topicid: selectedChapters[0],
+              external: true,
+            },
+          );
+          setSubTopics(response.data.subtopics || []);
+        } catch (error) {
+          console.error("❌ Error fetching subtopics:", error);
+          setSubTopics([]);
+        }
+      }
+      // Clear all if none match
+      else {
+        setScienceSubtopics([]);
         setJeeSubtopics([]);
       }
-    } 
-    // Handle JEE Traditional subjects (NEW - fetch subtopics for external only)
-    else if (isJEETraditionalSubject() && questionType === "external" && 
-             selectedClass && selectedSubject && selectedChapters.length > 0) {
-      try {
-        console.log("📚 Fetching JEE Traditional subtopics...");
-        const response = await axiosInstance.post("/question-images-paginator/", {
-          classid: selectedClass,
-          subjectid: selectedSubject,
-          topicid: selectedChapters[0],
-          external: true,
-        });
-        setSubTopics(response.data.subtopics || []);
-      } catch (error) {
-        console.error("❌ Error fetching subtopics:", error);
-        setSubTopics([]);
-      }
     }
-    // Clear all if none match
-    else {
-      setScienceSubtopics([]);
-      setJeeSubtopics([]);
+    fetchSubtopics();
+  }, [selectedClass, selectedSubject, selectedChapters, questionType]); // Added questionType dependency
+
+  const isGenerateButtonEnabled = () => {
+    // Base requirements — must always be true
+    if (
+      !selectedClass ||
+      !selectedSubject ||
+      selectedChapters.length === 0 ||
+      !questionType
+    ) {
+      return false;
     }
-  }
-  fetchSubtopics();
-}, [selectedClass, selectedSubject, selectedChapters, questionType]);  // Added questionType dependency
 
-const isGenerateButtonEnabled = () => {
-  if (!selectedClass || !selectedSubject || selectedChapters.length === 0 || !questionType) {
-    return false;
-  }
+    // JEE Mains/Advanced: needs a valid subtopic loaded
+    if (isJEEMainsAdvancedSubject()) {
+      const validTypes = ["mcq", "nvtq", "theorem"];
+      return validTypes.includes(questionType) && jeeSubtopics.length > 0;
+    }
 
-  // For Science subjects - all types can be generated immediately
-  if (isScienceSubject()) {
+    // Book Exercises: needs a subtopic/set selected
+    if (questionType === "external") {
+      return !!questionLevel;
+    }
+
+    // Worksheets: needs a worksheet selected
+    if (questionType === "worksheets") {
+      return !!selectedWorksheet;
+    }
+
+    // All other cases (solved, science subtopic, etc.)
     return true;
-  }
-
-  // For JEE Mains/Advanced subjects - MCQ/NVTQ/Theorem can be generated immediately
-  if (isJEEMainsAdvancedSubject()) {
-    return true;
-  }
-
-  // For JEE Traditional subjects - check like regular subjects
-  if (isJEETraditionalSubject()) {
-    if (questionType === "worksheets") return selectedWorksheet !== "";
-    if (questionType === "external") return questionLevel !== "";
-    if (questionType === "solved") return true;
-    return false;
-  }
-
-  // For non-Science, non-JEE subjects
-  if (questionType === "worksheets") return selectedWorksheet !== "";
-  if (questionType === "external") return questionLevel !== "";
-  if (questionType === "solved") return true;
-  
-  return false;
-};
-
+  };
 
   // Fetch classes and set defaults with debugging
   useEffect(() => {
@@ -500,20 +561,26 @@ const isGenerateButtonEnabled = () => {
         // console.log("📋 Classes API Response:", classResponse.data);
         const classesData = classResponse.data.data;
 
-      // Filter classes based on mode
-      let filteredClasses = classesData;
+        // Filter classes based on mode
+        let filteredClasses = classesData;
 
         if (isJeeMode) {
-        // JEE Mode: Only classes 11 and 12
-        filteredClasses = classesData.filter(cls => {
-          const className = cls.class_name.toLowerCase();
-          return className.includes('11') || className.includes('12');
-        });
-        console.log("📐 JEE Mode - Classes:", filteredClasses.map(c => c.class_name));
-      } else {
-        // Board Mode: All classes
-        console.log("📚 Board Mode - Classes:", filteredClasses.map(c => c.class_name));
-      }
+          // JEE Mode: Only classes 11 and 12
+          filteredClasses = classesData.filter((cls) => {
+            const className = cls.class_name.toLowerCase();
+            return className.includes("11") || className.includes("12");
+          });
+          console.log(
+            "📐 JEE Mode - Classes:",
+            filteredClasses.map((c) => c.class_name),
+          );
+        } else {
+          // Board Mode: All classes
+          console.log(
+            "📚 Board Mode - Classes:",
+            filteredClasses.map((c) => c.class_name),
+          );
+        }
         setClasses(filteredClasses);
 
         // Set default class based on username
@@ -521,8 +588,10 @@ const isGenerateButtonEnabled = () => {
         // console.log("👤 Username:", username, "Extracted Class:", defaultClass);
 
         if (defaultClass) {
-          const matchingClass = classesData.find(cls =>
-            cls.class_name.includes(defaultClass) || cls.class_code === defaultClass
+          const matchingClass = classesData.find(
+            (cls) =>
+              cls.class_name.includes(defaultClass) ||
+              cls.class_code === defaultClass,
           );
           // console.log("🎯 Matching class found:", matchingClass);
 
@@ -557,41 +626,57 @@ const isGenerateButtonEnabled = () => {
           let filteredSubjects = subjectsData;
 
           // Check if selected class is 8, 9, or 10 (for JEE Foundation)
-          const isFoundationClass = ['8', '9', '10'].some(cls =>
-            selectedClass.toString().includes(cls)
+          const isFoundationClass = ["8", "9", "10"].some((cls) =>
+            selectedClass.toString().includes(cls),
           );
 
           if (isJeeMode) {
             // JEE Mode: Only JEE subjects
-            filteredSubjects = subjectsData.filter(subject => {
+            filteredSubjects = subjectsData.filter((subject) => {
               const sn = subject.subject_name.toLowerCase();
-              return sn.includes('jee') ||
-                    sn.includes('mathematics_mains') ||
-                    sn.includes('mathematics_advanced') ||
-                    sn.includes('physics_mains') ||
-                    sn.includes('chemistry_mains');
+              return (
+                sn.includes("jee") ||
+                sn.includes("mathematics_mains") ||
+                sn.includes("mathematics_advanced") ||
+                sn.includes("physics_mains") ||
+                sn.includes("chemistry_mains")
+              );
             });
-            console.log("📐 JEE Subjects:", filteredSubjects.map(s => s.subject_name));
+            console.log(
+              "📐 JEE Subjects:",
+              filteredSubjects.map((s) => s.subject_name),
+            );
           } else {
             // Board Mode: Exclude JEE subjects BUT include JEE Foundation for classes 8, 9, 10
-            filteredSubjects = subjectsData.filter(subject => {
+            filteredSubjects = subjectsData.filter((subject) => {
               const sn = subject.subject_name.toLowerCase();
 
               // Allow JEE Foundation subjects for classes 8, 9, 10
-              if (isFoundationClass && (sn.includes('jee_foundation') || sn.includes('jee foundation'))) {
+              if (
+                isFoundationClass &&
+                (sn.includes("jee_foundation") || sn.includes("jee foundation"))
+              ) {
                 return true;
               }
 
               // Exclude other JEE subjects
-              return !(sn.includes('jee') ||
-                      sn.includes('mathematics_mains') ||
-                      sn.includes('mathematics_advanced') ||
-                      sn.includes('physics_mains') ||
-                      sn.includes('chemistry_mains'));
+              return !(
+                sn.includes("jee") ||
+                sn.includes("mathematics_mains") ||
+                sn.includes("mathematics_advanced") ||
+                sn.includes("physics_mains") ||
+                sn.includes("chemistry_mains")
+              );
             });
-            console.log("📚 Board Subjects:", filteredSubjects.map(s => s.subject_name));
+            console.log(
+              "📚 Board Subjects:",
+              filteredSubjects.map((s) => s.subject_name),
+            );
             if (isFoundationClass) {
-              console.log("🎯 JEE Foundation enabled for class:", selectedClass);
+              console.log(
+                "🎯 JEE Foundation enabled for class:",
+                selectedClass,
+              );
             }
           }
 
@@ -599,13 +684,22 @@ const isGenerateButtonEnabled = () => {
 
           // Set default subject
           if (filteredSubjects.length > 0) {
-            const mathSubject = filteredSubjects.find(subject =>
-              subject.subject_name.toLowerCase().includes('math')
+            const mathSubject = filteredSubjects.find((subject) =>
+              subject.subject_name.toLowerCase().includes("math"),
             );
             if (mathSubject) {
               setSelectedSubject(mathSubject.subject_code);
+              // Also reset downstream when auto-selecting
+              setSelectedChapters([]);
+              setQuestionType("");
+              setQuestionLevel("");
+              setSelectedWorksheet("");
             } else {
               setSelectedSubject(filteredSubjects[0].subject_code);
+              setSelectedChapters([]);
+              setQuestionType("");
+              setQuestionLevel("");
+              setSelectedWorksheet("");
             }
           }
 
@@ -677,7 +771,7 @@ const isGenerateButtonEnabled = () => {
     fetchChapters();
   }, [selectedSubject, selectedClass]);
 
- // Effect for fetching subtopics when External question type is selected
+  // Effect for fetching subtopics when External question type is selected
   useEffect(() => {
     async function fetchSubTopics() {
       if (
@@ -687,12 +781,15 @@ const isGenerateButtonEnabled = () => {
         selectedChapters.length > 0
       ) {
         try {
-          const response = await axiosInstance.post("/question-images-paginator/", {
-            classid: selectedClass,
-            subjectid: selectedSubject,
-            topicid: selectedChapters[0], // Using first chapter for subtopics
-            external: true,
-          });
+          const response = await axiosInstance.post(
+            "/question-images-paginator/",
+            {
+              classid: selectedClass,
+              subjectid: selectedSubject,
+              topicid: selectedChapters[0], // Using first chapter for subtopics
+              external: true,
+            },
+          );
           // console.log("Subtopics response:", response);
           setSubTopics(response.data.subtopics || []);
         } catch (error) {
@@ -714,12 +811,15 @@ const isGenerateButtonEnabled = () => {
         selectedChapters.length > 0
       ) {
         try {
-          const response = await axiosInstance.post("/question-images-paginator/", {
-            classid: selectedClass,
-            subjectid: selectedSubject,
-            topicid: selectedChapters[0], // Using first chapter for worksheets
-            worksheets: true,
-          });
+          const response = await axiosInstance.post(
+            "/question-images-paginator/",
+            {
+              classid: selectedClass,
+              subjectid: selectedSubject,
+              topicid: selectedChapters[0], // Using first chapter for worksheets
+              worksheets: true,
+            },
+          );
           // console.log("Worksheets response:", response);
           setWorksheets(response.data.worksheets || []);
         } catch (error) {
@@ -731,132 +831,231 @@ const isGenerateButtonEnabled = () => {
     fetchWorksheets();
   }, [questionType, selectedClass, selectedSubject, selectedChapters]);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleWizardSubmit = async (requestData, meta) => {
+    try {
+      setIsLoading(true);
+      console.log("🧙 Wizard submit with:", requestData);
 
-  if (!isGenerateButtonEnabled()) {
-    console.error("Please select all required fields");
-    return;
-  }
+      const response = await axiosInstance.post(
+        "/question-images/",
+        requestData,
+      );
+      console.log("Questions response:", response.data);
 
-  const requestData = {
-    classid: Number(selectedClass),
-    subjectid: Number(selectedSubject),
-    topicid: selectedChapters,
+      if (
+        response.data &&
+        response.data.questions &&
+        Array.isArray(response.data.questions)
+      ) {
+        const questionsWithImages = response.data.questions.map(
+          (question, index) => ({
+            ...question,
+            id: index,
+            question_id: question.id,
+            question: question.question,
+            context: question.context || null,
+            image: question.question_image
+              ? `${question.question_image}`
+              : null,
+          }),
+        );
+
+        // Sync state back so handleQuestionClick, handleMultipleSelectSubmit,
+        // saveSessionData, and QuestionListModal all work correctly
+        setSelectedClass(meta.selClass.class_code);
+        setSelectedSubject(meta.selSub.subject_code);
+        setSelectedChapters(meta.selChaps.map((c) => c.topic_code));
+        setSubjects([meta.selSub]);
+        setChapters(meta.selChaps);
+        setQuestionType(meta.selQType.value);
+        setQuestionLevel(meta.selLevel || "");
+        setSelectedWorksheet(meta.selWS || "");
+
+        setQuestionList(questionsWithImages);
+        setSelectedQuestions([]);
+
+        // Handle pagination if present
+        if (response.data.next || response.data.previous) {
+          const totalCount = response.data.count || questionsWithImages.length;
+          setPaginationInfo({
+            next: response.data.next || null,
+            previous: response.data.previous || null,
+            count: totalCount,
+            currentPage: 1,
+            totalPages: Math.ceil(totalCount / 15),
+            isLoading: false,
+          });
+        } else {
+          setPaginationInfo({
+            next: null,
+            previous: null,
+            count: questionsWithImages.length,
+            currentPage: 1,
+            totalPages: 1,
+            isLoading: false,
+          });
+        }
+
+        setShowQuestionList(true);
+      } else {
+        showAlert("No questions available for this selection", "warning");
+      }
+    } catch (error) {
+      console.error("Error generating questions:", error);
+      showAlert(
+        error.response?.data?.message ||
+          "Failed to generate questions. Please try again.",
+        "error",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // ✅ For Science subjects
-  if (isScienceSubject()) {
-    const selectedQuestionType = QUESTION_TYPE_MAPPING.find(
-      type => type.value === questionType
-    );
-    
-    if (selectedQuestionType) {
-      requestData.subtopic = selectedQuestionType.id;
-      console.log("🔬 Sending Science request with subtopic:", selectedQuestionType.id);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!isGenerateButtonEnabled()) {
+      console.error("Please select all required fields");
+      return;
     }
-  } 
-  // ✅ For JEE Mains/Advanced subjects
-  else if (isJEEMainsAdvancedSubject()) {
-    const idMap = { 'mcq': '1', 'nvtq': '2', 'theorem': '3' };
-    
-    if (questionType && idMap[questionType]) {
-      requestData.subtopic = idMap[questionType];
-      console.log("📐 Sending JEE Mains/Advanced request with subtopic:", idMap[questionType]);
+
+    const requestData = {
+      classid: Number(selectedClass),
+      subjectid: Number(selectedSubject),
+      topicid: selectedChapters,
+    };
+
+    // ✅ For Science subjects
+    if (isScienceSubject()) {
+      const selectedQuestionType = QUESTION_TYPE_MAPPING.find(
+        (type) => type.value === questionType,
+      );
+
+      if (selectedQuestionType) {
+        requestData.subtopic = selectedQuestionType.id;
+        console.log(
+          "🔬 Sending Science request with subtopic:",
+          selectedQuestionType.id,
+        );
+      }
     }
-  }
-  // ✅ For JEE Traditional subjects
-  else if (isJEETraditionalSubject()) {
-    requestData.solved = questionType === "solved";
-    requestData.exercise = questionType === "exercise";
-    requestData.subtopic = questionType === "external" ? questionLevel : null;
-    requestData.worksheet_name = questionType === "worksheets" ? selectedWorksheet : null;
-    console.log("📚 Sending JEE Traditional request:", requestData);
-  }
-  // ✅ For other subjects
-  else {
-    requestData.solved = questionType === "solved";
-    requestData.exercise = questionType === "exercise";
-    requestData.subtopic = questionType === "external" ? questionLevel : null;
-    requestData.worksheet_name = questionType === "worksheets" ? selectedWorksheet : null;
-  }
+    // ✅ For JEE Mains/Advanced subjects
+    else if (isJEEMainsAdvancedSubject()) {
+      const idMap = { mcq: "1", nvtq: "2", theorem: "3" };
 
-  try {
-    setIsLoading(true);
-    console.log("Requesting questions with:", requestData);
+      if (questionType && idMap[questionType]) {
+        requestData.subtopic = idMap[questionType];
+        console.log(
+          "📐 Sending JEE Mains/Advanced request with subtopic:",
+          idMap[questionType],
+        );
+      }
+    }
+    // ✅ For JEE Traditional subjects
+    else if (isJEETraditionalSubject()) {
+      requestData.solved = questionType === "solved";
+      requestData.exercise = questionType === "exercise";
+      requestData.subtopic = questionType === "external" ? questionLevel : null;
+      requestData.worksheet_name =
+        questionType === "worksheets" ? selectedWorksheet : null;
+      console.log("📚 Sending JEE Traditional request:", requestData);
+    }
+    // ✅ For other subjects
+    else {
+      requestData.solved = questionType === "solved";
+      requestData.exercise = questionType === "exercise";
+      requestData.subtopic = questionType === "external" ? questionLevel : null;
+      requestData.worksheet_name =
+        questionType === "worksheets" ? selectedWorksheet : null;
+    }
 
-    const response = await axiosInstance.post("/question-images/", requestData);
-    console.log("Questions response:", response.data);
+    try {
+      setIsLoading(true);
+      console.log("Requesting questions with:", requestData);
 
-    // Process questions if they exist
-    if (response.data && response.data.questions && Array.isArray(response.data.questions)) {
-      console.log("Questions found:", response.data.questions.length);
-      const questionsWithImages = response.data.questions.map((question, index) => ({
-        ...question,
-        id: index,
-        question_id: question.id,
-        question: question.question,
-        context: question.context || null,
-        image: question.question_image
-          ? `${question.question_image}`
-          : null,
-      }));
+      const response = await axiosInstance.post(
+        "/question-images/",
+        requestData,
+      );
+      console.log("Questions response:", response.data);
 
-      setQuestionList(questionsWithImages);
-      setSelectedQuestions([]);
+      // Process questions if they exist
+      if (
+        response.data &&
+        response.data.questions &&
+        Array.isArray(response.data.questions)
+      ) {
+        console.log("Questions found:", response.data.questions.length);
+        const questionsWithImages = response.data.questions.map(
+          (question, index) => ({
+            ...question,
+            id: index,
+            question_id: question.id,
+            question: question.question,
+            context: question.context || null,
+            image: question.question_image
+              ? `${question.question_image}`
+              : null,
+          }),
+        );
 
-      // Set pagination info if available
-      if (response.data.next || response.data.previous) {
-        const pageSize = 15;
-        const totalCount = response.data.count || questionsWithImages.length;
-        const totalPages = Math.ceil(totalCount / pageSize);
+        setQuestionList(questionsWithImages);
+        setSelectedQuestions([]);
 
-        setPaginationInfo({
-          next: response.data.next || null,
-          previous: response.data.previous || null,
-          count: totalCount,
-          currentPage: 1,
-          totalPages: totalPages,
-          isLoading: false
-        });
+        // Set pagination info if available
+        if (response.data.next || response.data.previous) {
+          const pageSize = 15;
+          const totalCount = response.data.count || questionsWithImages.length;
+          const totalPages = Math.ceil(totalCount / pageSize);
+
+          setPaginationInfo({
+            next: response.data.next || null,
+            previous: response.data.previous || null,
+            count: totalCount,
+            currentPage: 1,
+            totalPages: totalPages,
+            isLoading: false,
+          });
+        } else {
+          setPaginationInfo({
+            next: null,
+            previous: null,
+            count: questionsWithImages.length,
+            currentPage: 1,
+            totalPages: 1,
+            isLoading: false,
+          });
+        }
+
+        setShowQuestionList(true);
       } else {
-        setPaginationInfo({
-          next: null,
-          previous: null,
-          count: questionsWithImages.length,
-          currentPage: 1,
-          totalPages: 1,
-          isLoading: false
-        });
+        console.error("No questions found in response");
+        showAlert("No questions available for this selection", "warning");
       }
 
-      setShowQuestionList(true);
-    } else {
-      console.error("No questions found in response");
-      showAlert("No questions available for this selection", "warning");
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error generating questions:", error);
+      showAlert(
+        error.response?.data?.message ||
+          "Failed to generate questions. Please try again.",
+        "error",
+      );
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
-  } catch (error) {
-    console.error("Error generating questions:", error);
-    showAlert(
-      error.response?.data?.message || "Failed to generate questions. Please try again.",
-      "error"
-    );
-    setIsLoading(false);
-  }
-};
+  };
 
   // Fetch paginated questions (for Next/Previous)
   const fetchPaginatedQuestions = async (url) => {
     if (!url) return;
 
-    setPaginationInfo(prev => ({ ...prev, isLoading: true }));
+    setPaginationInfo((prev) => ({ ...prev, isLoading: true }));
 
     try {
       // Extract page number from URL
       const urlObj = new URL(url);
-      const pageNum = parseInt(urlObj.searchParams.get('page')) || 1;
+      const pageNum = parseInt(urlObj.searchParams.get("page")) || 1;
 
       console.log(`📄 Fetching page ${pageNum}...`);
 
@@ -864,16 +1063,16 @@ const handleSubmit = async (e) => {
       console.log("📥 Paginated response:", response.data);
 
       // Process questions with images and context
-      const questionsWithImages = (response.data.questions || []).map((question, index) => ({
-        ...question,
-        id: index,
-        question_id: question.id,
-        question: question.question,
-        context: question.context || null,
-        image: question.question_image
-          ? `${question.question_image}`
-          : null,
-      }));
+      const questionsWithImages = (response.data.questions || []).map(
+        (question, index) => ({
+          ...question,
+          id: index,
+          question_id: question.id,
+          question: question.question,
+          context: question.context || null,
+          image: question.question_image ? `${question.question_image}` : null,
+        }),
+      );
 
       setQuestionList(questionsWithImages);
       setSelectedQuestions([]);
@@ -889,14 +1088,14 @@ const handleSubmit = async (e) => {
         count: totalCount,
         currentPage: pageNum,
         totalPages: totalPages,
-        isLoading: false
+        isLoading: false,
       });
 
       console.log(`✅ Page ${pageNum} loaded successfully`);
     } catch (error) {
       console.error("❌ Error fetching paginated questions:", error);
       showAlert("Failed to load questions. Please try again.", "error");
-      setPaginationInfo(prev => ({ ...prev, isLoading: false }));
+      setPaginationInfo((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
@@ -922,7 +1121,10 @@ const handleSubmit = async (e) => {
         timestamp: new Date().toISOString(),
         username: username,
       };
-      localStorage.setItem(`lastSession_${username}`, JSON.stringify(dataToSave));
+      localStorage.setItem(
+        `lastSession_${username}`,
+        JSON.stringify(dataToSave),
+      );
       console.log("💾 Session saved:", dataToSave);
     } catch (error) {
       console.error("Error saving session:", error);
@@ -955,38 +1157,46 @@ const handleSubmit = async (e) => {
   };
 
   // Enhanced question click handler
-  const handleQuestionClick = (question, index, image, question_id, context) => {
+  const handleQuestionClick = (
+    question,
+    index,
+    image,
+    question_id,
+    context,
+  ) => {
     // console.log("Question clicked:", { question, index, image, question_id, context });
 
     setShowQuestionList(false);
 
     // Get chapter names for the selected chapters
-    const chapterNames = selectedChapters.map(chapterId => {
-      const chapter = chapters.find(ch => ch.topic_code === chapterId);
-      return chapter ? chapter.name : 'Unknown Chapter';
+    const chapterNames = selectedChapters.map((chapterId) => {
+      const chapter = chapters.find((ch) => ch.topic_code === chapterId);
+      return chapter ? chapter.name : "Unknown Chapter";
     });
 
     // Get subject name
-    const subjectName = subjects.find(s => s.subject_code === selectedSubject)?.subject_name || 'Unknown Subject';
+    const subjectName =
+      subjects.find((s) => s.subject_code === selectedSubject)?.subject_name ||
+      "Unknown Subject";
 
-const sessionData = {
-  question,
-  question_id: question_id,
-  questionNumber: index + 1,
-  questionList,
-  class_id: selectedClass,
-  subject_id: selectedSubject,
-  subject_name: subjectName,
-  topic_ids: selectedChapters,
-  chapter_names: chapterNames,
-  subtopic: questionType === "external" ? questionLevel : "",
-  worksheet_id: questionType === "worksheets" ? selectedWorksheet : "",
-  image,
-  context: context || null,
-  selectedQuestions: questionList,
-  // MODIFIED: Only pass jeeQuestionType for Mains/Advanced subjects
-  jeeQuestionType: isJEEMainsAdvancedSubject() ? questionType : null,
-};
+    const sessionData = {
+      question,
+      question_id: question_id,
+      questionNumber: index + 1,
+      questionList,
+      class_id: selectedClass,
+      subject_id: selectedSubject,
+      subject_name: subjectName,
+      topic_ids: selectedChapters,
+      chapter_names: chapterNames,
+      subtopic: questionType === "external" ? questionLevel : "",
+      worksheet_id: questionType === "worksheets" ? selectedWorksheet : "",
+      image,
+      context: context || null,
+      selectedQuestions: questionList,
+      // MODIFIED: Only pass jeeQuestionType for Mains/Advanced subjects
+      jeeQuestionType: isJEEMainsAdvancedSubject() ? questionType : null,
+    };
 
     // Save session before navigating
     saveSessionData(sessionData);
@@ -1003,13 +1213,15 @@ const sessionData = {
     const firstQuestion = selectedQuestionsData[0];
 
     // Get chapter names for the selected chapters
-    const chapterNames = selectedChapters.map(chapterId => {
-      const chapter = chapters.find(ch => ch.topic_code === chapterId);
-      return chapter ? chapter.name : 'Unknown Chapter';
+    const chapterNames = selectedChapters.map((chapterId) => {
+      const chapter = chapters.find((ch) => ch.topic_code === chapterId);
+      return chapter ? chapter.name : "Unknown Chapter";
     });
 
     // Get subject name
-    const subjectName = subjects.find(s => s.subject_code === selectedSubject)?.subject_name || 'Unknown Subject';
+    const subjectName =
+      subjects.find((s) => s.subject_code === selectedSubject)?.subject_name ||
+      "Unknown Subject";
 
     const sessionData = {
       question: firstQuestion.question,
@@ -1048,162 +1260,186 @@ const sessionData = {
   }, [questionType]);
 
   // Enhanced styles for react-select with portal rendering - MEMOIZED to prevent forced reflow
-  const selectStyles = useMemo(() => ({
-    control: (provided, state) => ({
-      ...provided,
-      backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-      borderColor: state.isFocused
-        ? (isDarkMode ? '#7c3aed' : '#667eea')
-        : (isDarkMode ? '#475569' : '#e2e8f0'),
-      color: isDarkMode ? '#f1f5f9' : '#2d3748',
-      minHeight: '56px',
-      border: `2px solid ${state.isFocused
-        ? (isDarkMode ? '#7c3aed' : '#667eea')
-        : (isDarkMode ? '#475569' : '#e2e8f0')}`,
-      borderRadius: '12px',
-      boxShadow: state.isFocused
-        ? `0 0 0 4px ${isDarkMode ? 'rgba(124, 58, 237, 0.1)' : 'rgba(102, 126, 234, 0.1)'}`
-        : 'none',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      '&:hover': {
-        borderColor: isDarkMode ? '#6366f1' : '#5a67d8',
-      },
+  const selectStyles = useMemo(
+    () => ({
+      control: (provided, state) => ({
+        ...provided,
+        backgroundColor: isDarkMode ? "#1e293b" : "#ffffff",
+        borderColor: state.isFocused
+          ? isDarkMode
+            ? "#7c3aed"
+            : "#667eea"
+          : isDarkMode
+            ? "#475569"
+            : "#e2e8f0",
+        color: isDarkMode ? "#f1f5f9" : "#2d3748",
+        minHeight: "56px",
+        border: `2px solid ${
+          state.isFocused
+            ? isDarkMode
+              ? "#7c3aed"
+              : "#667eea"
+            : isDarkMode
+              ? "#475569"
+              : "#e2e8f0"
+        }`,
+        borderRadius: "12px",
+        boxShadow: state.isFocused
+          ? `0 0 0 4px ${isDarkMode ? "rgba(124, 58, 237, 0.1)" : "rgba(102, 126, 234, 0.1)"}`
+          : "none",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        "&:hover": {
+          borderColor: isDarkMode ? "#6366f1" : "#5a67d8",
+        },
+      }),
+      menuPortal: (provided) => ({
+        ...provided,
+        zIndex: 10000,
+        position: "fixed",
+      }),
+      menu: (provided) => ({
+        ...provided,
+        backgroundColor: isDarkMode ? "#1e293b" : "#ffffff",
+        zIndex: 10000,
+        borderRadius: "12px",
+        border: `2px solid ${isDarkMode ? "#7c3aed" : "#667eea"}`,
+        boxShadow: isDarkMode
+          ? "0 25px 50px -12px rgba(0, 0, 0, 0.9)"
+          : "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        maxHeight: "500px",
+        overflow: "hidden",
+        position: "fixed",
+        width: "auto",
+        minWidth: "450px",
+        maxWidth: "600px",
+      }),
+      menuList: (provided) => ({
+        ...provided,
+        maxHeight: "470px",
+        padding: "12px",
+        overflowY: "auto",
+        overflowX: "hidden",
+        scrollbarWidth: "thin",
+        scrollbarColor: `${isDarkMode ? "#7c3aed" : "#667eea"} ${isDarkMode ? "#334155" : "#f8fafc"}`,
+        "&::-webkit-scrollbar": {
+          width: "12px",
+        },
+        "&::-webkit-scrollbar-track": {
+          background: isDarkMode ? "#334155" : "#f8fafc",
+          borderRadius: "6px",
+          margin: "4px",
+        },
+        "&::-webkit-scrollbar-thumb": {
+          background: isDarkMode ? "#7c3aed" : "#667eea",
+          borderRadius: "6px",
+          border: `2px solid ${isDarkMode ? "#334155" : "#f8fafc"}`,
+        },
+        "&::-webkit-scrollbar-thumb:hover": {
+          background: isDarkMode ? "#6366f1" : "#5a67d8",
+        },
+      }),
+      option: (provided, state) => ({
+        ...provided,
+        backgroundColor: state.isFocused
+          ? isDarkMode
+            ? "#7c3aed"
+            : "#667eea"
+          : state.isSelected
+            ? isDarkMode
+              ? "#6366f1"
+              : "#5a67d8"
+            : isDarkMode
+              ? "#1e293b"
+              : "#ffffff",
+        color:
+          state.isFocused || state.isSelected
+            ? "#ffffff"
+            : isDarkMode
+              ? "#f1f5f9"
+              : "#2d3748",
+        padding: "16px 20px",
+        cursor: "pointer",
+        fontSize: "15px",
+        fontWeight: state.isSelected ? "600" : "500",
+        lineHeight: "1.5",
+        whiteSpace: "normal",
+        wordWrap: "break-word",
+        minHeight: "50px",
+        display: "flex",
+        alignItems: "center",
+        borderBottom: `1px solid ${isDarkMode ? "#475569" : "#f1f5f9"}`,
+        transition: "all 0.2s ease",
+        position: "relative",
+        "&:hover": {
+          backgroundColor: isDarkMode ? "#7c3aed" : "#667eea",
+          color: "#ffffff",
+          transform: "translateX(4px)",
+        },
+        "&:last-child": {
+          borderBottom: "none",
+        },
+      }),
+      multiValue: (provided) => ({
+        ...provided,
+        backgroundColor: isDarkMode ? "#6366f1" : "#667eea",
+        borderRadius: "8px",
+        margin: "3px",
+        padding: "2px",
+      }),
+      multiValueLabel: (provided) => ({
+        ...provided,
+        color: "#ffffff",
+        fontWeight: "600",
+        fontSize: "13px",
+        padding: "6px 10px",
+      }),
+      multiValueRemove: (provided) => ({
+        ...provided,
+        color: "#ffffff",
+        borderRadius: "0 8px 8px 0",
+        "&:hover": {
+          backgroundColor: "#ef4444",
+          color: "#ffffff",
+          transform: "scale(1.1)",
+        },
+      }),
+      placeholder: (provided) => ({
+        ...provided,
+        color: isDarkMode ? "#94a3b8" : "#6b7280",
+        fontSize: "15px",
+        fontWeight: "500",
+      }),
+      singleValue: (provided) => ({
+        ...provided,
+        color: isDarkMode ? "#f1f5f9" : "#2d3748",
+        fontSize: "15px",
+        fontWeight: "600",
+      }),
+      dropdownIndicator: (provided, state) => ({
+        ...provided,
+        color: isDarkMode ? "#94a3b8" : "#6b7280",
+        transform: state.selectProps.menuIsOpen
+          ? "rotate(180deg)"
+          : "rotate(0deg)",
+        transition: "transform 0.3s ease",
+        "&:hover": {
+          color: isDarkMode ? "#7c3aed" : "#667eea",
+        },
+      }),
+      clearIndicator: (provided) => ({
+        ...provided,
+        color: isDarkMode ? "#94a3b8" : "#6b7280",
+        "&:hover": {
+          color: isDarkMode ? "#ef4444" : "#dc2626",
+        },
+      }),
+      indicatorSeparator: (provided) => ({
+        ...provided,
+        backgroundColor: isDarkMode ? "#475569" : "#e2e8f0",
+      }),
     }),
-    menuPortal: (provided) => ({
-      ...provided,
-      zIndex: 10000,
-      position: 'fixed',
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-      zIndex: 10000,
-      borderRadius: '12px',
-      border: `2px solid ${isDarkMode ? '#7c3aed' : '#667eea'}`,
-      boxShadow: isDarkMode
-        ? '0 25px 50px -12px rgba(0, 0, 0, 0.9)'
-        : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-      maxHeight: '500px',
-      overflow: 'hidden',
-      position: 'fixed',
-      width: 'auto',
-      minWidth: '450px',
-      maxWidth: '600px',
-    }),
-    menuList: (provided) => ({
-      ...provided,
-      maxHeight: '470px',
-      padding: '12px',
-      overflowY: 'auto',
-      overflowX: 'hidden',
-      scrollbarWidth: 'thin',
-      scrollbarColor: `${isDarkMode ? '#7c3aed' : '#667eea'} ${isDarkMode ? '#334155' : '#f8fafc'}`,
-      '&::-webkit-scrollbar': {
-        width: '12px',
-      },
-      '&::-webkit-scrollbar-track': {
-        background: isDarkMode ? '#334155' : '#f8fafc',
-        borderRadius: '6px',
-        margin: '4px',
-      },
-      '&::-webkit-scrollbar-thumb': {
-        background: isDarkMode ? '#7c3aed' : '#667eea',
-        borderRadius: '6px',
-        border: `2px solid ${isDarkMode ? '#334155' : '#f8fafc'}`,
-      },
-      '&::-webkit-scrollbar-thumb:hover': {
-        background: isDarkMode ? '#6366f1' : '#5a67d8',
-      },
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isFocused
-        ? (isDarkMode ? '#7c3aed' : '#667eea')
-        : state.isSelected
-          ? (isDarkMode ? '#6366f1' : '#5a67d8')
-          : (isDarkMode ? '#1e293b' : '#ffffff'),
-      color: state.isFocused || state.isSelected
-        ? '#ffffff'
-        : (isDarkMode ? '#f1f5f9' : '#2d3748'),
-      padding: '16px 20px',
-      cursor: 'pointer',
-      fontSize: '15px',
-      fontWeight: state.isSelected ? '600' : '500',
-      lineHeight: '1.5',
-      whiteSpace: 'normal',
-      wordWrap: 'break-word',
-      minHeight: '50px',
-      display: 'flex',
-      alignItems: 'center',
-      borderBottom: `1px solid ${isDarkMode ? '#475569' : '#f1f5f9'}`,
-      transition: 'all 0.2s ease',
-      position: 'relative',
-      '&:hover': {
-        backgroundColor: isDarkMode ? '#7c3aed' : '#667eea',
-        color: '#ffffff',
-        transform: 'translateX(4px)',
-      },
-      '&:last-child': {
-        borderBottom: 'none',
-      },
-    }),
-    multiValue: (provided) => ({
-      ...provided,
-      backgroundColor: isDarkMode ? '#6366f1' : '#667eea',
-      borderRadius: '8px',
-      margin: '3px',
-      padding: '2px',
-    }),
-    multiValueLabel: (provided) => ({
-      ...provided,
-      color: '#ffffff',
-      fontWeight: '600',
-      fontSize: '13px',
-      padding: '6px 10px',
-    }),
-    multiValueRemove: (provided) => ({
-      ...provided,
-      color: '#ffffff',
-      borderRadius: '0 8px 8px 0',
-      '&:hover': {
-        backgroundColor: '#ef4444',
-        color: '#ffffff',
-        transform: 'scale(1.1)',
-      },
-    }),
-    placeholder: (provided) => ({
-      ...provided,
-      color: isDarkMode ? '#94a3b8' : '#6b7280',
-      fontSize: '15px',
-      fontWeight: '500',
-    }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: isDarkMode ? '#f1f5f9' : '#2d3748',
-      fontSize: '15px',
-      fontWeight: '600',
-    }),
-    dropdownIndicator: (provided, state) => ({
-      ...provided,
-      color: isDarkMode ? '#94a3b8' : '#6b7280',
-      transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-      transition: 'transform 0.3s ease',
-      '&:hover': {
-        color: isDarkMode ? '#7c3aed' : '#667eea',
-      },
-    }),
-    clearIndicator: (provided) => ({
-      ...provided,
-      color: isDarkMode ? '#94a3b8' : '#6b7280',
-      '&:hover': {
-        color: isDarkMode ? '#ef4444' : '#dc2626',
-      },
-    }),
-    indicatorSeparator: (provided) => ({
-      ...provided,
-      backgroundColor: isDarkMode ? '#475569' : '#e2e8f0',
-    }),
-  }), [isDarkMode]);
+    [isDarkMode],
+  );
 
   return (
     <>
@@ -1215,7 +1451,7 @@ const sessionData = {
         onClose={() => setShowFeedbackModal(false)}
       />
 
-      <div className={`student-dash-wrapper ${isDarkMode ? 'dark-mode' : ''}`}>
+      <div className={`student-dash-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
         {/* Main Content - Sidebar removed (now in Layout.jsx) */}
         <div className="main-content-fixed ">
           <Container className="py-4">
@@ -1224,28 +1460,33 @@ const sessionData = {
               {/* Left Side - Main Content (3 parts) */}
               <div className="dashboard-main-content">
                 <div className="greeting-content">
-                <div className="greeting-text">
-                  <h1>
-                    {getTimeBasedGreeting()}, {localStorage.getItem("fullName") || username}! 👋
-                  </h1>
-                  <p style={{ 
-                    fontSize: '14px', 
-                    color: isJeeMode ? '#7c3aed' : '#667eea',
-                    fontWeight: '600',
-                    marginTop: '8px',
-                    marginBottom: '0'
-                  }}>
-                    {isJeeMode ? 'JEE Preparation Mode' : 'Board Exam Mode'}
-                  </p>
-                </div>
+                  <div className="greeting-text">
+                    <h1>
+                      {getTimeBasedGreeting()},{" "}
+                      {localStorage.getItem("fullName") || username}! 👋
+                    </h1>
+                    <p
+                      style={{
+                        fontSize: "14px",
+                        color: isJeeMode ? "#7c3aed" : "#667eea",
+                        fontWeight: "600",
+                        marginTop: "8px",
+                        marginBottom: "0",
+                      }}
+                    >
+                      {isJeeMode ? "JEE Preparation Mode" : "Board Exam Mode"}
+                    </p>
+                  </div>
                   <div className="current-date-wrapper">
                     <div className="current-date">
                       <span className="date-label">Today</span>
-                      <span className="date-value">{new Date().toLocaleDateString('en-US', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}</span>
+                      <span className="date-value">
+                        {new Date().toLocaleDateString("en-US", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
                     </div>
                     {/* Tutorial Toggle Button */}
                     <button
@@ -1260,7 +1501,11 @@ const sessionData = {
                     <button
                       className="dark-mode-toggle-btn"
                       onClick={toggleDarkMode}
-                      title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                      title={
+                        isDarkMode
+                          ? "Switch to Light Mode"
+                          : "Switch to Dark Mode"
+                      }
                     >
                       <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} />
                     </button>
@@ -1268,391 +1513,39 @@ const sessionData = {
                 </div>
 
                 {/* Progress & Resume Learning Grid Section */}
-                <div className="progress-resume-grid" style={{
-                  // display: 'grid',
-                  gridTemplateColumns:'1fr',
-                  gap: '24px',
-                  marginBottom: '24px',
-                  marginTop: '20px',
-                }}>
+                <div
+                  className="progress-resume-grid"
+                  style={{
+                    // display: 'grid',
+                    gridTemplateColumns: "1fr",
+                    gap: "24px",
+                    marginBottom: "24px",
+                    marginTop: "20px",
+                  }}
+                >
                   {/* Left Column - Quiz Score Graph */}
                   <div className="progress-graph-column">
                     <QuizScoreGraph />
                   </div>
 
                   {/* Right Column - Resume Learning Section */}
-                 
                 </div>
 
                 {/* Enhanced Learning Adventure Section */}
+                {/* Progressive Wizard */}
                 <div className="learning-adventure-section">
                   <div className="form-container">
-                    <Form onSubmit={handleSubmit}>
-                      <Row className="form-row">
-                        <Col md={6}>
-                          <Form.Group controlId="formClass">
-                            <Form.Label>
-                              <FontAwesomeIcon icon={faSchool} className="me-2" />
-                              Class
-                            </Form.Label>
-                            <Form.Control
-                              as="select"
-                              value={selectedClass}
-                              onChange={(e) => {
-                                // console.log("🏫 Class selection changed to:", e.target.value);
-                                setSelectedClass(e.target.value);
-                              }}
-                              className="form-control-enhanced"
-                            >
-                              <option value="">Select Class</option>
-                              {classes.map((cls) => (
-                                <option key={cls.class_code} value={cls.class_code}>
-                                  {cls.class_name}
-                                </option>
-                              ))}
-                            </Form.Control>
-                          </Form.Group>
-                        </Col>
-
-                        <Col md={6}>
-                          <Form.Group controlId="formSubject">
-                            <Form.Label>
-                              <FontAwesomeIcon icon={faBookOpen} className="me-2" />
-                              Subject
-                            </Form.Label>
-                            <Form.Control
-                              as="select"
-                              value={selectedSubject}
-                              onChange={(e) => {
-                                // console.log("📚 Subject selection changed to:", e.target.value);
-                                setSelectedSubject(e.target.value);
-                              }}
-                              className="form-control-enhanced"
-                              disabled={!selectedClass}
-                            >
-                              <option value="">Select Subject</option>
-                              {subjects.map((subject) => (
-                                <option
-                                  key={subject.subject_code}
-                                  value={subject.subject_code}
-                                >
-                                  {subject.subject_name}
-                                </option>
-                              ))}
-                            </Form.Control>
-                          </Form.Group>
-                        </Col>
-                      </Row>
-
-                      <Row className="form-row">
-                        <Col md={6}>
-                          <Form.Group controlId="formChapters">
-                            <Form.Label>
-                              <FontAwesomeIcon icon={faListAlt} className="chapter-select me-2" />
-                              Chapters (Select Multiple) - {chapters.length} Available
-                            </Form.Label>
-
-                            <Select
-                              isMulti
-                              value={selectedChapters.map(chapterCode => {
-                                const chapter = chapters.find(ch => ch.topic_code === chapterCode);
-                                return chapter ? { value: chapter.topic_code, label: chapter.name } : null;
-                              }).filter(Boolean)}
-                              onChange={(selectedOptions) => {
-                                const values = selectedOptions ? selectedOptions.map(option => option.value) : [];
-                                setSelectedChapters(values);
-                                // console.log("Selected chapters:", values);
-                              }}
-                              options={chapters.map(chapter => ({
-                                value: chapter.topic_code,
-                                label: chapter.name
-                              }))}
-                              placeholder="Select chapters..."
-                              isDisabled={!selectedSubject || chapters.length === 0}
-                              className="chapters-select-final"
-                              classNamePrefix="select"
-                              closeMenuOnSelect={false}
-                              isSearchable={true}
-                              isClearable={true}
-                              hideSelectedOptions={false}
-                              // CRITICAL: Render dropdown at body level to avoid container constraints
-                              menuPortalTarget={document.body}
-                              styles={{
-                                control: (provided, state) => ({
-                                  ...provided,
-                                  minHeight: '56px',
-                                  border: '2px solid #e2e8f0',
-                                  borderRadius: '12px',
-                                  backgroundColor: 'white',
-                                  '&:hover': {
-                                    borderColor: '#667eea',
-                                  },
-                                  boxShadow: state.isFocused ? '0 0 0 3px rgba(102, 126, 234, 0.1)' : 'none',
-                                }),
-                                // CRITICAL: Portal-specific styling
-                                menuPortal: (provided) => ({
-                                  ...provided,
-                                  zIndex: 9990,
-                                }),
-                                menu: (provided) => ({
-                                  ...provided,
-                                  borderRadius: '12px',
-                                  border: '2px solid #667eea',
-                                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                                  // FIXED: Use viewport height to ensure dropdown is never cut off
-                                  maxHeight: 'min(70vh, 500px)',
-                                  minWidth: '400px',
-                                  maxWidth: '600px',
-                                }),
-                                menuList: (provided) => ({
-                                  ...provided,
-                                  // CRITICAL: Enough height for all chapters + comfortable scrolling
-                                  maxHeight: 'min(65vh, 450px)',
-                                  overflowY: 'auto',
-                                  padding: '8px',
-                                  // Enhanced scrollbar
-                                  scrollbarWidth: 'thin',
-                                  scrollbarColor: '#667eea #f1f5f9',
-                                }),
-                                option: (provided, state) => ({
-                                  ...provided,
-                                  backgroundColor: state.isFocused
-                                    ? '#667eea'
-                                    : state.isSelected
-                                      ? '#5a67d8'
-                                      : 'white',
-                                  color: state.isFocused || state.isSelected ? 'white' : '#2d3748',
-                                  padding: '10px 14px',
-                                  margin: '2px 0',
-                                  borderRadius: '6px',
-                                  cursor: 'pointer',
-                                  fontSize: '14px',
-                                  fontWeight: state.isSelected ? '600' : '400',
-                                  // Ensure text wraps for long chapter names
-                                  whiteSpace: 'normal',
-                                  wordBreak: 'break-word',
-                                  lineHeight: '1.4',
-                                  minHeight: '40px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                }),
-                                multiValue: (provided) => ({
-                                  ...provided,
-                                  backgroundColor: '#667eea',
-                                  borderRadius: '6px',
-                                  margin: '2px',
-                                }),
-                                multiValueLabel: (provided) => ({
-                                  ...provided,
-                                  color: 'white',
-                                  fontWeight: '600',
-                                  fontSize: '12px',
-                                  padding: '3px 6px',
-                                }),
-                                multiValueRemove: (provided) => ({
-                                  ...provided,
-                                  color: 'white',
-                                  borderRadius: '0 6px 6px 0',
-                                  '&:hover': {
-                                    backgroundColor: '#e53e3e',
-                                    color: 'white',
-                                  },
-                                }),
-                                placeholder: (provided) => ({
-                                  ...provided,
-                                  color: '#6b7280',
-                                  fontWeight: '500',
-                                }),
-                                dropdownIndicator: (provided, state) => ({
-                                  ...provided,
-                                  color: '#6b7280',
-                                  transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                                  transition: 'transform 0.3s ease',
-                                  padding: '8px',
-                                }),
-                              }}
-                            />
-
-                            {/* Enhanced action buttons */}
-                            <div className="mt-2 d-flex gap-2 flex-wrap">
-                              <Button
-                                variant="outline-secondary"
-                                size="sm"
-                                onClick={() => setSelectedChapters([])}
-                                disabled={!selectedChapters.length}
-                                style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '6px' }}
-                              >
-                                Clear ({selectedChapters.length})
-                              </Button>
-                            </div>
-
-
-                          </Form.Group>
-                        </Col>
-
-<Col md={6}>
-  <Form.Group>
-    <Form.Label>
-      <FontAwesomeIcon icon={faClipboardQuestion} className="form-icon" />
-      Question Type
-    </Form.Label>
-    
-    {/* For JEE Mains/Advanced subjects */}
-    {isJEEMainsAdvancedSubject() ? (
-      <Form.Control
-        as="select"
-        value={questionType}
-        onChange={(e) => {
-          console.log("📝 JEE Mains/Advanced Question type selected:", e.target.value);
-          setQuestionType(e.target.value);
-        }}
-        className="form-control-enhanced"
-        disabled={!selectedChapters.length || jeeSubtopics.length === 0}
-      >
-        <option value="">
-          {jeeSubtopics.length === 0 && selectedChapters.length > 0
-            ? "Loading available question types..."
-            : "Choose question type..."}
-        </option>
-        {jeeSubtopics.includes("1") && (
-          <option value="mcq">Multiple Choice Questions (MCQ)</option>
-        )}
-        {jeeSubtopics.includes("2") && (
-          <option value="nvtq">Numerical Value Type Questions (NVTQ)</option>
-        )}
-        {jeeSubtopics.includes("3") && (
-          <option value="theorem">Theorem Based Questions</option>
-        )}
-      </Form.Control>
-    ) 
-    /* For JEE Traditional subjects */
-    : isJEETraditionalSubject() ? (
-      <Form.Control
-        as="select"
-        value={questionType}
-        onChange={(e) => {
-          console.log("📚 JEE Traditional Question type selected:", e.target.value);
-          setQuestionType(e.target.value);
-        }}
-        className="form-control-enhanced"
-        disabled={!selectedChapters.length}
-      >
-        <option value="">Choose question type...</option>
-        <option value="solved">Solved Examples</option>
-        <option value="external">Book Exercises</option>
-        <option value="worksheets">Take it to next level with Worksheets</option>
-      </Form.Control>
-    )
-    /* ✅ FIXED: Science subjects - Use HTML select (same as older version) */
-    : isScienceSubject() ? (
-      <Form.Control
-        as="select"
-        value={questionType}
-        onChange={(e) => {
-          console.log("🔬 Science Question type selected:", e.target.value);
-          setQuestionType(e.target.value);
-        }}
-        className="form-control-enhanced"
-        disabled={!selectedChapters.length || scienceSubtopics.length === 0}
-      >
-        <option value="">Choose question type...</option>
-        {getQuestionTypeOptions().map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </Form.Control>
-    ) 
-    /* For other subjects */
-    : (
-      <Form.Control
-        as="select"
-        value={questionType}
-        onChange={(e) => setQuestionType(e.target.value)}
-        className="form-control-enhanced"
-        disabled={!selectedChapters.length}
-      >
-        <option value="">Choose question type...</option>
-        <option value="solved">Solved Examples</option>
-        <option value="external">Book Exercises</option>
-        <option value="worksheets">Take it to next level with Worksheets</option>
-      </Form.Control>
-    )}
-  </Form.Group>
-</Col>
-                      </Row>
-
-{/* Exercise selector for non-Science AND non-JEE-Mains/Advanced subjects */}
-{(!isScienceSubject() && !isJEEMainsAdvancedSubject() && questionType === "external") && (
-  <Row className="form-row">
-    <Col md={6}>
-      <Form.Group>
-        <Form.Label>
-          <FontAwesomeIcon icon={faBookmark} className="me-2" />
-          Select The Set
-        </Form.Label>
-        <Form.Control
-          as="select"
-          value={questionLevel}
-          onChange={(e) => setQuestionLevel(e.target.value)}
-          className="form-control-enhanced"
-        >
-          <option value="">Select The Set</option>
-          {subTopics.map((subTopic, index) => (
-            <option key={subTopic} value={subTopic}>
-              Exercise {index + 1}
-            </option>
-          ))}
-        </Form.Control>
-      </Form.Group>
-    </Col>
-  </Row>
-)}
-
-{/* Worksheet selector for non-Science AND non-JEE-Mains/Advanced subjects */}
-{(!isScienceSubject() && !isJEEMainsAdvancedSubject() && questionType === "worksheets") && (
-  <Row className="form-row">
-    <Col md={6}>
-      <Form.Group>
-        <Form.Label>
-          <FontAwesomeIcon icon={faUsers} className="me-2" />
-          Select Worksheet
-        </Form.Label>
-        <Form.Control
-          as="select"
-          value={selectedWorksheet}
-          onChange={(e) => setSelectedWorksheet(e.target.value)}
-          className="form-control-enhanced"
-        >
-          <option value="">Select Worksheet</option>
-          {worksheets.map((worksheet) => (
-            <option key={worksheet.id} value={worksheet.worksheet_name}>
-              {worksheet.worksheet_name}
-            </option>
-          ))}
-        </Form.Control>
-      </Form.Group>
-    </Col>
-  </Row>
-)}
-
-                      <div className="new-button form-actions">
-                        <button
-                          type="submit"
-                          className="button button--mimas"
-                          disabled={!isGenerateButtonEnabled()}
-                        >
-                          <span>
-                            <FontAwesomeIcon icon={faRocket} className="me-2" />
-                            Let's Begin                          </span>
-                        </button>
-                      </div>
-                    </Form>
+                    <WizardSelector
+                      username={username}
+                      isDarkMode={isDarkMode}
+                      isJeeMode={isJeeMode}
+                      onReadyToSubmit={handleWizardSubmit}
+                    />
                   </div>
                 </div>
 
                 {/* Recent Sessions */}
-          { role==="student" &&   ( <UnifiedSessions />)}
+                {role === "student" && <UnifiedSessions />}
               </div>
               {/* Right Side - Sidebar (1 part) */}
               <div className="dashboard-right-sidebar">
@@ -1662,188 +1555,272 @@ const sessionData = {
                 {/* Live Notifications */}
                 <LiveNotifications />
                 {canResume && lastSession && (
-                    <div className="resume-learning-section" style={{
+                  <div
+                    className="resume-learning-section"
+                    style={{
                       background: isDarkMode
-                        ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)'
-                        : 'linear-gradient(135deg, rgb(95 123 248) 0%, rgb(97 111 242) 100%)',
-                      borderRadius: '16px',
-                      padding: '24px',
-                      boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
-                      border: `2px solid ${isDarkMode ? '#7c3aed' : '#667eea'}`,
-                      position: 'relative',
-                      overflow: 'hidden',
-                      height: '40vh',
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}>
-                      {/* Background decoration */}
-                      <div style={{
-                        position: 'absolute',
-                        top: '-50px',
-                        right: '-50px',
-                        width: '200px',
-                        height: '200px',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '50%',
-                        filter: 'blur(40px)',
-                      }} />
+                        ? "linear-gradient(135deg, #1e293b 0%, #334155 100%)"
+                        : "linear-gradient(135deg, rgb(95 123 248) 0%, rgb(97 111 242) 100%)",
+                      borderRadius: "16px",
+                      padding: "24px",
+                      boxShadow: "0 10px 30px rgba(102, 126, 234, 0.3)",
+                      border: `2px solid ${isDarkMode ? "#7c3aed" : "#667eea"}`,
+                      position: "relative",
+                      overflow: "hidden",
+                      height: "40vh",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    {/* Background decoration */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "-50px",
+                        right: "-50px",
+                        width: "200px",
+                        height: "200px",
+                        background: "rgba(255, 255, 255, 0.1)",
+                        borderRadius: "50%",
+                        filter: "blur(40px)",
+                      }}
+                    />
 
-                      <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          marginBottom: '12px',
-                          color: '#ffffff',
-                        }}>
-                          <FontAwesomeIcon
-                            icon={faRocket}
-                            style={{
-                              fontSize: '24px',
-                              marginRight: '12px',
-                              animation: 'pulse 2s infinite',
-                            }}
-                          />
-                          <span style={{
+                    <div
+                      style={{
+                        position: "relative",
+                        zIndex: 1,
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          marginBottom: "12px",
+                          color: "#ffffff",
+                        }}
+                      >
+                        <FontAwesomeIcon
+                          icon={faRocket}
+                          style={{
+                            fontSize: "24px",
+                            marginRight: "12px",
+                            animation: "pulse 2s infinite",
+                          }}
+                        />
+                        <span
+                          style={{
                             margin: 0,
-                            fontSize: '20px',
-                            fontWeight: '700',
-                            color: 'white',
-                          }}>
-                            Continue Learning
+                            fontSize: "20px",
+                            fontWeight: "700",
+                            color: "white",
+                          }}
+                        >
+                          Continue Learning
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          color: "#ffffff",
+                          opacity: 0.95,
+                          fontSize: "14px",
+                          marginBottom: "16px",
+                          flex: 1,
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          <FontAwesomeIcon
+                            icon={faBookOpen}
+                            style={{ marginRight: "8px", width: "16px" }}
+                          />
+                          <span>
+                            <strong>Subject:</strong>{" "}
+                            {lastSession.subject_name || "Unknown"}
                           </span>
                         </div>
-
-                        <div style={{
-                          color: '#ffffff',
-                          opacity: 0.95,
-                          fontSize: '14px',
-                          marginBottom: '16px',
-                          flex: 1,
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                            <FontAwesomeIcon icon={faBookOpen} style={{ marginRight: '8px', width: '16px' }} />
-                            <span>
-                              <strong>Subject:</strong> {lastSession.subject_name || 'Unknown'}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '8px' }}>
-                            <FontAwesomeIcon icon={faListAlt} style={{ marginRight: '8px', width: '16px', marginTop: '3px' }} />
-                            <span>
-                              <strong>Chapter:</strong>{' '}
-                              {lastSession.chapter_names && lastSession.chapter_names.length > 0 ? (
-                                <span>
-                                  {lastSession.chapter_names[0]}
-                                  {lastSession.chapter_names.length > 1 && ` (+${lastSession.chapter_names.length - 1} more)`}
-                                </span>
-                              ) : 'N/A'}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                            <FontAwesomeIcon icon={faClipboardQuestion} style={{ marginRight: '8px', width: '16px' }} />
-                            <span>
-                              <strong>Progress:</strong> Question {lastSession.questionNumber} of {lastSession.questionList?.length || 0}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <FontAwesomeIcon icon={faCalendarAlt} style={{ marginRight: '8px', width: '16px' }} />
-                            <span>
-                              <strong>Last active:</strong> {new Date(lastSession.timestamp).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Progress bar */}
-                        <div style={{
-                          width: '100%',
-                          height: '8px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                          borderRadius: '4px',
-                          overflow: 'hidden',
-                          marginBottom: '16px',
-                        }}>
-                          <div style={{
-                            width: `${(lastSession.questionNumber / (lastSession.questionList?.length || 1)) * 100}%`,
-                            height: '100%',
-                            background: 'linear-gradient(90deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)',
-                            borderRadius: '4px',
-                            transition: 'width 0.3s ease',
-                          }} />
-                        </div>
-
-                        {/* Buttons */}
-                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                          <button
-                            onClick={handleResumeLearning}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          <FontAwesomeIcon
+                            icon={faListAlt}
                             style={{
-                              background: 'linear-gradient(135deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)',
-                              color: '#ffffff',
-                              border: 'none',
-                              borderRadius: '12px',
-                              padding: '14px 28px',
-                              fontSize: '15px',
-                              fontWeight: '700',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '10px',
-                              boxShadow: '0 8px 20px rgba(16, 185, 129, 0.4)',
-                              transition: 'all 0.3s ease',
-                              whiteSpace: 'nowrap',
-                              flex: 1,
-                              justifyContent: 'center',
+                              marginRight: "8px",
+                              width: "16px",
+                              marginTop: "3px",
                             }}
-                            onMouseEnter={(e) => {
-                              e.target.style.transform = 'translateY(-2px)';
-                              e.target.style.boxShadow = '0 12px 28px rgba(16, 185, 129, 0.5)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
-                            }}
-                          >
-                            <FontAwesomeIcon icon={faRocket} />
-                            Resume
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              localStorage.removeItem(`lastSession_${username}`);
-                              setCanResume(false);
-                              setLastSession(null);
-                              showAlert('Session cleared successfully', 'success');
-                            }}
-                            style={{
-                              background: 'transparent',
-                              color: '#ffffff',
-                              border: '2px solid rgba(255, 255, 255, 0.3)',
-                              borderRadius: '12px',
-                              padding: '14px 20px',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease',
-                              whiteSpace: 'nowrap',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                              e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.background = 'transparent';
-                              e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                            }}
-                          >
-                            Start Fresh
-                          </button>
+                          />
+                          <span>
+                            <strong>Chapter:</strong>{" "}
+                            {lastSession.chapter_names &&
+                            lastSession.chapter_names.length > 0 ? (
+                              <span>
+                                {lastSession.chapter_names[0]}
+                                {lastSession.chapter_names.length > 1 &&
+                                  ` (+${lastSession.chapter_names.length - 1} more)`}
+                              </span>
+                            ) : (
+                              "N/A"
+                            )}
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          <FontAwesomeIcon
+                            icon={faClipboardQuestion}
+                            style={{ marginRight: "8px", width: "16px" }}
+                          />
+                          <span>
+                            <strong>Progress:</strong> Question{" "}
+                            {lastSession.questionNumber} of{" "}
+                            {lastSession.questionList?.length || 0}
+                          </span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <FontAwesomeIcon
+                            icon={faCalendarAlt}
+                            style={{ marginRight: "8px", width: "16px" }}
+                          />
+                          <span>
+                            <strong>Last active:</strong>{" "}
+                            {new Date(lastSession.timestamp).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
+                          </span>
                         </div>
                       </div>
+
+                      {/* Progress bar */}
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "8px",
+                          backgroundColor: "rgba(255, 255, 255, 0.2)",
+                          borderRadius: "4px",
+                          overflow: "hidden",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${(lastSession.questionNumber / (lastSession.questionList?.length || 1)) * 100}%`,
+                            height: "100%",
+                            background:
+                              "linear-gradient(90deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)",
+                            borderRadius: "4px",
+                            transition: "width 0.3s ease",
+                          }}
+                        />
+                      </div>
+
+                      {/* Buttons */}
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "12px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <button
+                          onClick={handleResumeLearning}
+                          style={{
+                            background:
+                              "linear-gradient(135deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)",
+                            color: "#ffffff",
+                            border: "none",
+                            borderRadius: "12px",
+                            padding: "14px 28px",
+                            fontSize: "15px",
+                            fontWeight: "700",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            boxShadow: "0 8px 20px rgba(16, 185, 129, 0.4)",
+                            transition: "all 0.3s ease",
+                            whiteSpace: "nowrap",
+                            flex: 1,
+                            justifyContent: "center",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = "translateY(-2px)";
+                            e.target.style.boxShadow =
+                              "0 12px 28px rgba(16, 185, 129, 0.5)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = "translateY(0)";
+                            e.target.style.boxShadow =
+                              "0 8px 20px rgba(16, 185, 129, 0.4)";
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faRocket} />
+                          Resume
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            localStorage.removeItem(`lastSession_${username}`);
+                            setCanResume(false);
+                            setLastSession(null);
+                            showAlert(
+                              "Session cleared successfully",
+                              "success",
+                            );
+                          }}
+                          style={{
+                            background: "transparent",
+                            color: "#ffffff",
+                            border: "2px solid rgba(255, 255, 255, 0.3)",
+                            borderRadius: "12px",
+                            padding: "14px 20px",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            whiteSpace: "nowrap",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background =
+                              "rgba(255, 255, 255, 0.1)";
+                            e.target.style.borderColor =
+                              "rgba(255, 255, 255, 0.5)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = "transparent";
+                            e.target.style.borderColor =
+                              "rgba(255, 255, 255, 0.3)";
+                          }}
+                        >
+                          Start Fresh
+                        </button>
+                      </div>
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             </div>
           </Container>
@@ -1865,10 +1842,7 @@ const sessionData = {
 
         {/* Tutorial Component */}
         {shouldShowTutorialForPage("studentDash") && (
-          <Tutorial
-            steps={tutorialSteps}
-            onComplete={handleTutorialComplete}
-          />
+          <Tutorial steps={tutorialSteps} onComplete={handleTutorialComplete} />
         )}
 
         {/* Mascot is shown on SolveQuestion and ResultPage only to prevent WebGL context issues */}
