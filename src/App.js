@@ -18,6 +18,7 @@ import { TimerProvider } from "./contexts/TimerContext";
 import { MascotProvider } from "./contexts/MascotContext";
 import MascotPreloader from "./components/MascotPreloader";
 import { JeeModeProvider } from './contexts/JeeModeContext';
+import { ChatProvider } from './contexts/ChatContext';
 import RouteTracker from "./components/RouteTracker";
 
 // Marketing pages where we don't want to show ChatBox/FeedbackBox
@@ -63,15 +64,17 @@ function App() {
                       <TutorialProvider>
                         <MascotProvider>
                           <CurrentQuestionProvider>
-                            <Router
-                              future={{
-                                v7_startTransition: true,
-                                v7_relativeSplatPath: true,
-                              }}
-                            >
-                              <MascotPreloader />
-                              <AppContent />
-                            </Router>
+                            <ChatProvider>
+                              <Router
+                                future={{
+                                  v7_startTransition: true,
+                                  v7_relativeSplatPath: true,
+                                }}
+                              >
+                                <MascotPreloader />
+                                <AppContent />
+                              </Router>
+                            </ChatProvider>
                           </CurrentQuestionProvider>
                         </MascotProvider>
                       </TutorialProvider>

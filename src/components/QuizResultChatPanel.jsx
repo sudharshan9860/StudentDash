@@ -8,14 +8,61 @@ import "./QuizResultChatPanel.css";
 const API_URL = "https://chatbot.smartlearners.ai";
 const api = axios.create({ baseURL: API_URL, timeout: 300000 });
 
+/**
+ * Merges the questions array with the student's answers array
+ * to produce a per-question analysis structure.
+ *
+ * @param {Array} questions  - Full question objects from quiz generation
+ * @param {Array|Object} answers - Array of {question_num, selected_option}
+ *                                 OR object keyed by array index
+ * @returns {Array} Enriched per-question objects
+ */
+const buildQuestionByQuestion = (questions = [], answers = []) => {
+  const answerMap = {};
+
+  if (Array.isArray(answers)) {
+    // Format: [{question_num: 1, selected_option: "A"}, ...]
+    answers.forEach((a) => {
+      answerMap[a.question_num] = a.selected_option;
+    });
+  } else if (answers && typeof answers === "object") {
+    // Format: {0: "A", 1: "B", ...} (index-keyed from QuizQuestion state)
+    Object.entries(answers).forEach(([idx, val]) => {
+      const qNum = questions[Number(idx)]?.question_num;
+      if (qNum !== undefined) answerMap[qNum] = val;
+    });
+  }
+
+  return questions.map((q) => {
+    const selected = answerMap[q.question_num] || "";
+    const isCorrect = selected !== "" && selected === q.correct_answer;
+    const isTrapHit = selected === q.trap_answer;
+
+    return {
+      question_num: q.question_num,
+      chapter: q.chapter || "",
+      bridge_id: q.bridge_id || "",
+      bridge_name: q.bridge_name || "",
+      concept_tested: q.concept_tested || "",
+      question: q.question || "",
+      options: q.options || {},
+      correct_answer: q.correct_answer || "",
+      selected_option: selected,
+      is_correct: isCorrect,
+      is_unanswered: selected === "",
+      trap_hit: isTrapHit,
+      trap_answer: q.trap_answer || "",
+      trap_explanation: isTrapHit ? q.trap_explanation || "" : "",
+    };
+  });
+};
+
 // ── Build the full analysis prompt — ALL quiz data embedded directly in query ──
-// The /chat-simple endpoint only reads the "query" field.
-// exam_data in create_session gives background context but is not reliably
-// forwarded to every chat_simple call by all server implementations.
-// So we put everything the AI needs right inside the query string itself.
+// FIX: answers is now passed as a parameter (was missing before — caused qbqData to always be empty)
 const buildAnalysisPrompt = (
   evalData,
   questions,
+  answers, // ✅ FIXED: added answers parameter
   classNum,
   subject,
   timeSpent,
@@ -41,6 +88,46 @@ const buildAnalysisPrompt = (
         )
         .join("\n")
     : "  - No chapter breakdown available";
+
+  // ✅ FIXED: answers is now available here (was undefined before)
+  const qbqData = buildQuestionByQuestion(questions, answers || []);
+
+  // ── DEBUG: log QbQ data to verify it's populated ──
+  console.group("📊 QuizResultChatPanel — Question-by-Question Data");
+  console.log("Total questions:", qbqData.length);
+  console.log("Answers received (raw):", answers);
+  console.table(
+    qbqData.map((q) => ({
+      "Q#": q.question_num,
+      Chapter: q.chapter,
+      Bridge: q.bridge_name || q.bridge_id,
+      "Student Answer": q.selected_option || "—",
+      "Correct Answer": q.correct_answer,
+      Result: q.is_unanswered ? "Skipped" : q.is_correct ? "✅" : "❌",
+      "Trap Hit": q.trap_hit ? "⚠️ YES" : "No",
+    })),
+  );
+  console.groupEnd();
+
+  const qbqLines = qbqData
+    .map((q) => {
+      const statusIcon = q.is_unanswered
+        ? "⬜ Skipped"
+        : q.is_correct
+          ? "✅ Correct"
+          : "❌ Wrong";
+      const trapNote = q.trap_hit
+        ? ` ⚠️ Trap hit: chose "${q.trap_answer}" — ${q.trap_explanation}`
+        : "";
+      return (
+        `Q${q.question_num} [${q.chapter}] — ${statusIcon}\n` +
+        `  Bridge: ${q.bridge_name || q.bridge_id}\n` +
+        `  Concept: ${q.concept_tested}\n` +
+        `  Student chose: ${q.selected_option || "—"}  |  Correct: ${q.correct_answer}` +
+        (trapNote ? `\n  ${trapNote}` : "")
+      );
+    })
+    .join("\n\n");
 
   // Bridge results
   const bridgeResults =
@@ -92,6 +179,15 @@ Time Taken: ${timeMins} min ${timeSecs} sec
 
 === CHAPTER PERFORMANCE ===
 ${chapterLines}
+
+=== QUESTION-BY-QUESTION BREAKDOWN ===
+${qbqLines}
+
+Please provide:
+1. A question-by-question analysis table showing what the student got right/wrong and why
+2. For each wrong answer, explain the likely misconception and link it to the bridge/concept
+3. Call out any trap answers the student fell for and explain the reasoning error
+4. Prioritise which questions to revisit first based on conceptual importance
 
 === CONCEPT GAPS (Bridge Scan) ===
 Broken Bridges (critical gaps): ${brokenBridges.length ? brokenBridges.join(", ") : "None"}
@@ -167,14 +263,12 @@ const QuizResultChatPanel = ({
   const [analysisTriggered, setAnalysisTriggered] = useState(false);
 
   const messagesEndRef = useRef(null);
-  const autoSentRef = useRef(false); // prevents double-fire in React StrictMode
+  const autoSentRef = useRef(false);
 
-  // Auto-scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ── Step 1: Create session on mount ────────────────────────────────────────
   useEffect(() => {
     if (!evalData) return;
     createSession();
@@ -183,8 +277,21 @@ const QuizResultChatPanel = ({
 
   const createSession = async () => {
     try {
-      // We pass quiz data both as exam_data (for session context)
-      // AND will embed it in the query itself (for guaranteed delivery)
+      const qbq = buildQuestionByQuestion(questions, answers);
+
+      // ── DEBUG: log what we send to /create_session ──
+      console.group("📤 QuizResultChatPanel — /create_session payload");
+      console.log(
+        "student_name:",
+        localStorage.getItem("fullName") ||
+          localStorage.getItem("username") ||
+          "Student",
+      );
+      console.log("class_name:", String(classNum));
+      console.log("question_by_question (count):", qbq.length);
+      console.log("question_by_question (full):", qbq);
+      console.groupEnd();
+
       const quizSummary = {
         subject,
         class_num: classNum,
@@ -203,6 +310,8 @@ const QuizResultChatPanel = ({
         expected_improvement:
           evalData?.remedial_plan?.study_plan_summary?.expected_improvement ||
           "",
+        // ✅ Full question-by-question enriched data
+        question_by_question: qbq,
       };
 
       const formData = new FormData();
@@ -227,15 +336,15 @@ const QuizResultChatPanel = ({
 
       if (!res.data?.session_id) throw new Error("No session_id returned");
 
+      console.log("✅ Session created:", res.data.session_id);
       setSessionId(res.data.session_id);
       setSessionReady(true);
     } catch (err) {
       console.error("QuizResultChatPanel: session creation failed", err);
-      setSessionReady(true); // still proceed so fallback analysis can show
+      setSessionReady(true);
     }
   };
 
-  // ── Step 2: Once session is ready, auto-open panel & trigger analysis ───────
   useEffect(() => {
     if (!sessionReady || autoSentRef.current) return;
     autoSentRef.current = true;
@@ -250,15 +359,23 @@ const QuizResultChatPanel = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionReady]);
 
-  // ── Build and send the full analysis prompt ─────────────────────────────────
   const triggerAutoAnalysis = async () => {
+    // ✅ FIXED: pass answers as 3rd argument
     const prompt = buildAnalysisPrompt(
       evalData,
       questions,
+      answers, // ✅ was missing before
       classNum,
       subject,
       timeSpent,
     );
+
+    // ── DEBUG: log the full prompt sent to the chatbot ──
+    console.group(
+      "📨 QuizResultChatPanel — prompt sent to /test-prep-analysis",
+    );
+    console.log(prompt);
+    console.groupEnd();
 
     setMessages([
       {
@@ -273,11 +390,8 @@ const QuizResultChatPanel = ({
     await callChatbot(prompt, true);
   };
 
-  // ── Core chat call ─────────────────────────────────────────────────────────
-  // Uses /chat-simple with session_id and full query (matches ChatBox.jsx)
   const callChatbot = async (messageText, isAutoAnalysis = false) => {
     if (!sessionId) {
-      // No session — show local fallback immediately
       const fallback = isAutoAnalysis
         ? buildLocalFallback(evalData, classNum, subject)
         : "Sorry, I could not connect to the AI service. Please try again.";
@@ -296,17 +410,24 @@ const QuizResultChatPanel = ({
     }
 
     try {
-      const res = await api.post(
-        "/test-prep-analysis",
-        {
-          session_id: sessionId,
-          query: messageText, // full quiz data is embedded in this string for auto-analysis
-          language: "en",
-        },
-        {
-          headers: { session_token: sessionId },
-        },
-      );
+      const requestBody = {
+        session_id: sessionId,
+        query: messageText,
+        language: "en",
+      };
+
+      // ── DEBUG: log the exact request body ──
+      console.log("📡 POST /test-prep-analysis →", {
+        session_id: sessionId,
+        query_length: messageText.length,
+        query_preview: messageText.substring(0, 200) + "...",
+      });
+
+      const res = await api.post("/test-prep-analysis", requestBody, {
+        headers: { session_token: sessionId },
+      });
+
+      console.log("✅ /test-prep-analysis response:", res.data);
 
       const reply =
         res?.data?.response || res?.data?.reply || "Analysis complete.";
@@ -321,7 +442,7 @@ const QuizResultChatPanel = ({
         },
       ]);
     } catch (err) {
-      console.error("QuizResultChatPanel: chat-simple failed", err);
+      console.error("QuizResultChatPanel: /test-prep-analysis failed", err);
       const fallback = isAutoAnalysis
         ? buildLocalFallback(evalData, classNum, subject)
         : "Sorry, I could not process that. Please try again.";
@@ -340,7 +461,6 @@ const QuizResultChatPanel = ({
     }
   };
 
-  // ── Follow-up message ───────────────────────────────────────────────────────
   const handleSendMessage = async () => {
     if (!newMessage.trim() || isLoading) return;
 
@@ -356,7 +476,6 @@ const QuizResultChatPanel = ({
     setNewMessage("");
     setIsLoading(true);
 
-    // For follow-up: add a brief reminder of context so AI doesn't lose track
     const contextualQuery = `[Student quiz context: Class ${classNum} ${subject}, Score: ${(evalData?.prediction?.score_pct ?? 0).toFixed(0)}%]\n\nStudent question: ${text}`;
 
     setMessages((prev) => [
@@ -380,7 +499,6 @@ const QuizResultChatPanel = ({
 
   if (!evalData) return null;
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className={`qrcp-wrapper ${isOpen ? "open" : "closed"}`}>
       {/* Toggle Button */}

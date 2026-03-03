@@ -37,6 +37,7 @@ import axiosInstance from "../api/axiosInstance";
 import MarkdownViewer from "./MarkdownViewer";
 import { useCurrentQuestion } from "../contexts/CurrentQuestionContext";
 import { useTutorial } from "../contexts/TutorialContext";
+import { ChatContext } from "../contexts/ChatContext";
 import { getImageSrc } from "../utils/imageUtils";
 import { useGetStudentResultsQuery } from "../store/api/studentResultsApi";
 // import { useMascot } from "../contexts/MascotContext";
@@ -148,6 +149,7 @@ const ChatBox = forwardRef((props, ref) => {
   const userRole = localStorage.getItem("userRole");
   const { currentQuestion, questionMetadata } = useCurrentQuestion();
   const { resetTutorial, startTutorialForPage } = useTutorial();
+  const { pendingAnalysis, clearPendingAnalysis } = useContext(ChatContext);
   // const { setTeaching, setThinking, setHappy } = useMascot();
   const includeQuestionContext = (() => {
     const stored = localStorage.getItem("include_question_context");
@@ -362,6 +364,83 @@ const ChatBox = forwardRef((props, ref) => {
     hasInitialized.current = true;
     fetchStudentDataAndCreateSession();
   }, [username]);
+
+  // ====== Auto-analysis from ChatContext ======
+  const analysisProcessingRef = useRef(false);
+  useEffect(() => {
+    if (!pendingAnalysis || analysisProcessingRef.current) return;
+    analysisProcessingRef.current = true;
+
+    const processAnalysis = async () => {
+      try {
+        // Auto-open the chatbox
+        setIsOpen(true);
+
+        // Wait for session to be ready (poll up to 10s)
+        let waited = 0;
+        while (!sessionId && waited < 10000) {
+          await new Promise((r) => setTimeout(r, 500));
+          waited += 500;
+        }
+
+        // Add display message (hide raw prompt from UI)
+        const displayId = Date.now();
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: displayId,
+            text: pendingAnalysis.displayText || "Evaluating your performance...",
+            sender: "user",
+            isAnalysisRequest: true,
+            timestamp: new Date(),
+          },
+        ]);
+        setIsTyping(true);
+
+        // Send the full prompt to /test-prep-analysis endpoint
+        const res = await api.post(
+          "/test-prep-analysis",
+          {
+            session_id: sessionId,
+            query: pendingAnalysis.prompt,
+            language: "en",
+          },
+          {
+            headers: { session_token: sessionId },
+          }
+        );
+
+        const reply = res?.data?.response || res?.data?.reply || "Analysis complete.";
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: displayId + 1,
+            text: reply,
+            sender: "ai",
+            timestamp: new Date(),
+          },
+        ]);
+      } catch (err) {
+        console.error("Auto-analysis error:", err);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            text: "Sorry, I couldn't generate the analysis right now. Please try again.",
+            sender: "ai",
+            timestamp: new Date(),
+          },
+        ]);
+      } finally {
+        setIsTyping(false);
+        clearPendingAnalysis();
+        analysisProcessingRef.current = false;
+      }
+    };
+
+    processAnalysis();
+  }, [pendingAnalysis, sessionId, clearPendingAnalysis]);
 
   // ====== Session handling ======
   const fetchStudentData = async () => {

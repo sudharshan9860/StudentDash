@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
@@ -7,7 +7,7 @@ import { generateQuestions, generateLearningPath } from "../api/quizApi";
 import axiosInstance from "../api/axiosInstance";
 import "./QuizResult.css";
 import MarkdownWithMath from "./MarkdownWithMath";
-import QuizResultChatPanel from "./QuizResultChatPanel";
+import { ChatContext } from "../contexts/ChatContext";
 
 /* ── Convert LaTeX + Markdown to readable plain text for PDF ── */
 const latexToPlainText = (text) => {
@@ -244,7 +244,20 @@ const QuizResult = () => {
   const [pathError, setPathError] = useState("");
   const [quizId, setQuizId] = useState(null);
   const quizSaved = useRef(false);
+  const analysisSent = useRef(false);
   const isDark = localStorage.getItem("DarkMode") === "true";
+  const { triggerAnalysis } = useContext(ChatContext);
+
+  /* ── auto-trigger AI analysis on mount ── */
+  useEffect(() => {
+    if (!evalData || analysisSent.current) return;
+    analysisSent.current = true;
+    const timer = setTimeout(() => {
+      triggerAnalysis(evalData, classNum, subject, timeSpent);
+    }, 1500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* ── persist quiz result on mount ── */
   useEffect(() => {
@@ -1908,15 +1921,7 @@ const QuizResult = () => {
         )}
       </AnimatePresence>
 
-      {/* ════ AI Analysis Chatbot Panel ════ */}
-      <QuizResultChatPanel
-        evalData={evalData}
-        questions={questions}
-        answers={answers}
-        classNum={classNum}
-        subject={subject}
-        timeSpent={timeSpent}
-      />
+      {/* AI Analysis is now handled by ChatBox via ChatContext */}
     </div>
   );
 };

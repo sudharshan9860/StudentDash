@@ -1297,7 +1297,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
                 className="btn-back w-100"
                 disabled={isAnyButtonProcessing()}
               >
-                Back
+                Dashboard
               </Button>
             </Col>
             <Col xs={6} md={3}>

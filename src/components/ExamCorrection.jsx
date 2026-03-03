@@ -12,7 +12,7 @@ const ExamCorrection = () => {
   // STEP 1: Correction mode selection
   const [correctionMode, setCorrectionMode] = useState(null); // null | 'new' | 'existing'
 
-  const HARDCODED_SUBJECTS = ["Maths", "Science", "Physics", "Chemistry"];
+  const HARDCODED_SUBJECTS = ["MATHEMATICS", "SCIENCE", "PHYSICS", "CHEMISTRY", "ENGLISH"];
 
   // STEP 2A: For existing correction - exam selection
   const [existingExams, setExistingExams] = useState([]);
@@ -57,6 +57,12 @@ const ExamCorrection = () => {
 
   // Teacher info
   const [teacherName, setTeacherName] = useState("");
+
+  // Helper: renames a File object with a "Student_" prefix while preserving the original name
+  const prefixStudentName = (file) => {
+    const prefixedName = `Student_${file.name}`;
+    return new File([file], prefixedName, { type: file.type });
+  };
 
   useEffect(() => {
     // Get teacher name from localStorage
@@ -254,9 +260,12 @@ const ExamCorrection = () => {
     }
 
     // Append new files to existing ones (avoid duplicates by name)
+    // Rename files with "Student_" prefix, then append (avoid duplicates by prefixed name)
     setAnswerSheets((prev) => {
       const existingNames = new Set(prev.map((f) => f.name));
-      const newFiles = files.filter((f) => !existingNames.has(f.name));
+      const newFiles = files
+        .map((f) => prefixStudentName(f)) // rename: 1.pdf → Student_1.pdf
+        .filter((f) => !existingNames.has(f.name)); // deduplicate by new prefixed name
       return [...prev, ...newFiles];
     });
     setError(null);

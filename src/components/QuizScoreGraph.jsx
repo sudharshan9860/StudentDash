@@ -409,12 +409,12 @@ const QuizScoreGraph = () => {
         </div>
 
         <div className="qsg-legend">
-          {quizLabels.map((q) => (
+          {/* {quizLabels.map((q) => (
             <div key={q} className="qsg-legend-item">
               <span className="qsg-leg-bar" style={{ background: quizColorMap[q] }} />
               <span>{q}</span>
             </div>
-          ))}
+          ))} */}
           <div className="qsg-legend-item">
             <span className="qsg-leg-zone qsg-leg-target" />
             <span>Target Zone</span>
