@@ -1,9 +1,4 @@
 // StudentWizard.jsx
-// Full replacement for WizardSelector.jsx
-// Premium animated progressive disclosure wizard — no dropdowns, no static forms
-// Uses: Framer Motion + inline glassmorphism styles
-// Same API payloads as before — zero backend changes
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../api/axiosInstance";

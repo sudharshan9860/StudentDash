@@ -1,43 +1,35 @@
 // src/components/QuizResultChatPanel.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import MarkdownWithMath from "./MarkdownWithMath";
 import "./QuizResultChatPanel.css";
 
-// ── Same API base used by ChatBox.jsx and ChatBotPage.jsx ──
 const API_URL = "https://chatbot.smartlearners.ai";
 const api = axios.create({ baseURL: API_URL, timeout: 300000 });
 
-/**
- * Merges the questions array with the student's answers array
- * to produce a per-question analysis structure.
- *
- * @param {Array} questions  - Full question objects from quiz generation
- * @param {Array|Object} answers - Array of {question_num, selected_option}
- *                                 OR object keyed by array index
- * @returns {Array} Enriched per-question objects
- */
-const buildQuestionByQuestion = (questions = [], answers = []) => {
-  const answerMap = {};
-
+// ─── Build answer map from answers array or object ───────────────────────────
+const buildAnswerMap = (questions = [], answers = []) => {
+  const map = {};
   if (Array.isArray(answers)) {
-    // Format: [{question_num: 1, selected_option: "A"}, ...]
     answers.forEach((a) => {
-      answerMap[a.question_num] = a.selected_option;
+      map[a.question_num] = a.selected_option;
     });
   } else if (answers && typeof answers === "object") {
-    // Format: {0: "A", 1: "B", ...} (index-keyed from QuizQuestion state)
     Object.entries(answers).forEach(([idx, val]) => {
       const qNum = questions[Number(idx)]?.question_num;
-      if (qNum !== undefined) answerMap[qNum] = val;
+      if (qNum !== undefined) map[qNum] = val;
     });
   }
+  return map;
+};
 
+// ─── Build per-question enriched data ────────────────────────────────────────
+const buildQuestionByQuestion = (questions = [], answers = []) => {
+  const answerMap = buildAnswerMap(questions, answers);
   return questions.map((q) => {
     const selected = answerMap[q.question_num] || "";
     const isCorrect = selected !== "" && selected === q.correct_answer;
     const isTrapHit = selected === q.trap_answer;
-
     return {
       question_num: q.question_num,
       chapter: q.chapter || "",
@@ -57,33 +49,24 @@ const buildQuestionByQuestion = (questions = [], answers = []) => {
   });
 };
 
+// ─── Build the structured query sent to /test-prep-analysis ──────────────────
 const buildStructuredQuery = (
   questions = [],
   answers = [],
   classNum,
   subject,
 ) => {
-  // Reuse existing helper to produce enriched per-question objects
   const qbq = buildQuestionByQuestion(questions, answers);
-
-  // Only analyse questions the student got wrong (skip correct + unanswered)
   const wrong = qbq.filter((q) => !q.is_correct && !q.is_unanswered);
+  if (wrong.length === 0) return JSON.stringify({ questions: [] });
 
-  if (wrong.length === 0) {
-    // All correct — backend expects empty questions array
-    return JSON.stringify({ questions: [] });
-  }
-
-  // Build the Q1, Q2 … block string
   const blocks = wrong.map((q, idx) => {
     const optionLine = Object.entries(q.options || {})
       .map(([letter, text]) => `${letter}) ${text}`)
       .join(" | ");
-
-    const trap = q.trap_explanation
-      ? q.trap_explanation
-      : "Review the concept carefully before attempting similar questions.";
-
+    const trap =
+      q.trap_explanation ||
+      "Review the concept carefully before attempting similar questions.";
     return [
       `Q${idx + 1}. ${q.question}`,
       `Chapter: ${q.chapter || "N/A"}`,
@@ -97,7 +80,7 @@ const buildStructuredQuery = (
   return blocks.join("\n\n");
 };
 
-// ── Local fallback rendered if API is completely unreachable ─────────────────
+// ─── Local fallback if API is unreachable ─────────────────────────────────────
 const buildLocalFallback = (evalData, classNum, subject) => {
   const prediction = evalData?.prediction || {};
   const remedialPlan = evalData?.remedial_plan || {};
@@ -106,25 +89,202 @@ const buildLocalFallback = (evalData, classNum, subject) => {
   const scorePct = (prediction.score_pct ?? 0).toFixed(0);
   const correct = prediction.correct ?? 0;
   const total = prediction.total ?? 0;
-
-  return `## Your Quiz Analysis — Class ${classNum} ${subject}
-
-**Score: ${scorePct}% (${correct}/${total} correct)**
-
-${studyPlanSummary.expected_improvement || "Keep practising consistently to improve your score."}
-
-### Key Concepts to Repair
-${bridgeRepairs.map((b) => `- **${b.bridge_name}**: ${b.what_went_wrong || ""}`).join("\n") || "- Review the chapters attempted."}
-
-### Priority Study Order
-${(studyPlanSummary.priority_order || []).map((p, i) => `${i + 1}. ${p}`).join("\n") || "Review all chapters."}
-
-**Estimated Study Time**: ${studyPlanSummary.total_study_time || "Not specified"}
-
-Keep going — every mistake is a stepping stone to mastery! 🚀`;
+  return `## Your Quiz Analysis — Class ${classNum} ${subject}\n\n**Score: ${scorePct}% (${correct}/${total} correct)**\n\n${studyPlanSummary.expected_improvement || "Keep practising!"}\n\n### Key Concepts to Fix\n${bridgeRepairs.map((b) => `- **${b.bridge_name}**: ${b.what_went_wrong || ""}`).join("\n") || "- Review the chapters attempted."}`;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Score Review Panel (Image 1) ────────────────────────────────────────────
+const ScoreReviewPanel = ({
+  questions,
+  answerMap,
+  totalCorrect,
+  totalQuestions,
+}) => (
+  <div className="sb-score-panel">
+    <div className="sb-score-header">
+      Hey there! 👋 You scored{" "}
+      <strong>
+        {totalCorrect}/{totalQuestions}
+      </strong>
+      . Let's review your answers!
+    </div>
+    <div className="sb-question-list">
+      {questions.map((q, idx) => {
+        const selected = answerMap[q.question_num] || "";
+        const isCorrect = selected && selected === q.correct_answer;
+        return (
+          <div
+            key={idx}
+            className={`sb-question-row ${isCorrect ? "correct" : "wrong"}`}
+          >
+            <span className="sb-q-icon">{isCorrect ? "✅" : "❌"}</span>
+            <span className="sb-q-text">
+              {idx + 1}. <MarkdownWithMath content={q.question} />
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
+// ─── Wrong Question Panel (Images 2–5) ───────────────────────────────────────
+const WrongQuestionPanel = ({
+  wrongQ,
+  originalQ,
+  answerMap,
+  mcqPhase,
+  mcqShowing,
+  selectedOption,
+  setSelectedOption,
+  answerResult,
+  onTestConcept,
+  onAnswer,
+  onNextQuestion,
+  onPracticeSimilar,
+  currentIdx,
+  total,
+}) => {
+  const studentAnswer = originalQ
+    ? answerMap[originalQ.question_num] || "—"
+    : "—";
+  const correctAnswer = originalQ?.correct_answer || "—";
+  const currentMcq = wrongQ?.[mcqPhase];
+  const mcqOptions = currentMcq ? Object.entries(currentMcq.options || {}) : [];
+
+  return (
+    <div className="sb-wrong-q-panel">
+      {/* Progress indicator */}
+      <div className="sb-progress-row">
+        <span className="sb-progress-label">
+          Question {currentIdx + 1} of {total}
+        </span>
+        <div className="sb-progress-bar">
+          <div
+            className="sb-progress-fill"
+            style={{ width: `${((currentIdx + 1) / total) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Original question header */}
+      <div className="sb-original-q">
+        <div className="sb-original-q-title">
+          <span className="sb-book-icon">📖</span>
+          <MarkdownWithMath
+            content={originalQ?.question || wrongQ?.originalQuestion || ""}
+          />
+        </div>
+        <div className="sb-answer-line">
+          You said: <span className="sb-wrong-ans">{studentAnswer}</span>
+          {" → "}
+          Correct: <span className="sb-correct-ans">{correctAnswer}</span>
+        </div>
+      </div>
+
+      {/* Concept card */}
+      {wrongQ?.conceptCard && (
+        <div className="sb-concept-card">
+          <div className="sb-concept-title">💡 {wrongQ.conceptCard.title}</div>
+          <div className="sb-concept-body">{wrongQ.conceptCard.concept}</div>
+          {wrongQ.conceptCard.whereYouWentWrong && (
+            <div className="sb-went-wrong">
+              ⚠️ {wrongQ.conceptCard.whereYouWentWrong}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Test This Concept button — shown BEFORE MCQ */}
+      {!mcqShowing && !answerResult && (
+        <div className="sb-btn-row">
+          <button className="sb-test-concept-btn" onClick={onTestConcept}>
+            Test This Concept
+          </button>
+        </div>
+      )}
+
+      {/* MCQ block */}
+      {mcqShowing && currentMcq && !answerResult && (
+        <div className="sb-mcq-block">
+          <div className="sb-mcq-label">
+            {mcqPhase === "mcq2"
+              ? "🔄 Try a similar question:"
+              : "📝 Test yourself:"}
+          </div>
+          <div className="sb-mcq-question">
+            <MarkdownWithMath content={currentMcq.question} />
+          </div>
+          <div className="sb-mcq-options">
+            {mcqOptions.map(([key, text]) => (
+              <div
+                key={key}
+                className={`sb-mcq-option ${selectedOption === key ? "selected" : ""}`}
+                onClick={() => setSelectedOption(key)}
+              >
+                <span className="sb-mcq-key">{key})</span>
+                <MarkdownWithMath content={text} />
+              </div>
+            ))}
+          </div>
+          {selectedOption && (
+            <button
+              className="sb-submit-btn"
+              onClick={() => onAnswer(selectedOption, currentMcq.correct)}
+            >
+              Submit Answer
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Answer result feedback */}
+      {answerResult === "correct" && (
+        <div className="sb-result-row">
+          <div className="sb-correct-feedback">
+            <span className="sb-correct-msg">✅ Correct! Great job! 🎉</span>
+          </div>
+          <div className="sb-btn-row">
+            <button className="sb-next-btn" onClick={onNextQuestion}>
+              Move to Next Question
+            </button>
+          </div>
+        </div>
+      )}
+
+      {answerResult === "wrong" && mcqPhase === "mcq1" && (
+        <div className="sb-result-row">
+          <div className="sb-wrong-feedback">
+            <span className="sb-wrong-msg">
+              ❌ Not quite. Let's try a similar question to reinforce this.
+            </span>
+          </div>
+          <div className="sb-btn-row">
+            <button className="sb-similar-btn" onClick={onPracticeSimilar}>
+              Practice Similar Question
+            </button>
+          </div>
+        </div>
+      )}
+
+      {answerResult === "wrong" && mcqPhase === "mcq2" && (
+        <div className="sb-result-row">
+          <div className="sb-wrong-feedback">
+            <span className="sb-wrong-msg">
+              ❌ Keep practicing this concept — you'll get it!
+            </span>
+          </div>
+          <div className="sb-btn-row">
+            <button className="sb-next-btn" onClick={onNextQuestion}>
+              Move to Next Question
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 const QuizResultChatPanel = ({
   evalData,
   questions,
@@ -133,21 +293,64 @@ const QuizResultChatPanel = ({
   subject,
   timeSpent,
 }) => {
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  // Core state
   const [isOpen, setIsOpen] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [sessionReady, setSessionReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [analysisTriggered, setAnalysisTriggered] = useState(false);
+
+  // Study Buddy flow state
+  const [chatPhase, setChatPhase] = useState("loading"); // loading | scoreReview | tackling | done
+  const [analysisData, setAnalysisData] = useState(null); // parsed JSON from /test-prep-analysis
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  // Wrong question flow state
+  const [currentWrongIdx, setCurrentWrongIdx] = useState(0);
+  const [mcqPhase, setMcqPhase] = useState("mcq1"); // mcq1 | mcq2
+  const [mcqShowing, setMcqShowing] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [answerResult, setAnswerResult] = useState(null); // correct | wrong | null
 
   const messagesEndRef = useRef(null);
   const autoSentRef = useRef(false);
 
+  // Build answer map once
+  const answerMap = useMemo(
+    () => buildAnswerMap(questions, answers),
+    [questions, answers],
+  );
+
+  // Wrong questions from parsed analysis
+  const wrongQuestions = useMemo(
+    () => analysisData?.questions || [],
+    [analysisData],
+  );
+
+  // Find original question object matching a wrong question entry
+  const findOriginalQuestion = (wrongQ) => {
+    if (!wrongQ) return null;
+    // wrongQ.questionId = "Q1", "Q2" etc — backend numbers them by wrong index
+    // We match by finding the wrong answer at that position in questions array
+    const wrongQbq = buildQuestionByQuestion(questions, answers).filter(
+      (q) => !q.is_correct && !q.is_unanswered,
+    );
+    const idx = parseInt((wrongQ.questionId || "Q1").replace("Q", ""), 10) - 1;
+    const enriched = wrongQbq[idx];
+    if (!enriched) return null;
+    return (
+      questions.find((q) => q.question_num === enriched.question_num) || null
+    );
+  };
+
+  const totalCorrect = evalData?.prediction?.correct ?? 0;
+
+  // Scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [chatPhase, mcqShowing, answerResult, currentWrongIdx]);
 
+  // Create session on mount
   useEffect(() => {
     if (!evalData) return;
     createSession();
@@ -157,20 +360,6 @@ const QuizResultChatPanel = ({
   const createSession = async () => {
     try {
       const qbq = buildQuestionByQuestion(questions, answers);
-
-      // ── DEBUG: log what we send to /create_session ──
-      console.group("📤 QuizResultChatPanel — /create_session payload");
-      console.log(
-        "student_name:",
-        localStorage.getItem("fullName") ||
-          localStorage.getItem("username") ||
-          "Student",
-      );
-      console.log("class_name:", String(classNum));
-      console.log("question_by_question (count):", qbq.length);
-      console.log("question_by_question (full):", qbq);
-      console.groupEnd();
-
       const quizSummary = {
         subject,
         class_num: classNum,
@@ -189,7 +378,6 @@ const QuizResultChatPanel = ({
         expected_improvement:
           evalData?.remedial_plan?.study_plan_summary?.expected_improvement ||
           "",
-        // ✅ Full question-by-question enriched data
         question_by_question: qbq,
       };
 
@@ -214,8 +402,6 @@ const QuizResultChatPanel = ({
       });
 
       if (!res.data?.session_id) throw new Error("No session_id returned");
-
-      console.log("✅ Session created:", res.data.session_id);
       setSessionId(res.data.session_id);
       setSessionReady(true);
     } catch (err) {
@@ -224,197 +410,113 @@ const QuizResultChatPanel = ({
     }
   };
 
+  // Auto-open and trigger analysis once session is ready
   useEffect(() => {
     if (!sessionReady || autoSentRef.current) return;
     autoSentRef.current = true;
-
     setIsOpen(true);
-
-    const timer = setTimeout(() => {
-      triggerAutoAnalysis();
-    }, 500);
-
+    const timer = setTimeout(() => triggerAutoAnalysis(), 500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionReady]);
 
   const triggerAutoAnalysis = async () => {
-    // ── Build structured per-question query ──
     const prompt = buildStructuredQuery(questions, answers, classNum, subject);
-
-    console.group(
-      "📨 QuizResultChatPanel — structured query sent to /test-prep-analysis",
-    );
-    console.log(prompt);
-    console.groupEnd();
-
-    setMessages([
-      {
-        role: "system-auto",
-        content: "🤖 Analyzing your quiz results...",
-        timestamp: new Date().toISOString(),
-      },
-    ]);
     setIsLoading(true);
     setAnalysisTriggered(true);
+    setChatPhase("loading");
 
-    await callChatbot(prompt, true);
-  };
+    // If no wrong questions, skip API call
+    if (prompt === JSON.stringify({ questions: [] })) {
+      setAnalysisData({ questions: [] });
+      setChatPhase("scoreReview");
+      setIsLoading(false);
+      return;
+    }
 
-  const callChatbot = async (messageText, isAutoAnalysis = false) => {
     if (!sessionId) {
-      const fallback = isAutoAnalysis
-        ? buildLocalFallback(evalData, classNum, subject)
-        : "Sorry, I could not connect to the AI service. Please try again.";
-
-      setMessages((prev) => [
-        ...prev.filter((m) => m.role !== "system-auto"),
-        {
-          role: "assistant",
-          content: fallback,
-          timestamp: new Date().toISOString(),
-          isAnalysis: isAutoAnalysis,
-        },
-      ]);
+      // Offline fallback — show score review with no drill-down
+      setChatPhase("scoreReview");
       setIsLoading(false);
       return;
     }
 
     try {
-      const requestBody = {
-        session_id: sessionId,
-        query: messageText,
-        language: "en",
-      };
-
-      // ── DEBUG: log the exact request body ──
-      console.log("📡 POST /test-prep-analysis →", {
-        session_id: sessionId,
-        query_length: messageText.length,
-        query_preview: messageText.substring(0, 200) + "...",
-      });
-
-      // This stays unchanged — already correct:
       const res = await api.post(
         "/test-prep-analysis",
-        {
-          session_id: sessionId,
-          query: messageText, // ← now receives the Q1./Q2. format string
-          language: "en",
-        },
+        { session_id: sessionId, query: prompt, language: "en" },
         { headers: { session_token: sessionId } },
       );
 
-      console.log("✅ /test-prep-analysis response:", res.data);
-
-      // Inside callChatbot, replace the reply extraction block:
-
       const rawReply = res?.data?.response || res?.data?.reply || "";
+      console.log("✅ /test-prep-analysis raw response:", rawReply);
 
-      let reply;
+      let parsed = null;
       try {
-        const parsed = JSON.parse(rawReply);
-        const questionCards = parsed?.questions || [];
-
-        if (questionCards.length === 0) {
-          reply =
-            "🎉 **Perfect score!** You answered all questions correctly. Great work!";
-        } else {
-          reply = questionCards
-            .map((card) => {
-              const cc = card.conceptCard || {};
-              const mcq1 = card.mcq1 || {};
-              const mcq2 = card.mcq2 || {};
-
-              const mcqBlock = (mcq, label) => {
-                if (!mcq.question) return "";
-                const opts = (mcq.options || [])
-                  .map((o, i) => `${String.fromCharCode(65 + i)}) ${o}`)
-                  .join("  \n");
-                return `**${label}:** ${mcq.question}\n${opts}\n*Correct: ${mcq.correct}*`;
-              };
-
-              return [
-                `### ${card.questionId}: Concept Card — ${cc.title || ""}`,
-                `**Core Concept:** ${cc.concept || ""}`,
-                `**Where You Went Wrong:** ${cc.whereYouWentWrong || ""}`,
-                "",
-                mcqBlock(mcq1, "Practice Q1"),
-                mcqBlock(mcq2, "Practice Q2"),
-              ]
-                .filter(Boolean)
-                .join("\n\n");
-            })
-            .join("\n\n---\n\n");
-        }
+        parsed = JSON.parse(rawReply);
       } catch {
-        // Fallback: render raw string if not valid JSON
-        reply = rawReply || "Analysis complete.";
+        // Not valid JSON
       }
 
-      setMessages((prev) => [
-        ...prev.filter((m) => m.role !== "system-auto"),
-        {
-          role: "assistant",
-          content: reply,
-          timestamp: new Date().toISOString(),
-          isAnalysis: isAutoAnalysis,
-        },
-      ]);
+      if (parsed?.questions) {
+        setAnalysisData(parsed);
+      } else {
+        // Response isn't in expected JSON format — still show score review
+        setAnalysisData({ questions: [] });
+        setErrorMsg("AI analysis returned in unexpected format. Review below.");
+      }
+      setChatPhase("scoreReview");
     } catch (err) {
       console.error("QuizResultChatPanel: /test-prep-analysis failed", err);
-      const fallback = isAutoAnalysis
-        ? buildLocalFallback(evalData, classNum, subject)
-        : "Sorry, I could not process that. Please try again.";
-
-      setMessages((prev) => [
-        ...prev.filter((m) => m.role !== "system-auto"),
-        {
-          role: "assistant",
-          content: fallback,
-          timestamp: new Date().toISOString(),
-          isAnalysis: isAutoAnalysis,
-        },
-      ]);
+      setAnalysisData({ questions: [] });
+      setChatPhase("scoreReview");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || isLoading) return;
-
-    const text = newMessage.trim();
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "user",
-        content: text,
-        timestamp: new Date().toISOString(),
-      },
-    ]);
-    setNewMessage("");
-    setIsLoading(true);
-
-    const contextualQuery = `[Student quiz context: Class ${classNum} ${subject}, Score: ${(evalData?.prediction?.score_pct ?? 0).toFixed(0)}%]\n\nStudent question: ${text}`;
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "system-auto",
-        content: "...",
-        timestamp: new Date().toISOString(),
-      },
-    ]);
-
-    await callChatbot(contextualQuery, false);
+  // ─── Tackle flow handlers ─────────────────────────────────────────────────
+  const startTackling = () => {
+    setChatPhase("tackling");
+    setCurrentWrongIdx(0);
+    setMcqPhase("mcq1");
+    setMcqShowing(false);
+    setSelectedOption(null);
+    setAnswerResult(null);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  const handleTestConcept = () => {
+    setMcqShowing(true);
+    setSelectedOption(null);
+    setAnswerResult(null);
+  };
+
+  const handleAnswer = (selected, correct) => {
+    if (selected === correct) {
+      setAnswerResult("correct");
+    } else {
+      setAnswerResult("wrong");
     }
+  };
+
+  const handleNextQuestion = () => {
+    const isLast = currentWrongIdx >= wrongQuestions.length - 1;
+    if (isLast) {
+      setChatPhase("done");
+    } else {
+      setCurrentWrongIdx((prev) => prev + 1);
+      setMcqPhase("mcq1");
+      setMcqShowing(false);
+      setSelectedOption(null);
+      setAnswerResult(null);
+    }
+  };
+
+  const handlePracticeSimilar = () => {
+    setMcqPhase("mcq2");
+    setMcqShowing(true);
+    setSelectedOption(null);
+    setAnswerResult(null);
   };
 
   if (!evalData) return null;
@@ -428,7 +530,7 @@ const QuizResultChatPanel = ({
       >
         <span className="qrcp-toggle-icon">{isOpen ? "✕" : "🤖"}</span>
         <span className="qrcp-toggle-label">
-          {isOpen ? "Close Analysis" : "AI Analysis"}
+          {isOpen ? "Close" : "Study Buddy"}
         </span>
         {!isOpen && analysisTriggered && <span className="qrcp-badge">1</span>}
       </button>
@@ -441,96 +543,118 @@ const QuizResultChatPanel = ({
             <div className="qrcp-header-left">
               <span className="qrcp-header-icon">🤖</span>
               <div>
-                <div className="qrcp-header-title">AI Tutor Analysis</div>
-                <div className="qrcp-header-sub">
-                  {sessionReady && sessionId
-                    ? "Personalized feedback on your quiz"
-                    : sessionReady
-                      ? "Offline mode"
-                      : "Connecting..."}
-                </div>
+                <div className="qrcp-header-title">Study Buddy</div>
+                <div className="qrcp-header-sub">Your learning assistant</div>
               </div>
             </div>
           </div>
 
-          {/* Messages */}
-          <div className="qrcp-messages">
-            {messages.length === 0 && !isLoading && (
-              <div className="qrcp-empty">
-                Preparing your personalized analysis...
+          {/* Body */}
+          <div className="qrcp-messages" ref={messagesEndRef}>
+            {/* PHASE: loading */}
+            {chatPhase === "loading" && (
+              <div className="qrcp-thinking" style={{ margin: "auto" }}>
+                <span className="qrcp-dot" />
+                <span className="qrcp-dot" />
+                <span className="qrcp-dot" />
+                <span
+                  style={{
+                    marginLeft: 8,
+                    color: "#6366f1",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  Analyzing your quiz results...
+                </span>
               </div>
             )}
 
-            {messages.map((msg, i) => (
-              <div key={i} className={`qrcp-msg ${msg.role}`}>
-                {msg.role === "system-auto" ? (
-                  <div className="qrcp-thinking">
-                    <span className="qrcp-dot" />
-                    <span className="qrcp-dot" />
-                    <span className="qrcp-dot" />
-                    {msg.content !== "..." && (
-                      <span
-                        style={{
-                          marginLeft: 8,
-                          color: "#6366f1",
-                          fontSize: "0.85rem",
-                        }}
-                      >
-                        {msg.content}
-                      </span>
-                    )}
-                  </div>
-                ) : msg.role === "assistant" ? (
-                  <div
-                    className={`qrcp-bubble assistant ${msg.isAnalysis ? "analysis-bubble" : ""}`}
-                  >
-                    <MarkdownWithMath content={msg.content} />
-                    <span className="qrcp-time">
-                      {new Date(msg.timestamp).toLocaleTimeString()}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="qrcp-bubble user">
-                    <p>{msg.content}</p>
-                    <span className="qrcp-time">
-                      {new Date(msg.timestamp).toLocaleTimeString()}
+            {/* PHASE: scoreReview */}
+            {chatPhase === "scoreReview" && (
+              <>
+                {/* Bot message bubble wrapping score panel */}
+                <div className="sb-bot-bubble">
+                  <ScoreReviewPanel
+                    questions={questions}
+                    answerMap={answerMap}
+                    totalCorrect={totalCorrect}
+                    totalQuestions={questions.length}
+                  />
+                </div>
+
+                {errorMsg && (
+                  <div className="sb-bot-bubble">
+                    <span style={{ color: "#f59e0b", fontSize: "0.8rem" }}>
+                      ⚠️ {errorMsg}
                     </span>
                   </div>
                 )}
-              </div>
-            ))}
 
-            {isLoading && messages.every((m) => m.role !== "system-auto") && (
-              <div className="qrcp-msg assistant">
-                <div className="qrcp-thinking">
-                  <span className="qrcp-dot" />
-                  <span className="qrcp-dot" />
-                  <span className="qrcp-dot" />
+                {wrongQuestions.length > 0 ? (
+                  <div className="sb-bot-bubble">
+                    <div className="sb-tackle-msg">
+                      You got <strong>{wrongQuestions.length}</strong> question
+                      {wrongQuestions.length > 1 ? "s" : ""} wrong. Want to work
+                      through them together?
+                    </div>
+                    <button className="sb-tackle-btn" onClick={startTackling}>
+                      Let's Tackle Them Together
+                    </button>
+                  </div>
+                ) : (
+                  <div className="sb-bot-bubble">
+                    <div className="sb-correct-msg">
+                      🎉 Perfect score! You answered everything correctly.
+                      Amazing work!
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* PHASE: tackling */}
+            {chatPhase === "tackling" && wrongQuestions[currentWrongIdx] && (
+              <div className="sb-bot-bubble">
+                <WrongQuestionPanel
+                  wrongQ={wrongQuestions[currentWrongIdx]}
+                  originalQ={findOriginalQuestion(
+                    wrongQuestions[currentWrongIdx],
+                  )}
+                  answerMap={answerMap}
+                  mcqPhase={mcqPhase}
+                  mcqShowing={mcqShowing}
+                  selectedOption={selectedOption}
+                  setSelectedOption={setSelectedOption}
+                  answerResult={answerResult}
+                  onTestConcept={handleTestConcept}
+                  onAnswer={handleAnswer}
+                  onNextQuestion={handleNextQuestion}
+                  onPracticeSimilar={handlePracticeSimilar}
+                  currentIdx={currentWrongIdx}
+                  total={wrongQuestions.length}
+                />
+              </div>
+            )}
+
+            {/* PHASE: done */}
+            {chatPhase === "done" && (
+              <div className="sb-bot-bubble">
+                <div className="sb-done-panel">
+                  <div className="sb-done-msg">
+                    🎉 Great work reviewing all your mistakes! You're getting
+                    better with every attempt.
+                  </div>
+                  <button
+                    className="sb-retake-btn"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Try the Test Again
+                  </button>
                 </div>
               </div>
             )}
 
             <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="qrcp-input-area">
-            <textarea
-              className="qrcp-input"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask a follow-up question..."
-              rows={2}
-              disabled={isLoading || !sessionReady}
-            />
-            <button
-              className="qrcp-send-btn"
-              onClick={handleSendMessage}
-              disabled={isLoading || !newMessage.trim() || !sessionReady}
-            >
-              ➤
-            </button>
           </div>
         </div>
       )}

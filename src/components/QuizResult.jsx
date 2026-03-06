@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
@@ -7,7 +7,7 @@ import { generateQuestions, generateLearningPath } from "../api/quizApi";
 import axiosInstance from "../api/axiosInstance";
 import "./QuizResult.css";
 import MarkdownWithMath from "./MarkdownWithMath";
-import { ChatContext } from "../contexts/ChatContext";
+import QuizResultChatPanel from "./QuizResultChatPanel";
 
 /* ── Convert LaTeX + Markdown to readable plain text for PDF ── */
 const latexToPlainText = (text) => {
@@ -246,7 +246,6 @@ const QuizResult = () => {
   const quizSaved = useRef(false);
   const analysisSent = useRef(false);
   const isDark = localStorage.getItem("DarkMode") === "true";
-  const { triggerAnalysis } = useContext(ChatContext);
 
   /* ── auto-trigger AI analysis on mount ── */
   useEffect(() => {
@@ -263,28 +262,6 @@ const QuizResult = () => {
       );
     }, 1500);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /* ── persist quiz result on mount ── */
-  useEffect(() => {
-    if (!evalData || !classNum || quizSaved.current) return;
-    quizSaved.current = true;
-    const chaptersList = [
-      ...new Set(questions.map((q) => q.chapter).filter(Boolean)),
-    ];
-    axiosInstance
-      .createQuiz({
-        name: `Quiz - Class ${classNum} - ${chaptersList.join(", ")}`,
-        prediction: prediction || {},
-        analysis: analysis || {},
-        remedial_plan: remedialPlanRaw || {},
-        graph_data: graphData || {},
-      })
-      .then((data) => setQuizId(data.id))
-      .catch(() => {
-        /* best-effort */
-      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1862,7 +1839,6 @@ const QuizResult = () => {
           </>
         )}
       </motion.div>
-
       {/* ════ Learning Path Generation Overlay ════ */}
       <AnimatePresence>
         {generatingPath && (
@@ -1927,8 +1903,14 @@ const QuizResult = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* AI Analysis is now handled by ChatBox via ChatContext */}
+      <QuizResultChatPanel
+        evalData={evalData}
+        questions={questions}
+        answers={answers}
+        classNum={classNum}
+        subject={subject}
+        timeSpent={timeSpent}
+      />{" "}
     </div>
   );
 };
