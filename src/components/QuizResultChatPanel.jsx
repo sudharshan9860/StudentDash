@@ -57,165 +57,44 @@ const buildQuestionByQuestion = (questions = [], answers = []) => {
   });
 };
 
-// ── Build the full analysis prompt — ALL quiz data embedded directly in query ──
-// FIX: answers is now passed as a parameter (was missing before — caused qbqData to always be empty)
-const buildAnalysisPrompt = (
-  evalData,
-  questions,
-  answers, // ✅ FIXED: added answers parameter
+const buildStructuredQuery = (
+  questions = [],
+  answers = [],
   classNum,
   subject,
-  timeSpent,
 ) => {
-  const prediction = evalData?.prediction || {};
-  const analysis = evalData?.analysis || {};
-  const remedialPlan = evalData?.remedial_plan || {};
-  const graphData = evalData?.graph_data || {};
+  // Reuse existing helper to produce enriched per-question objects
+  const qbq = buildQuestionByQuestion(questions, answers);
 
-  const scorePct = (prediction.score_pct ?? analysis.score_pct ?? 0).toFixed(0);
-  const correct = prediction.correct ?? analysis.correct ?? 0;
-  const total = prediction.total ?? analysis.total ?? questions.length;
-  const timeMins = Math.floor((timeSpent || 0) / 60);
-  const timeSecs = (timeSpent || 0) % 60;
+  // Only analyse questions the student got wrong (skip correct + unanswered)
+  const wrong = qbq.filter((q) => !q.is_correct && !q.is_unanswered);
 
-  // Chapter breakdown
-  const chapterBreakdown = graphData.chapter_breakdown || [];
-  const chapterLines = chapterBreakdown.length
-    ? chapterBreakdown
-        .map(
-          (c) =>
-            `  - ${c.chapter}: ${c.correct}/${c.total} correct (${Number(c.score_pct ?? 0).toFixed(0)}%)`,
-        )
-        .join("\n")
-    : "  - No chapter breakdown available";
+  if (wrong.length === 0) {
+    // All correct — backend expects empty questions array
+    return JSON.stringify({ questions: [] });
+  }
 
-  // ✅ FIXED: answers is now available here (was undefined before)
-  const qbqData = buildQuestionByQuestion(questions, answers || []);
+  // Build the Q1, Q2 … block string
+  const blocks = wrong.map((q, idx) => {
+    const optionLine = Object.entries(q.options || {})
+      .map(([letter, text]) => `${letter}) ${text}`)
+      .join(" | ");
 
-  // ── DEBUG: log QbQ data to verify it's populated ──
-  console.group("📊 QuizResultChatPanel — Question-by-Question Data");
-  console.log("Total questions:", qbqData.length);
-  console.log("Answers received (raw):", answers);
-  console.table(
-    qbqData.map((q) => ({
-      "Q#": q.question_num,
-      Chapter: q.chapter,
-      Bridge: q.bridge_name || q.bridge_id,
-      "Student Answer": q.selected_option || "—",
-      "Correct Answer": q.correct_answer,
-      Result: q.is_unanswered ? "Skipped" : q.is_correct ? "✅" : "❌",
-      "Trap Hit": q.trap_hit ? "⚠️ YES" : "No",
-    })),
-  );
-  console.groupEnd();
+    const trap = q.trap_explanation
+      ? q.trap_explanation
+      : "Review the concept carefully before attempting similar questions.";
 
-  const qbqLines = qbqData
-    .map((q) => {
-      const statusIcon = q.is_unanswered
-        ? "⬜ Skipped"
-        : q.is_correct
-          ? "✅ Correct"
-          : "❌ Wrong";
-      const trapNote = q.trap_hit
-        ? ` ⚠️ Trap hit: chose "${q.trap_answer}" — ${q.trap_explanation}`
-        : "";
-      return (
-        `Q${q.question_num} [${q.chapter}] — ${statusIcon}\n` +
-        `  Bridge: ${q.bridge_name || q.bridge_id}\n` +
-        `  Concept: ${q.concept_tested}\n` +
-        `  Student chose: ${q.selected_option || "—"}  |  Correct: ${q.correct_answer}` +
-        (trapNote ? `\n  ${trapNote}` : "")
-      );
-    })
-    .join("\n\n");
+    return [
+      `Q${idx + 1}. ${q.question}`,
+      `Chapter: ${q.chapter || "N/A"}`,
+      `Options: ${optionLine}`,
+      `Correct Answer: ${q.correct_answer}`,
+      `Student Answer: ${q.selected_option}`,
+      `Trap: ${trap}`,
+    ].join("\n");
+  });
 
-  // Bridge results
-  const bridgeResults =
-    analysis.bridge_results || evalData.ai_bridge_evaluations || [];
-  const brokenBridges = bridgeResults
-    .filter((b) => b.status === "broken")
-    .map((b) => b.bridge_name);
-  const weakBridges = bridgeResults
-    .filter((b) => b.status === "weak")
-    .map((b) => b.bridge_name);
-
-  // Remedial plan
-  const studyPlanSummary = remedialPlan.study_plan_summary || {};
-  const bridgeRepairs = (remedialPlan.bridge_repairs || []).slice(0, 4);
-  const foundationRepairs = (remedialPlan.foundation_repairs || []).slice(0, 3);
-  const priorityOrder = studyPlanSummary.priority_order || [];
-
-  const bridgeRepairLines = bridgeRepairs.length
-    ? bridgeRepairs
-        .map(
-          (b) =>
-            `  - ${b.bridge_name} (${b.chapter || ""}): ${b.what_went_wrong || ""}`,
-        )
-        .join("\n")
-    : "  - None identified";
-
-  const foundationLines = foundationRepairs.length
-    ? foundationRepairs
-        .map(
-          (f) =>
-            `  - ${f.concept_name || f.id || "Unknown"}: ${f.what_went_wrong || ""}`,
-        )
-        .join("\n")
-    : "  - None identified";
-
-  const priorityLines = priorityOrder.length
-    ? priorityOrder.map((p, i) => `  ${i + 1}. ${p}`).join("\n")
-    : "  - Review all chapters";
-
-  return `You are an expert AI tutor for Class ${classNum} ${subject}.
-A student just completed a Test Prep quiz. I am sharing their full results below.
-Please give them a warm, specific, and encouraging analysis in simple language suitable for a school student.
-
-=== QUIZ RESULT ===
-Subject: ${subject}
-Class: ${classNum}
-Score: ${scorePct}% (${correct} out of ${total} correct)
-Time Taken: ${timeMins} min ${timeSecs} sec
-
-=== CHAPTER PERFORMANCE ===
-${chapterLines}
-
-=== QUESTION-BY-QUESTION BREAKDOWN ===
-${qbqLines}
-
-Please provide:
-1. A question-by-question analysis table showing what the student got right/wrong and why
-2. For each wrong answer, explain the likely misconception and link it to the bridge/concept
-3. Call out any trap answers the student fell for and explain the reasoning error
-4. Prioritise which questions to revisit first based on conceptual importance
-
-=== CONCEPT GAPS (Bridge Scan) ===
-Broken Bridges (critical gaps): ${brokenBridges.length ? brokenBridges.join(", ") : "None"}
-Weak Bridges (partial understanding): ${weakBridges.length ? weakBridges.join(", ") : "None"}
-
-=== TOP THINGS TO FIX ===
-${bridgeRepairLines}
-
-=== FOUNDATION GAPS ===
-${foundationLines}
-
-=== PRIORITY STUDY ORDER ===
-${priorityLines}
-
-=== EXPECTED IMPROVEMENT ===
-${studyPlanSummary.expected_improvement || "Focus on the identified weak areas."}
-
-Total Estimated Study Time: ${studyPlanSummary.total_study_time || "Not specified"}
-===================
-
-Now give the student:
-1. A brief encouraging opening (1–2 sentences)
-2. What they did well (specific chapter or concept if score > 0)
-3. The 2–3 most important mistakes — explain WHY they happen in simple words
-4. A clear 3-step action plan for this week
-5. A short motivational closing line
-
-Keep the total response under 300 words. Use simple language. Do not mention "bridges" as a technical term — call them "key concepts" instead.`;
+  return blocks.join("\n\n");
 };
 
 // ── Local fallback rendered if API is completely unreachable ─────────────────
@@ -360,19 +239,11 @@ const QuizResultChatPanel = ({
   }, [sessionReady]);
 
   const triggerAutoAnalysis = async () => {
-    // ✅ FIXED: pass answers as 3rd argument
-    const prompt = buildAnalysisPrompt(
-      evalData,
-      questions,
-      answers, // ✅ was missing before
-      classNum,
-      subject,
-      timeSpent,
-    );
+    // ── Build structured per-question query ──
+    const prompt = buildStructuredQuery(questions, answers, classNum, subject);
 
-    // ── DEBUG: log the full prompt sent to the chatbot ──
     console.group(
-      "📨 QuizResultChatPanel — prompt sent to /test-prep-analysis",
+      "📨 QuizResultChatPanel — structured query sent to /test-prep-analysis",
     );
     console.log(prompt);
     console.groupEnd();
@@ -423,14 +294,63 @@ const QuizResultChatPanel = ({
         query_preview: messageText.substring(0, 200) + "...",
       });
 
-      const res = await api.post("/test-prep-analysis", requestBody, {
-        headers: { session_token: sessionId },
-      });
+      // This stays unchanged — already correct:
+      const res = await api.post(
+        "/test-prep-analysis",
+        {
+          session_id: sessionId,
+          query: messageText, // ← now receives the Q1./Q2. format string
+          language: "en",
+        },
+        { headers: { session_token: sessionId } },
+      );
 
       console.log("✅ /test-prep-analysis response:", res.data);
 
-      const reply =
-        res?.data?.response || res?.data?.reply || "Analysis complete.";
+      // Inside callChatbot, replace the reply extraction block:
+
+      const rawReply = res?.data?.response || res?.data?.reply || "";
+
+      let reply;
+      try {
+        const parsed = JSON.parse(rawReply);
+        const questionCards = parsed?.questions || [];
+
+        if (questionCards.length === 0) {
+          reply =
+            "🎉 **Perfect score!** You answered all questions correctly. Great work!";
+        } else {
+          reply = questionCards
+            .map((card) => {
+              const cc = card.conceptCard || {};
+              const mcq1 = card.mcq1 || {};
+              const mcq2 = card.mcq2 || {};
+
+              const mcqBlock = (mcq, label) => {
+                if (!mcq.question) return "";
+                const opts = (mcq.options || [])
+                  .map((o, i) => `${String.fromCharCode(65 + i)}) ${o}`)
+                  .join("  \n");
+                return `**${label}:** ${mcq.question}\n${opts}\n*Correct: ${mcq.correct}*`;
+              };
+
+              return [
+                `### ${card.questionId}: Concept Card — ${cc.title || ""}`,
+                `**Core Concept:** ${cc.concept || ""}`,
+                `**Where You Went Wrong:** ${cc.whereYouWentWrong || ""}`,
+                "",
+                mcqBlock(mcq1, "Practice Q1"),
+                mcqBlock(mcq2, "Practice Q2"),
+              ]
+                .filter(Boolean)
+                .join("\n\n");
+            })
+            .join("\n\n---\n\n");
+        }
+      } catch {
+        // Fallback: render raw string if not valid JSON
+        reply = rawReply || "Analysis complete.";
+      }
 
       setMessages((prev) => [
         ...prev.filter((m) => m.role !== "system-auto"),

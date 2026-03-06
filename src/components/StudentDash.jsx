@@ -9,7 +9,7 @@ import Select from "react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AuthContext } from "./AuthContext";
 import { useAlert } from "./AlertBox";
-import WizardSelector from "./WizardSelector";
+import StudentWizard from "./StudentWizard";
 import { useJeeMode } from "../contexts/JeeModeContext";
 import {
   faSchool,
@@ -1535,7 +1535,7 @@ function StudentDash({ jeeMode = false }) {
                 {/* Progressive Wizard */}
                 <div className="learning-adventure-section">
                   <div className="form-container">
-                    <WizardSelector
+                    <StudentWizard
                       username={username}
                       isDarkMode={isDarkMode}
                       isJeeMode={isJeeMode}

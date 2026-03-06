@@ -253,7 +253,14 @@ const QuizResult = () => {
     if (!evalData || analysisSent.current) return;
     analysisSent.current = true;
     const timer = setTimeout(() => {
-      triggerAnalysis(evalData, classNum, subject, timeSpent);
+      triggerAnalysis(
+        evalData,
+        classNum,
+        subject,
+        timeSpent,
+        questions,
+        answers,
+      );
     }, 1500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
