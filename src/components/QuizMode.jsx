@@ -7,6 +7,7 @@ import {
   fetchChapters,
   generateQuestions,
   fetchCheatsheet,
+  fetchChapterSubtopics,
 } from "../api/quizApi";
 import axiosInstance from "../api/axiosInstance";
 import MarkdownWithMath from "./MarkdownWithMath";
@@ -50,12 +51,22 @@ const QuizMode = () => {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [learningAnswers, setLearningAnswers] = useState({});
 
+  // True only when Class 9 + MATHEMATICS is selected
+  const isClass9Math =
+    selectedClass === "9" && selectedSubject === "MATHEMATICS";
+
+  const [subtopics, setSubtopics] = useState([]); // [{updated_sub_topic_code, updated_sub_topic_name}]
+  const [selectedSubtopics, setSelectedSubtopics] = useState([]); // array of codes (numbers)
+  const [loadingSubtopics, setLoadingSubtopics] = useState(false);
+
   useEffect(() => {
     setLoadingClasses(true);
     setClasses([]);
     setSelectedClass("");
     setChapters([]);
     setSelectedChapters([]);
+    setSubtopics([]); // ← add
+    setSelectedSubtopics([]); // ← add
     setError("");
     fetchClasses(selectedSubject)
       .then((res) => setClasses(res.data.classes || []))
@@ -81,6 +92,32 @@ const QuizMode = () => {
       .catch(() => setError("Failed to load chapters."))
       .finally(() => setLoadingChapters(false));
   }, [selectedClass, selectedSubject]);
+
+  useEffect(() => {
+    // Clear whenever chapters / class / subject change
+    setSubtopics([]);
+    setSelectedSubtopics([]);
+
+    // Only fetch for Class 9 MATHEMATICS with at least one chapter selected
+    if (!isClass9Math || selectedChapters.length === 0) return;
+
+    setLoadingSubtopics(true);
+
+    // Fetch subtopics for ALL selected chapters in parallel, then merge & deduplicate
+    Promise.all(
+      selectedChapters.map((chapter) =>
+        fetchChapterSubtopics(9, chapter, "MATHEMATICS")
+          .then((res) => res.data.sub_topics || [])
+          .catch(() => []),
+      ),
+    )
+      .then((results) => {
+        // Flatten and deduplicate subtopic name strings
+        const merged = [...new Set(results.flat())];
+        setSubtopics(merged); // now a plain string[] e.g. ["Irrational Numbers", ...]
+      })
+      .finally(() => setLoadingSubtopics(false));
+  }, [selectedChapters, isClass9Math]);
 
   const toggleChapter = useCallback((ch) => {
     setSelectedChapters((prev) =>
@@ -112,7 +149,11 @@ const QuizMode = () => {
       ? 2
       : selectedChapters.length === 0
         ? 3
-        : 4;
+        : isClass9Math && selectedSubtopics.length === 0
+          ? 4
+          : isClass9Math
+            ? 5
+            : 4;
   const totalQuestions = selectedChapters.length * questionsPerChapter;
   const estimatedTime = totalQuestions * 2; // 2 min per question
 
@@ -248,12 +289,25 @@ const QuizMode = () => {
     setGenerating(true);
     setError("");
     try {
-      const res = await generateQuestions({
-        class_num: Number(selectedClass),
-        chapters: selectedChapters,
-        questions_per_chapter: questionsPerChapter,
-        subject: selectedSubject,
-      });
+      // Build payload — sub_topics only included for Class 9 Math when user picked some
+      const payload = isClass9Math
+        ? {
+            class_num: 9,
+            chapters: selectedChapters,
+            questions_per_chapter: questionsPerChapter,
+            subject: "MATHEMATICS",
+            ...(selectedSubtopics.length > 0 && {
+              sub_topics: selectedSubtopics,
+            }),
+          }
+        : {
+            class_num: Number(selectedClass),
+            chapters: selectedChapters,
+            questions_per_chapter: questionsPerChapter,
+            subject: selectedSubject,
+          };
+
+      const res = await generateQuestions(payload);
       navigate("/quiz-question", {
         state: {
           quizData: res.data,
@@ -312,11 +366,19 @@ const QuizMode = () => {
         {/* Steps indicator */}
         <div className="quiz-steps-wrapper">
           <div className="quiz-steps">
+            // AFTER
             {[
               { num: 1, label: "Subject", desc: "Pick subject" },
               { num: 2, label: "Class", desc: "Select class" },
               { num: 3, label: "Chapters", desc: "Pick topics" },
-              { num: 4, label: "Configure", desc: "Set & start" },
+              ...(isClass9Math
+                ? [{ num: 4, label: "Subtopics", desc: "Filter subtopics" }]
+                : []),
+              {
+                num: isClass9Math ? 5 : 4,
+                label: "Configure",
+                desc: "Set & start",
+              },
             ].map((step, i) => (
               <React.Fragment key={step.num}>
                 {i > 0 && (
@@ -533,6 +595,79 @@ const QuizMode = () => {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {isClass9Math && selectedChapters.length > 0 && (
+              <motion.div
+                className="quiz-glass-card"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.35 }}
+              >
+                <div className="quiz-section-label">
+                  <span className="quiz-section-num">4</span>
+                  <span>Select Subtopics</span>
+                  {selectedSubtopics.length > 0 && (
+                    <span className="quiz-section-count">
+                      {selectedSubtopics.length} selected
+                    </span>
+                  )}
+                </div>
+
+                {loadingSubtopics ? (
+                  <div className="quiz-empty-state">
+                    <div
+                      className="quiz-spinner"
+                      style={{ margin: "0 auto", width: 32, height: 32 }}
+                    />
+                  </div>
+                ) : subtopics.length === 0 ? (
+                  <div className="quiz-empty-state">
+                    <div className="empty-icon">📭</div>
+                    <p>No subtopics available for selected chapters.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="quiz-chapter-grid">
+                      {subtopics.map((name) => (
+                        <motion.button
+                          key={name}
+                          className={`quiz-chapter-chip ${
+                            selectedSubtopics.includes(name) ? "selected" : ""
+                          }`}
+                          onClick={() =>
+                            setSelectedSubtopics((prev) =>
+                              prev.includes(name)
+                                ? prev.filter((s) => s !== name)
+                                : [...prev, name],
+                            )
+                          }
+                          whileTap={{ scale: 0.96 }}
+                        >
+                          <span
+                            className={`quiz-chip-check ${
+                              selectedSubtopics.includes(name) ? "visible" : ""
+                            }`}
+                          >
+                            ✓
+                          </span>
+                          <span className="quiz-chip-text">{name}</span>
+                        </motion.button>
+                      ))}
+                    </div>
+                    <p
+                      style={{
+                        marginTop: 8,
+                        fontSize: "0.85rem",
+                        opacity: 0.7,
+                      }}
+                    >
+                      Select subtopics to focus on, or leave blank to cover all.
+                    </p>
+                  </>
+                )}
+              </motion.div>
+            )}
 
             {/* ── Section 4: Configure & Start ── */}
             <AnimatePresence>

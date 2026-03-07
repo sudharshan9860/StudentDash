@@ -1710,7 +1710,7 @@ const QuizResult = () => {
         )}
 
         {/* ════ Score-Gated Actions ════ */}
-        {scorePct >= 80 ? (
+        {scorePct >= 60 ? (
           /* ─── PASS: Self Study Unlocked ─────────────────────────────── */
           <motion.div
             className="qr-selfstudy-banner"
@@ -1725,7 +1725,7 @@ const QuizResult = () => {
             <h2 className="qr-ss-title">Test Completed!</h2>
             <p className="qr-ss-score">
               You scored <strong>{Number(scorePct).toFixed(0)}%</strong> — above
-              the 80% mastery mark
+              the 60% mastery mark
             </p>
             <p className="qr-ss-message">
               You've demonstrated strong conceptual understanding of these
@@ -1767,7 +1767,7 @@ const QuizResult = () => {
                   <h3 className="qr-retake-title">Retake This Test</h3>
                   <p className="qr-retake-sub">
                     You scored <strong>{Number(scorePct).toFixed(0)}%</strong>.
-                    Score ≥ 80% to unlock Self Study. New questions will be
+                    Score ≥ 60% to unlock Self Study. New questions will be
                     generated for the same chapters — your previous answers are
                     shown for reference only.
                   </p>

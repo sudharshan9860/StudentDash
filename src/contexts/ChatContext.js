@@ -3,12 +3,8 @@ import React, { createContext, useState, useCallback } from "react";
 
 export const ChatContext = createContext();
 
-// ── Builds the Q1/Q2... structured query string for /test-prep-analysis ──
-// Only includes questions the student answered INCORRECTLY.
+// ── Build the wrong-questions query sent to /test-prep-analysis ──
 const buildQueryString = (questions = [], answers = []) => {
-  // Build answerMap supporting both formats:
-  //   Array: [{ question_num: 1, selected_option: "B" }, ...]
-  //   Object: { 0: "B", 1: "A", ... }  (index-keyed from QuizQuestion state)
   const answerMap = {};
   if (Array.isArray(answers)) {
     answers.forEach((a) => {
@@ -23,18 +19,15 @@ const buildQueryString = (questions = [], answers = []) => {
 
   if (!questions.length) return "";
 
-  // Filter to only wrong answers (answered but incorrect)
   const wrongQuestions = questions.filter((q) => {
     const selected = answerMap[q.question_num];
     return selected && selected !== q.correct_answer;
   });
 
-  // All correct → tell backend to return empty questions array
   if (wrongQuestions.length === 0) {
     return JSON.stringify({ questions: [] });
   }
 
-  // Build Q1, Q2... blocks
   return wrongQuestions
     .map((q, idx) => {
       const selected = answerMap[q.question_num] || "N/A";
@@ -43,7 +36,6 @@ const buildQueryString = (questions = [], answers = []) => {
         .map(([k, v]) => `${k}) ${v}`)
         .join(" | ");
       const isTrapHit = selected !== "N/A" && selected !== q.correct_answer;
-
       return [
         `Q${idx + 1}. ${q.question || ""}`,
         `Chapter: ${q.chapter || "N/A"}`,
@@ -59,7 +51,6 @@ const buildQueryString = (questions = [], answers = []) => {
 export const ChatProvider = ({ children }) => {
   const [pendingAnalysis, setPendingAnalysis] = useState(null);
 
-  // triggerAnalysis accepts questions + answers to build structured query
   const triggerAnalysis = useCallback(
     (evalData, classNum, subject, timeSpent, questions = [], answers = []) => {
       if (!evalData) return;

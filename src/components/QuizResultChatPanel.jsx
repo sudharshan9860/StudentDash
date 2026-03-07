@@ -7,6 +7,14 @@ import "./QuizResultChatPanel.css";
 const API_URL = "https://chatbot.smartlearners.ai";
 const api = axios.create({ baseURL: API_URL, timeout: 300000 });
 
+// Maps "0"→"A", "1"→"B", "2"→"C", "3"→"D"
+const NUM_TO_LETTER = { 0: "A", 1: "B", 2: "C", 3: "D" };
+
+// Normalises any option key or answer to a letter
+// handles: "0"→"A", "b"→"B", "B"→"B", 1→"B"
+const toLetterKey = (key) =>
+  NUM_TO_LETTER[String(key)] ?? String(key).toUpperCase();
+
 // ─── Build answer map from answers array or object ───────────────────────────
 const buildAnswerMap = (questions = [], answers = []) => {
   const map = {};
@@ -28,7 +36,8 @@ const buildQuestionByQuestion = (questions = [], answers = []) => {
   const answerMap = buildAnswerMap(questions, answers);
   return questions.map((q) => {
     const selected = answerMap[q.question_num] || "";
-    const isCorrect = selected !== "" && selected === q.correct_answer;
+    const isCorrect =
+      toLetterKey(selected ?? "") === toLetterKey(correctAnswer ?? "");
     const isTrapHit = selected === q.trap_answer;
     return {
       question_num: q.question_num,
@@ -47,6 +56,175 @@ const buildQuestionByQuestion = (questions = [], answers = []) => {
       trap_explanation: isTrapHit ? q.trap_explanation || "" : "",
     };
   });
+};
+
+// ─── Parse a similar-question block out of AI response text ──────────────────
+// Looks for a block starting with "Try a similar question:" and extracts
+// question text, options (A/B/C/D or 0)/1)/2)/3) prefixed), and correct answer.
+const parseSimilarQuestion = (text) => {
+  if (!text) return null;
+
+  // Must contain the trigger phrase
+  const triggerMatch = text.match(/try a similar question[:\s]*/i);
+  if (!triggerMatch) return null;
+
+  const afterTrigger = text.slice(
+    text.search(/try a similar question[:\s]*/i) + triggerMatch[0].length,
+  );
+
+  // Extract question text — everything up to the first option line
+  const questionMatch = afterTrigger.match(
+    /^([\s\S]+?)(?=\n\s*(?:[A-D][).:]|[0-3][).:]))/i,
+  );
+  const questionText = questionMatch ? questionMatch[1].trim() : "";
+
+  if (!questionText) return null;
+
+  // Extract options — support both "A) text", "A. text", "0) text", "1) text" formats
+  const optionRegex = /^\s*([A-D0-3])[).:\s]+(.+)$/gim;
+  const options = {};
+  let match;
+  const optionLines = afterTrigger.split("\n");
+
+  // Map numeric keys to letters
+  const numToLetter = { 0: "A", 1: "B", 2: "C", 3: "D" };
+
+  for (const line of optionLines) {
+    const m = line.match(/^\s*([A-D0-3])[).:\s]+(.+)$/i);
+    if (m) {
+      const rawKey = m[1].toUpperCase();
+      // Convert numeric key to letter if needed
+      const key = numToLetter[rawKey] || rawKey;
+      options[key] = m[2].trim();
+    }
+  }
+
+  if (Object.keys(options).length < 2) return null;
+
+  // Extract correct answer — look for "Correct answer: C" or "Answer: C)" etc.
+  const correctMatch = afterTrigger.match(
+    /(?:correct\s+)?answer[:\s]+([A-D0-3])[).:\s]*/i,
+  );
+  let correctAnswer = correctMatch ? correctMatch[1].toUpperCase() : null;
+  // Normalise numeric correct answer to letter
+  if (correctAnswer && numToLetter[correctAnswer]) {
+    correctAnswer = numToLetter[correctAnswer];
+  }
+
+  return {
+    question: questionText,
+    options,
+    correctAnswer,
+    // The text before the similar question block (the explanation part)
+    explanationText: text
+      .slice(0, text.search(/try a similar question[:\s]*/i))
+      .trim(),
+  };
+};
+
+// ─── Interactive Similar Question MCQ component ───────────────────────────────
+const SimilarQuestionMCQ = ({ parsed, onNext }) => {
+  const [selected, setSelected] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  if (!parsed) return null;
+
+  const { question, options, correctAnswer, explanationText } = parsed;
+  const isCorrect = submitted && selected === correctAnswer;
+
+  const handleSubmit = () => {
+    if (!selected) return;
+    setSubmitted(true);
+  };
+
+  return (
+    <div className="sq-wrapper">
+      {/* Show the explanation text above the MCQ */}
+      {explanationText && (
+        <div className="sq-explanation">
+          <MarkdownWithMath content={explanationText} />
+        </div>
+      )}
+
+      <div className="sq-card">
+        <div className="sq-header">
+          <span className="sq-icon">🔁</span>
+          <span className="sq-label">Try a similar question</span>
+        </div>
+
+        <p className="sq-question">
+          <MarkdownWithMath content={question} />
+        </p>
+
+        <div className="sq-options">
+          {Object.entries(options).map(([rawKey, value]) => {
+            const key = toLetterKey(rawKey); // always "A" "B" "C" "D"
+            const correctLetter = toLetterKey(correctAnswer);
+            const isSelected = selected === key;
+
+            // Build CSS class based on state
+            let optClass = "sb-option";
+            if (submitted) {
+              if (key === correctLetter) optClass += " sb-correct";
+              else if (isSelected) optClass += " sb-wrong";
+              else optClass += " sb-dimmed";
+            } else if (isSelected) {
+              optClass += " sb-selected";
+            }
+
+            return (
+              <label
+                key={key}
+                className={optClass}
+                onClick={() => !submitted && setSelected(key)}
+              >
+                <span className="sb-radio-dot" />
+                <span className="sb-option-key">{key}</span>
+                <span className="sb-option-text">
+                  <MarkdownWithMath content={String(value)} />
+                </span>
+              </label>
+            );
+          })}
+        </div>
+
+        {!submitted ? (
+          <button
+            className="sq-submit-btn"
+            onClick={handleSubmit}
+            disabled={!selected}
+          >
+            Submit Answer
+          </button>
+        ) : (
+          <div
+            className={`sq-result ${isCorrect ? "sq-result-correct" : "sq-result-wrong"}`}
+          >
+            {isCorrect ? (
+              <>
+                <span className="sq-result-icon">✅</span>
+                <span>Correct! Well done — you got it!</span>
+              </>
+            ) : (
+              <>
+                <span className="sq-result-icon">❌</span>
+                <span>
+                  Not quite. The correct answer is{" "}
+                  <strong>{correctAnswer}</strong>
+                  {options[correctAnswer] ? `) ${options[correctAnswer]}` : ""}
+                </span>
+              </>
+            )}
+            {onNext && (
+              <button className="sq-next-btn" onClick={onNext}>
+                Move to Next Question →
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 // ─── Build the structured query sent to /test-prep-analysis ──────────────────
