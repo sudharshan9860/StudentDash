@@ -185,6 +185,12 @@ const ChatBox = forwardRef((props, ref) => {
   const [studentInfo, setStudentInfo] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("checking");
 
+  // Ref to track latest sessionId for async polling (avoids stale closure)
+  const sessionIdRef = useRef(sessionId);
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
   // Chat - Different initial message based on user role
   const getInitialMessage = () => {
     if (userRole === "teacher") {
@@ -394,12 +400,13 @@ const ChatBox = forwardRef((props, ref) => {
         // Auto-open the chatbox
         setIsOpen(true);
 
-        // Wait for session to be ready (poll up to 10s)
+        // Wait for session to be ready (poll up to 10s using ref to avoid stale closure)
         let waited = 0;
-        while (!sessionId && waited < 10000) {
+        while (!sessionIdRef.current && waited < 10000) {
           await new Promise((r) => setTimeout(r, 500));
           waited += 500;
         }
+        const currentSessionId = sessionIdRef.current;
 
         // Add display message (hide raw prompt from UI)
         const displayId = Date.now();
@@ -416,16 +423,67 @@ const ChatBox = forwardRef((props, ref) => {
         ]);
         setIsTyping(true);
 
-        // Send the full prompt to /test-prep-analysis endpoint
+        // Guard: if prompt is empty or signals all-correct, skip API call
+        const prompt = pendingAnalysis.prompt || "";
+        if (!prompt || prompt === JSON.stringify({ questions: [] })) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              text: "🎉 **Perfect score!** You answered all questions correctly. Great work!",
+              sender: "ai",
+              timestamp: new Date(),
+            },
+          ]);
+          setIsTyping(false);
+          clearPendingAnalysis();
+          analysisProcessingRef.current = false;
+          return;
+        }
+
+        // // Send the full prompt to /test-prep-analysis endpoint
+        // if (!prompt || prompt === JSON.stringify({ questions: [] })) {
+        //   setMessages((prev) => [
+        //     ...prev,
+        //     {
+        //       id: Date.now(),
+        //       text: "🎉 **Perfect score!** You answered all questions correctly. Great work!",
+        //       sender: "ai",
+        //       timestamp: new Date(),
+        //     },
+        //   ]);
+        //   setIsTyping(false);
+        //   clearPendingAnalysis();
+        //   analysisProcessingRef.current = false;
+        //   return;
+        // }
+
+        // If session never became available, show fallback
+        if (!currentSessionId) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              text: "⚠️ Could not connect to AI analysis. Please try again.",
+              sender: "ai",
+              timestamp: new Date(),
+            },
+          ]);
+          setIsTyping(false);
+          clearPendingAnalysis();
+          analysisProcessingRef.current = false;
+          return;
+        }
+
         const res = await api.post(
           "/test-prep-analysis",
           {
-            session_id: sessionId,
-            query: pendingAnalysis.prompt,
+            session_id: currentSessionId,
+            query: prompt,
             language: "en",
           },
           {
-            headers: { session_token: sessionId },
+            headers: { session_token: currentSessionId },
           },
         );
 

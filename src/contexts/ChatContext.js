@@ -3,7 +3,6 @@ import React, { createContext, useState, useCallback } from "react";
 
 export const ChatContext = createContext();
 
-// ── Build the wrong-questions query sent to /test-prep-analysis ──
 const buildQueryString = (questions = [], answers = []) => {
   const answerMap = {};
   if (Array.isArray(answers)) {
@@ -19,9 +18,15 @@ const buildQueryString = (questions = [], answers = []) => {
 
   if (!questions.length) return "";
 
+  const toLetterKey = (key) => {
+    const NUM_TO_LETTER = { 0: "A", 1: "B", 2: "C", 3: "D" };
+    return NUM_TO_LETTER[String(key)] ?? String(key).toUpperCase();
+  };
+
   const wrongQuestions = questions.filter((q) => {
     const selected = answerMap[q.question_num];
-    return selected && selected !== q.correct_answer;
+    if (!selected) return false;
+    return toLetterKey(selected) !== toLetterKey(q.correct_answer);
   });
 
   if (wrongQuestions.length === 0) {

@@ -247,24 +247,6 @@ const QuizResult = () => {
   const analysisSent = useRef(false);
   const isDark = localStorage.getItem("DarkMode") === "true";
 
-  /* ── auto-trigger AI analysis on mount ── */
-  useEffect(() => {
-    if (!evalData || analysisSent.current) return;
-    analysisSent.current = true;
-    const timer = setTimeout(() => {
-      triggerAnalysis(
-        evalData,
-        classNum,
-        subject,
-        timeSpent,
-        questions,
-        answers,
-      );
-    }, 1500);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const scorePct = prediction.score_pct ?? 0;
   const correct = prediction.correct ?? analysis.correct ?? 0;
   const total = prediction.total ?? analysis.total ?? questions.length;
@@ -1910,6 +1892,7 @@ const QuizResult = () => {
         classNum={classNum}
         subject={subject}
         timeSpent={timeSpent}
+        isPrimaryAnalysisHandler={true}
       />{" "}
     </div>
   );

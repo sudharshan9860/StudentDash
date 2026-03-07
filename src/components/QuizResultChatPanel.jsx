@@ -36,8 +36,9 @@ const buildQuestionByQuestion = (questions = [], answers = []) => {
   const answerMap = buildAnswerMap(questions, answers);
   return questions.map((q) => {
     const selected = answerMap[q.question_num] || "";
+    // FIXED
     const isCorrect =
-      toLetterKey(selected ?? "") === toLetterKey(correctAnswer ?? "");
+      toLetterKey(selected ?? "") === toLetterKey(q.correct_answer ?? "");
     const isTrapHit = selected === q.trap_answer;
     return {
       question_num: q.question_num,
@@ -327,7 +328,19 @@ const WrongQuestionPanel = ({
     : "—";
   const correctAnswer = originalQ?.correct_answer || "—";
   const currentMcq = wrongQ?.[mcqPhase];
-  const mcqOptions = currentMcq ? Object.entries(currentMcq.options || {}) : [];
+
+  // Normalize options: API returns an array ["opt1","opt2",...] with correct as "A"/"B"/...
+  // Convert to letter-keyed entries so selectedOption matches correct answer format
+  const mcqOptions = (() => {
+    if (!currentMcq?.options) return [];
+    const opts = currentMcq.options;
+    if (Array.isArray(opts)) {
+      // Array → letter-keyed entries: [["A","opt1"],["B","opt2"],...]
+      return opts.map((text, i) => [String.fromCharCode(65 + i), text]);
+    }
+    // Already an object (e.g. {"A":"opt1","B":"opt2"}) → use as-is
+    return Object.entries(opts);
+  })();
 
   return (
     <div className="sb-wrong-q-panel">
@@ -585,6 +598,9 @@ const QuizResultChatPanel = ({
     } catch (err) {
       console.error("QuizResultChatPanel: session creation failed", err);
       setSessionReady(true);
+      setErrorMsg(
+        "Could not connect to AI analysis service. Showing score review only.",
+      );
     }
   };
 

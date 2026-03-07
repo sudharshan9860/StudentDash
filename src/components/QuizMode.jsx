@@ -366,7 +366,6 @@ const QuizMode = () => {
         {/* Steps indicator */}
         <div className="quiz-steps-wrapper">
           <div className="quiz-steps">
-            // AFTER
             {[
               { num: 1, label: "Subject", desc: "Pick subject" },
               { num: 2, label: "Class", desc: "Select class" },

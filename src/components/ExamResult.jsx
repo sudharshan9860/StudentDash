@@ -1,7 +1,20 @@
 // ExamResult.jsx - Component to display exam results
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Card, Row, Col, Table, ProgressBar, Badge, Collapse, Accordion, Modal, Form, Spinner } from "react-bootstrap";
+import {
+  Button,
+  Card,
+  Row,
+  Col,
+  Table,
+  ProgressBar,
+  Badge,
+  Collapse,
+  Accordion,
+  Modal,
+  Form,
+  Spinner,
+} from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTrophy,
@@ -48,12 +61,15 @@ function ExamResult() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  
-
-  const { questionResults = [], examStats = {}, metadata = {} , apiResponse} = location.state || {};
+  const {
+    questionResults = [],
+    examStats = {},
+    metadata = {},
+    apiResponse,
+  } = location.state || {};
 
   console.log("apiResponse", apiResponse);
-// console.log("exam_id", apiResponse.exam_id);
+  // console.log("exam_id", apiResponse.exam_id);
 
   // Dark mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -108,12 +124,18 @@ function ExamResult() {
 
   // Get grade based on percentage
   const getGrade = (percentage) => {
-    if (percentage >= 90) return { grade: "A+", color: "#10b981", label: "Excellent!" };
-    if (percentage >= 80) return { grade: "A", color: "#22c55e", label: "Great Job!" };
-    if (percentage >= 70) return { grade: "B+", color: "#84cc16", label: "Good Work!" };
-    if (percentage >= 60) return { grade: "B", color: "#eab308", label: "Nice Try!" };
-    if (percentage >= 50) return { grade: "C", color: "#f59e0b", label: "Keep Practicing!" };
-    if (percentage >= 40) return { grade: "D", color: "#f97316", label: "Needs Improvement" };
+    if (percentage >= 90)
+      return { grade: "A+", color: "#10b981", label: "Excellent!" };
+    if (percentage >= 80)
+      return { grade: "A", color: "#22c55e", label: "Great Job!" };
+    if (percentage >= 70)
+      return { grade: "B+", color: "#84cc16", label: "Good Work!" };
+    if (percentage >= 60)
+      return { grade: "B", color: "#eab308", label: "Nice Try!" };
+    if (percentage >= 50)
+      return { grade: "C", color: "#f59e0b", label: "Keep Practicing!" };
+    if (percentage >= 40)
+      return { grade: "D", color: "#f97316", label: "Needs Improvement" };
     return { grade: "F", color: "#ef4444", label: "Try Again" };
   };
 
@@ -142,7 +164,8 @@ function ExamResult() {
     return Object.entries(topicMap).map(([topic, data]) => ({
       topic,
       ...data,
-      percentage: data.maxMarks > 0 ? ((data.marks / data.maxMarks) * 100).toFixed(0) : 0,
+      percentage:
+        data.maxMarks > 0 ? ((data.marks / data.maxMarks) * 100).toFixed(0) : 0,
     }));
   };
 
@@ -183,18 +206,20 @@ function ExamResult() {
       formData.append("duration", learningPathForm.duration);
 
       const response = await axiosInstance.post("/learning-path/", formData);
-      setLearningPathId(response.data.plan_id)
+      setLearningPathId(response.data.plan_id);
 
       if (response.data?.learning_path) {
         setLearningPathData(response.data.learning_path);
-        setActiveDayIndex(0); 
+        setActiveDayIndex(0);
       } else {
         setLearningPathError("No learning path data received.");
       }
     } catch (error) {
       console.error("Learning path error:", error);
       setLearningPathError(
-        error.response?.data?.error || error.message || "Failed to generate learning path. Please try again."
+        error.response?.data?.error ||
+          error.message ||
+          "Failed to generate learning path. Please try again.",
       );
     } finally {
       setLearningPathLoading(false);
@@ -225,7 +250,10 @@ function ExamResult() {
   };
 
   const goToNextDay = () => {
-    if (learningPathData?.daily_plans && activeDayIndex < learningPathData.daily_plans.length - 1) {
+    if (
+      learningPathData?.daily_plans &&
+      activeDayIndex < learningPathData.daily_plans.length - 1
+    ) {
       setActiveDayIndex(activeDayIndex + 1);
     }
   };
@@ -251,7 +279,10 @@ function ExamResult() {
     <div className={`exam-result-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
       {/* Result Header */}
       <div className="result-header">
-        <div className="result-grade-circle" style={{ borderColor: gradeInfo.color }}>
+        <div
+          className="result-grade-circle"
+          style={{ borderColor: gradeInfo.color }}
+        >
           <span className="grade-letter" style={{ color: gradeInfo.color }}>
             {gradeInfo.grade}
           </span>
@@ -275,14 +306,18 @@ function ExamResult() {
                 <Col xs={6} md={3}>
                   <div className="stat-box correct">
                     <FontAwesomeIcon icon={faCheckCircle} />
-                    <span className="stat-number">{examStats.correctAnswers}</span>
+                    <span className="stat-number">
+                      {examStats.correctAnswers}
+                    </span>
                     <span className="stat-text">Correct</span>
                   </div>
                 </Col>
                 <Col xs={6} md={3}>
                   <div className="stat-box incorrect">
                     <FontAwesomeIcon icon={faTimesCircle} />
-                    <span className="stat-number">{examStats.incorrectAnswers}</span>
+                    <span className="stat-number">
+                      {examStats.incorrectAnswers}
+                    </span>
                     <span className="stat-text">Incorrect</span>
                   </div>
                 </Col>
@@ -296,7 +331,9 @@ function ExamResult() {
                 <Col xs={6} md={3}>
                   <div className="stat-box time">
                     <FontAwesomeIcon icon={faClock} />
-                    <span className="stat-number">{formatTime(examStats.totalTimeSpent)}</span>
+                    <span className="stat-number">
+                      {formatTime(examStats.totalTimeSpent)}
+                    </span>
                     <span className="stat-text">Time</span>
                   </div>
                 </Col>
@@ -306,7 +343,8 @@ function ExamResult() {
                 <div className="marks-item">
                   <FontAwesomeIcon icon={faTrophy} className="me-2" />
                   <span>
-                    Marks Obtained: <strong>{examStats.obtainedMarks}</strong> / {examStats.totalMarks}
+                    Marks Obtained: <strong>{examStats.obtainedMarks}</strong> /{" "}
+                    {examStats.totalMarks}
                   </span>
                 </div>
                 <div className="marks-item">
@@ -342,8 +380,8 @@ function ExamResult() {
                   parseInt(topic.percentage) >= 70
                     ? "success"
                     : parseInt(topic.percentage) >= 40
-                    ? "warning"
-                    : "danger"
+                      ? "warning"
+                      : "danger"
                 }
                 className="topic-progress"
               />
@@ -373,16 +411,23 @@ function ExamResult() {
           <Card.Body className="p-0">
             <Accordion>
               {questionResults.map((result, index) => (
-                <Accordion.Item eventKey={index.toString()} key={index} className="question-result-item">
+                <Accordion.Item
+                  eventKey={index.toString()}
+                  key={index}
+                  className="question-result-item"
+                >
                   <Accordion.Header>
                     <div className="question-result-header">
-                      <span className="question-number-badge">Q{index + 1}</span>
+                      <span className="question-number-badge">
+                        Q{index + 1}
+                      </span>
                       <span className="question-preview">
                         <MarkdownWithMath content={result.question} />
-                        
                       </span>
                       <div className="question-quick-stats">
-                        <Badge bg={getScoreColor(result.marks, result.maxMarks)}>
+                        <Badge
+                          bg={getScoreColor(result.marks, result.maxMarks)}
+                        >
                           {result.marks}/{result.maxMarks}
                         </Badge>
                         <span className="time-badge">
@@ -414,7 +459,11 @@ function ExamResult() {
                           src={getImageSrc(result.question_image)}
                           alt={`Question ${index + 1}`}
                           className="question-result-image"
-                          style={{ maxWidth: "100%", borderRadius: "8px", marginTop: "8px" }}
+                          style={{
+                            maxWidth: "100%",
+                            borderRadius: "8px",
+                            marginTop: "8px",
+                          }}
                         />
                       </div>
                     )}
@@ -455,7 +504,10 @@ function ExamResult() {
                         {result.evaluation.errorType && (
                           <div className="evaluation-section error-section">
                             <h6 className="section-title text-danger">
-                              <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                              <FontAwesomeIcon
+                                icon={faExclamationTriangle}
+                                className="me-2"
+                              />
                               Error Type
                             </h6>
                             <Badge bg="danger" className="error-type-badge">
@@ -468,18 +520,27 @@ function ExamResult() {
                         {result.evaluation.mistakesMade && (
                           <div className="evaluation-section mistakes-section">
                             <h6 className="section-title text-warning">
-                              <FontAwesomeIcon icon={faTimesCircle} className="me-2" />
+                              <FontAwesomeIcon
+                                icon={faTimesCircle}
+                                className="me-2"
+                              />
                               Mistakes Made
                             </h6>
-                            {typeof result.evaluation.mistakesMade === "string" ? (
-                              <p className="mistakes-text">{result.evaluation.mistakesMade}</p>
-                            ) : Array.isArray(result.evaluation.mistakesMade) && result.evaluation.mistakesMade.length > 0 ? (
+                            {typeof result.evaluation.mistakesMade ===
+                            "string" ? (
+                              <p className="mistakes-text">
+                                {result.evaluation.mistakesMade}
+                              </p>
+                            ) : Array.isArray(result.evaluation.mistakesMade) &&
+                              result.evaluation.mistakesMade.length > 0 ? (
                               <ul className="mistakes-list">
-                                {result.evaluation.mistakesMade.map((mistake, mIndex) => (
-                                  <li key={mIndex} className="mistake-item">
-                                    {mistake}
-                                  </li>
-                                ))}
+                                {result.evaluation.mistakesMade.map(
+                                  (mistake, mIndex) => (
+                                    <li key={mIndex} className="mistake-item">
+                                      {mistake}
+                                    </li>
+                                  ),
+                                )}
                               </ul>
                             ) : null}
                           </div>
@@ -489,10 +550,15 @@ function ExamResult() {
                         {result.evaluation.gapAnalysis && (
                           <div className="evaluation-section gap-section">
                             <h6 className="section-title text-info">
-                              <FontAwesomeIcon icon={faChartBar} className="me-2" />
+                              <FontAwesomeIcon
+                                icon={faChartBar}
+                                className="me-2"
+                              />
                               Gap Analysis
                             </h6>
-                            <p className="gap-analysis-text">{result.evaluation.gapAnalysis}</p>
+                            <p className="gap-analysis-text">
+                              {result.evaluation.gapAnalysis}
+                            </p>
                           </div>
                         )}
 
@@ -500,18 +566,35 @@ function ExamResult() {
                         {result.evaluation.conceptsRequired && (
                           <div className="evaluation-section concepts-section">
                             <h6 className="section-title text-primary">
-                              <FontAwesomeIcon icon={faGraduationCap} className="me-2" />
+                              <FontAwesomeIcon
+                                icon={faGraduationCap}
+                                className="me-2"
+                              />
                               Concepts to Review
                             </h6>
-                            {typeof result.evaluation.conceptsRequired === "string" ? (
-                              <p className="concepts-text">{result.evaluation.conceptsRequired}</p>
-                            ) : Array.isArray(result.evaluation.conceptsRequired) && result.evaluation.conceptsRequired.length > 0 ? (
+                            {typeof result.evaluation.conceptsRequired ===
+                            "string" ? (
+                              <p className="concepts-text">
+                                {result.evaluation.conceptsRequired}
+                              </p>
+                            ) : Array.isArray(
+                                result.evaluation.conceptsRequired,
+                              ) &&
+                              result.evaluation.conceptsRequired.length > 0 ? (
                               <div className="concepts-tags">
-                                {result.evaluation.conceptsRequired.map((concept, cIndex) => (
-                                  <Badge key={cIndex} bg="primary" className="concept-badge">
-                                    {typeof concept === "string" ? concept.trim() : concept}
-                                  </Badge>
-                                ))}
+                                {result.evaluation.conceptsRequired.map(
+                                  (concept, cIndex) => (
+                                    <Badge
+                                      key={cIndex}
+                                      bg="primary"
+                                      className="concept-badge"
+                                    >
+                                      {typeof concept === "string"
+                                        ? concept.trim()
+                                        : concept}
+                                    </Badge>
+                                  ),
+                                )}
                               </div>
                             ) : null}
                           </div>
@@ -521,10 +604,15 @@ function ExamResult() {
                         {result.evaluation.additionalComments && (
                           <div className="evaluation-section comments-section">
                             <h6 className="section-title text-success">
-                              <FontAwesomeIcon icon={faLightbulb} className="me-2" />
+                              <FontAwesomeIcon
+                                icon={faLightbulb}
+                                className="me-2"
+                              />
                               Feedback & Tips
                             </h6>
-                            <p className="additional-comments">{result.evaluation.additionalComments}</p>
+                            <p className="additional-comments">
+                              {result.evaluation.additionalComments}
+                            </p>
                           </div>
                         )}
                       </>
@@ -533,7 +621,10 @@ function ExamResult() {
                     {/* Fallback for questions without evaluation */}
                     {!result.evaluation && (
                       <div className="no-evaluation-message">
-                        <FontAwesomeIcon icon={faMinusCircle} className="me-2" />
+                        <FontAwesomeIcon
+                          icon={faMinusCircle}
+                          className="me-2"
+                        />
                         No detailed evaluation available for this question.
                       </div>
                     )}
@@ -556,7 +647,10 @@ function ExamResult() {
                 </div>
                 <div className="cta-text">
                   <h4>Personalized Learning Path</h4>
-                  <p>Get an AI-generated study plan based on your exam performance to improve your weak areas.</p>
+                  <p>
+                    Get an AI-generated study plan based on your exam
+                    performance to improve your weak areas.
+                  </p>
                 </div>
                 <Button
                   variant="success"
@@ -588,12 +682,18 @@ function ExamResult() {
         <Card className="learning-path-error-card">
           <Card.Body>
             <div className="error-content">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="error-icon" />
+              <FontAwesomeIcon
+                icon={faExclamationTriangle}
+                className="error-icon"
+              />
               <div>
                 <h5>Failed to Generate Learning Path</h5>
                 <p>{learningPathError}</p>
               </div>
-              <Button variant="outline-danger" onClick={() => setShowLearningPathModal(true)}>
+              <Button
+                variant="outline-danger"
+                onClick={() => setShowLearningPathModal(true)}
+              >
                 Try Again
               </Button>
             </div>
@@ -610,7 +710,11 @@ function ExamResult() {
                 <FontAwesomeIcon icon={faRoad} className="me-2" />
                 Your Personalized Learning Path
               </div>
-              <Button variant="outline-secondary" size="sm" onClick={resetLearningPath}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={resetLearningPath}
+              >
                 <FontAwesomeIcon icon={faRedo} className="me-1" />
                 Regenerate
               </Button>
@@ -624,18 +728,27 @@ function ExamResult() {
                     Gap Analysis
                   </h5>
                   {learningPathData.gap_analysis.summary && (
-                    <p className="gap-summary-text">{learningPathData.gap_analysis.summary}</p>
+                    <p className="gap-summary-text">
+                      {learningPathData.gap_analysis.summary}
+                    </p>
                   )}
                   {learningPathData.gap_analysis.weak_concepts &&
                     learningPathData.gap_analysis.weak_concepts.length > 0 && (
                       <div className="weak-concepts">
                         <span className="weak-label">Areas to Focus:</span>
                         <div className="concept-badges">
-                          {learningPathData.gap_analysis.weak_concepts.map((concept, idx) => (
-                            <Badge key={idx} bg="warning" text="dark" className="concept-badge">
-                              {concept}
-                            </Badge>
-                          ))}
+                          {learningPathData.gap_analysis.weak_concepts.map(
+                            (concept, idx) => (
+                              <Badge
+                                key={idx}
+                                bg="warning"
+                                text="dark"
+                                className="concept-badge"
+                              >
+                                {concept}
+                              </Badge>
+                            ),
+                          )}
                         </div>
                       </div>
                     )}
@@ -643,157 +756,227 @@ function ExamResult() {
               )}
 
               {/* Day Navigation */}
-              {learningPathData.daily_plans && learningPathData.daily_plans.length > 0 && (
-                <>
-                  <div className="day-navigation">
-                    <div className="day-nav-header">
-                      <h5>
-                        <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
-                        {learningPathForm.total_days}-Day Study Plan
-                      </h5>
-                      <span className="day-counter">
-                        Day {activeDayIndex + 1} of {learningPathData.daily_plans.length}
-                      </span>
-                    </div>
-
-                    {/* Day Selector Pills */}
-                    <div className="day-pills-container">
-                      <Button
-                        variant="link"
-                        className="day-nav-arrow"
-                        onClick={goToPreviousDay}
-                        disabled={activeDayIndex === 0}
-                      >
-                        <FontAwesomeIcon icon={faChevronLeft} />
-                      </Button>
-                      <div className="day-pills">
-                        {learningPathData.daily_plans.map((_, idx) => (
-                          <button
-                            key={idx}
-                            className={`day-pill ${idx === activeDayIndex ? "active" : ""}`}
-                            onClick={() => setActiveDayIndex(idx)}
-                          >
-                            {idx + 1}
-                          </button>
-                        ))}
+              {learningPathData.daily_plans &&
+                learningPathData.daily_plans.length > 0 && (
+                  <>
+                    <div className="day-navigation">
+                      <div className="day-nav-header">
+                        <h5>
+                          <FontAwesomeIcon
+                            icon={faCalendarAlt}
+                            className="me-2"
+                          />
+                          {learningPathForm.total_days}-Day Study Plan
+                        </h5>
+                        <span className="day-counter">
+                          Day {activeDayIndex + 1} of{" "}
+                          {learningPathData.daily_plans.length}
+                        </span>
                       </div>
-                      <Button
-                        variant="link"
-                        className="day-nav-arrow"
-                        onClick={goToNextDay}
-                        disabled={activeDayIndex === learningPathData.daily_plans.length - 1}
-                      >
-                        <FontAwesomeIcon icon={faChevronRight} />
-                      </Button>
+
+                      {/* Day Selector Pills */}
+                      <div className="day-pills-container">
+                        <Button
+                          variant="link"
+                          className="day-nav-arrow"
+                          onClick={goToPreviousDay}
+                          disabled={activeDayIndex === 0}
+                        >
+                          <FontAwesomeIcon icon={faChevronLeft} />
+                        </Button>
+                        <div className="day-pills">
+                          {learningPathData.daily_plans.map((_, idx) => (
+                            <button
+                              key={idx}
+                              className={`day-pill ${idx === activeDayIndex ? "active" : ""}`}
+                              onClick={() => setActiveDayIndex(idx)}
+                            >
+                              {idx + 1}
+                            </button>
+                          ))}
+                        </div>
+                        <Button
+                          variant="link"
+                          className="day-nav-arrow"
+                          onClick={goToNextDay}
+                          disabled={
+                            activeDayIndex ===
+                            learningPathData.daily_plans.length - 1
+                          }
+                        >
+                          <FontAwesomeIcon icon={faChevronRight} />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Active Day Content */}
-                  {(() => {
-                    const activeDay = learningPathData.daily_plans[activeDayIndex];
-                    if (!activeDay) return null;
+                    {/* Active Day Content */}
+                    {(() => {
+                      const activeDay =
+                        learningPathData.daily_plans[activeDayIndex];
+                      if (!activeDay) return null;
 
-                    return (
-                      <div className="day-content">
-                        <div className="day-header-info">
-                          <div className="day-title-section">
-                            <span className="day-number-badge">Day {activeDay.day_number || activeDayIndex + 1}</span>
-                            <div className="day-topic"><MarkdownWithMath content={activeDay.topic} /></div>
+                      return (
+                        <div className="day-content">
+                          <div className="day-header-info">
+                            <div className="day-title-section">
+                              <span className="day-number-badge">
+                                Day {activeDay.day_number || activeDayIndex + 1}
+                              </span>
+                              <div className="day-topic">
+                                <MarkdownWithMath content={activeDay.topic} />
+                              </div>
+                            </div>
+                            {activeDay.expected_time && (
+                              <div className="expected-time">
+                                <FontAwesomeIcon
+                                  icon={faClock}
+                                  className="me-1"
+                                />
+                                {activeDay.expected_time}
+                              </div>
+                            )}
                           </div>
-                          {activeDay.expected_time && (
-                            <div className="expected-time">
-                              <FontAwesomeIcon icon={faClock} className="me-1" />
-                              {activeDay.expected_time}
+
+                          {/* What to Study */}
+                          {activeDay.what_to_study && (
+                            <div className="study-section">
+                              <h6 className="section-label">
+                                <FontAwesomeIcon
+                                  icon={faBookOpen}
+                                  className="me-2"
+                                />
+                                What to Study
+                              </h6>
+                              <div className="study-content">
+                                <MarkdownWithMath
+                                  content={activeDay.what_to_study}
+                                />
+                              </div>
                             </div>
                           )}
-                        </div>
 
-                        {/* What to Study */}
-                        {activeDay.what_to_study && (
-                          <div className="study-section">
-                            <h6 className="section-label">
-                              <FontAwesomeIcon icon={faBookOpen} className="me-2" />
-                              What to Study
-                            </h6>
-                            <div className="study-content"><MarkdownWithMath content={activeDay.what_to_study} /></div>
-                          </div>
-                        )}
+                          {/* Checklist */}
+                          {activeDay.checklist &&
+                            activeDay.checklist.length > 0 && (
+                              <div className="checklist-section">
+                                <h6 className="section-label">
+                                  <FontAwesomeIcon
+                                    icon={faTasks}
+                                    className="me-2"
+                                  />
+                                  Checklist
+                                </h6>
+                                <ul className="study-checklist">
+                                  {activeDay.checklist.map((item, idx) => (
+                                    <li key={idx} className="checklist-item">
+                                      <FontAwesomeIcon
+                                        icon={faCheckCircle}
+                                        className="check-icon"
+                                      />
+                                      <span>
+                                        <MarkdownWithMath content={item} />
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
 
-                        {/* Checklist */}
-                        {activeDay.checklist && activeDay.checklist.length > 0 && (
-                          <div className="checklist-section">
-                            <h6 className="section-label">
-                              <FontAwesomeIcon icon={faTasks} className="me-2" />
-                              Checklist
-                            </h6>
-                            <ul className="study-checklist">
-                              {activeDay.checklist.map((item, idx) => (
-                                <li key={idx} className="checklist-item">
-                                  <FontAwesomeIcon icon={faCheckCircle} className="check-icon" />
-                                  <span><MarkdownWithMath content={item} /></span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* Practice Questions */}
-                        {activeDay.questions && activeDay.questions.length > 0 && (
-                          <div className="questions-section">
-                            <h6 className="section-label">
-                              <FontAwesomeIcon icon={faQuestion} className="me-2" />
-                              Practice Questions ({activeDay.questions.length})
-                            </h6>
-                            <div className="practice-questions">
-                              {activeDay.questions.map((question, qIdx) => (
-                                <div key={qIdx} className="practice-question-card">
-                                  <div
-                                    className="question-header-row"
-                                    onClick={() => toggleDayQuestion(activeDayIndex, qIdx)}
-                                  >
-                                    <div className="question-meta">
-                                      <span className="question-num">Q{qIdx + 1}</span>
-                                      <Badge bg={getDifficultyColor(question.question_level)} className="difficulty-badge">
-                                        {question.question_level || "Medium"}
-                                      </Badge>
-                                      {question.topic && (
-                                        <Badge bg="secondary" className="topic-badge">
-                                          {question.topic}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <FontAwesomeIcon
-                                      icon={expandedDayQuestions[`${activeDayIndex}-${qIdx}`] ? faChevronUp : faChevronDown}
-                                      className="expand-icon"
-                                    />
-                                  </div>
-                                  <div
-                                    className={`question-body ${
-                                      expandedDayQuestions[`${activeDayIndex}-${qIdx}`] ? "expanded" : ""
-                                    }`}
-                                  >
-                                    <p className="question-text"></p>
-                                    <MarkdownWithMath content={question.question} />
-                                    {question.question_image && (
-                                      <div className="question-image-container">
-                                        <img
-                                          src={getImageSrc(question.question_image)}
-                                          alt="Question illustration"
-                                          className="question-image"
+                          {/* Practice Questions */}
+                          {activeDay.questions &&
+                            activeDay.questions.length > 0 && (
+                              <div className="questions-section">
+                                <h6 className="section-label">
+                                  <FontAwesomeIcon
+                                    icon={faQuestion}
+                                    className="me-2"
+                                  />
+                                  Practice Questions (
+                                  {activeDay.questions.length})
+                                </h6>
+                                <div className="practice-questions">
+                                  {activeDay.questions.map((question, qIdx) => (
+                                    <div
+                                      key={qIdx}
+                                      className="practice-question-card"
+                                    >
+                                      <div
+                                        className="question-header-row"
+                                        onClick={() =>
+                                          toggleDayQuestion(
+                                            activeDayIndex,
+                                            qIdx,
+                                          )
+                                        }
+                                      >
+                                        <div className="question-meta">
+                                          <span className="question-num">
+                                            Q{qIdx + 1}
+                                          </span>
+                                          <Badge
+                                            bg={getDifficultyColor(
+                                              question.question_level,
+                                            )}
+                                            className="difficulty-badge"
+                                          >
+                                            {question.question_level ||
+                                              "Medium"}
+                                          </Badge>
+                                          {question.topic && (
+                                            <Badge
+                                              bg="secondary"
+                                              className="topic-badge"
+                                            >
+                                              {question.topic}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        <FontAwesomeIcon
+                                          icon={
+                                            expandedDayQuestions[
+                                              `${activeDayIndex}-${qIdx}`
+                                            ]
+                                              ? faChevronUp
+                                              : faChevronDown
+                                          }
+                                          className="expand-icon"
                                         />
                                       </div>
-                                    )}
-                                  </div>
+                                      <div
+                                        className={`question-body ${
+                                          expandedDayQuestions[
+                                            `${activeDayIndex}-${qIdx}`
+                                          ]
+                                            ? "expanded"
+                                            : ""
+                                        }`}
+                                      >
+                                        <p className="question-text"></p>
+                                        <MarkdownWithMath
+                                          content={question.question}
+                                        />
+                                        {question.question_image && (
+                                          <div className="question-image-container">
+                                            <img
+                                              src={getImageSrc(
+                                                question.question_image,
+                                              )}
+                                              alt="Question illustration"
+                                              className="question-image"
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </>
-              )}
+                              </div>
+                            )}
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
             </Card.Body>
             {/* Start Learning Button */}
             <Card.Footer className="learning-path-footer">
@@ -844,8 +1027,8 @@ function ExamResult() {
         </Modal.Header>
         <Modal.Body>
           <p className="modal-description">
-            Create a personalized study plan tailored to your exam results. Specify the number of days and daily study
-            duration.
+            Create a personalized study plan tailored to your exam results.
+            Specify the number of days and daily study duration.
           </p>
           <Form>
             <Form.Group className="mb-4">
@@ -864,7 +1047,9 @@ function ExamResult() {
                 <option value={10}>10 Days - Comprehensive Plan</option>
                 <option value={14}>14 Days - Extended Plan</option>
               </Form.Select>
-              <Form.Text className="text-muted">How many days do you want your learning plan to span?</Form.Text>
+              <Form.Text className="text-muted">
+                How many days do you want your learning plan to span?
+              </Form.Text>
             </Form.Group>
 
             <Form.Group className="mb-3">
@@ -872,22 +1057,35 @@ function ExamResult() {
                 <FontAwesomeIcon icon={faHourglassHalf} className="me-2" />
                 Daily Study Duration (minutes)
               </Form.Label>
-              <Form.Select name="duration" value={learningPathForm.duration} onChange={handleLearningPathFormChange}>
+              <Form.Select
+                name="duration"
+                value={learningPathForm.duration}
+                onChange={handleLearningPathFormChange}
+              >
                 <option value="15">15 minutes - Quick Session</option>
                 <option value="30">30 minutes - Standard Session</option>
                 <option value="45">45 minutes - Extended Session</option>
                 <option value="60">60 minutes - Intensive Session</option>
                 <option value="90">90 minutes - Deep Study</option>
               </Form.Select>
-              <Form.Text className="text-muted">How much time can you dedicate to studying each day?</Form.Text>
+              <Form.Text className="text-muted">
+                How much time can you dedicate to studying each day?
+              </Form.Text>
             </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowLearningPathModal(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowLearningPathModal(false)}
+          >
             Cancel
           </Button>
-          <Button variant="success" onClick={handleGenerateLearningPath} disabled={learningPathLoading}>
+          <Button
+            variant="success"
+            onClick={handleGenerateLearningPath}
+            disabled={learningPathLoading}
+          >
             {learningPathLoading ? (
               <>
                 <Spinner animation="border" size="sm" className="me-2" />
@@ -905,7 +1103,10 @@ function ExamResult() {
 
       {/* Action Buttons */}
       <div className="action-buttons">
-        <Button variant="outline-primary" onClick={() => navigate("/exam-mode")}>
+        <Button
+          variant="outline-primary"
+          onClick={() => navigate("/exam-mode")}
+        >
           <FontAwesomeIcon icon={faRedo} className="me-2" />
           Take Another Exam
         </Button>
