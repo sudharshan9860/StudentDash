@@ -85,7 +85,7 @@ const extractClassFromUsername = (u = "") => {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 // Progress stepper bar at the top
-function WizardProgress({ activeStep, completedSteps, dark }) {
+function WizardProgress({ activeStep, completedSteps, dark, labels }) {
   const accent = dark ? "#a78bfa" : "#667eea";
   const okColor = dark ? "#34d399" : "#10b981";
   return (
@@ -98,7 +98,7 @@ function WizardProgress({ activeStep, completedSteps, dark }) {
         userSelect: "none",
       }}
     >
-      {STEP_LABELS.map((label, i) => {
+      {labels.map((label, i) => {
         const done = completedSteps.includes(i);
         const active = i === activeStep;
         return (
@@ -164,7 +164,7 @@ function WizardProgress({ activeStep, completedSteps, dark }) {
               </span>
             </div>
             {/* Connector */}
-            {i < STEP_LABELS.length - 1 && (
+            {i < labels.length - 1 && (
               <motion.div
                 animate={{
                   background: completedSteps.includes(i)
@@ -405,6 +405,7 @@ export default function StudentWizard({
   isDarkMode = false,
   isJeeMode = false,
   onReadyToSubmit,
+  prefill = null, // ← ADD
 }) {
   const dark = isDarkMode;
 
@@ -429,12 +430,43 @@ export default function StudentWizard({
   const [loadCh, setLoadCh] = useState(false);
   const [loadQT, setLoadQT] = useState(false);
 
+  // ── New state for Class 9 Math subtopics ──
+  const [class9Subtopics, setClass9Subtopics] = useState([]); // fetched subtopic list
+  const [selClass9Subtopics, setSelClass9Subtopics] = useState([]); // selected codes (multi)
+  const [loadClass9Subs, setLoadClass9Subs] = useState(false); // loading flag
+  const [class9Path, setClass9Path] = useState(null); // "subtopics" | "questionType" | null
+
+  // Add alongside existing helpers (isJEEMainsAdv, isScience)
+  const isClass9Math = (cls, sub) => {
+    if (!cls || !sub) return false;
+    const className = (cls.class_name || cls.class_code || "").toString();
+    const subName = (sub.subject_name || "").toLowerCase();
+    return (
+      className.includes("9") &&
+      (subName.includes("mathematics") || subName.includes("math")) &&
+      !subName.includes("jee") &&
+      !subName.includes("mains") &&
+      !subName.includes("advanced")
+    );
+  };
+
+  // Inside StudentWizard function body, after state declarations:
+  const stepLabels = isClass9Math(selClass, selSub)
+    ? ["Class", "Subject", "Chapter", "Choose Path"]
+    : STEP_LABELS;
+
   // Which steps are "done" (for stepper)
   const completedSteps = [
     selClass && 0,
     selSub && 1,
     selChaps.length && 2,
-    selQType && 3,
+    // For Class 9 Math, step 3 is the path choice (complete when path is chosen + selection made)
+    isClass9Math(selClass, selSub)
+      ? (class9Path === "subtopics" && selClass9Subtopics.length > 0) ||
+        (class9Path === "questionType" && selQType)
+        ? 3
+        : null
+      : selQType && 3,
   ].filter((s) => s !== null && s !== false && s !== undefined);
 
   const activeStep = selQType
@@ -452,6 +484,7 @@ export default function StudentWizard({
   const chapterRef = useRef(null);
   const qtypeRef = useRef(null);
   const beginRef = useRef(null);
+  const class9PathRef = useRef(null); // scroll target for the path-choice step
 
   const scrollTo = (ref) => {
     setTimeout(
@@ -485,6 +518,118 @@ export default function StudentWizard({
     })();
   }, [username, isJeeMode]); // eslint-disable-line
 
+  // ── Auto-prefill from Test Prep "Go to Self Study" ──
+  useEffect(() => {
+    if (!prefill || classes.length === 0) return;
+
+    // Find matching class
+    const cls = classes.find((c) => c.class_code === prefill.classCode);
+    if (cls) {
+      // This triggers the pickClass flow which fetches subjects
+      pickClass(cls);
+
+      // We need to wait for subjects to load, then auto-pick subject
+      // Use a small delay or a ref to track when to apply the rest
+    }
+  }, [prefill, classes]); // eslint-disable-line
+
+  // After subjects load, auto-pick subject
+  useEffect(() => {
+    if (!prefill || subjects.length === 0 || selSub) return;
+
+    const sub = subjects.find((s) => s.subject_code === prefill.subjectCode);
+    if (sub) {
+      pickSubject(sub);
+    }
+  }, [prefill, subjects]); // eslint-disable-line
+
+  // After chapters load, auto-pick chapter
+  useEffect(() => {
+    if (!prefill || chapters.length === 0 || selChaps.length > 0) return;
+
+    const ch = chapters.find((c) => c.topic_code === prefill.chapterCode);
+    if (ch) {
+      setSelChaps([ch]);
+      // For Class 9 Math, auto-trigger the subtopics flow
+      // confirmChapters will be called manually or via useEffect
+    }
+  }, [prefill, chapters]); // eslint-disable-line
+
+  // After Class 9 subtopics load, auto-pick subtopics + set path
+  useEffect(() => {
+    if (!prefill || !prefill.subtopics?.length) return;
+    if (!isClass9Math(selClass, selSub)) return;
+
+    // If we're in class 9 math mode and subtopics are provided,
+    // set the path to "subtopics" and pre-select them
+    if (class9Subtopics.length > 0 && selClass9Subtopics.length === 0) {
+      setClass9Path("subtopics");
+      // Match by name
+      const matching = prefill.subtopics.filter((name) =>
+        class9Subtopics.some((st) => st.updated_sub_topic_name === name),
+      );
+      if (matching.length > 0) {
+        setSelClass9Subtopics(
+          class9Subtopics
+            .filter((st) => matching.includes(st.updated_sub_topic_name))
+            .map((st) => st.updated_sub_topic_code),
+        );
+      }
+    }
+  }, [prefill, class9Subtopics]); // eslint-disable-line
+
+  // ── Auto-prefill from Test Prep "Go to Self Study" ──────────────────
+  const prefillAppliedRef = useRef(false);
+
+  useEffect(() => {
+    if (!prefill || classes.length === 0 || prefillAppliedRef.current) return;
+    const cls = classes.find((c) => c.class_code === prefill.classCode);
+    if (cls && (!selClass || selClass.class_code !== cls.class_code)) {
+      prefillAppliedRef.current = true;
+      pickClass(cls);
+    }
+  }, [prefill, classes]); // eslint-disable-line
+
+  useEffect(() => {
+    if (
+      !prefill ||
+      !prefillAppliedRef.current ||
+      subjects.length === 0 ||
+      selSub
+    )
+      return;
+    const sub = subjects.find((s) => s.subject_code === prefill.subjectCode);
+    if (sub) pickSubject(sub);
+  }, [prefill, subjects]); // eslint-disable-line
+
+  useEffect(() => {
+    if (
+      !prefill ||
+      !prefillAppliedRef.current ||
+      chapters.length === 0 ||
+      selChaps.length > 0
+    )
+      return;
+    const ch = chapters.find((c) => c.topic_code === prefill.chapterCode);
+    if (ch) {
+      setSelChaps([ch]);
+      // Auto-trigger confirmChapters after a tick
+      setTimeout(() => confirmChapters(), 100);
+    }
+  }, [prefill, chapters]); // eslint-disable-line
+
+  useEffect(() => {
+    if (
+      prefill &&
+      prefillAppliedRef.current &&
+      selClass &&
+      selSub &&
+      selChaps.length > 0
+    ) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [prefill, selClass, selSub, selChaps]);
+
   // ── Pick class ─────────────────────────────────────────────────────────────
   const pickClass = async (cls) => {
     setSelClass(cls);
@@ -498,6 +643,11 @@ export default function StudentWizard({
     setSelWS(null);
     setSubTopics([]);
     setWorksheets([]);
+
+    // Add to pickClass (after existing resets):
+    setClass9Path(null);
+    setClass9Subtopics([]);
+    setSelClass9Subtopics([]);
 
     setLoadSub(true);
     scrollTo(subjectRef);
@@ -557,6 +707,10 @@ export default function StudentWizard({
     setSubTopics([]);
     setWorksheets([]);
 
+    setClass9Path(null);
+    setClass9Subtopics([]);
+    setSelClass9Subtopics([]);
+
     setLoadCh(true);
     scrollTo(chapterRef);
     try {
@@ -574,20 +728,60 @@ export default function StudentWizard({
 
   // ── Toggle chapter (multi-select) ──────────────────────────────────────────
   const toggleChap = (ch) => {
-    setSelChaps((p) =>
-      p.find((c) => c.topic_code === ch.topic_code)
-        ? p.filter((c) => c.topic_code !== ch.topic_code)
-        : [...p, ch],
-    );
+    if (isClass9Math(selClass, selSub)) {
+      // Single-select: clicking the same chip deselects, clicking another replaces
+      setSelChaps((p) =>
+        p.length === 1 && p[0].topic_code === ch.topic_code ? [] : [ch],
+      );
+    } else {
+      // Multi-select: existing behavior
+      setSelChaps((p) =>
+        p.find((c) => c.topic_code === ch.topic_code)
+          ? p.filter((c) => c.topic_code !== ch.topic_code)
+          : [...p, ch],
+      );
+    }
+    // Reset downstream state
     setSelQType(null);
     setSelLevel(null);
     setSelWS(null);
+    // Reset Class 9 Math path state
+    setClass9Path(null);
+    setClass9Subtopics([]);
+    setSelClass9Subtopics([]);
   };
 
   // ── Confirm chapters → load question types ─────────────────────────────────
   const confirmChapters = async () => {
     if (!selChaps.length) return;
     const sn = selSub?.subject_name || "";
+
+    // ── NEW: Class 9 Math → fetch subtopics + show path choice ──
+    if (isClass9Math(selClass, selSub)) {
+      setLoadClass9Subs(true);
+      scrollTo(class9PathRef);
+      try {
+        const res = await axiosInstance.post(
+          "/backend/api/updated-subtopic-questions/",
+          {
+            classid: selClass.class_code,
+            subjectid: selSub.subject_code,
+            topicid: [selChaps[0].topic_code],
+            sub_topic_names: true,
+          },
+        );
+        setClass9Subtopics(res.data.subtopics || []);
+      } catch (e) {
+        console.error("Failed to fetch Class 9 subtopics:", e);
+        setClass9Subtopics([]);
+      } finally {
+        setLoadClass9Subs(false);
+      }
+      // Also load question types (BOARD_TYPES) so the user can choose that path
+      setQtOpts(BOARD_TYPES);
+      setClass9Path(null); // reset path choice
+      return; // don't fall through to the normal flow
+    }
     setLoadQT(true);
     scrollTo(qtypeRef);
     try {
@@ -668,7 +862,26 @@ export default function StudentWizard({
 
   // ── Ready check ───────────────────────────────────────────────────────────
   const isReady = () => {
-    if (!selClass || !selSub || !selChaps.length || !selQType) return false;
+    if (!selClass || !selSub || !selChaps.length) return false;
+
+    // Class 9 Math: either subtopics or question type path
+    if (isClass9Math(selClass, selSub)) {
+      if (class9Path === "subtopics") {
+        return selClass9Subtopics.length > 0;
+      }
+      if (class9Path === "questionType") {
+        if (!selQType) return false;
+        if (selQType.value === "external" && subTopics.length > 0 && !selLevel)
+          return false;
+        if (selQType.value === "worksheets" && worksheets.length > 0 && !selWS)
+          return false;
+        return true;
+      }
+      return false; // no path chosen yet
+    }
+
+    // Default flow (unchanged)
+    if (!selQType) return false;
     if (selQType.value === "external" && subTopics.length > 0 && !selLevel)
       return false;
     if (selQType.value === "worksheets" && worksheets.length > 0 && !selWS)
@@ -680,6 +893,27 @@ export default function StudentWizard({
   const handleBegin = () => {
     if (!isReady()) return;
     const sn = selSub?.subject_name || "";
+
+    // ── NEW: Class 9 Math subtopics path ──
+    if (isClass9Math(selClass, selSub) && class9Path === "subtopics") {
+      const req = {
+        classid: selClass.class_code,
+        subjectid: selSub.subject_code,
+        topicid: [selChaps[0].topic_code],
+        sub_topic_code: selClass9Subtopics, // array of updated_sub_topic_code values
+        _useSubtopicApi: true, // flag for StudentDash to use the correct API
+      };
+      onReadyToSubmit?.(req, {
+        selClass,
+        selSub,
+        selChaps,
+        selQType: null,
+        selLevel: null,
+        selWS: null,
+      });
+      return;
+    }
+
     const req = {
       classid: Number(selClass.class_code),
       subjectid: Number(selSub.subject_code),
@@ -743,6 +977,7 @@ export default function StudentWizard({
         activeStep={activeStep}
         completedSteps={completedSteps}
         dark={dark}
+        labels={stepLabels} // ← pass dynamic labels
       />
 
       {/* ══════════════════════════════════════════════════════
@@ -892,7 +1127,9 @@ export default function StudentWizard({
                   marginTop: -12,
                 }}
               >
-                You can pick multiple chapters
+                {isClass9Math(selClass, selSub)
+                  ? "Select one chapter"
+                  : "You can pick multiple chapters"}
               </p>
 
               {loadCh ? (
@@ -983,10 +1220,408 @@ export default function StudentWizard({
       </AnimatePresence>
 
       {/* ══════════════════════════════════════════════════════
+    STEP 3.5 — CLASS 9 MATH PATH CHOICE (subtopics vs question type)
+══════════════════════════════════════════════════════ */}
+      <AnimatePresence>
+        {isClass9Math(selClass, selSub) &&
+          selChaps.length === 1 &&
+          (class9Subtopics.length > 0 || qtOpts.length > 0) && (
+            <motion.div
+              ref={class9PathRef}
+              key="class9-path-section"
+              variants={sectionVariants}
+              initial="hidden"
+              animate="show"
+              exit="exit"
+            >
+              <GlassSection dark={dark}>
+                {/* Confirmed badges */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 8,
+                    marginBottom: 16,
+                  }}
+                >
+                  <ConfirmedBadge
+                    label={selClass.class_name}
+                    dark={dark}
+                    onClick={() => {
+                      setSelClass(null);
+                      setSelSub(null);
+                      setSelChaps([]);
+                      setSelQType(null);
+                      setClass9Path(null);
+                    }}
+                  />
+                  <span
+                    style={{
+                      color: dark ? "#334155" : "#cbd5e1",
+                      fontSize: 12,
+                    }}
+                  >
+                    ›
+                  </span>
+                  <ConfirmedBadge
+                    label={selSub.subject_name}
+                    dark={dark}
+                    onClick={() => {
+                      setSelSub(null);
+                      setSelChaps([]);
+                      setSelQType(null);
+                      setClass9Path(null);
+                    }}
+                  />
+                  <span
+                    style={{
+                      color: dark ? "#334155" : "#cbd5e1",
+                      fontSize: 12,
+                    }}
+                  >
+                    ›
+                  </span>
+                  <ConfirmedBadge
+                    label={selChaps[0].name}
+                    dark={dark}
+                    onClick={() => {
+                      setSelChaps([]);
+                      setSelQType(null);
+                      setClass9Path(null);
+                      setClass9Subtopics([]);
+                      setSelClass9Subtopics([]);
+                    }}
+                  />
+                </div>
+
+                <StepTitle dark={dark}>Choose Your Path</StepTitle>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: dark ? "#64748b" : "#94a3b8",
+                    marginBottom: 18,
+                    marginTop: -12,
+                  }}
+                >
+                  Pick subtopics to focus on specific areas, or choose a
+                  question type for the full chapter
+                </p>
+
+                {loadClass9Subs ? (
+                  <StepSpinner label="Loading subtopics…" dark={dark} />
+                ) : (
+                  <>
+                    {/* ── Path toggle buttons ── */}
+                    <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => {
+                          setClass9Path("subtopics");
+                          setSelQType(null);
+                          setSelLevel(null);
+                          setSelWS(null);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: "14px 18px",
+                          borderRadius: 14,
+                          border: `2px solid ${
+                            class9Path === "subtopics"
+                              ? dark
+                                ? "#a78bfa"
+                                : "#667eea"
+                              : dark
+                                ? "rgba(255,255,255,0.1)"
+                                : "rgba(0,0,0,0.08)"
+                          }`,
+                          background:
+                            class9Path === "subtopics"
+                              ? dark
+                                ? "rgba(167,139,250,0.15)"
+                                : "rgba(102,126,234,0.1)"
+                              : "transparent",
+                          color: dark ? "#e2e8f0" : "#1e293b",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                          fontSize: 14,
+                          opacity: class9Path === "questionType" ? 0.4 : 1,
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        📚 Subtopics
+                        <span
+                          style={{
+                            display: "block",
+                            fontSize: 11,
+                            fontWeight: 400,
+                            marginTop: 4,
+                            color: dark ? "#94a3b8" : "#64748b",
+                          }}
+                        >
+                          Focus on specific areas
+                        </span>
+                      </motion.button>
+
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => {
+                          setClass9Path("questionType");
+                          setSelClass9Subtopics([]);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: "14px 18px",
+                          borderRadius: 14,
+                          border: `2px solid ${
+                            class9Path === "questionType"
+                              ? dark
+                                ? "#a78bfa"
+                                : "#667eea"
+                              : dark
+                                ? "rgba(255,255,255,0.1)"
+                                : "rgba(0,0,0,0.08)"
+                          }`,
+                          background:
+                            class9Path === "questionType"
+                              ? dark
+                                ? "rgba(167,139,250,0.15)"
+                                : "rgba(102,126,234,0.1)"
+                              : "transparent",
+                          color: dark ? "#e2e8f0" : "#1e293b",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                          fontSize: 14,
+                          opacity: class9Path === "subtopics" ? 0.4 : 1,
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        📝 Question Type
+                        <span
+                          style={{
+                            display: "block",
+                            fontSize: 11,
+                            fontWeight: 400,
+                            marginTop: 4,
+                            color: dark ? "#94a3b8" : "#64748b",
+                          }}
+                        >
+                          Solved / Exercises / Worksheets
+                        </span>
+                      </motion.button>
+                    </div>
+
+                    {/* ── Subtopics multi-select (visible when path = "subtopics") ── */}
+                    <AnimatePresence>
+                      {class9Path === "subtopics" &&
+                        class9Subtopics.length > 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            style={{ overflow: "hidden" }}
+                          >
+                            <p
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                marginBottom: 10,
+                                color: dark ? "#c4b5fd" : "#4f46e5",
+                              }}
+                            >
+                              Select one or more subtopics:
+                            </p>
+                            <motion.div
+                              variants={listVariants}
+                              initial="hidden"
+                              animate="show"
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 9,
+                                maxHeight: 240,
+                                overflowY: "auto",
+                                paddingRight: 4,
+                              }}
+                            >
+                              {class9Subtopics.map((st) => {
+                                const sel = selClass9Subtopics.includes(
+                                  st.updated_sub_topic_code,
+                                );
+                                return (
+                                  <Pill
+                                    key={st.updated_sub_topic_code}
+                                    label={st.updated_sub_topic_name}
+                                    selected={sel}
+                                    onClick={() => {
+                                      setSelClass9Subtopics((prev) =>
+                                        sel
+                                          ? prev.filter(
+                                              (c) =>
+                                                c !== st.updated_sub_topic_code,
+                                            )
+                                          : [
+                                              ...prev,
+                                              st.updated_sub_topic_code,
+                                            ],
+                                      );
+                                    }}
+                                    dark={dark}
+                                  />
+                                );
+                              })}
+                            </motion.div>
+                          </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* ── Question type cards (visible when path = "questionType") ── */}
+                    <AnimatePresence>
+                      {class9Path === "questionType" && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          style={{ overflow: "hidden" }}
+                        >
+                          <p
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 600,
+                              marginBottom: 10,
+                              color: dark ? "#c4b5fd" : "#4f46e5",
+                            }}
+                          >
+                            Select question type:
+                          </p>
+                          <motion.div
+                            variants={listVariants}
+                            initial="hidden"
+                            animate="show"
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns:
+                                "repeat(auto-fill, minmax(130px, 1fr))",
+                              gap: 12,
+                            }}
+                          >
+                            {qtOpts.map((opt) => (
+                              <QTypeCard
+                                key={opt.value}
+                                opt={opt}
+                                selected={selQType?.value === opt.value}
+                                onClick={() => pickQType(opt)}
+                                dark={dark}
+                              />
+                            ))}
+                          </motion.div>
+
+                          {/* Exercise sub-select (inside Class 9 questionType path) */}
+                          <AnimatePresence>
+                            {selQType?.value === "external" &&
+                              subTopics.length > 0 && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  style={{ overflow: "hidden", marginTop: 20 }}
+                                >
+                                  <p
+                                    style={{
+                                      fontSize: 13,
+                                      fontWeight: 600,
+                                      color: dark ? "#94a3b8" : "#64748b",
+                                      marginBottom: 10,
+                                    }}
+                                  >
+                                    Select Exercise Set
+                                  </p>
+                                  <motion.div
+                                    variants={listVariants}
+                                    initial="hidden"
+                                    animate="show"
+                                    style={{
+                                      display: "flex",
+                                      flexWrap: "wrap",
+                                      gap: 8,
+                                    }}
+                                  >
+                                    {subTopics.map((st, i) => (
+                                      <Pill
+                                        key={st}
+                                        label={`Exercise ${i + 1}`}
+                                        selected={selLevel === st}
+                                        onClick={() => setSelLevel(st)}
+                                        dark={dark}
+                                      />
+                                    ))}
+                                  </motion.div>
+                                </motion.div>
+                              )}
+                          </AnimatePresence>
+
+                          {/* Worksheet sub-select (inside Class 9 questionType path) */}
+                          <AnimatePresence>
+                            {selQType?.value === "worksheets" &&
+                              worksheets.length > 0 && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  style={{ overflow: "hidden", marginTop: 20 }}
+                                >
+                                  <p
+                                    style={{
+                                      fontSize: 13,
+                                      fontWeight: 600,
+                                      color: dark ? "#94a3b8" : "#64748b",
+                                      marginBottom: 10,
+                                    }}
+                                  >
+                                    Select Worksheet
+                                  </p>
+                                  <motion.div
+                                    variants={listVariants}
+                                    initial="hidden"
+                                    animate="show"
+                                    style={{
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      gap: 8,
+                                    }}
+                                  >
+                                    {worksheets.map((ws) => (
+                                      <Pill
+                                        key={ws.id || ws.worksheet_name}
+                                        label={ws.worksheet_name}
+                                        selected={selWS === ws.worksheet_name}
+                                        onClick={() =>
+                                          setSelWS(ws.worksheet_name)
+                                        }
+                                        dark={dark}
+                                      />
+                                    ))}
+                                  </motion.div>
+                                </motion.div>
+                              )}
+                          </AnimatePresence>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </>
+                )}
+              </GlassSection>
+            </motion.div>
+          )}
+      </AnimatePresence>
+
+      {/* ══════════════════════════════════════════════════════
           STEP 3 — QUESTION TYPE
       ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
-        {qtOpts.length > 0 && (
+        {qtOpts.length > 0 && !isClass9Math(selClass, selSub) && (
           <motion.div
             ref={qtypeRef}
             key="qtype-section"

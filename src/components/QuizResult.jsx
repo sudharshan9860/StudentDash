@@ -161,7 +161,8 @@ const QuizResult = () => {
   const questions = state?.questions || [];
   const answers = state?.answers || {};
   const classNum = state?.classNum;
-  const subject = state?.subject || "PHYSICS";
+  const subject = state?.subject;
+  const boardSelection = state?.boardSelection;
   const timeSpent = state?.timeSpent || 0;
 
   /* ── data extraction ── */
@@ -1720,7 +1721,23 @@ const QuizResult = () => {
             <div className="qr-ss-actions">
               <button
                 className="qr-ss-btn primary"
-                onClick={() => navigate("/student-dash")}
+                onClick={() => {
+                  navigate("/student-dash", {
+                    state: boardSelection
+                      ? {
+                          prefill: {
+                            classCode: boardSelection.classCode,
+                            className: boardSelection.className,
+                            subjectCode: boardSelection.subjectCode,
+                            subjectName: boardSelection.subjectName,
+                            chapterCode: boardSelection.chapterCode,
+                            chapterName: boardSelection.chapterName,
+                            subtopics: boardSelection.subtopics,
+                          },
+                        }
+                      : undefined,
+                  });
+                }}
               >
                 🚀 Go to Self Study
               </button>

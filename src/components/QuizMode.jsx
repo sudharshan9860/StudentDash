@@ -2,16 +2,21 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  fetchClasses,
-  fetchChapters,
-  generateQuestions,
-  fetchCheatsheet,
-  fetchChapterSubtopics,
-} from "../api/quizApi";
 import axiosInstance from "../api/axiosInstance";
 import MarkdownWithMath from "./MarkdownWithMath";
 import "./QuizMode.css";
+import { generateQuestions, fetchCheatsheet } from "../api/quizApi";
+
+const formatChapterName = (raw) => {
+  if (!raw) return "";
+  return raw
+    .replace(/^CHAPTER_\d+_/, "") // Remove "CHAPTER_1_" prefix
+    .replace(/_/g, " ") // Replace underscores with spaces
+    .toLowerCase() // ← ADD THIS: lowercase everything first
+    .replace(/\b\w/g, (c) => c.toUpperCase()) // Then title case each word
+    .replace(/\b(In|Of|And|The|To|For|A|An)\b/g, (w) => w.toLowerCase())
+    .replace(/^./, (c) => c.toUpperCase());
+};
 
 const QuizMode = () => {
   const navigate = useNavigate();
@@ -24,13 +29,19 @@ const QuizMode = () => {
     }
   });
 
-  const SUBJECTS = ["PHYSICS", "MATHEMATICS"];
-  const [selectedSubject, setSelectedSubject] = useState("PHYSICS");
+  const ALLOWED_SUBJECTS = ["mathematics", "physics"]; // lowercase for filtering
 
-  const [classes, setClasses] = useState([]);
-  const [chapters, setChapters] = useState([]);
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedChapters, setSelectedChapters] = useState([]);
+  const [subjects, setSubjects] = useState([]); // NEW: [{subject_code, subject_name}]
+  const [selectedSubjectObj, setSelectedSubjectObj] = useState(null); // NEW: full object
+  const [selectedSubject, setSelectedSubject] = useState(""); // keep for UI/display: "MATHEMATICS"
+
+  const [classes, setClasses] = useState([]); // NOW: [{class_code, class_name}]
+  const [selectedClass, setSelectedClass] = useState(""); // keep as string for backward compat
+  const [selectedClassObj, setSelectedClassObj] = useState(null); // NEW: full object
+
+  const [chapters, setChapters] = useState([]); // NOW: [{topic_code, name}]
+  const [selectedChapters, setSelectedChapters] = useState([]); // NOW: full objects [{topic_code, name}]
+
   const [questionsPerChapter, setQuestionsPerChapter] = useState(5);
   const [chapterFilter, setChapterFilter] = useState("");
 
@@ -53,99 +64,189 @@ const QuizMode = () => {
 
   // True only when Class 9 + MATHEMATICS is selected
   const isClass9Math =
-    selectedClass === "9" && selectedSubject === "MATHEMATICS";
+    selectedClassObj?.class_name?.includes("9") &&
+    selectedSubject === "MATHEMATICS";
 
-  const [subtopics, setSubtopics] = useState([]); // [{updated_sub_topic_code, updated_sub_topic_name}]
-  const [selectedSubtopics, setSelectedSubtopics] = useState([]); // array of codes (numbers)
+  const [subtopics, setSubtopics] = useState([]); // NOW: [{updated_sub_topic_code, updated_sub_topic_name}]
+  const [selectedSubtopics, setSelectedSubtopics] = useState([]); // NOW: string[] of subtopic NAMES (for generate payload)
   const [loadingSubtopics, setLoadingSubtopics] = useState(false);
 
   useEffect(() => {
-    setLoadingClasses(true);
-    setClasses([]);
-    setSelectedClass("");
-    setChapters([]);
-    setSelectedChapters([]);
-    setSubtopics([]); // ← add
-    setSelectedSubtopics([]); // ← add
-    setError("");
-    fetchClasses(selectedSubject)
-      .then((res) => setClasses(res.data.classes || []))
-      .catch(() =>
-        setError("Failed to load classes. Is the quiz server running?"),
-      )
-      .finally(() => setLoadingClasses(false));
-  }, [selectedSubject]);
+    const loadClasses = async () => {
+      setLoadingClasses(true);
+      setClasses([]);
+      setSelectedClass("");
+      setSelectedClassObj(null);
+      setSubjects([]);
+      setSelectedSubjectObj(null);
+      setSelectedSubject("");
+      setChapters([]);
+      setSelectedChapters([]);
+      setSubtopics([]);
+      setSelectedSubtopics([]);
+      setError("");
+      try {
+        const res = await axiosInstance.get("/classes/");
+        setClasses(res.data.data || []);
+      } catch (e) {
+        setError("Failed to load classes.");
+      } finally {
+        setLoadingClasses(false);
+      }
+    };
+    loadClasses();
+  }, []); // fetch once on mount
 
   useEffect(() => {
-    if (!selectedClass) {
+    if (!selectedClassObj || !selectedSubjectObj) {
       setChapters([]);
       setSelectedChapters([]);
       return;
     }
-    setLoadingChapters(true);
-    setChapters([]);
-    setSelectedChapters([]);
-    setChapterFilter("");
-    setError("");
-    fetchChapters(selectedClass, selectedSubject)
-      .then((res) => setChapters(res.data.chapters || []))
-      .catch(() => setError("Failed to load chapters."))
-      .finally(() => setLoadingChapters(false));
-  }, [selectedClass, selectedSubject]);
+
+    const loadChapters = async () => {
+      setLoadingChapters(true);
+      setChapters([]);
+      setSelectedChapters([]);
+      setSubtopics([]);
+      setSelectedSubtopics([]);
+      setChapterFilter("");
+      setError("");
+      try {
+        const res = await axiosInstance.post("/chapters/", {
+          subject_id: selectedSubjectObj.subject_code,
+          class_id: selectedClassObj.class_code,
+        });
+        setChapters(res.data.data || []); // [{topic_code, name}, ...]
+      } catch (e) {
+        setError("Failed to load chapters.");
+      } finally {
+        setLoadingChapters(false);
+      }
+    };
+    loadChapters();
+  }, [selectedClassObj, selectedSubjectObj]);
+
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
 
   useEffect(() => {
-    // Clear whenever chapters / class / subject change
+    if (!selectedClassObj) {
+      setSubjects([]);
+      setSelectedSubjectObj(null);
+      setSelectedSubject("");
+      setChapters([]);
+      setSelectedChapters([]);
+      return;
+    }
+
+    const loadSubjects = async () => {
+      setLoadingSubjects(true);
+      setSubjects([]);
+      setSelectedSubjectObj(null);
+      setSelectedSubject("");
+      setChapters([]);
+      setSelectedChapters([]);
+      setSubtopics([]);
+      setSelectedSubtopics([]);
+      setError("");
+      try {
+        const res = await axiosInstance.post("/subjects/", {
+          class_id: selectedClassObj.class_code,
+        });
+        const allSubjects = res.data.data || [];
+        // Filter to only PHYSICS and MATHEMATICS
+        const filtered = allSubjects.filter((s) => {
+          const name = s.subject_name.toLowerCase();
+          return (
+            ALLOWED_SUBJECTS.some((allowed) => name.includes(allowed)) &&
+            !name.includes("jee") &&
+            !name.includes("mains") &&
+            !name.includes("advanced") &&
+            !name.includes("foundation")
+          );
+        });
+        setSubjects(filtered);
+      } catch (e) {
+        setError("Failed to load subjects.");
+      } finally {
+        setLoadingSubjects(false);
+      }
+    };
+    loadSubjects();
+  }, [selectedClassObj]);
+
+  useEffect(() => {
     setSubtopics([]);
     setSelectedSubtopics([]);
-
-    // Only fetch for Class 9 MATHEMATICS with at least one chapter selected
     if (!isClass9Math || selectedChapters.length === 0) return;
 
-    setLoadingSubtopics(true);
-
-    // Fetch subtopics for ALL selected chapters in parallel, then merge & deduplicate
-    Promise.all(
-      selectedChapters.map((chapter) =>
-        fetchChapterSubtopics(9, chapter, "MATHEMATICS")
-          .then((res) => res.data.sub_topics || [])
-          .catch(() => []),
-      ),
-    )
-      .then((results) => {
-        // Flatten and deduplicate subtopic name strings
-        const merged = [...new Set(results.flat())];
-        setSubtopics(merged); // now a plain string[] e.g. ["Irrational Numbers", ...]
-      })
-      .finally(() => setLoadingSubtopics(false));
-  }, [selectedChapters, isClass9Math]);
+    const loadSubtopics = async () => {
+      setLoadingSubtopics(true);
+      try {
+        // Fetch subtopics for all selected chapters in parallel
+        const results = await Promise.all(
+          selectedChapters.map((ch) =>
+            axiosInstance
+              .post("/backend/api/updated-subtopic-questions/", {
+                classid: selectedClassObj.class_code,
+                subjectid: selectedSubjectObj.subject_code,
+                topicid: [ch.topic_code],
+                sub_topic_names: true,
+              })
+              .then((res) => res.data.subtopics || [])
+              .catch(() => []),
+          ),
+        );
+        // Flatten, deduplicate by code
+        const allSubs = results.flat();
+        const uniqueMap = new Map();
+        allSubs.forEach((s) => {
+          if (!uniqueMap.has(s.updated_sub_topic_code)) {
+            uniqueMap.set(s.updated_sub_topic_code, s);
+          }
+        });
+        setSubtopics([...uniqueMap.values()]); // [{updated_sub_topic_code, updated_sub_topic_name}]
+      } catch (e) {
+        setSubtopics([]);
+      } finally {
+        setLoadingSubtopics(false);
+      }
+    };
+    loadSubtopics();
+  }, [selectedChapters, isClass9Math, selectedClassObj, selectedSubjectObj]);
 
   const toggleChapter = useCallback((ch) => {
-    setSelectedChapters((prev) =>
-      prev.includes(ch) ? prev.filter((c) => c !== ch) : [...prev, ch],
+    setSelectedChapters(
+      (prev) =>
+        prev.length === 1 && prev[0].topic_code === ch.topic_code
+          ? [] // deselect if clicking the same one
+          : [ch], // replace with single selection
     );
   }, []);
 
   const removeChapter = useCallback((ch) => {
-    setSelectedChapters((prev) => prev.filter((c) => c !== ch));
+    setSelectedChapters((prev) =>
+      prev.filter((c) => c.topic_code !== ch.topic_code),
+    );
   }, []);
 
-  const toggleAll = () => {
-    if (selectedChapters.length === chapters.length) {
-      setSelectedChapters([]);
-    } else {
-      setSelectedChapters([...chapters]);
-    }
-  };
+  // const toggleAll = () => {
+  //   if (selectedChapters.length === chapters.length) {
+  //     setSelectedChapters([]);
+  //   } else {
+  //     setSelectedChapters([...chapters]);
+  //   }
+  // };
 
   const filteredChapters = useMemo(() => {
     if (!chapterFilter.trim()) return chapters;
     const q = chapterFilter.toLowerCase();
-    return chapters.filter((ch) => ch.toLowerCase().includes(q));
+    return chapters.filter((ch) => ch.name.toLowerCase().includes(q));
   }, [chapters, chapterFilter]);
 
-  const currentStep = !selectedSubject
+  const currentStep = !selectedClassObj
     ? 1
-    : !selectedClass
+    : !selectedSubjectObj
       ? 2
       : selectedChapters.length === 0
         ? 3
@@ -162,14 +263,21 @@ const QuizMode = () => {
   }, []);
 
   const handleRevise = async () => {
-    if (!selectedSubject || !selectedClass || selectedChapters.length === 0)
+    if (
+      !selectedSubjectObj ||
+      !selectedClassObj ||
+      selectedChapters.length === 0
+    )
       return;
     setLoadingCheatsheet(true);
     setError("");
     try {
+      const chapterNames = selectedChapters.map((ch) =>
+        formatChapterName(ch.name),
+      );
       const res = await fetchCheatsheet({
-        class_num: Number(selectedClass),
-        chapters: selectedChapters,
+        class_num: Number(selectedClassObj.class_name.replace(/\D/g, "")),
+        chapters: chapterNames,
         subject: selectedSubject,
       });
       // Normalize: API may return { sheets: [...] } or a plain array
@@ -284,16 +392,22 @@ const QuizMode = () => {
   );
 
   const handleGenerate = async () => {
-    if (!selectedSubject || !selectedClass || selectedChapters.length === 0)
+    if (
+      !selectedSubjectObj ||
+      !selectedClassObj ||
+      selectedChapters.length === 0
+    )
       return;
     setGenerating(true);
     setError("");
     try {
-      // Build payload — sub_topics only included for Class 9 Math when user picked some
+      const chapterNames = selectedChapters.map((ch) =>
+        formatChapterName(ch.name),
+      );
       const payload = isClass9Math
         ? {
             class_num: 9,
-            chapters: selectedChapters,
+            chapters: chapterNames,
             questions_per_chapter: questionsPerChapter,
             subject: "MATHEMATICS",
             ...(selectedSubtopics.length > 0 && {
@@ -301,8 +415,8 @@ const QuizMode = () => {
             }),
           }
         : {
-            class_num: Number(selectedClass),
-            chapters: selectedChapters,
+            class_num: Number(selectedClassObj.class_name.replace(/\D/g, "")),
+            chapters: chapterNames,
             questions_per_chapter: questionsPerChapter,
             subject: selectedSubject,
           };
@@ -311,10 +425,20 @@ const QuizMode = () => {
       navigate("/quiz-question", {
         state: {
           quizData: res.data,
-          classNum: Number(selectedClass),
-          selectedChapters,
+          classNum: Number(selectedClassObj.class_name.replace(/\D/g, "")),
+          selectedChapters: chapterNames,
           questionsPerChapter,
           subject: selectedSubject,
+          // Board API IDs for Self Study navigation
+          boardSelection: {
+            classCode: selectedClassObj.class_code,
+            className: selectedClassObj.class_name,
+            subjectCode: selectedSubjectObj.subject_code,
+            subjectName: selectedSubjectObj.subject_name,
+            chapterCode: selectedChapters[0]?.topic_code,
+            chapterName: formatChapterName(selectedChapters[0]?.name),
+            subtopics: selectedSubtopics, // string[] of selected subtopic names (may be empty)
+          },
         },
       });
     } catch (err) {
@@ -367,9 +491,9 @@ const QuizMode = () => {
         <div className="quiz-steps-wrapper">
           <div className="quiz-steps">
             {[
-              { num: 1, label: "Subject", desc: "Pick subject" },
-              { num: 2, label: "Class", desc: "Select class" },
-              { num: 3, label: "Chapters", desc: "Pick topics" },
+              { num: 1, label: "Class", desc: "Select class" },
+              { num: 2, label: "Subject", desc: "Pick subject" },
+              { num: 3, label: "Chapter", desc: "Pick a topic" },
               ...(isClass9Math
                 ? [{ num: 4, label: "Subtopics", desc: "Filter subtopics" }]
                 : []),
@@ -438,33 +562,10 @@ const QuizMode = () => {
           </div>
         ) : (
           <>
-            {/* ── Section 1: Subject Selection ── */}
+            {/* ── Section 1: Class Selection ── */}
             <div className="quiz-glass-card">
               <div className="quiz-section-label">
                 <span className="quiz-section-num">1</span>
-                <span>Select Subject</span>
-              </div>
-              <div className="quiz-subject-grid">
-                {SUBJECTS.map((subj) => (
-                  <motion.button
-                    key={subj}
-                    className={`quiz-subject-chip ${selectedSubject === subj ? "selected" : ""}`}
-                    onClick={() => setSelectedSubject(subj)}
-                    whileTap={{ scale: 0.96 }}
-                  >
-                    <span className="quiz-subject-icon">
-                      {subj === "PHYSICS" ? "⚛️" : "📐"}
-                    </span>
-                    <span>{subj}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-
-            {/* ── Section 2: Class Selection ── */}
-            <div className="quiz-glass-card">
-              <div className="quiz-section-label">
-                <span className="quiz-section-num">2</span>
                 <span>Select Class</span>
               </div>
               {loadingClasses ? (
@@ -477,22 +578,71 @@ const QuizMode = () => {
               ) : (
                 <select
                   className="quiz-glass-select"
-                  value={selectedClass}
-                  onChange={(e) => setSelectedClass(e.target.value)}
+                  value={selectedClassObj?.class_code || ""}
+                  onChange={(e) => {
+                    const cls = classes.find(
+                      (c) => c.class_code === e.target.value,
+                    );
+                    setSelectedClassObj(cls || null);
+                    setSelectedClass(cls?.class_code || "");
+                  }}
                 >
                   <option value="">Choose your class...</option>
                   {classes.map((c) => (
-                    <option key={c} value={c}>
-                      Class {c}
+                    <option key={c.class_code} value={c.class_code}>
+                      {c.class_name}
                     </option>
                   ))}
                 </select>
               )}
             </div>
 
+            {/* ── Section 2: Subject Selection (after class is selected) ── */}
+            {selectedClassObj && (
+              <div className="quiz-glass-card">
+                <div className="quiz-section-label">
+                  <span className="quiz-section-num">2</span>
+                  <span>Select Subject</span>
+                </div>
+                {loadingSubjects ? (
+                  <div className="quiz-empty-state">
+                    <div
+                      className="quiz-spinner"
+                      style={{ margin: "0 auto", width: 32, height: 32 }}
+                    />
+                  </div>
+                ) : (
+                  <div className="quiz-subject-grid">
+                    {subjects.map((sub) => {
+                      const name = sub.subject_name.toUpperCase();
+                      const icon = name.includes("PHYSICS") ? "⚛️" : "📐";
+                      return (
+                        <motion.button
+                          key={sub.subject_code}
+                          className={`quiz-subject-chip ${selectedSubjectObj?.subject_code === sub.subject_code ? "selected" : ""}`}
+                          onClick={() => {
+                            setSelectedSubjectObj(sub);
+                            setSelectedSubject(
+                              name.includes("PHYSICS")
+                                ? "PHYSICS"
+                                : "MATHEMATICS",
+                            );
+                          }}
+                          whileTap={{ scale: 0.96 }}
+                        >
+                          <span className="quiz-subject-icon">{icon}</span>
+                          <span>{sub.subject_name}</span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ── Section 3: Chapter Selection ── */}
             <AnimatePresence>
-              {selectedClass && (
+              {selectedClassObj && selectedSubjectObj && (
                 <motion.div
                   className="quiz-glass-card"
                   initial={{ opacity: 0, y: 16 }}
@@ -505,10 +655,12 @@ const QuizMode = () => {
                     <span>Select Chapters</span>
                     {chapters.length > 0 && (
                       <span className="quiz-section-count">
-                        {selectedChapters.length}/{chapters.length} selected
+                        {selectedChapters.length === 1
+                          ? "1 selected"
+                          : "Pick one"}
                       </span>
                     )}
-                    {chapters.length > 0 && (
+                    {/* {chapters.length > 0 && (
                       <button
                         className="quiz-select-all-btn"
                         onClick={toggleAll}
@@ -517,22 +669,21 @@ const QuizMode = () => {
                           ? "Deselect All"
                           : "Select All"}
                       </button>
-                    )}
+                    )} */}
                   </div>
 
                   {/* Selected tags */}
                   {selectedChapters.length > 0 && (
                     <div className="quiz-selected-tags">
                       {selectedChapters.map((ch) => (
-                        <span className="quiz-selected-tag" key={ch}>
-                          {ch}
+                        <span className="quiz-selected-tag" key={ch.topic_code}>
+                          {formatChapterName(ch.name)}
                           <button
                             className="quiz-tag-remove"
                             onClick={(e) => {
                               e.stopPropagation();
                               removeChapter(ch);
                             }}
-                            aria-label={`Remove ${ch}`}
                           >
                             &times;
                           </button>
@@ -568,17 +719,19 @@ const QuizMode = () => {
                     <div className="quiz-chapter-grid">
                       {filteredChapters.map((ch) => (
                         <motion.button
-                          key={ch}
-                          className={`quiz-chapter-chip ${selectedChapters.includes(ch) ? "selected" : ""}`}
+                          key={ch.topic_code}
+                          className={`quiz-chapter-chip ${selectedChapters.some((c) => c.topic_code === ch.topic_code) ? "selected" : ""}`}
                           onClick={() => toggleChapter(ch)}
                           whileTap={{ scale: 0.96 }}
                         >
                           <span
-                            className={`quiz-chip-check ${selectedChapters.includes(ch) ? "visible" : ""}`}
+                            className={`quiz-chip-check ${selectedChapters.some((c) => c.topic_code === ch.topic_code) ? "visible" : ""}`}
                           >
                             ✓
                           </span>
-                          <span className="quiz-chip-text">{ch}</span>
+                          <span className="quiz-chip-text">
+                            {formatChapterName(ch.name)}
+                          </span>{" "}
                         </motion.button>
                       ))}
                       {filteredChapters.length === 0 && chapterFilter && (
@@ -628,29 +781,29 @@ const QuizMode = () => {
                 ) : (
                   <>
                     <div className="quiz-chapter-grid">
-                      {subtopics.map((name) => (
+                      {subtopics.map((st) => (
                         <motion.button
-                          key={name}
-                          className={`quiz-chapter-chip ${
-                            selectedSubtopics.includes(name) ? "selected" : ""
-                          }`}
+                          key={st.updated_sub_topic_code}
+                          className={`quiz-chapter-chip ${selectedSubtopics.includes(st.updated_sub_topic_name) ? "selected" : ""}`}
                           onClick={() =>
                             setSelectedSubtopics((prev) =>
-                              prev.includes(name)
-                                ? prev.filter((s) => s !== name)
-                                : [...prev, name],
+                              prev.includes(st.updated_sub_topic_name)
+                                ? prev.filter(
+                                    (n) => n !== st.updated_sub_topic_name,
+                                  )
+                                : [...prev, st.updated_sub_topic_name],
                             )
                           }
                           whileTap={{ scale: 0.96 }}
                         >
                           <span
-                            className={`quiz-chip-check ${
-                              selectedSubtopics.includes(name) ? "visible" : ""
-                            }`}
+                            className={`quiz-chip-check ${selectedSubtopics.includes(st.updated_sub_topic_name) ? "visible" : ""}`}
                           >
                             ✓
                           </span>
-                          <span className="quiz-chip-text">{name}</span>
+                          <span className="quiz-chip-text">
+                            {st.updated_sub_topic_name}
+                          </span>
                         </motion.button>
                       ))}
                     </div>
@@ -727,7 +880,9 @@ const QuizMode = () => {
                     <div className="quiz-summary-card">
                       <div className="quiz-summary-card-icon"></div>
                       <div className="quiz-summary-card-data">
-                        <div className="summary-val">{selectedClass}</div>
+                        <div className="summary-val">
+                          {selectedClassObj?.class_name || selectedClass}
+                        </div>
                         <div className="summary-label">Class</div>
                       </div>
                     </div>

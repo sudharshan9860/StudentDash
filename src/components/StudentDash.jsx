@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import "katex/dist/katex.min.css";
 import { Form, Button, Row, Col, Container } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
 import "./StudentDash.css";
 import axiosInstance from "../api/axiosInstance";
 import QuestionListModal from "./QuestionListModal";
@@ -11,6 +10,7 @@ import { AuthContext } from "./AuthContext";
 import { useAlert } from "./AlertBox";
 import StudentWizard from "./StudentWizard";
 import { useJeeMode } from "../contexts/JeeModeContext";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   faSchool,
   faBookOpen,
@@ -48,6 +48,9 @@ function StudentDash({ jeeMode = false }) {
   const navigate = useNavigate();
   const { username, fullName, role } = useContext(AuthContext);
   const { showAlert, AlertContainer } = useAlert();
+
+  const location = useLocation(); // add import if not present
+  const prefillData = location.state?.prefill || null;
 
   // Tutorial context
   const {
@@ -836,6 +839,53 @@ function StudentDash({ jeeMode = false }) {
       setIsLoading(true);
       console.log("🧙 Wizard submit with:", requestData);
 
+      // ── NEW: Class 9 Math subtopics path ──
+      if (requestData._useSubtopicApi) {
+        const { _useSubtopicApi, ...payload } = requestData;
+        console.log("📚 Using updated-subtopic-questions API:", payload);
+
+        const response = await axiosInstance.post(
+          "/backend/api/updated-subtopic-questions/",
+          payload,
+        );
+
+        // ✅ FIXED: API returns questions under "questions" key, not "results"
+        const results = response.data.questions || response.data.results || [];
+        const questionsWithImages = results.map((question, index) => ({
+          ...question,
+          id: index,
+          question_id: question.id,
+          question: question.question,
+          context: question.context || null,
+          image: question.question_image ? `${question.question_image}` : null,
+        }));
+
+        // Sync state for downstream handlers (handleQuestionClick, etc.)
+        setSelectedClass(requestData.classid);
+        setSelectedSubject(requestData.subjectid);
+        setSelectedChapters(requestData.topicid);
+        setQuestionType("subtopics"); // custom identifier
+        setQuestionLevel("");
+        setSelectedWorksheet("");
+
+        setQuestionList(questionsWithImages);
+        setSelectedQuestions([]);
+
+        // Handle pagination
+        setPaginationInfo({
+          next: response.data.next || null,
+          previous: response.data.previous || null,
+          count: response.data.count || results.length,
+          currentPage: 1,
+          totalPages: Math.ceil((response.data.count || results.length) / 15),
+          isLoading: false,
+        });
+
+        setShowQuestionList(true);
+        setIsLoading(false);
+        return; // ← important: skip the normal flow
+      }
+
       const response = await axiosInstance.post(
         "/question-images/",
         requestData,
@@ -1049,30 +1099,25 @@ function StudentDash({ jeeMode = false }) {
   // Fetch paginated questions (for Next/Previous)
   const fetchPaginatedQuestions = async (url) => {
     if (!url) return;
-
     setPaginationInfo((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      // Extract page number from URL
       const urlObj = new URL(url);
       const pageNum = parseInt(urlObj.searchParams.get("page")) || 1;
-
-      console.log(`📄 Fetching page ${pageNum}...`);
-
       const response = await axiosInstance.get(url);
-      console.log("📥 Paginated response:", response.data);
 
-      // Process questions with images and context
-      const questionsWithImages = (response.data.questions || []).map(
-        (question, index) => ({
-          ...question,
-          id: index,
-          question_id: question.id,
-          question: question.question,
-          context: question.context || null,
-          image: question.question_image ? `${question.question_image}` : null,
-        }),
-      );
+      // Handle both response formats
+      const rawQuestions =
+        response.data.questions || response.data.results || [];
+
+      const questionsWithImages = rawQuestions.map((question, index) => ({
+        ...question,
+        id: index,
+        question_id: question.id,
+        question: question.question,
+        context: question.context || null,
+        image: question.question_image ? `${question.question_image}` : null,
+      }));
 
       setQuestionList(questionsWithImages);
       setSelectedQuestions([]);
@@ -1540,6 +1585,7 @@ function StudentDash({ jeeMode = false }) {
                       isDarkMode={isDarkMode}
                       isJeeMode={isJeeMode}
                       onReadyToSubmit={handleWizardSubmit}
+                      prefill={prefillData}
                     />
                   </div>
                 </div>

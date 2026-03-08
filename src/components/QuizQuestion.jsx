@@ -22,6 +22,8 @@ const QuizQuestion = () => {
   const questions = quizData?.questions || [];
   const classNum = state?.classNum;
   const subject = state?.subject || "PHYSICS";
+  const timeSpent = state?.timeSpent || 0;
+  const boardSelection = state?.boardSelection;
   const learningPath = state?.learningPath || false;
   // ── Retake mode (set by QuizResult.handleRetakeTest) ──────────────
   const isRetake = state?.isRetake || false;
@@ -122,6 +124,7 @@ const QuizQuestion = () => {
           timeSpent: elapsed,
           quizData,
           subject,
+          boardSelection: state?.boardSelection,
         },
       });
     } catch (err) {
@@ -165,7 +168,7 @@ const QuizQuestion = () => {
             </div>
             {isRetake && (
               <div className="quiz-retake-banner">
-                🔁 Retake mode — fresh questions generated. Aim for 80% to
+                🔁 Retake mode — fresh questions generated. Aim for 60% to
                 unlock Self Study!
               </div>
             )}
