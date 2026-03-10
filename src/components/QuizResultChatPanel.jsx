@@ -483,6 +483,7 @@ const QuizResultChatPanel = ({
   classNum,
   subject,
   timeSpent,
+  onRetake, // NEW PROP
 }) => {
   // Core state
   const [isOpen, setIsOpen] = useState(false);
@@ -840,9 +841,15 @@ const QuizResultChatPanel = ({
                   </div>
                   <button
                     className="sb-retake-btn"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false);
+                      // Trigger retake directly
+                      if (onRetake) {
+                        setTimeout(() => onRetake(), 300); // small delay for panel close animation
+                      }
+                    }}
                   >
-                    Try the Test Again
+                    🔁 Retake Test — Same Chapters
                   </button>
                 </div>
               </div>

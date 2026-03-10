@@ -505,12 +505,16 @@ export default function StudentWizard({
             (c) => c.class_name.includes("11") || c.class_name.includes("12"),
           );
         setClasses(data);
-        const def = extractClassFromUsername(username);
-        if (def) {
-          const m = data.find(
-            (c) => c.class_name.includes(def) || c.class_code === def,
-          );
-          if (m) pickClass(m);
+        // Skip username auto-detection if prefill is provided
+        // (prefill will handle class selection via the stage-based chain)
+        if (!prefill) {
+          const def = extractClassFromUsername(username);
+          if (def) {
+            const m = data.find(
+              (c) => c.class_name.includes(def) || c.class_code === def,
+            );
+            if (m) pickClass(m);
+          }
         }
       } catch (e) {
         console.error(e);
@@ -518,117 +522,121 @@ export default function StudentWizard({
     })();
   }, [username, isJeeMode]); // eslint-disable-line
 
-  // ── Auto-prefill from Test Prep "Go to Self Study" ──
+  // ════════════════════════════════════════════════════════════════════
+  // AUTO-PREFILL FROM TEST PREP → "Go to Self Study"
+  // Uses a stage ref to drive the chain: class → subject → chapter → confirm → subtopics
+  // Each stage waits for its async data to arrive, then advances to the next.
+  // ════════════════════════════════════════════════════════════════════
+  const prefillAppliedRef = useRef(false);
+  const prefillStageRef = useRef(0);
+  // Stages: 0 = waiting for class, 1 = waiting for subjects, 2 = waiting for chapters,
+  //          3 = chapter set → need to call confirmChapters,
+  //          4 = waiting for subtopics/qtOpts, 5 = done
+
+  // Stage 0 → 1: Pick class
   useEffect(() => {
     if (!prefill || classes.length === 0) return;
+    if (prefillStageRef.current !== 0) return;
 
-    // Find matching class
     const cls = classes.find((c) => c.class_code === prefill.classCode);
     if (cls) {
-      // This triggers the pickClass flow which fetches subjects
-      pickClass(cls);
-
-      // We need to wait for subjects to load, then auto-pick subject
-      // Use a small delay or a ref to track when to apply the rest
+      prefillAppliedRef.current = true;
+      prefillStageRef.current = 1;
+      pickClass(cls); // this fetches subjects
     }
   }, [prefill, classes]); // eslint-disable-line
 
-  // After subjects load, auto-pick subject
+  // Stage 1 → 2: Pick subject
   useEffect(() => {
-    if (!prefill || subjects.length === 0 || selSub) return;
+    if (!prefillAppliedRef.current || subjects.length === 0) return;
+    if (prefillStageRef.current !== 1) return;
 
     const sub = subjects.find((s) => s.subject_code === prefill.subjectCode);
     if (sub) {
-      pickSubject(sub);
+      prefillStageRef.current = 2;
+      pickSubject(sub); // this fetches chapters
     }
   }, [prefill, subjects]); // eslint-disable-line
 
-  // After chapters load, auto-pick chapter
+  // Stage 2 → 3: Select chapter + auto-call confirmChapters
   useEffect(() => {
-    if (!prefill || chapters.length === 0 || selChaps.length > 0) return;
+    if (!prefillAppliedRef.current || chapters.length === 0) return;
+    if (prefillStageRef.current !== 2) return;
 
     const ch = chapters.find((c) => c.topic_code === prefill.chapterCode);
     if (ch) {
+      prefillStageRef.current = 3;
       setSelChaps([ch]);
-      // For Class 9 Math, auto-trigger the subtopics flow
-      // confirmChapters will be called manually or via useEffect
+      // confirmChapters reads selChaps from state, but we just called setSelChaps
+      // so we need to wait for the next render. Use a ref flag instead.
     }
   }, [prefill, chapters]); // eslint-disable-line
 
-  // After Class 9 subtopics load, auto-pick subtopics + set path
+  // Stage 3: Actually call confirmChapters once selChaps is set
   useEffect(() => {
-    if (!prefill || !prefill.subtopics?.length) return;
+    if (prefillStageRef.current !== 3) return;
+    if (selChaps.length === 0) return; // wait for state to update
+
+    prefillStageRef.current = 4; // move to "waiting for subtopics/qtOpts"
+    // Small delay to let React commit the state
+    const timer = setTimeout(() => {
+      confirmChapters();
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [selChaps]); // eslint-disable-line
+
+  // Stage 4a: For Class 9 Math — auto-select subtopics path + subtopics
+  useEffect(() => {
+    if (prefillStageRef.current !== 4) return;
     if (!isClass9Math(selClass, selSub)) return;
+    if (class9Subtopics.length === 0) return; // still loading
 
-    // If we're in class 9 math mode and subtopics are provided,
-    // set the path to "subtopics" and pre-select them
-    if (class9Subtopics.length > 0 && selClass9Subtopics.length === 0) {
-      setClass9Path("subtopics");
-      // Match by name
-      const matching = prefill.subtopics.filter((name) =>
-        class9Subtopics.some((st) => st.updated_sub_topic_name === name),
-      );
-      if (matching.length > 0) {
-        setSelClass9Subtopics(
-          class9Subtopics
-            .filter((st) => matching.includes(st.updated_sub_topic_name))
-            .map((st) => st.updated_sub_topic_code),
-        );
+    // Set path to subtopics
+    setClass9Path("subtopics");
+
+    if (prefill?.subtopics?.length > 0) {
+      // Match subtopics by name from the prefill data
+      const matchedCodes = class9Subtopics
+        .filter((st) =>
+          prefill.subtopics.some(
+            (name) =>
+              st.updated_sub_topic_name === name ||
+              st.updated_sub_topic_name?.toLowerCase() === name?.toLowerCase(),
+          ),
+        )
+        .map((st) => st.updated_sub_topic_code);
+
+      if (matchedCodes.length > 0) {
+        setSelClass9Subtopics(matchedCodes);
+      } else {
+        // No exact match — select the first subtopic so "Let's Begin" is enabled
+        setSelClass9Subtopics([class9Subtopics[0].updated_sub_topic_code]);
       }
+    } else {
+      // No subtopics in prefill — select the first one
+      setSelClass9Subtopics([class9Subtopics[0].updated_sub_topic_code]);
     }
-  }, [prefill, class9Subtopics]); // eslint-disable-line
 
-  // ── Auto-prefill from Test Prep "Go to Self Study" ──────────────────
-  const prefillAppliedRef = useRef(false);
+    prefillStageRef.current = 5; // done
+  }, [prefill, class9Subtopics, selClass, selSub]); // eslint-disable-line
 
+  // Stage 4b: For NON-Class-9-Math — auto-select first question type
   useEffect(() => {
-    if (!prefill || classes.length === 0 || prefillAppliedRef.current) return;
-    const cls = classes.find((c) => c.class_code === prefill.classCode);
-    if (cls && (!selClass || selClass.class_code !== cls.class_code)) {
-      prefillAppliedRef.current = true;
-      pickClass(cls);
-    }
-  }, [prefill, classes]); // eslint-disable-line
+    if (prefillStageRef.current !== 4) return;
+    if (isClass9Math(selClass, selSub)) return; // handled above
+    if (qtOpts.length === 0) return; // still loading
 
-  useEffect(() => {
-    if (
-      !prefill ||
-      !prefillAppliedRef.current ||
-      subjects.length === 0 ||
-      selSub
-    )
-      return;
-    const sub = subjects.find((s) => s.subject_code === prefill.subjectCode);
-    if (sub) pickSubject(sub);
-  }, [prefill, subjects]); // eslint-disable-line
+    // Auto-pick first question type to enable "Let's Begin"
+    pickQType(qtOpts[0]);
+    prefillStageRef.current = 5; // done
+  }, [prefill, qtOpts, selClass, selSub]); // eslint-disable-line
 
+  // Clear location state after prefill is fully applied (avoid re-triggering on back-nav)
   useEffect(() => {
-    if (
-      !prefill ||
-      !prefillAppliedRef.current ||
-      chapters.length === 0 ||
-      selChaps.length > 0
-    )
-      return;
-    const ch = chapters.find((c) => c.topic_code === prefill.chapterCode);
-    if (ch) {
-      setSelChaps([ch]);
-      // Auto-trigger confirmChapters after a tick
-      setTimeout(() => confirmChapters(), 100);
-    }
-  }, [prefill, chapters]); // eslint-disable-line
-
-  useEffect(() => {
-    if (
-      prefill &&
-      prefillAppliedRef.current &&
-      selClass &&
-      selSub &&
-      selChaps.length > 0
-    ) {
+    if (prefillStageRef.current >= 5 && prefill) {
       window.history.replaceState({}, document.title);
     }
-  }, [prefill, selClass, selSub, selChaps]);
+  }, [prefill, selClass, selSub, selChaps]); // eslint-disable-line
 
   // ── Pick class ─────────────────────────────────────────────────────────────
   const pickClass = async (cls) => {
@@ -1166,51 +1174,54 @@ export default function StudentWizard({
                   </motion.div>
 
                   <AnimatePresence>
-                    {selChaps.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 8 }}
-                        style={{
-                          marginTop: 18,
-                          display: "flex",
-                          justifyContent: "flex-end",
-                        }}
-                      >
-                        {loadQT ? (
-                          <StepSpinner
-                            label="Preparing question types…"
-                            dark={dark}
-                          />
-                        ) : (
-                          <motion.button
-                            whileHover={{ scale: 1.04 }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={confirmChapters}
-                            style={{
-                              padding: "11px 24px",
-                              borderRadius: 30,
-                              border: "none",
-                              background: `linear-gradient(135deg, ${dark ? "#7c3aed" : "#667eea"}, ${dark ? "#6366f1" : "#764ba2"})`,
-                              color: "#fff",
-                              fontWeight: 700,
-                              fontSize: 14,
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 8,
-                              boxShadow: `0 6px 20px ${accent}44`,
-                            }}
-                          >
-                            Continue ({selChaps.length} selected)
-                            <FontAwesomeIcon
-                              icon={faChevronRight}
-                              style={{ fontSize: 12 }}
+                    {selChaps.length > 0 &&
+                      !class9Path &&
+                      class9Subtopics.length === 0 &&
+                      qtOpts.length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 8 }}
+                          style={{
+                            marginTop: 18,
+                            display: "flex",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          {loadQT ? (
+                            <StepSpinner
+                              label="Preparing question types…"
+                              dark={dark}
                             />
-                          </motion.button>
-                        )}
-                      </motion.div>
-                    )}
+                          ) : (
+                            <motion.button
+                              whileHover={{ scale: 1.04 }}
+                              whileTap={{ scale: 0.97 }}
+                              onClick={confirmChapters}
+                              style={{
+                                padding: "11px 24px",
+                                borderRadius: 30,
+                                border: "none",
+                                background: `linear-gradient(135deg, ${dark ? "#7c3aed" : "#667eea"}, ${dark ? "#6366f1" : "#764ba2"})`,
+                                color: "#fff",
+                                fontWeight: 700,
+                                fontSize: 14,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 8,
+                                boxShadow: `0 6px 20px ${accent}44`,
+                              }}
+                            >
+                              Continue ({selChaps.length} selected)
+                              <FontAwesomeIcon
+                                icon={faChevronRight}
+                                style={{ fontSize: 12 }}
+                              />
+                            </motion.button>
+                          )}
+                        </motion.div>
+                      )}
                   </AnimatePresence>
                 </>
               )}

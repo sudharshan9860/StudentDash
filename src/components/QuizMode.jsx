@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../api/axiosInstance";
 import MarkdownWithMath from "./MarkdownWithMath";
@@ -20,6 +20,9 @@ const formatChapterName = (raw) => {
 
 const QuizMode = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isRetakeFlow = location.state?.isRetakeFromResult || false;
+  const retakeConfig = location.state?.retakeConfig || null;
 
   const [isDark] = useState(() => {
     try {
@@ -96,6 +99,23 @@ const QuizMode = () => {
     };
     loadClasses();
   }, []); // fetch once on mount
+
+  // Auto-fill from retake config
+  useEffect(() => {
+    if (!retakeConfig || classes.length === 0) return;
+
+    // Find and select the class
+    const classNum = retakeConfig.classNum;
+    const cls = classes.find(
+      (c) => c.class_name.replace(/\D/g, "") === String(classNum),
+    );
+    if (cls) {
+      setSelectedClassObj(cls);
+      setSelectedClass(cls.class_name.replace(/\D/g, ""));
+      // Trigger subject + chapter loading chain
+      // (the existing useEffects watching selectedClassObj will handle this)
+    }
+  }, [retakeConfig, classes]); // eslint-disable-line
 
   useEffect(() => {
     if (!selectedClassObj || !selectedSubjectObj) {
@@ -280,7 +300,6 @@ const QuizMode = () => {
         chapters: chapterNames,
         subject: selectedSubject,
       });
-      // Normalize: API may return { sheets: [...] } or a plain array
       const raw = res.data;
       const sheets = Array.isArray(raw) ? raw : raw.sheets || [];
       const normalized = {
@@ -292,7 +311,14 @@ const QuizMode = () => {
       setExpandedSheets(Object.fromEntries(sheets.map((_, i) => [i, true])));
       setShowCheatsheet(true);
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to load cheatsheet.");
+      // Cheatsheet not available — fall back to direct generate
+      console.warn(
+        "Cheatsheet not available, generating test directly:",
+        err.response?.data?.detail,
+      );
+      setLoadingCheatsheet(false);
+      handleGenerate();
+      return;
     } finally {
       setLoadingCheatsheet(false);
     }
@@ -912,28 +938,55 @@ const QuizMode = () => {
                   </div>
 
                   {/* Action Button */}
+                  {/* Action Buttons */}
                   <div className="quiz-action-buttons">
-                    <button
-                      className="quiz-start-btn"
-                      onClick={handleRevise}
-                      disabled={loadingCheatsheet || generating}
-                      style={{ flex: 1 }}
-                    >
-                      {loadingCheatsheet ? (
-                        <>
-                          <div
-                            className="quiz-spinner"
-                            style={{ width: 18, height: 18, borderWidth: 2 }}
-                          />
-                          Loading Cheatsheet...
-                        </>
-                      ) : (
-                        <>
-                          <span className="btn-shimmer" />
-                          Generate & Start Test
-                        </>
-                      )}
-                    </button>
+                    {isRetakeFlow ? (
+                      /* RETAKE FLOW: show cheatsheet first, then start */
+                      <button
+                        className="quiz-start-btn"
+                        onClick={handleRevise}
+                        disabled={loadingCheatsheet || generating}
+                        style={{ flex: 1 }}
+                      >
+                        {loadingCheatsheet ? (
+                          <>
+                            <div
+                              className="quiz-spinner"
+                              style={{ width: 18, height: 18, borderWidth: 2 }}
+                            />
+                            Loading Cheatsheet...
+                          </>
+                        ) : (
+                          <>
+                            <span className="btn-shimmer" />
+                            📋 Revise & Start Test
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      /* FIRST TIME: skip cheatsheet, generate directly */
+                      <button
+                        className="quiz-start-btn"
+                        onClick={handleGenerate}
+                        disabled={generating}
+                        style={{ flex: 1 }}
+                      >
+                        {generating ? (
+                          <>
+                            <div
+                              className="quiz-spinner"
+                              style={{ width: 18, height: 18, borderWidth: 2 }}
+                            />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <span className="btn-shimmer" />
+                            Start Test
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               )}

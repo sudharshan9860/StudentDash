@@ -1975,3 +1975,10 @@
   margin: 0 auto;
   line-height: 1.55;
 }
+
+/* Hide the floating mascot GIF on the quiz result page to prevent overlap with Study Buddy */
+body:has(.quiz-result-wrapper) .floating-mascot-container,
+body:has(.quiz-result-wrapper) .chatbot-mascot__container,
+body:has(.quiz-result-wrapper) .chat-toggle-btn {
+  display: none !important;
+}

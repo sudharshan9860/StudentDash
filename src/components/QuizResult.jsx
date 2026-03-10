@@ -255,6 +255,8 @@ const QuizResult = () => {
   const brokenCount = bridgeStatus.broken || 0;
   const weakCount = bridgeStatus.weak || 0;
 
+  const [retakeLoading, setRetakeLoading] = useState(false);
+
   /* Time calculations */
   const timeGivenMin = Math.max(total * 2, 5);
   const timeGivenSec = timeGivenMin * 60;
@@ -817,6 +819,17 @@ const QuizResult = () => {
     doc.save(`BridgeScan_Class${classNum}_${scorePct}pct.pdf`);
   };
 
+  // Hide the floating mascot on this page to prevent overlap with Study Buddy
+  useEffect(() => {
+    const mascots = document.querySelectorAll(
+      ".floating-mascot-container, .chat-box-container, .chat-toggle-btn",
+    );
+    mascots.forEach((el) => (el.style.display = "none"));
+    return () => {
+      mascots.forEach((el) => (el.style.display = ""));
+    };
+  }, []);
+
   /* ── generate learning path ── */
   const handleGeneratePath = async () => {
     if (!classNum) return;
@@ -855,6 +868,7 @@ const QuizResult = () => {
           selectedChapters: chaptersList,
           learningPath: true,
           subject,
+          boardSelection: boardSelection, // PRESERVE
         },
       });
     } catch (err) {
@@ -878,6 +892,7 @@ const QuizResult = () => {
       return;
     }
 
+    setRetakeLoading(true); // ← show overlay
     setRetaking(true);
     setRetakeError("");
 
@@ -897,6 +912,7 @@ const QuizResult = () => {
           questionsPerChapter: qPerChapter,
           subject: subject,
           isRetake: true,
+          boardSelection: boardSelection,
         },
       });
     } catch (err) {
@@ -904,6 +920,7 @@ const QuizResult = () => {
         err.response?.data?.detail ||
           "Failed to generate new questions. Please try again.",
       );
+      setRetakeLoading(false); // ← hide on error
     } finally {
       setRetaking(false);
     }
@@ -1728,11 +1745,20 @@ const QuizResult = () => {
                           prefill: {
                             classCode: boardSelection.classCode,
                             className: boardSelection.className,
+
                             subjectCode: boardSelection.subjectCode,
                             subjectName: boardSelection.subjectName,
+
                             chapterCode: boardSelection.chapterCode,
                             chapterName: boardSelection.chapterName,
-                            subtopics: boardSelection.subtopics,
+
+                            subtopics: boardSelection.subtopics || [],
+
+                            // 🔑 IMPORTANT
+                            source: "testprep",
+
+                            // helps wizard skip selection APIs
+                            fromQuizResult: true,
                           },
                         }
                       : undefined,
@@ -1753,7 +1779,7 @@ const QuizResult = () => {
         ) : (
           /* ─── FAIL: Retake Card + Original Buttons ───────────────────── */
           <>
-            {/* Retake Card */}
+            {/* Retake Card
             <motion.div
               className="qr-retake-card"
               initial={{ opacity: 0, y: 16 }}
@@ -1796,7 +1822,7 @@ const QuizResult = () => {
                   {retakeError}
                 </p>
               )}
-            </motion.div>
+            </motion.div> */}
 
             {/* Original action buttons unchanged */}
             <div className="qr-actions">
@@ -1902,6 +1928,67 @@ const QuizResult = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Retake Loading Overlay */}
+      <AnimatePresence>
+        {retakeLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(15, 12, 41, 0.92)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              style={{
+                width: 48,
+                height: 48,
+                border: "4px solid rgba(255,255,255,0.15)",
+                borderTopColor: "#818cf8",
+                borderRadius: "50%",
+                marginBottom: 24,
+              }}
+            />
+            <motion.h3
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              style={{
+                color: "#e0e7ff",
+                fontSize: "1.3rem",
+                fontWeight: 700,
+                marginBottom: 8,
+              }}
+            >
+              🔁 Generating New Questions...
+            </motion.h3>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              style={{
+                color: "rgba(255,255,255,0.5)",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                maxWidth: 300,
+              }}
+            >
+              Fresh questions are being prepared for the same chapters. This
+              usually takes a few seconds.
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <QuizResultChatPanel
         evalData={evalData}
         questions={questions}
@@ -1909,7 +1996,7 @@ const QuizResult = () => {
         classNum={classNum}
         subject={subject}
         timeSpent={timeSpent}
-        isPrimaryAnalysisHandler={true}
+        onRetake={handleRetakeTest}
       />{" "}
     </div>
   );

@@ -977,3 +977,10 @@
   color: #9a3412;
   border: 1px solid #fed7aa;
 }
+
+/* ── Hide FloatingMascot when Study Buddy is present on quiz-result ── */
+.quiz-result-wrapper .floating-mascot-container,
+.quiz-result-wrapper .chatbot-mascot,
+.quiz-result-wrapper .floating-mascot-wrapper {
+  display: none !important;
+}

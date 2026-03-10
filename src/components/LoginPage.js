@@ -120,7 +120,7 @@ function LoginPage() {
       if (role === "teacher") {
         navigate("/teacher-dash");
       } else {
-        navigate("/student-dash");
+        navigate("/quiz-mode");
       }
     } catch (err) {
       setError(
@@ -144,7 +144,7 @@ function LoginPage() {
       const { access, user } = res.data;
 
       login(user.email, access, "student", null);
-      navigate("/student-dash");
+      navigate("/quiz-mode");
     } catch (err) {
       setError("Google login failed. Try again.");
     }
@@ -250,8 +250,6 @@ function LoginPage() {
 
         <div className="login-columns">
           <div className="login-left-column">
-          
-
             <Form onSubmit={handleSubmit} className="login-form-new">
               {/* Floating label inputs need placeholder=" " */}
               <div className="form-group-new">
