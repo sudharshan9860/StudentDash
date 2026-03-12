@@ -3,11 +3,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { generateQuestions, generateLearningPath } from "../api/quizApi";
 import axiosInstance from "../api/axiosInstance";
 import "./QuizResult.css";
 import MarkdownWithMath from "./MarkdownWithMath";
 import QuizResultChatPanel from "./QuizResultChatPanel";
+import {
+  generateQuestions,
+  generateLearningPath,
+  fetchCheatsheet,
+} from "../api/quizApi";
+import { createPortal } from "react-dom";
 
 /* ── Convert LaTeX + Markdown to readable plain text for PDF ── */
 const latexToPlainText = (text) => {
@@ -248,6 +253,56 @@ const QuizResult = () => {
   const analysisSent = useRef(false);
   const isDark = localStorage.getItem("DarkMode") === "true";
 
+  const selectedSubtopics =
+    state?.selectedSubtopics || boardSelection?.subtopics || [];
+
+  /* ── Save quiz to backend for QuizScoreGraph ── */
+  useEffect(() => {
+    if (quizSaved.current || !evalData?.prediction) return;
+    quizSaved.current = true;
+
+    // Build chapter_breakdown from questions if API didn't provide it
+    const ensuredChapterBreakdown = (() => {
+      if (chapterBreakdown && chapterBreakdown.length > 0)
+        return chapterBreakdown;
+      const chapterMap = {};
+      questions.forEach((q, idx) => {
+        const chapter = q.chapter || "Unknown";
+        if (!chapterMap[chapter])
+          chapterMap[chapter] = { chapter, correct: 0, total: 0 };
+        chapterMap[chapter].total += 1;
+        const studentAnswer = answers[idx] || "";
+        if (studentAnswer && studentAnswer === q.correct_answer) {
+          chapterMap[chapter].correct += 1;
+        }
+      });
+      return Object.values(chapterMap).map((ch) => ({
+        ...ch,
+        score_pct: ch.total > 0 ? Math.round((ch.correct / ch.total) * 100) : 0,
+      }));
+    })();
+
+    (async () => {
+      try {
+        const saved = await axiosInstance.createQuiz({
+          name: `Class ${classNum} - ${subject} - ${new Date().toLocaleDateString()}`,
+          questions: questions,
+          analysis: evalData,
+          graph_data: {
+            subject: subject || "Mathematics",
+            chapter_breakdown: ensuredChapterBreakdown,
+            score_pct: scorePct,
+            correct: correct,
+            total: total,
+          },
+        });
+        setQuizId(saved.id || saved.quiz_id);
+      } catch (e) {
+        console.error("Failed to save quiz:", e);
+      }
+    })();
+  }, []); // eslint-disable-line
+
   const scorePct = prediction.score_pct ?? 0;
   const correct = prediction.correct ?? analysis.correct ?? 0;
   const total = prediction.total ?? analysis.total ?? questions.length;
@@ -256,6 +311,12 @@ const QuizResult = () => {
   const weakCount = bridgeStatus.weak || 0;
 
   const [retakeLoading, setRetakeLoading] = useState(false);
+
+  // Cheatsheet state for retake flow
+  const [cheatsheetData, setCheatsheetData] = useState(null);
+  const [showCheatsheet, setShowCheatsheet] = useState(false);
+  const [loadingCheatsheet, setLoadingCheatsheet] = useState(false);
+  const [expandedSheets, setExpandedSheets] = useState({});
 
   /* Time calculations */
   const timeGivenMin = Math.max(total * 2, 5);
@@ -830,6 +891,88 @@ const QuizResult = () => {
     };
   }, []);
 
+  const toggleSheet = (index) =>
+    setExpandedSheets((prev) => ({ ...prev, [index]: !prev[index] }));
+
+  const renderSheetContent = (sheet) => (
+    <>
+      {sheet.formulas?.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <h4
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              marginBottom: 8,
+              color: "#4338ca",
+            }}
+          >
+            📐 Formulas & Rules ({sheet.formulas.length})
+          </h4>
+          {sheet.formulas.map((f, i) => (
+            <div
+              key={i}
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: 12,
+                padding: 14,
+                marginBottom: 8,
+              }}
+            >
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>{f.name}</div>
+              <MarkdownWithMath content={f.formula} />
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
+                <strong>When to use:</strong>{" "}
+                <MarkdownWithMath content={f.when_to_use} />
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
+                <strong>Example:</strong>{" "}
+                <MarkdownWithMath content={f.example} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {sheet.strategies?.length > 0 && (
+        <div>
+          <h4
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              marginBottom: 8,
+              color: "#4338ca",
+            }}
+          >
+            💡 Strategies & Tricks ({sheet.strategies.length})
+          </h4>
+          {sheet.strategies.map((s, i) => (
+            <div
+              key={i}
+              style={{
+                background: "#fffbeb",
+                border: "1px solid #fde68a",
+                borderRadius: 12,
+                padding: 14,
+                marginBottom: 8,
+              }}
+            >
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                <MarkdownWithMath content={s.name} />
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>
+                <strong>Trick:</strong> <MarkdownWithMath content={s.trick} />
+              </div>
+              <div style={{ fontSize: 12, color: "#92400e", marginTop: 4 }}>
+                <strong>Why students miss:</strong>{" "}
+                <MarkdownWithMath content={s.why_missed} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+
   /* ── generate learning path ── */
   const handleGeneratePath = async () => {
     if (!classNum) return;
@@ -881,20 +1024,67 @@ const QuizResult = () => {
   };
 
   /* ── Retake: regenerate fresh questions for the same chapters ── */
+  /* ── Retake: fetch cheatsheet first, then show modal ── */
   const handleRetakeTest = async () => {
     const chaptersForRetake = state?.selectedChapters || [
       ...new Set(questions.map((q) => q.chapter).filter(Boolean)),
     ];
-    const qPerChapter = state?.questionsPerChapter || 5;
 
     if (!classNum || chaptersForRetake.length === 0) {
       setRetakeError("Cannot retake: original quiz configuration not found.");
       return;
     }
 
-    setRetakeLoading(true); // ← show overlay
-    setRetaking(true);
+    setLoadingCheatsheet(true);
+    setRetakeLoading(true);
     setRetakeError("");
+
+    try {
+      const res = await fetchCheatsheet({
+        class_num: Number(classNum),
+        chapters: chaptersForRetake,
+        subject: subject,
+        ...(selectedSubtopics.length > 0 && { sub_topics: selectedSubtopics }),
+      });
+
+      const raw = res.data;
+      const sheets = Array.isArray(raw) ? raw : raw.sheets || [];
+
+      if (sheets.length > 0) {
+        setCheatsheetData({
+          class_num: Number(classNum),
+          total_sheets: sheets.length,
+          sheets,
+          _retakeConfig: {
+            chapters: chaptersForRetake,
+            questionsPerChapter: state?.questionsPerChapter || 5,
+            subtopics: selectedSubtopics,
+          },
+        });
+        setExpandedSheets(Object.fromEntries(sheets.map((_, i) => [i, true])));
+        setShowCheatsheet(true);
+        setRetakeLoading(false);
+        setLoadingCheatsheet(false);
+      } else {
+        setLoadingCheatsheet(false);
+        await generateAndNavigateRetake(chaptersForRetake);
+      }
+    } catch (err) {
+      console.warn(
+        "Cheatsheet not available, generating directly:",
+        err.response?.data?.detail,
+      );
+      setLoadingCheatsheet(false);
+      await generateAndNavigateRetake(chaptersForRetake);
+    }
+  };
+
+  /* ── Helper: generate retake questions and navigate ── */
+  const generateAndNavigateRetake = async (chaptersForRetake) => {
+    const qPerChapter = state?.questionsPerChapter || 5;
+
+    setRetakeLoading(true);
+    setRetaking(true);
 
     try {
       const res = await generateQuestions({
@@ -902,6 +1092,7 @@ const QuizResult = () => {
         chapters: chaptersForRetake,
         questions_per_chapter: qPerChapter,
         subject: subject,
+        ...(selectedSubtopics.length > 0 && { sub_topics: selectedSubtopics }),
       });
 
       navigate("/quiz-question", {
@@ -913,6 +1104,7 @@ const QuizResult = () => {
           subject: subject,
           isRetake: true,
           boardSelection: boardSelection,
+          selectedSubtopics: selectedSubtopics,
         },
       });
     } catch (err) {
@@ -920,9 +1112,18 @@ const QuizResult = () => {
         err.response?.data?.detail ||
           "Failed to generate new questions. Please try again.",
       );
-      setRetakeLoading(false); // ← hide on error
+      setRetakeLoading(false);
     } finally {
       setRetaking(false);
+    }
+  };
+
+  /* ── Called when user clicks "Start Test" in cheatsheet modal ── */
+  const handleCheatsheetStartTest = async () => {
+    setShowCheatsheet(false);
+    const config = cheatsheetData?._retakeConfig;
+    if (config) {
+      await generateAndNavigateRetake(config.chapters);
     }
   };
 
@@ -1989,6 +2190,211 @@ const QuizResult = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* ════ Cheatsheet Modal for Retake ════ */}
+      {createPortal(
+        <AnimatePresence>
+          {showCheatsheet && cheatsheetData && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowCheatsheet(false)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.6)",
+                backdropFilter: "blur(4px)",
+                zIndex: 9998,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 20,
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 40, scale: 0.95 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: isDark ? "#1e293b" : "#fff",
+                  borderRadius: 20,
+                  width: "100%",
+                  maxWidth: 640,
+                  maxHeight: "85vh",
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                  boxShadow: "0 24px 64px rgba(0,0,0,0.25)",
+                  border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
+                }}
+              >
+                {/* Header */}
+                <div
+                  style={{
+                    padding: "20px 24px",
+                    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                    color: "#fff",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 800 }}>
+                      📋 Revision Cheatsheet
+                    </div>
+                    <div style={{ fontSize: 13, opacity: 0.8, marginTop: 2 }}>
+                      Class {cheatsheetData.class_num} ·{" "}
+                      {cheatsheetData.total_sheets} chapter
+                      {cheatsheetData.total_sheets > 1 ? "s" : ""}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowCheatsheet(false)}
+                    style={{
+                      background: "rgba(255,255,255,0.2)",
+                      border: "none",
+                      color: "#fff",
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      fontSize: 18,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div
+                  style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    padding: 24,
+                    color: isDark ? "#e2e8f0" : "#1e293b",
+                  }}
+                >
+                  {cheatsheetData.sheets.map((sheet, idx) => (
+                    <div key={idx} style={{ marginBottom: 20 }}>
+                      <button
+                        onClick={() => toggleSheet(idx)}
+                        style={{
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "12px 16px",
+                          background: isDark
+                            ? "rgba(255,255,255,0.05)"
+                            : "#f1f5f9",
+                          border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0"}`,
+                          borderRadius: 12,
+                          cursor: "pointer",
+                          color: isDark ? "#e2e8f0" : "#1e293b",
+                          fontWeight: 700,
+                          fontSize: 14,
+                        }}
+                      >
+                        <span>
+                          Ch {sheet.chapter_num} — {sheet.chapter}
+                        </span>
+                        <span style={{ fontSize: 12, opacity: 0.6 }}>
+                          {sheet.formulas?.length || 0} formulas ·{" "}
+                          {sheet.strategies?.length || 0} strategies
+                          {expandedSheets[idx] ? " ▲" : " ▼"}
+                        </span>
+                      </button>
+                      {expandedSheets[idx] && (
+                        <div style={{ padding: "12px 0" }}>
+                          {renderSheetContent(sheet)}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div
+                  style={{
+                    padding: "16px 24px",
+                    borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0"}`,
+                    display: "flex",
+                    gap: 12,
+                  }}
+                >
+                  <button
+                    onClick={() => setShowCheatsheet(false)}
+                    style={{
+                      flex: 1,
+                      padding: "14px 20px",
+                      borderRadius: 12,
+                      border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "#e2e8f0"}`,
+                      background: "transparent",
+                      color: isDark ? "#94a3b8" : "#64748b",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Done Revising
+                  </button>
+                  <button
+                    onClick={handleCheatsheetStartTest}
+                    disabled={retaking}
+                    style={{
+                      flex: 2,
+                      padding: "14px 20px",
+                      borderRadius: 12,
+                      border: "none",
+                      background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                      color: "#fff",
+                      fontWeight: 700,
+                      fontSize: 14,
+                      cursor: retaking ? "not-allowed" : "pointer",
+                      opacity: retaking ? 0.7 : 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      boxShadow: "0 4px 16px rgba(99,102,241,0.4)",
+                    }}
+                  >
+                    {retaking ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
+                          style={{
+                            width: 16,
+                            height: 16,
+                            border: "2px solid rgba(255,255,255,0.3)",
+                            borderTopColor: "#fff",
+                            borderRadius: "50%",
+                          }}
+                        />
+                        Generating...
+                      </>
+                    ) : (
+                      "🚀 Start Test"
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
       <QuizResultChatPanel
         evalData={evalData}
         questions={questions}

@@ -6,6 +6,7 @@ import axiosInstance from "../api/axiosInstance";
 import MarkdownWithMath from "./MarkdownWithMath";
 import "./QuizMode.css";
 import { generateQuestions, fetchCheatsheet } from "../api/quizApi";
+import QuizScoreGraph from "./QuizScoreGraph";
 
 const formatChapterName = (raw) => {
   if (!raw) return "";
@@ -455,6 +456,7 @@ const QuizMode = () => {
           selectedChapters: chapterNames,
           questionsPerChapter,
           subject: selectedSubject,
+          selectedSubtopics: selectedSubtopics,
           // Board API IDs for Self Study navigation
           boardSelection: {
             classCode: selectedClassObj.class_code,
@@ -513,6 +515,11 @@ const QuizMode = () => {
           </button>
         </div>
 
+        {/* Score Breakdown Graph */}
+        <div style={{ marginBottom: 24 }}>
+          <QuizScoreGraph />
+        </div>
+
         {/* Steps indicator */}
         <div className="quiz-steps-wrapper">
           <div className="quiz-steps">
@@ -523,11 +530,6 @@ const QuizMode = () => {
               ...(isClass9Math
                 ? [{ num: 4, label: "Subtopics", desc: "Filter subtopics" }]
                 : []),
-              {
-                num: isClass9Math ? 5 : 4,
-                label: "Configure",
-                desc: "Set & start",
-              },
             ].map((step, i) => (
               <React.Fragment key={step.num}>
                 {i > 0 && (
@@ -848,6 +850,7 @@ const QuizMode = () => {
             )}
 
             {/* ── Section 4: Configure & Start ── */}
+            {/* ── Section 4: Action Button Only (Configure removed) ── */}
             <AnimatePresence>
               {selectedChapters.length > 0 && (
                 <motion.div
@@ -857,91 +860,10 @@ const QuizMode = () => {
                   exit={{ opacity: 0, y: -16 }}
                   transition={{ duration: 0.35, delay: 0.1 }}
                 >
-                  <div className="quiz-section-label">
-                    <span className="quiz-section-num">4</span>
-                    <span>Configure Test</span>
-                  </div>
-
-                  <div className="quiz-config-row">
-                    <div className="quiz-config-slider">
-                      <label className="quiz-form-label">
-                        <span className="label-icon">🎯</span> Questions Per
-                        Chapter
-                      </label>
-                      <div className="quiz-slider-container">
-                        <div className="quiz-slider-value">
-                          <span>{questionsPerChapter}</span>
-                        </div>
-                        <input
-                          type="range"
-                          className="quiz-slider"
-                          min={1}
-                          max={15}
-                          value={questionsPerChapter}
-                          onChange={(e) =>
-                            setQuestionsPerChapter(Number(e.target.value))
-                          }
-                        />
-                        <div className="quiz-slider-labels">
-                          <span>1</span>
-                          <span>5</span>
-                          <span>10</span>
-                          <span>15</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Summary Grid */}
-                  <div className="quiz-summary-grid">
-                    <div className="quiz-summary-card">
-                      <div className="quiz-summary-card-icon">
-                        {selectedSubject === "PHYSICS" ? "⚛️" : "📐"}
-                      </div>
-                      <div className="quiz-summary-card-data">
-                        <div className="summary-val">{selectedSubject}</div>
-                        <div className="summary-label">Subject</div>
-                      </div>
-                    </div>
-                    <div className="quiz-summary-card">
-                      <div className="quiz-summary-card-icon"></div>
-                      <div className="quiz-summary-card-data">
-                        <div className="summary-val">
-                          {selectedClassObj?.class_name || selectedClass}
-                        </div>
-                        <div className="summary-label">Class</div>
-                      </div>
-                    </div>
-                    <div className="quiz-summary-card">
-                      <div className="quiz-summary-card-icon"></div>
-                      <div className="quiz-summary-card-data">
-                        <div className="summary-val">
-                          {selectedChapters.length}
-                        </div>
-                        <div className="summary-label">Chapters</div>
-                      </div>
-                    </div>
-                    <div className="quiz-summary-card">
-                      <div className="quiz-summary-card-icon"></div>
-                      <div className="quiz-summary-card-data">
-                        <div className="summary-val">{totalQuestions}</div>
-                        <div className="summary-label">Questions</div>
-                      </div>
-                    </div>
-                    <div className="quiz-summary-card">
-                      <div className="quiz-summary-card-icon">⏱</div>
-                      <div className="quiz-summary-card-data">
-                        <div className="summary-val">~{estimatedTime}m</div>
-                        <div className="summary-label">Est. Time</div>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Action Button */}
-                  {/* Action Buttons */}
+                  {/* Action Button */}
                   <div className="quiz-action-buttons">
                     {isRetakeFlow ? (
-                      /* RETAKE FLOW: show cheatsheet first, then start */
                       <button
                         className="quiz-start-btn"
                         onClick={handleRevise}
@@ -964,7 +886,6 @@ const QuizMode = () => {
                         )}
                       </button>
                     ) : (
-                      /* FIRST TIME: skip cheatsheet, generate directly */
                       <button
                         className="quiz-start-btn"
                         onClick={handleGenerate}

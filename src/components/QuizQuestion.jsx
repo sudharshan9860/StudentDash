@@ -125,6 +125,9 @@ const QuizQuestion = () => {
           quizData,
           subject,
           boardSelection: state?.boardSelection,
+          selectedChapters: state?.selectedChapters, // ← ADD (already exists in some paths)
+          selectedSubtopics: state?.selectedSubtopics, // ← ADD THIS
+          questionsPerChapter: state?.questionsPerChapter,
         },
       });
     } catch (err) {

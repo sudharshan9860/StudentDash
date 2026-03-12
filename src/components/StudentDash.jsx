@@ -42,7 +42,6 @@ import { useTutorial } from "../contexts/TutorialContext";
 import FeedbackBox from "./FeedbackBox";
 
 import ProgressGraph from "./ProgressGraph";
-import QuizScoreGraph from "./QuizScoreGraph";
 
 function StudentDash({ jeeMode = false }) {
   const navigate = useNavigate();
@@ -1555,25 +1554,6 @@ function StudentDash({ jeeMode = false }) {
                       <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} />
                     </button>
                   </div>
-                </div>
-
-                {/* Progress & Resume Learning Grid Section */}
-                <div
-                  className="progress-resume-grid"
-                  style={{
-                    // display: 'grid',
-                    gridTemplateColumns: "1fr",
-                    gap: "24px",
-                    marginBottom: "24px",
-                    marginTop: "20px",
-                  }}
-                >
-                  {/* Left Column - Quiz Score Graph */}
-                  <div className="progress-graph-column">
-                    <QuizScoreGraph />
-                  </div>
-
-                  {/* Right Column - Resume Learning Section */}
                 </div>
 
                 {/* Enhanced Learning Adventure Section */}

@@ -843,9 +843,8 @@ const QuizResultChatPanel = ({
                     className="sb-retake-btn"
                     onClick={() => {
                       setIsOpen(false);
-                      // Trigger retake directly
                       if (onRetake) {
-                        setTimeout(() => onRetake(), 300); // small delay for panel close animation
+                        setTimeout(() => onRetake(), 300);
                       }
                     }}
                   >
