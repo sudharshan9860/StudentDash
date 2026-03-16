@@ -9,7 +9,7 @@ const teamMembers = [
     qualification: 'B.A',
     image: '&#x1F469;&#x200D;&#x1F4BC;',
     description: 'Visionary leader driving the mission to transform education through AI-powered learning solutions.',
-    color: '#3b82f6'
+    color: '#00A0E3'
   },
   {
     name: 'Praveen Jambholkar',

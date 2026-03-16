@@ -149,7 +149,7 @@ export const classPerformanceData = [
 ];
 
 export const overallStatsData = [
-  { type: 'Homework', average: 19, color: '#3b82f6' },
+  { type: 'Homework', average: 19, color: '#00A0E3' },
   { type: 'Classwork', average: 30, color: '#a855f7' }
 ];
 

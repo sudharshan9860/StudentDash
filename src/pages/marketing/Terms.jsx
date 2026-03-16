@@ -5,7 +5,7 @@ const highlights = [
     icon: '&#x2696;',
     title: 'Legal Agreement',
     description: 'Binding terms between you and Smart Learners.ai (Orcalex Technologies LLP)',
-    color: '#3b82f6'
+    color: '#00A0E3'
   },
   {
     icon: '&#x1F91D;',

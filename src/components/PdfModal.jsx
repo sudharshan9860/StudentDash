@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./PdfModal.css";
+import { FileText, Download, ExternalLink, X, AlertCircle, Loader2 } from "lucide-react";
 
 const PdfModal = ({ isOpen, onClose, pdfUrl, title = "Answer Sheet" }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -42,75 +42,67 @@ const PdfModal = ({ isOpen, onClose, pdfUrl, title = "Answer Sheet" }) => {
   };
 
   return (
-    <div className="pdf-modal-overlay" onClick={onClose}>
-      <div className="pdf-modal-container" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="pdf-modal-header">
-          <div className="pdf-modal-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-              <polyline points="10 9 9 9 8 9"/>
-            </svg>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5 text-[#0B1120] font-semibold">
+            <FileText size={20} className="text-[#00A0E3]" />
             <span>{title}</span>
           </div>
-          <div className="pdf-modal-actions">
+          <div className="flex items-center gap-2">
             <button
-              className="pdf-action-btn"
+              className="w-9 h-9 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center justify-center
+                text-gray-500 hover:text-[#00A0E3] transition-colors duration-200"
               onClick={handleDownload}
               title="Download PDF"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
+              <Download size={18} />
             </button>
             <button
-              className="pdf-action-btn"
+              className="w-9 h-9 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center justify-center
+                text-gray-500 hover:text-[#00A0E3] transition-colors duration-200"
               onClick={handleOpenInNewTab}
               title="Open in new tab"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
-              </svg>
+              <ExternalLink size={18} />
             </button>
             <button
-              className="pdf-close-btn"
+              className="w-9 h-9 rounded-lg bg-gray-50 hover:bg-red-50 flex items-center justify-center
+                text-gray-500 hover:text-red-500 transition-colors duration-200"
               onClick={onClose}
               title="Close"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
+              <X size={20} />
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="pdf-modal-body">
+        <div className="flex-1 relative bg-gray-50">
           {isLoading && (
-            <div className="pdf-loading-state">
-              <div className="pdf-spinner"></div>
-              <p>Loading document...</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10 bg-white/80">
+              <Loader2 size={32} className="text-[#00A0E3] animate-spin" />
+              <p className="text-sm text-gray-500 font-medium">Loading document...</p>
             </div>
           )}
 
           {hasError && (
-            <div className="pdf-error-state">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <h3>Unable to load PDF</h3>
-              <p>The document could not be displayed in the viewer.</p>
-              <button className="pdf-error-btn" onClick={handleOpenInNewTab}>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10 bg-white">
+              <AlertCircle size={48} className="text-gray-300" />
+              <h3 className="text-lg font-semibold text-[#0B1120]">Unable to load PDF</h3>
+              <p className="text-sm text-gray-500">The document could not be displayed in the viewer.</p>
+              <button
+                className="px-5 py-2.5 bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg
+                  text-sm font-medium transition-colors duration-200"
+                onClick={handleOpenInNewTab}
+              >
                 Open in New Tab
               </button>
             </div>
@@ -119,7 +111,7 @@ const PdfModal = ({ isOpen, onClose, pdfUrl, title = "Answer Sheet" }) => {
           <iframe
             src={pdfUrl}
             title="PDF Viewer"
-            className={`pdf-iframe ${isLoading ? 'loading' : ''}`}
+            className={`w-full h-full border-0 ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             onLoad={handleIframeLoad}
             onError={handleIframeError}
           />

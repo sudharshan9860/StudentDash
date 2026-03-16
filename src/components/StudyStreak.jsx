@@ -1,27 +1,21 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Card, ProgressBar } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faFire } from '@fortawesome/free-solid-svg-icons';
+import React, { useContext } from 'react';
+import { Flame, Star } from 'lucide-react';
 import { ProgressContext } from '../contexts/ProgressContext';
 
 const StudyStreak = () => {
   const { getProgressSummary } = useContext(ProgressContext);
-  
-  // Get progress data
+
   const progressData = getProgressSummary();
 
-  // Streak-related data
   const currentStreak = progressData.streak || 0;
   const longestStreak = progressData.longestStreak || 0;
 
-  // Streak levels and rewards
   const STREAK_LEVELS = [
     { days: 7, badge: 'Bronze', reward: 50 },
     { days: 14, badge: 'Silver', reward: 100 },
     { days: 30, badge: 'Gold', reward: 250 }
   ];
 
-  // Determine current streak level
   const getCurrentStreakLevel = () => {
     for (let level of STREAK_LEVELS) {
       if (currentStreak < level.days) {
@@ -42,71 +36,67 @@ const StudyStreak = () => {
   const streakInfo = getCurrentStreakLevel();
 
   return (
-    <Card className="mb-4 shadow-sm">
-      <Card.Body>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="mb-0">
-            <FontAwesomeIcon icon={faFire} className="text-warning mr-2" />
-            Study Streak
-          </h5>
-          <span className="text-muted">
-            Longest Streak: {longestStreak} Days
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h5 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2">
+          <Flame className="w-5 h-5 text-orange-500" />
+          Study Streak
+        </h5>
+        <span className="text-xs text-gray-500">
+          Longest Streak: {longestStreak} Days
+        </span>
+      </div>
+
+      {/* Streak day circles */}
+      <div className="flex items-center gap-1.5 mb-4">
+        {[...Array(7)].map((_, index) => (
+          <div
+            key={index}
+            className={`w-9 h-9 rounded-full flex items-center justify-center ${
+              index < currentStreak
+                ? 'bg-green-100'
+                : 'bg-gray-100'
+            }`}
+          >
+            <Star
+              className={`w-4 h-4 ${
+                index < currentStreak ? 'text-green-500' : 'text-gray-300'
+              }`}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Progress bar */}
+      <div className="mb-3">
+        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-green-500 rounded-full transition-all duration-500"
+            style={{ width: `${streakInfo.progress}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between mt-1.5">
+          <span className="text-xs text-gray-500">
+            {currentStreak} Day Streak
+          </span>
+          <span className="text-xs text-gray-500">
+            {streakInfo.daysToNextBadge > 0
+              ? `${streakInfo.daysToNextBadge} more days for ${streakInfo.currentLevel.badge} badge`
+              : 'Max streak reached!'}
           </span>
         </div>
+      </div>
 
-        <div className="streak-days d-flex mb-2">
-          {[...Array(7)].map((_, index) => (
-            <div 
-              key={index} 
-              className="streak-day mr-2"
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                backgroundColor: index < currentStreak ? '#B0F2B6' : '#E0E0E0',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginRight: '5px'
-              }}
-            >
-              <FontAwesomeIcon 
-                icon={faStar} 
-                className={index < currentStreak ? 'text-success' : 'text-muted'}
-              />
-            </div>
-          ))}
+      {streakInfo.daysToNextBadge > 0 && (
+        <div className="text-center mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs text-gray-500">
+            Keep it up! Just {streakInfo.daysToNextBadge} more{' '}
+            {streakInfo.daysToNextBadge === 1 ? 'day' : 'days'}
+            {' '}for a new {streakInfo.currentLevel.badge} badge
+          </p>
         </div>
-
-        <div className="streak-progress mb-2">
-          <ProgressBar 
-            now={streakInfo.progress} 
-            variant="success" 
-            className="mb-2"
-          />
-          <div className="d-flex justify-content-between">
-            <small className="text-muted">
-              {currentStreak} Day Streak
-            </small>
-            <small className="text-muted">
-              {streakInfo.daysToNextBadge > 0 
-                ? `${streakInfo.daysToNextBadge} more days for ${streakInfo.currentLevel.badge} badge` 
-                : 'Max streak reached!'}
-            </small>
-          </div>
-        </div>
-
-        {streakInfo.daysToNextBadge > 0 && (
-          <div className="streak-motivation text-center mt-3">
-            <p className="text-muted mb-0">
-              Keep it up! Just {streakInfo.daysToNextBadge} more{' '}
-              {streakInfo.daysToNextBadge === 1 ? 'day' : 'days'} 
-              {' '}for a new {streakInfo.currentLevel.badge} badge
-            </p>
-          </div>
-        )}
-      </Card.Body>
-    </Card>
+      )}
+    </div>
   );
 };
 

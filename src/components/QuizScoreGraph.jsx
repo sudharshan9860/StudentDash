@@ -1,32 +1,29 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faBolt, faTrophy, faBullseye, faChartBar,
-} from '@fortawesome/free-solid-svg-icons';
+  Zap, Trophy, Target, BarChart3,
+} from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceArea, ReferenceLine,
 } from 'recharts';
 import axiosInstance from '../api/axiosInstance';
 import mascotGif from '../assets/newbot.gif';
-import './QuizScoreGraph.css';
 
-/* ── constants ── */
+/* -- constants -- */
 const TARGET_ZONE_MIN = 75;
 const DANGER_ZONE_MAX = 35;
 const DEFAULT_SUBJECT = 'Mathematics';
 
 const QUIZ_COLORS = [
-  '#fb923c', '#60a5fa', '#4ade80', '#f472b6', '#38bdf8',
+  '#00A0E3', '#60a5fa', '#4ade80', '#f472b6', '#38bdf8',
   '#fbbf24', '#a78bfa', '#34d399', '#f87171', '#67e8f9',
 ];
 
 const getQuizColor = (idx) => QUIZ_COLORS[idx % QUIZ_COLORS.length];
 
-/* ── truncate long chapter names for X-axis ── */
+/* -- truncate long chapter names for X-axis -- */
 const TruncatedTick = ({ x, y, payload }) => {
-  const isDark = document.body.classList.contains('dark-mode');
   const maxLen = 14;
   const text = payload.value.length > maxLen
     ? payload.value.slice(0, maxLen) + '...'
@@ -37,7 +34,7 @@ const TruncatedTick = ({ x, y, payload }) => {
         x={0} y={0} dy={8}
         textAnchor="end"
         transform="rotate(-35)"
-        fill={isDark ? 'rgba(148,163,184,0.7)' : 'rgba(100,116,139,0.8)'}
+        fill="rgba(100,116,139,0.8)"
         fontSize={10}
         fontWeight={600}
         fontFamily="Inter, system-ui, sans-serif"
@@ -48,7 +45,7 @@ const TruncatedTick = ({ x, y, payload }) => {
   );
 };
 
-/* ── overlapping nested bars ── */
+/* -- overlapping nested bars -- */
 const OverlappingBars = (props) => {
   const { x, y, width, height, payload } = props;
   if (!height || height <= 0 || !payload) return null;
@@ -103,42 +100,41 @@ const OverlappingBars = (props) => {
   );
 };
 
-/* ── custom tooltip ── */
+/* -- custom tooltip -- */
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
 
-  const isDark = document.body.classList.contains('dark-mode');
   const entry = payload[0]?.payload;
   const attempts = entry?._attempts || [];
   const latestScore = attempts.length > 0 ? attempts[attempts.length - 1].score_pct : 0;
 
   return (
-    <div className="qsg-tooltip" data-dark={isDark}>
-      <div className="qsg-tooltip-header">
-        <span className="qsg-tooltip-title">{label}</span>
-        <span className="qsg-tooltip-score">{latestScore}%</span>
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 min-w-[220px]">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-semibold text-[#0B1120]">{label}</span>
+        <span className="text-sm font-bold text-[#00A0E3]">{latestScore}%</span>
       </div>
 
-      <div className="qsg-tooltip-attempts-label">
+      <div className="text-xs text-gray-500 mb-2">
         {attempts.length} attempt{attempts.length !== 1 ? 's' : ''}
       </div>
 
-      <div className="qsg-tooltip-divider" />
+      <div className="border-t border-gray-100 my-2" />
 
       {attempts.map((att, i) => {
         const isLatest = i === attempts.length - 1;
         const improvement = i > 0 ? att.score_pct - attempts[i - 1].score_pct : null;
         return (
-          <div key={i} className={`qsg-tooltip-row ${isLatest && attempts.length > 1 ? 'qsg-tooltip-row-latest' : ''}`}>
-            <span className="qsg-tooltip-dot" style={{ background: att.color }} />
-            <span className="qsg-tooltip-ch">
+          <div key={i} className={`flex items-center gap-2 py-1 text-xs ${isLatest && attempts.length > 1 ? 'bg-blue-50 -mx-2 px-2 rounded' : ''}`}>
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: att.color }} />
+            <span className="text-gray-600 flex-1">
               {att.quizLabel}{isLatest && attempts.length > 1 ? ' (Latest)' : ''}
             </span>
-            <span className="qsg-tooltip-val">
+            <span className="text-gray-700 font-medium">
               {att.correct}/{att.total}{' '}
               <strong>{att.score_pct}%</strong>
               {improvement !== null && improvement !== 0 && (
-                <span className={`qsg-tooltip-delta ${improvement > 0 ? 'qsg-delta-up' : 'qsg-delta-down'}`}>
+                <span className={`ml-1 ${improvement > 0 ? 'text-green-600' : 'text-red-500'}`}>
                   {improvement > 0 ? '\u2191' : '\u2193'}{Math.abs(improvement)}%
                 </span>
               )}
@@ -147,9 +143,9 @@ const CustomTooltip = ({ active, payload, label }) => {
         );
       })}
 
-      <div className="qsg-tooltip-divider" />
-      <div className="qsg-tooltip-footer">
-        <span className={`qsg-tz-badge ${latestScore >= TARGET_ZONE_MIN ? 'qsg-tz-target' : latestScore <= DANGER_ZONE_MAX ? 'qsg-tz-danger' : 'qsg-tz-mid'}`}>
+      <div className="border-t border-gray-100 my-2" />
+      <div className="flex justify-end">
+        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${latestScore >= TARGET_ZONE_MIN ? 'bg-green-100 text-green-700' : latestScore <= DANGER_ZONE_MAX ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
           {latestScore >= TARGET_ZONE_MIN ? 'On Target' : latestScore <= DANGER_ZONE_MAX ? 'Needs Work' : 'Improving'}
         </span>
       </div>
@@ -157,15 +153,15 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-/* ══════════════════════════════════════
+/* ======================================
    COMPONENT
-   ══════════════════════════════════════ */
+   ====================================== */
 const QuizScoreGraph = () => {
   const [rawQuizzes, setRawQuizzes] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState(null); // null = auto-select first
+  const [selectedSubject, setSelectedSubject] = useState(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -185,7 +181,7 @@ const QuizScoreGraph = () => {
     })();
   }, []);
 
-  /* ── Extract unique subjects from all quizzes ── */
+  /* -- Extract unique subjects from all quizzes -- */
   const subjects = useMemo(() => {
     if (!rawQuizzes) return [];
     const subjectSet = new Set();
@@ -203,11 +199,10 @@ const QuizScoreGraph = () => {
     }
   }, [subjects, selectedSubject]);
 
-  /* ── Filter quizzes by selected subject, then build chart ── */
+  /* -- Filter quizzes by selected subject, then build chart -- */
   const { chartData, quizLabels, quizColorMap, stats } = useMemo(() => {
     if (!rawQuizzes || !selectedSubject) return { chartData: [], quizLabels: [], quizColorMap: {}, stats: null };
 
-    // Filter quizzes that belong to the selected subject
     const filtered = rawQuizzes.filter((quiz) => {
       const subject = quiz.graph_data?.subject || DEFAULT_SUBJECT;
       return subject === selectedSubject;
@@ -263,75 +258,80 @@ const QuizScoreGraph = () => {
   }, [rawQuizzes, selectedSubject]);
 
   const statCards = stats ? [
-    { label: 'Tests', value: stats.totalQuizzes, icon: faChartBar, color: '#6366f1' },
-    { label: 'Chapters', value: stats.chapters, icon: faBullseye, color: '#f97316' },
-    { label: 'Best Score', value: `${stats.bestScore.toFixed(1)}%`, icon: faTrophy, color: '#22c55e' },
+    { label: 'Tests', value: stats.totalQuizzes, icon: BarChart3, color: '#00A0E3' },
+    { label: 'Chapters', value: stats.chapters, icon: Target, color: '#f97316' },
+    { label: 'Best Score', value: `${stats.bestScore.toFixed(1)}%`, icon: Trophy, color: '#22c55e' },
   ] : [];
 
   if (loading) {
     return (
-      <div className={`qsg-root ${mounted ? 'qsg-mounted' : ''}`}>
-        <div className="qsg-loading"><div className="qsg-loading-ring" /><p>Loading your progress...</p></div>
+      <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden transition-all duration-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-10 h-10 border-3 border-[#00A0E3] border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-gray-500 text-sm">Loading your progress...</p>
+        </div>
       </div>
     );
   }
   if (error) {
     return (
-      <div className={`qsg-root ${mounted ? 'qsg-mounted' : ''}`}>
-        <div className="qsg-error"><p>{error}</p></div>
+      <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden transition-all duration-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="flex flex-col items-center justify-center py-8">
+          <p className="text-red-500 text-sm">{error}</p>
+        </div>
       </div>
     );
   }
   if (!rawQuizzes) {
     return (
-      <div className={`qsg-empty-wrap ${mounted ? 'qsg-mounted' : ''}`}>
-        <img src={mascotGif} alt="Study Buddy" className="qsg-empty-mascot" />
-        <div className="qsg-empty-content">
-          <p className="qsg-empty-text">Take a Test to unlock your subject-wise score chart!</p>
-          <Link to="/quiz-mode" className="qsg-empty-cta"><FontAwesomeIcon icon={faBolt} /> Start First Quiz</Link>
+      <div className={`flex items-center gap-4 bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <img src={mascotGif} alt="Study Buddy" className="w-20 h-20 object-contain" />
+        <div className="flex flex-col gap-2">
+          <p className="text-gray-600 text-sm">Take a Test to unlock your subject-wise score chart!</p>
+          <Link to="/quiz-mode" className="inline-flex items-center gap-2 bg-[#00A0E3] hover:bg-[#0080B8] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors w-fit">
+            <Zap className="w-4 h-4" /> Start First Quiz
+          </Link>
         </div>
       </div>
     );
   }
 
-  const isDark = document.body.classList.contains('dark-mode');
-
   return (
-    <div className={`qsg-root ${mounted ? 'qsg-mounted' : ''}`}>
-      <div className="qsg-blob qsg-blob-1" />
-      <div className="qsg-blob qsg-blob-2" />
-
-      <div className="qsg-header">
-        <div className="qsg-title-row">
-          <h3 className="qsg-title">Subject-wise Score Breakdown</h3>
-          {subjects.length > 1 && (
-            <select
-              className="qsg-subject-select"
-              value={selectedSubject || ''}
-              onChange={(e) => setSelectedSubject(e.target.value)}
-            >
-              {subjects.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          )}
-        </div>
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 relative overflow-hidden transition-all duration-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+        <h3 className="text-sm sm:text-base font-bold text-[#0B1120]">Subject-wise Score Breakdown</h3>
+        {subjects.length > 1 && (
+          <select
+            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-[#0B1120] bg-white focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/30 focus:border-[#00A0E3] w-full sm:w-auto"
+            value={selectedSubject || ''}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+          >
+            {subjects.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        )}
       </div>
 
-      <div className="qsg-stats">
-        {statCards.map((s, i) => (
-          <div key={s.label} className="qsg-stat-card" style={{ '--delay': `${i * 80}ms`, '--accent': s.color }}>
-            <div className="qsg-stat-icon-wrap" style={{ background: `${s.color}15`, color: s.color }}>
-              <FontAwesomeIcon icon={s.icon} />
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
+        {statCards.map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <div key={s.label} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 sm:px-3 py-2" style={{ animationDelay: `${i * 80}ms` }}>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}15`, color: s.color }}>
+                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="block text-sm font-bold text-[#0B1120] truncate">{s.value}</span>
+                <span className="block text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-wider">{s.label}</span>
+              </div>
             </div>
-            <span className="qsg-stat-val">{s.value}</span>
-            <span className="qsg-stat-lbl">{s.label}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="qsg-graph-card">
-        <div className="qsg-canvas-wrap">
+      <div className="bg-gray-50/50 rounded-xl border border-gray-100 p-2 sm:p-4 -mx-2 sm:mx-0 overflow-x-auto">
+        <div className="h-[280px] sm:h-[320px] min-w-[480px]">
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -353,7 +353,7 @@ const QuizScoreGraph = () => {
                 <CartesianGrid
                   strokeDasharray="3 5"
                   vertical={false}
-                  stroke={isDark ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.18)'}
+                  stroke="rgba(148,163,184,0.18)"
                 />
 
                 <ReferenceArea y1={0} y2={DANGER_ZONE_MAX} fill="url(#dangerZoneGrad)" fillOpacity={1} ifOverflow="extendDomain" />
@@ -371,7 +371,7 @@ const QuizScoreGraph = () => {
                 <XAxis
                   dataKey="chapter"
                   tick={<TruncatedTick />}
-                  axisLine={{ stroke: isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.25)' }}
+                  axisLine={{ stroke: 'rgba(148,163,184,0.25)' }}
                   tickLine={false}
                   interval={0}
                 />
@@ -380,18 +380,18 @@ const QuizScoreGraph = () => {
                   domain={[0, 100]}
                   ticks={[0, 20, 40, 60, 80, 100]}
                   tickFormatter={(v) => `${v}%`}
-                  tick={{ fontSize: 11, fontWeight: 600, fill: isDark ? 'rgba(148,163,184,0.6)' : 'rgba(100,116,139,0.7)' }}
-                  axisLine={{ stroke: isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.25)' }}
+                  tick={{ fontSize: 11, fontWeight: 600, fill: 'rgba(100,116,139,0.7)' }}
+                  axisLine={{ stroke: 'rgba(148,163,184,0.25)' }}
                   tickLine={false}
                   label={{
                     value: 'Score (%)', angle: -90, position: 'insideLeft', offset: 10,
-                    style: { fontSize: 11, fontWeight: 600, textAnchor: 'middle', fill: isDark ? 'rgba(148,163,184,0.5)' : 'rgba(100,116,139,0.6)' },
+                    style: { fontSize: 11, fontWeight: 600, textAnchor: 'middle', fill: 'rgba(100,116,139,0.6)' },
                   }}
                 />
 
                 <Tooltip
                   content={<CustomTooltip />}
-                  cursor={{ fill: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', radius: 4 }}
+                  cursor={{ fill: 'rgba(0,0,0,0.03)', radius: 4 }}
                 />
 
                 <Bar
@@ -404,23 +404,17 @@ const QuizScoreGraph = () => {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="qsg-no-data">No test data for {selectedSubject}</div>
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">No test data for {selectedSubject}</div>
           )}
         </div>
 
-        <div className="qsg-legend">
-          {/* {quizLabels.map((q) => (
-            <div key={q} className="qsg-legend-item">
-              <span className="qsg-leg-bar" style={{ background: quizColorMap[q] }} />
-              <span>{q}</span>
-            </div>
-          ))} */}
-          <div className="qsg-legend-item">
-            <span className="qsg-leg-zone qsg-leg-target" />
+        <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <span className="w-3 h-3 rounded-sm bg-green-500/20 border border-green-500/30" />
             <span>Target Zone</span>
           </div>
-          <div className="qsg-legend-item">
-            <span className="qsg-leg-zone qsg-leg-danger" />
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <span className="w-3 h-3 rounded-sm bg-red-500/20 border border-red-500/30" />
             <span>Danger Zone</span>
           </div>
         </div>

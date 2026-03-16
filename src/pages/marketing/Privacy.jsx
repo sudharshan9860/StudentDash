@@ -5,7 +5,7 @@ const principles = [
     icon: '&#x1F6E1;',
     title: 'Data Protection',
     description: 'We use industry-standard encryption to protect your personal information',
-    color: '#3b82f6'
+    color: '#00A0E3'
   },
   {
     icon: '&#x1F464;',
@@ -23,7 +23,7 @@ const principles = [
     icon: '&#x1F441;',
     title: 'Transparency',
     description: 'We are transparent about what data we collect and how we use it',
-    color: '#6366f1'
+    color: '#00A0E3'
   }
 ]
 

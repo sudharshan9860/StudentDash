@@ -10,9 +10,8 @@ import React, {
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import lightModeGif from "../assets/1080x1080.gif";
-// import darkModeGif from "../assets/1080x1080 (1).gif";
-// import chatbotLogo from "../assets/chatbot-logo.png";
+import lightModeGif from "../assets/1080x1080.gif";
+import darkModeGif from "../assets/1080x1080 (1).gif";
 import { motion } from "framer-motion";
 import {
   faCommentDots,
@@ -34,14 +33,14 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import "katex/dist/katex.min.css";
-import { InlineMath } from "react-katex";
+
 import axios from "axios";
 import MarkdownWithMath from "./MarkdownWithMath";
 import "./ChatBox.css";
 import { useAlert } from "./AlertBox";
 import { AuthContext } from "./AuthContext";
 import axiosInstance from "../api/axiosInstance";
-import MarkdownViewer from "./MarkdownViewer";
+
 import { useCurrentQuestion } from "../contexts/CurrentQuestionContext";
 import { useTutorial } from "../contexts/TutorialContext";
 import { ChatContext } from "../contexts/ChatContext";
@@ -159,7 +158,7 @@ const VideoListComponent = ({ videos }) => {
 };
 
 // ====== Main Component ======
-const ChatBox = forwardRef(() => {
+const ChatBox = forwardRef((props, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { username } = useContext(AuthContext);
@@ -267,21 +266,21 @@ const ChatBox = forwardRef(() => {
   })();
 
   // Dark mode state
-  // const [isDarkMode, setIsDarkMode] = useState(() => {
-  //   return localStorage.getItem("darkMode") === "true";
-  // });
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem("darkMode") === "true";
+  });
 
   // Listen for dark mode changes
-  // useEffect(() => {
-  //   const handleDarkModeChange = (e) => {
-  //     setIsDarkMode(e.detail.isDarkMode);
-  //   };
+  useEffect(() => {
+    const handleDarkModeChange = (e) => {
+      setIsDarkMode(e.detail.isDarkMode);
+    };
 
-  //   window.addEventListener("darkModeChange", handleDarkModeChange);
-  //   return () => {
-  //     window.removeEventListener("darkModeChange", handleDarkModeChange);
-  //   };
-  // }, []);
+    window.addEventListener("darkModeChange", handleDarkModeChange);
+    return () => {
+      window.removeEventListener("darkModeChange", handleDarkModeChange);
+    };
+  }, []);
 
   // ====== Suggestion Questions ======
   // Different suggestions based on whether we're on SolveQuestion page
@@ -736,7 +735,7 @@ const ChatBox = forwardRef(() => {
         formData.append("class_name", className || "default_class");
       }
       // Log formData entries for debugging
-      for (let [] of formData.entries()) {
+      for (let [key, value] of formData.entries()) {
         // console.log(`${key}:`, value);
       }
 
@@ -1490,22 +1489,19 @@ const ChatBox = forwardRef(() => {
               <span className="thinking-dot"></span>
             </div>
           )}
-          <div
+          <motion.img
             style={{
-              width: 36,
-              height: 36,
+              width: "clamp(48px, 12vw, 80px)",
+              height: "clamp(48px, 12vw, 80px)",
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #0ea5e9, #2563eb)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              objectFit: "cover",
+              maxWidth: "none",
             }}
-          >
-            <FontAwesomeIcon
-              icon={faRobot}
-              style={{ fontSize: 18, color: "white" }}
-            />
-          </div>
+            src={isDarkMode ? darkModeGif : lightModeGif}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+          />
 
           {/* <FontAwesomeIcon icon={isOpen ? faTimes : faCommentDots} /> */}
           {!isOpen && (
@@ -1522,23 +1518,20 @@ const ChatBox = forwardRef(() => {
             {/* Top row: avatar + title + actions */}
             <div className="chat-header-top">
               <div className="chat-header-identity">
-                <div
-                  style={{
-                    width: "clamp(48px, 12vw, 80px)",
-                    height: "clamp(48px, 12vw, 80px)",
-                    borderRadius: "50%",
-                    background: "linear-gradient(135deg, #0ea5e9, #2563eb)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={faRobot}
-                    style={{
-                      fontSize: "clamp(22px, 5vw, 36px)",
-                      color: "white",
-                    }}
+                <div className="chat-header-avatar">
+                  <img
+                    src={isDarkMode ? darkModeGif : lightModeGif}
+                    alt="AI"
+                    className="chat-header-avatar-img"
+                  />
+                  <span
+                    className={`chat-header-status-dot ${
+                      connectionStatus === "connected"
+                        ? "online"
+                        : connectionStatus === "checking"
+                          ? "connecting"
+                          : "offline"
+                    }`}
                   />
                 </div>
                 <div className="chat-header-info">

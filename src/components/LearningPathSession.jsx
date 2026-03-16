@@ -1,30 +1,27 @@
 // LearningPathSession.jsx - Main component for learning path study sessions
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Card, Badge, ProgressBar, Spinner } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronLeft,
-  faChevronRight,
-  faRoad,
-  faCalendarAlt,
-  faClock,
-  faBookOpen,
-  faTasks,
-  faCheckCircle,
-  faPlay,
-  faHome,
-  faChartBar,
-  faLightbulb,
-  faTrophy,
-  faFire,
-  faArrowLeft,
-  faStar,
-  faLock,
-  faUnlock,
-} from "@fortawesome/free-solid-svg-icons";
+  ChevronLeft,
+  ChevronRight,
+  Route,
+  Calendar,
+  Clock,
+  BookOpen,
+  ListChecks,
+  CheckCircle,
+  Play,
+  Home,
+  BarChart3,
+  Lightbulb,
+  Trophy,
+  Flame,
+  ArrowLeft,
+  Star,
+  Lock,
+  Unlock,
+} from "lucide-react";
 import MarkdownWithMath from "./MarkdownWithMath";
-import "./LearningPathSession.css";
 
 function LearningPathSession() {
   const location = useLocation();
@@ -124,10 +121,10 @@ function LearningPathSession() {
   // Get difficulty color
   const getDifficultyColor = (level) => {
     const normalizedLevel = level?.toLowerCase() || "";
-    if (normalizedLevel === "easy") return "success";
-    if (normalizedLevel === "medium") return "warning";
-    if (normalizedLevel === "hard") return "danger";
-    return "secondary";
+    if (normalizedLevel === "easy") return "bg-green-100 text-green-800";
+    if (normalizedLevel === "medium") return "bg-yellow-100 text-yellow-800";
+    if (normalizedLevel === "hard") return "bg-red-100 text-red-800";
+    return "bg-gray-100 text-gray-800";
   };
 
   // Navigate between days
@@ -233,177 +230,124 @@ function LearningPathSession() {
     navigate("/student-dash");
   };
 
-  // if (!learningPathData || !learningPathData.daily_plans) {
-  //   return (
-  //     <div className={`learning-session-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
-  //       <div className="loading-container">
-  //         <Spinner animation="border" />
-  //         <p>Loading learning path...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   const activeDay = learningPathData.daily_plans[activeDayIndex];
   const totalDays = learningPathData.daily_plans.length;
 
   return (
-    <div className={`learning-session-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className="min-h-screen bg-[#F8FAFC] pb-24">
       {/* Header Section */}
-      <div className="session-header">
-        <div className="header-left">
-          <Button variant="outline-secondary" onClick={handleBackToResults} className="back-btn">
-            <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+      <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <button
+            onClick={handleBackToResults}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
             Back
-          </Button>
-        </div>
-        <div className="header-center">
-          <h1 className="session-title">
-            <FontAwesomeIcon icon={faRoad} className="me-2" />
-            Your Learning Journey
-          </h1>
-          <p className="session-subtitle">
-            {learningPathForm?.total_days || totalDays} Day Study Plan
-          </p>
-        </div>
-        <div className="header-right">
-          <div className="points-badge">
-            <FontAwesomeIcon icon={faStar} className="me-1" />
-            <span>{earnedPoints} Points</span>
+          </button>
+          <div className="text-center">
+            <h1 className="text-lg sm:text-xl font-bold text-[#0B1120] flex items-center gap-2 justify-center">
+              <Route className="w-5 h-5 text-[#00A0E3]" />
+              Your Learning Journey
+            </h1>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {learningPathForm?.total_days || totalDays} Day Study Plan
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 rounded-lg border border-yellow-200">
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+            <span className="text-sm font-semibold text-yellow-700">{earnedPoints} Points</span>
           </div>
         </div>
       </div>
 
-      {/* Progress Overview */}
-      {/* <Card className="progress-overview-card">
-        <Card.Body>
-          <div className="progress-stats">
-            <div className="stat-item">
-              <FontAwesomeIcon icon={faChartBar} className="stat-icon" />
-              <div className="stat-info">
-                <span className="stat-value">{getOverallCompletionPercentage()}%</span>
-                <span className="stat-label">Overall Progress</span>
-              </div>
-            </div>
-            <div className="stat-item">
-              <FontAwesomeIcon icon={faCalendarAlt} className="stat-icon" />
-              <div className="stat-info">
-                <span className="stat-value">Day {activeDayIndex + 1} of {totalDays}</span>
-                <span className="stat-label">Current Day</span>
-              </div>
-            </div>
-            <div className="stat-item">
-              <FontAwesomeIcon icon={faTrophy} className="stat-icon trophy" />
-              <div className="stat-info">
-                <span className="stat-value">{earnedPoints}</span>
-                <span className="stat-label">Points Earned</span>
-              </div>
-            </div>
-          </div>
-          <ProgressBar
-            now={getOverallCompletionPercentage()}
-            variant={getOverallCompletionPercentage() === 100 ? "success" : "primary"}
-            className="overall-progress-bar"
-            animated={getOverallCompletionPercentage() < 100}
-          />
-        </Card.Body>
-      </Card> */}
-
-      {/* Gap Analysis Summary */}
-      {learningPathData.gap_analysis && (
-        <Card className="gap-analysis-card">
-          <Card.Body>
-            <h5 className="gap-title">
-              <FontAwesomeIcon icon={faLightbulb} className="me-2" />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-6">
+        {/* Gap Analysis Summary */}
+        {learningPathData.gap_analysis && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+            <h5 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2 mb-3">
+              <Lightbulb className="w-4 h-4 text-yellow-500" />
               Areas to Improve
             </h5>
             {learningPathData.gap_analysis.summary && (
-              <p className="gap-summary">{learningPathData.gap_analysis.summary}</p>
+              <p className="text-sm text-gray-600 mb-3">{learningPathData.gap_analysis.summary}</p>
             )}
             {learningPathData.gap_analysis.weak_concepts &&
               learningPathData.gap_analysis.weak_concepts.length > 0 && (
-                <div className="weak-concepts-list">
+                <div className="flex flex-wrap gap-2">
                   {learningPathData.gap_analysis.weak_concepts.map((concept, idx) => (
-                    <Badge key={idx} bg="warning" text="dark" className="concept-badge">
+                    <span key={idx} className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
                       {concept}
-                    </Badge>
+                    </span>
                   ))}
                 </div>
               )}
-          </Card.Body>
-        </Card>
-      )}
-
-      {/* Day Navigation */}
-      <div className="day-navigation-section">
-        <div className="day-nav-controls">
-          <Button
-            variant="link"
-            className="day-nav-arrow"
-            onClick={goToPreviousDay}
-            disabled={activeDayIndex === 0}
-          >
-            <FontAwesomeIcon icon={faChevronLeft} />
-          </Button>
-
-          <div className="day-pills-wrapper">
-            {learningPathData.daily_plans.map((day, idx) => {
-              const dayCompletion = getDayCompletionPercentage(idx);
-              const isCompleted = dayCompletion === 100;
-              const isCurrent = idx === activeDayIndex;
-
-              return (
-                <button
-                  key={idx}
-                  className={`day-pill ${isCurrent ? "active" : ""} ${isCompleted ? "completed" : ""}`}
-                  onClick={() => setActiveDayIndex(idx)}
-                  title={`Day ${idx + 1}: ${day.topic} (${dayCompletion}% complete)`}
-                >
-                  {isCompleted ? (
-                    <FontAwesomeIcon icon={faCheckCircle} />
-                  ) : (
-                    idx + 1
-                  )}
-                </button>
-              );
-            })}
           </div>
+        )}
 
-          <Button
-            variant="link"
-            className="day-nav-arrow"
-            onClick={goToNextDay}
-            disabled={activeDayIndex === totalDays - 1}
-          >
-            <FontAwesomeIcon icon={faChevronRight} />
-          </Button>
+        {/* Day Navigation */}
+        <div className="mb-6">
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={goToPreviousDay}
+              disabled={activeDayIndex === 0}
+              className="p-2 text-gray-400 hover:text-[#00A0E3] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            <div className="flex gap-2 overflow-x-auto py-1">
+              {learningPathData.daily_plans.map((day, idx) => {
+                const dayCompletion = getDayCompletionPercentage(idx);
+                const isCompleted = dayCompletion === 100;
+                const isCurrent = idx === activeDayIndex;
+
+                return (
+                  <button
+                    key={idx}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all flex-shrink-0 ${
+                      isCurrent
+                        ? 'bg-[#00A0E3] text-white shadow-md scale-110'
+                        : isCompleted
+                        ? 'bg-green-500 text-white'
+                        : 'bg-white border border-gray-200 text-gray-500 hover:border-[#00A0E3] hover:text-[#00A0E3]'
+                    }`}
+                    onClick={() => setActiveDayIndex(idx)}
+                    title={`Day ${idx + 1}: ${day.topic} (${dayCompletion}% complete)`}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle className="w-4 h-4" />
+                    ) : (
+                      idx + 1
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={goToNextDay}
+              disabled={activeDayIndex === totalDays - 1}
+              className="p-2 text-gray-400 hover:text-[#00A0E3] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* <div className="day-progress-indicator">
-          <span className="day-label">Day {activeDayIndex + 1} Progress:</span>
-          <ProgressBar
-            now={getDayCompletionPercentage(activeDayIndex)}
-            variant={getDayCompletionPercentage(activeDayIndex) === 100 ? "success" : "info"}
-            className="day-progress-bar"
-          />
-          <span className="day-percentage">{getDayCompletionPercentage(activeDayIndex)}%</span>
-        </div> */}
-      </div>
-
-      {/* Day Content */}
-      <Card className="day-content-card">
-        <Card.Body>
+        {/* Day Content */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           {/* Day Header */}
-          <div className="day-header">
-            <div className="day-title-section">
-              <Badge className="day-number-badge">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 text-xs font-bold bg-[#00A0E3] text-white rounded-full">
                 Day {activeDay.day_number || activeDayIndex + 1}
-              </Badge>
-              <h2 className="day-topic">{activeDay.topic}</h2>
+              </span>
+              <h2 className="text-lg font-bold text-[#0B1120]">{activeDay.topic}</h2>
             </div>
             {activeDay.expected_time && (
-              <div className="expected-time-badge">
-                <FontAwesomeIcon icon={faClock} className="me-2" />
+              <div className="flex items-center gap-1.5 text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg">
+                <Clock className="w-4 h-4" />
                 {activeDay.expected_time}
               </div>
             )}
@@ -411,12 +355,12 @@ function LearningPathSession() {
 
           {/* What to Study */}
           {activeDay.what_to_study && (
-            <div className="study-section">
-              <h6 className="section-title">
-                <FontAwesomeIcon icon={faBookOpen} className="me-2" />
+            <div className="mb-6">
+              <h6 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2 mb-3">
+                <BookOpen className="w-4 h-4 text-[#00A0E3]" />
                 What to Study
               </h6>
-              <div className="study-content">
+              <div className="bg-[#F8FAFC] rounded-lg p-4 text-sm text-gray-700 leading-relaxed">
                 <MarkdownWithMath content={activeDay.what_to_study} />
               </div>
             </div>
@@ -424,15 +368,15 @@ function LearningPathSession() {
 
           {/* Checklist */}
           {activeDay.checklist && activeDay.checklist.length > 0 && (
-            <div className="checklist-section">
-              <h6 className="section-title">
-                <FontAwesomeIcon icon={faTasks} className="me-2" />
+            <div className="mb-6">
+              <h6 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2 mb-3">
+                <ListChecks className="w-4 h-4 text-[#00A0E3]" />
                 Today's Checklist
               </h6>
-              <ul className="study-checklist">
+              <ul className="space-y-2">
                 {activeDay.checklist.map((item, idx) => (
-                  <li key={idx} className="checklist-item">
-                    <FontAwesomeIcon icon={faCheckCircle} className="check-icon" />
+                  <li key={idx} className="flex items-start gap-2.5 text-sm text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                     <MarkdownWithMath content={item} />
                   </li>
                 ))}
@@ -442,105 +386,101 @@ function LearningPathSession() {
 
           {/* Practice Questions */}
           {activeDay.questions && activeDay.questions.length > 0 && (
-            <div className="questions-section">
-              <h6 className="section-title">
-                <FontAwesomeIcon icon={faFire} className="me-2" />
+            <div>
+              <h6 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2 mb-4">
+                <Flame className="w-4 h-4 text-orange-500" />
                 Practice Questions ({activeDay.questions.length})
               </h6>
-              <div className="questions-grid">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {activeDay.questions.map((question, qIdx) => {
                   const qId = question.id || question.question_id;
                   const isCompleted = isQuestionCompleted(activeDayIndex, qId);
                   const questionText = question.question || question.question_text || "";
 
                   return (
-                    <Card
+                    <div
                       key={qIdx}
-                      className={`question-card ${isCompleted ? "completed" : ""}`}
+                      className={`rounded-xl border p-4 cursor-pointer transition-all hover:shadow-md ${
+                        isCompleted
+                          ? 'bg-green-50 border-green-200'
+                          : 'bg-white border-gray-100 hover:border-[#00A0E3]'
+                      }`}
                       onClick={() => handleQuestionClick(question, qIdx, activeDayIndex)}
                     >
-                      <Card.Body>
-                        <div className="question-card-header">
-                          <div className="question-meta">
-                            <span className="question-number">Q{qIdx + 1}</span>
-                            <Badge
-                              bg={getDifficultyColor(question.question_level)}
-                              className="difficulty-badge"
-                            >
-                              {question.question_level || "Medium"}
-                            </Badge>
-                            {question.topic && (
-                              <Badge bg="secondary" className="topic-badge">
-                                {question.topic}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="question-status">
-                            {isCompleted ? (
-                              <Badge bg="success" className="status-badge">
-                                <FontAwesomeIcon icon={faCheckCircle} className="me-1" />
-                                Completed
-                              </Badge>
-                            ) : (
-                              <Badge bg="primary" className="status-badge start-badge">
-                                <FontAwesomeIcon icon={faPlay} className="me-1" />
-                                Start
-                              </Badge>
-                            )}
-                          </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-[#00A0E3]">Q{qIdx + 1}</span>
+                          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${getDifficultyColor(question.question_level)}`}>
+                            {question.question_level || "Medium"}
+                          </span>
+                          {question.topic && (
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                              {question.topic}
+                            </span>
+                          )}
                         </div>
-                        <div className="question-preview">
-                          <MarkdownWithMath
-                            content={questionText}
-                          />
+                        <div>
+                          {isCompleted ? (
+                            <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                              <CheckCircle className="w-3 h-3" />
+                              Completed
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#00A0E3]/10 text-[#00A0E3]">
+                              <Play className="w-3 h-3" />
+                              Start
+                            </span>
+                          )}
                         </div>
-                        {question.question_image && (
-                          <div className="question-has-image">
-                            <Badge bg="info" className="image-badge">
-                              Has Image
-                            </Badge>
-                          </div>
-                        )}
-                      </Card.Body>
-                    </Card>
+                      </div>
+                      <div className="text-sm text-gray-700 line-clamp-3">
+                        <MarkdownWithMath content={questionText} />
+                      </div>
+                      {question.question_image && (
+                        <div className="mt-2">
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
+                            Has Image
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             </div>
           )}
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
 
       {/* Bottom Navigation */}
-      <div className="bottom-navigation">
-        <Button
-          variant="outline-secondary"
-          onClick={goToPreviousDay}
-          disabled={activeDayIndex === 0}
-          className="nav-btn prev-btn"
-        >
-          <FontAwesomeIcon icon={faChevronLeft} className="me-2" />
-          Previous Day
-        </Button>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 z-20">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <button
+            onClick={goToPreviousDay}
+            disabled={activeDayIndex === 0}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous Day
+          </button>
 
-        <Button
-          variant="outline-primary"
-          onClick={handleBackToDashboard}
-          className="nav-btn home-btn"
-        >
-          <FontAwesomeIcon icon={faHome} className="me-2" />
-          Dashboard
-        </Button>
+          <button
+            onClick={handleBackToDashboard}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-[#00A0E3] text-[#00A0E3] rounded-lg hover:bg-[#00A0E3]/5 transition-colors"
+          >
+            <Home className="w-4 h-4" />
+            Dashboard
+          </button>
 
-        <Button
-          variant="primary"
-          onClick={goToNextDay}
-          disabled={activeDayIndex === totalDays - 1}
-          className="nav-btn next-btn"
-        >
-          Next Day
-          <FontAwesomeIcon icon={faChevronRight} className="ms-2" />
-        </Button>
+          <button
+            onClick={goToNextDay}
+            disabled={activeDayIndex === totalDays - 1}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Next Day
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

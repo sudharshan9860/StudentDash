@@ -8,9 +8,6 @@
  * - Background asset loading
  * - Progress tracking
  * - Cache warming
- *
- * @author Senior Engineer Implementation
- * @version 2.0.0
  */
 
 import { useEffect, useState, useCallback } from 'react';
@@ -99,21 +96,12 @@ const MascotPreloader = ({ onLoaded, showProgress = false }) => {
   // Optional progress indicator (for debugging)
   return (
     <div
-      style={{
-        position: 'fixed',
-        bottom: 10,
-        left: 10,
-        padding: '5px 10px',
-        background: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        fontSize: '12px',
-        borderRadius: '4px',
-        zIndex: 9999,
-        display: isLoaded ? 'none' : 'block',
-      }}
+      className={`fixed bottom-2.5 left-2.5 px-2.5 py-1.5 bg-black/70 text-white text-xs rounded z-[9999] ${
+        isLoaded ? 'hidden' : 'block'
+      }`}
     >
       {error ? (
-        <span style={{ color: '#ff6b6b' }}>Mascot load error</span>
+        <span className="text-red-400">Mascot load error</span>
       ) : (
         <span>Loading mascot: {Math.round(progress)}%</span>
       )}

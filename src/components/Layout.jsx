@@ -1,102 +1,101 @@
-///Layout.Jsx
-import React, { useContext, useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useContext, useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  faSignOutAlt,
-  faChartLine,
-  faVolumeUp,
-  faVolumeMute,
-  faTrophy,
-  faUser,
-  faGraduationCap,
-  faBell,
-  faBars,
-  faTimes,
-  faHome,
-  faCommentDots,
-  faComments,
-  faEdit,
-  faRobot,
-} from "@fortawesome/free-solid-svg-icons";
-import "./Layout.css";
-import { AuthContext } from "./AuthContext";
-import NotificationDropdown from "./NotificationDropdown";
-import SoundConfigModal from "./SoundConfigModal";
-import { soundManager } from "../utils/SoundManager";
-import FeedbackBox from "./FeedbackBox";
-import TrialModal from "./TrialModal";
-import axiosInstance from "../api/axiosInstance";
-import { Form } from "react-bootstrap";
+  LogOut,
+  BarChart3,
+  Trophy,
+  User,
+  GraduationCap,
+  Menu,
+  X,
+  Home,
+  MessageCircle,
+  Pencil,
+  Bot,
+  Bell,
+  Phone,
+  FileText,
+  ClipboardList,
+  BookOpen,
+  Upload,
+  PenLine,
+  LayoutGrid,
+  PieChart,
+  TrendingUp
+} from 'lucide-react';
+import './Layout.css';
+import { AuthContext } from './AuthContext';
+import NotificationDropdown from './NotificationDropdown';
+import SoundConfigModal from './SoundConfigModal';
+import { soundManager } from '../utils/SoundManager';
+import FeedbackBox from './FeedbackBox';
+import TrialModal from './TrialModal';
+import axiosInstance from '../api/axiosInstance';
+
+const ICON_MAP = {
+  home: Home,
+  robot: Bot,
+  'graduation-cap': GraduationCap,
+  trophy: Trophy,
+  'chart-line': BarChart3,
+  'comment-dots': MessageCircle,
+  user: User,
+  'file-text': FileText,
+  'clipboard-list': ClipboardList,
+  'book-open': BookOpen,
+  'upload': Upload,
+  'pen-line': PenLine,
+  'layout-grid': LayoutGrid,
+  'pie-chart': PieChart,
+  'trending-up': TrendingUp,
+};
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const currentLocation = useLocation();
   const { username, logout, role, fullName } = useContext(AuthContext);
-  // const school=localStorage.getItem("school")
 
-  // Sound configuration state
   const [showSoundConfig, setShowSoundConfig] = useState(false);
-  const [isSoundEnabled, setIsSoundEnabled] = useState(
-    soundManager.isSoundEnabled,
-  );
-
-  // Mobile sidebar toggle
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // Feedback modal state
   const [showFeedback, setShowFeedback] = useState(false);
 
-  // Trial modal — hide if already dismissed this session
-  const trialDismissed =
-    sessionStorage.getItem(`trial_dismissed_${username}`) === "true";
+  const trialDismissed = sessionStorage.getItem(`trial_dismissed_${username}`) === 'true';
 
-  // Fetch fullName from API if not available in context
-  const [fetchedFullName, setFetchedFullName] = useState("");
+  const [fetchedFullName, setFetchedFullName] = useState('');
   useEffect(() => {
     if (!fullName && username) {
-      axiosInstance
-        .get("/api/user-info/", { credentials: "include" })
-        .then((res) => {
-          const name = res.data.fullname || res.data.full_name || "";
+      axiosInstance.get('/api/user-info/', { credentials: 'include' })
+        .then(res => {
+          const name = res.data.fullname || res.data.full_name || '';
           if (name) {
             setFetchedFullName(name);
-            localStorage.setItem("fullName", name);
+            localStorage.setItem('fullName', name);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [fullName, username]);
 
   const displayName = fullName || fetchedFullName || username;
 
-  // Edit profile state
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [phoneMissing, setPhoneMissing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    fullname: "",
-    phone_number: "",
-  });
+  const [profileData, setProfileData] = useState({ fullname: "", phone_number: "" });
   const [profileLoading, setProfileLoading] = useState(false);
   const [phoneError, setPhoneError] = useState("");
 
-  // Auto-open edit profile if phone number is missing
   useEffect(() => {
-    if (role === "student" && username) {
-      axiosInstance
-        .get("api/auth/edit-profile/")
-        .then((res) => {
+    if (role === 'student' && username) {
+      axiosInstance.get("api/auth/edit-profile/")
+        .then(res => {
           const phone = res.data.phone_number || "";
-          setProfileData({
-            fullname: res.data.fullname || "",
-            phone_number: phone,
-          });
+          setProfileData({ fullname: res.data.fullname || "", phone_number: phone });
           if (!phone.trim()) {
             setPhoneMissing(true);
             setShowEditProfile(true);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [role, username]);
 
@@ -104,10 +103,7 @@ const Layout = ({ children }) => {
     try {
       setProfileLoading(true);
       const res = await axiosInstance.get("api/auth/edit-profile/");
-      setProfileData({
-        fullname: res.data.fullname || "",
-        phone_number: res.data.phone_number || "",
-      });
+      setProfileData({ fullname: res.data.fullname || "", phone_number: res.data.phone_number || "" });
     } catch (error) {
       console.error("Failed to fetch profile", error);
     } finally {
@@ -118,516 +114,334 @@ const Layout = ({ children }) => {
   const validatePhone = (phone) => {
     const trimmed = phone.trim();
     if (!trimmed) return "Phone number is required";
-    if (!/^\d{10}$/.test(trimmed))
-      return "Phone number must be exactly 10 digits";
+    if (!/^\d{10}$/.test(trimmed)) return "Phone number must be exactly 10 digits";
     return "";
   };
 
   const updateProfile = async () => {
     const error = validatePhone(profileData.phone_number);
-    if (error) {
-      setPhoneError(error);
-      return;
-    }
+    if (error) { setPhoneError(error); return; }
     try {
       await axiosInstance.post("api/auth/edit-profile/", profileData);
       setPhoneMissing(false);
       setShowEditProfile(false);
-      // Update local name
       localStorage.setItem("fullName", profileData.fullname);
-      window.location.reload(); // Refresh to show updated name
+      window.location.reload();
     } catch (error) {
       console.error("Profile update failed", error);
     }
   };
 
-  // Check if current route is teacher dashboard
-  const isTeacherDashboard = currentLocation.pathname === "/teacher-dash";
-
-  // Get current active tab from URL or location state
   const getCurrentTab = () => {
-    if (currentLocation.pathname !== "/teacher-dash") return null;
-    if (currentLocation.state?.activeTab)
-      return currentLocation.state.activeTab;
+    if (currentLocation.pathname !== '/teacher-dash') return null;
+    if (currentLocation.state?.activeTab) return currentLocation.state.activeTab;
     const params = new URLSearchParams(currentLocation.search);
-    return params.get("tab") || "homework";
+    return params.get('tab') || 'homework';
   };
 
-  // Handle navigation for teachers with tab state
   const handleNavigation = (link) => {
-    if (role === "teacher" && link.tabName) {
-      navigate(`/teacher-dash?tab=${link.tabName}`, {
-        state: { activeTab: link.tabName },
-      });
+    if (role === 'teacher' && link.tabName) {
+      navigate(`/teacher-dash?tab=${link.tabName}`, { state: { activeTab: link.tabName } });
     } else {
       navigate(link.path);
     }
     setIsSidebarOpen(false);
   };
 
-  const handleLogout = () => {
-    console.log("Logging out...");
-    logout();
-    navigate("/");
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    await logout();
+    navigate('/');
   };
 
-  // Navigation links based on role
   const studentLinks = [
-    { path: "/student-dash", label: "Dashboard", icon: faHome },
-    { path: "/ai-assistant", label: "AI Assistant", icon: faRobot },
-    {
-      path: "/jee-dashboard",
-      label: "JEE Preparation",
-      icon: faGraduationCap,
-      isJEE: true,
-    }, // ← ADD
-    { path: "/quiz-mode", label: "Test Prep", icon: faTrophy },
-    // { path: '/exam-mode', label: 'Exam Mode', icon: faGraduationCap },
-    { path: "/analytics", label: "Analytics", icon: faChartLine },
-    // { path: '/chat', label: 'Chat Rooms', icon: faComments }, // <-- Chat link for students
+    { path: '/student-dash', label: 'Dashboard', icon: 'home' },
+    // { path: '/ai-assistant', label: 'AI Assistant', icon: 'robot' },
+    { path: '/jee-dashboard', label: 'JEE Preparation', icon: 'graduation-cap', isJEE: true },
+    { path: '/quiz-mode', label: 'Test Prep', icon: 'trophy' },
+    // { path: '/analytics', label: 'Analytics', icon: 'chart-line' },
   ];
 
   const teacherLinks = [
-    { path: "/ai-assistant", label: "AI Assistant", icon: faRobot },
-    {
-      path: "/teacher-dash?tab=exam-correction",
-      label: "Exam Correction",
-      icon: "📄",
-      tabName: "exam-correction",
-    },
-
-    // ...(school!=="HPS"?
-    // [
-    {
-      path: "/teacher-dash?tab=question-paper",
-      label: "Question Paper",
-      icon: "📋",
-      tabName: "question-paper",
-    },
-    { path: "/student-dash", label: "Dashboard", icon: faHome },
-    {
-      path: "/teacher-dash?tab=exercise",
-      label: "Homework",
-      icon: "📝",
-      tabName: "exercise",
-    },
-    {
-      path: "/teacher-dash?tab=upload-homework",
-      label: "Upload Homework",
-      icon: "📑",
-      tabName: "upload-homework",
-    },
-    {
-      path: "/teacher-dash?tab=classwork",
-      label: "Classwork",
-      icon: "✏",
-      tabName: "classwork",
-    },
-    // { path: '/teacher-dash?tab=upload-classwork', label: 'Upload Classwork', icon: '📑', tabName: 'upload-classwork' },
-    {
-      path: "/teacher-dash?tab=homework",
-      label: "Worksheets",
-      icon: "📄",
-      tabName: "homework",
-    },
-    {
-      path: "/teacher-dash?tab=class",
-      label: "Class Analysis",
-      icon: "📊",
-      tabName: "class",
-    },
-    {
-      path: "/teacher-dash?tab=student",
-      label: "Student Analysis",
-      icon: "👤",
-      tabName: "student",
-    },
-    {
-      path: "/teacher-dash?tab=progress",
-      label: "Progress",
-      icon: "📈",
-      tabName: "progress",
-    },
-    // ]:[])
-    // Teachers may not need chat UI for 'A' option, but you can include if desired:
-    // { path: '/chat', label: 'Chat Rooms', icon: faComments },
+    { path: '/ai-assistant', label: 'AI Assistant', icon: 'robot' },
+    { path: '/teacher-dash?tab=exam-correction', label: 'Exam Correction', icon: 'file-text', tabName: 'exam-correction' },
+    { path: '/teacher-dash?tab=question-paper', label: 'Question Paper', icon: 'clipboard-list', tabName: 'question-paper' },
+    { path: '/student-dash', label: 'Dashboard', icon: 'home' },
+    { path: '/teacher-dash?tab=exercise', label: 'Homework', icon: 'book-open', tabName: 'exercise' },
+    { path: '/teacher-dash?tab=upload-homework', label: 'Upload Homework', icon: 'upload', tabName: 'upload-homework' },
+    { path: '/teacher-dash?tab=classwork', label: 'Classwork', icon: 'pen-line', tabName: 'classwork' },
+    { path: '/teacher-dash?tab=homework', label: 'Worksheets', icon: 'layout-grid', tabName: 'homework' },
+    { path: '/teacher-dash?tab=class', label: 'Class Analysis', icon: 'pie-chart', tabName: 'class' },
+    { path: '/teacher-dash?tab=student', label: 'Student Analysis', icon: 'user', tabName: 'student' },
+    { path: '/teacher-dash?tab=progress', label: 'Progress', icon: 'trending-up', tabName: 'progress' },
   ];
 
-  // Get the appropriate links based on role
-  const navigationLinks = role === "teacher" ? teacherLinks : studentLinks;
+  const navigationLinks = role === 'teacher' ? teacherLinks : studentLinks;
 
-  // Get user initials for avatar
   const getUserInitials = () => {
-    const name = displayName || "U";
-    const names = name.split(" ");
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    }
+    const name = displayName || 'U';
+    const names = name.split(' ');
+    if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
     return name.substring(0, 2).toUpperCase();
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  const renderIcon = (link) => {
+    const IconComponent = ICON_MAP[link.icon];
+    if (IconComponent) return <IconComponent size={20} className="min-w-[24px]" />;
+    return null;
   };
 
   return (
-    <div id="main-content1">
-      {/* Mobile menu toggle button */}
+    <div className="flex min-h-screen bg-[#F8FAFC]">
+      {/* Mobile menu toggle */}
       <button
-        className="mobile-menu-toggle d-md-none"
-        onClick={toggleSidebar}
+        className="fixed top-4 left-4 z-[1001] md:hidden w-12 h-12 rounded-2xl bg-[#0B1120] text-white flex items-center justify-center shadow-lg shadow-black/20"
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         aria-label="Toggle menu"
       >
-        <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
+        {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
       {/* Overlay for mobile */}
-      <div
-        className={`sidebar-overlay ${isSidebarOpen ? "active" : ""}`}
-        onClick={toggleSidebar}
-      />
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999] md:hidden transition-opacity duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
-      {/* Side Navigation */}
-      <aside className={`sidebar-navigation ${isSidebarOpen ? "open" : ""}`}>
-        {/* Brand/Logo */}
-        <div className="">
-          <div className="sidebar-brand">
-            <img
-              src="/images/SmartLearners2.png"
-              alt="Logo"
-              style={{ width: "15vw", height: "20vh", objectFit: "contain" }}
-            />
-          </div>
+      {/* Sidebar */}
+      <aside className={`
+        fixed top-0 left-0 bottom-0 w-72 bg-[#0B1120] z-[1000]
+        flex flex-col overflow-hidden transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        shadow-2xl border-r border-white/5
+      `}>
+        {/* Ambient glow effects */}
+        <div className="absolute top-0 left-[-20%] w-60 h-60 bg-blue-600/10 rounded-full blur-[60px] pointer-events-none animate-pulse" />
+        <div className="absolute bottom-0 right-[-20%] w-60 h-60 bg-purple-600/10 rounded-full blur-[60px] pointer-events-none animate-pulse" style={{ animationDelay: '700ms' }} />
+
+        {/* Brand Container */}
+       {/* Brand Container - 12yr Exp UI/UX Pattern */}
+<div className="relative flex flex-col items-center justify-center p-6 mb-0">
+  {/* The Logo stays perfectly centered */}
+  <img 
+    src="/images/SmartLearners2.png" 
+    alt="Logo" 
+    className="w-[150px] h-auto object-contain relative z-10" 
+  />
+
+  {/* Floating Notification - Positioned top-right of the logo area */}
+  <div className="absolute top-4 right-4 z-20">
+    <NotificationDropdown />
+  </div>
+
+
+          {/* Mobile close */}
+          <button
+            className="md:hidden absolute top-4 right-4 text-slate-400 hover:text-white transition-colors z-20"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        {/* Navigation Menu */}
-        <nav className="sidebar-menu">
-          <ul className="sidebar-menu-list">
-            <li className="sidebar-menu-item sidebar-notification-wrapper">
-              <NotificationDropdown />
-            </li>
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-0 overflow-y-auto scrollbar-thin scrollbar-thumb-black/30">
+          <ul className="flex flex-col gap-1.5 list-none p-0 m-0">
             {navigationLinks.map((link) => {
               const currentTab = getCurrentTab();
-              const isActive =
-                role === "teacher" && link.tabName
-                  ? currentTab === link.tabName
-                  : currentLocation.pathname === link.path;
+              const isActive = role === 'teacher' && link.tabName
+                ? currentTab === link.tabName
+                : currentLocation.pathname === link.path;
 
               return (
-                <li key={link.path} className="sidebar-menu-item">
-                  <a
-                    className={`sidebar-menu-link ${isActive ? "active" : ""}`}
+                <li key={link.path}>
+                  <button
+                    className={`
+                      w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer
+                      transition-all duration-300 font-bold text-sm relative overflow-hidden group
+                      ${isActive
+                        ? 'bg-[#00A0E3] text-white shadow-lg shadow-blue-900/20'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      }
+                    `}
                     onClick={() => handleNavigation(link)}
                   >
-                    {typeof link.icon === "string" ? (
-                      <span className="sidebar-menu-icon">{link.icon}</span>
-                    ) : (
-                      <FontAwesomeIcon
-                        icon={link.icon}
-                        className="sidebar-menu-icon"
-                      />
+                    <div className={`relative z-10 ${isActive ? 'scale-110' : 'group-hover:scale-110'} transition-transform duration-300`}>
+                      {renderIcon(link)}
+                    </div>
+                    <span className={`flex-1 whitespace-nowrap text-left relative z-10 ${isActive ? '' : 'group-hover:translate-x-1'} transition-transform duration-300`}>
+                      {link.label}
+                    </span>
+                    {isActive && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     )}
-                    <span className="sidebar-menu-text">{link.label}</span>
-                  </a>
+                  </button>
                 </li>
               );
             })}
 
-            {/* Notifications Dropdown */}
-
-            {/* Sound Toggle as menu item */}
-            {/* <li className="sidebar-menu-item">
-                <div
-                  className="sidebar-menu-link"
-                  onClick={() => setShowSoundConfig(true)}
-                >
-                  <FontAwesomeIcon
-                    icon={isSoundEnabled ? faVolumeUp : faVolumeMute}
-                    className="sidebar-menu-icon"
-                  />
-                  <span className="sidebar-menu-text">Sound</span>
-                </div>
-              </li> */}
-
-            {/* Feedback menu item */}
-            <li className="sidebar-menu-item">
-              <div
-                className={`sidebar-menu-link ${showFeedback ? "active" : ""}`}
+            {/* Feedback */}
+            <li>
+              <button
+                className={`
+                  w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer
+                  transition-all duration-300 font-bold text-sm relative overflow-hidden group
+                  ${showFeedback
+                    ? 'bg-[#00A0E3] text-white shadow-lg shadow-blue-900/20'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }
+                `}
                 onClick={() => setShowFeedback(!showFeedback)}
               >
-                <FontAwesomeIcon
-                  icon={faCommentDots}
-                  className="sidebar-menu-icon"
-                />
-                <span className="sidebar-menu-text">Feedback</span>
-              </div>
+                <div className={`relative z-10 ${showFeedback ? 'scale-110' : 'group-hover:scale-110'} transition-transform duration-300`}>
+                  <MessageCircle size={20} className="min-w-[24px]" />
+                </div>
+                <span className={`flex-1 text-left relative z-10 ${showFeedback ? '' : 'group-hover:translate-x-1'} transition-transform duration-300`}>
+                  Feedback
+                </span>
+              </button>
             </li>
           </ul>
         </nav>
 
-        {/* Sidebar Footer */}
-        <div className="sidebar-footer">
-          {/* User Info */}
-
-          {role === "student" && (
+        {/* Footer */}
+        <div className="px-3 pb-6 mt-auto relative z-10">
+          {role === 'student' && (
             <div
-              className="sidebar-user-info"
-              onClick={() => {
-                fetchProfile();
-                setPhoneError("");
-                setShowEditProfile(true);
-              }}
-              style={{ cursor: "pointer" }}
+              className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/5 mb-3 cursor-pointer hover:border-white/10 hover:-translate-y-0.5 transition-all group"
+              onClick={() => { fetchProfile(); setPhoneError(""); setShowEditProfile(true); }}
               title="Edit Profile"
             >
-              {/* <div className="sidebar-user-avatar">
-                  {getUserInitials()}
-                </div> */}
-              <div className="sidebar-user-details">
-                <p className="sidebar-user-name">{displayName}</p>
-                <p className="sidebar-user-role">Student</p>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 p-[2px] flex-shrink-0">
+                <div className="w-full h-full rounded-full bg-[#0B1120] flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">{getUserInitials()}</span>
+                </div>
               </div>
-              <FontAwesomeIcon
-                icon={faEdit}
-                style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}
-              />
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-bold text-sm truncate m-0">{displayName}</p>
+                <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold m-0">
+                  {role === 'teacher' ? 'Teacher' : 'Student'}
+                </p>
+              </div>
+              <Pencil size={13} className="text-white/30 group-hover:text-white/60 transition-colors" />
             </div>
           )}
 
-          {/* Logout Button */}
-          <button className="sidebar-logout" onClick={handleLogout}>
-            <FontAwesomeIcon icon={faSignOutAlt} />
-            <span>Logout</span>
+          {role === 'teacher' && (
+            <div className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/5 mb-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 p-[2px] flex-shrink-0">
+                <div className="w-full h-full rounded-full bg-[#0B1120] flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">{getUserInitials()}</span>
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-bold text-sm truncate m-0">{displayName}</p>
+                <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold m-0">Teacher</p>
+              </div>
+            </div>
+          )}
+
+          <button
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-slate-400 text-xs font-bold transition-all border border-transparent hover:border-red-500/20 cursor-pointer"
+            onClick={handleLogout}
+          >
+            <LogOut size={14} />
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="main-content-area">{children}</main>
+      {/* Main Content */}
+      <main className="flex-1 ml-0 md:ml-72 min-h-screen flex flex-col transition-all bg-[#F8FAFC]">
+        {children}
+      </main>
 
-      {/* Sound Configuration Modal */}
-      <SoundConfigModal
-        show={showSoundConfig}
-        onHide={() => setShowSoundConfig(false)}
-      />
-
-      {/* Feedback Box */}
-      <FeedbackBox
-        isOpen={showFeedback}
-        onClose={() => setShowFeedback(false)}
-      />
-
-      {/* Trial Modal — blocks entire app when expired (students only) */}
-      {role === "student" && !trialDismissed && <TrialModal />}
+      <SoundConfigModal show={showSoundConfig} onHide={() => setShowSoundConfig(false)} />
+      <FeedbackBox isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
+      {role === 'student' && !trialDismissed && <TrialModal />}
 
       {/* Edit Profile Modal */}
       {showEditProfile && (
         <div
-          className="modal-backdrop-custom"
-          onClick={() => {
-            if (!phoneMissing) setShowEditProfile(false);
-          }}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 20, 0.6)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-          }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]"
+          onClick={() => { if (!phoneMissing) setShowEditProfile(false); }}
         >
           <div
-            className="edit-profile-modal"
+            className="bg-white rounded-2xl p-8 w-[90%] max-w-[420px] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "#fff",
-              borderRadius: "20px",
-              padding: "32px",
-              width: "90%",
-              maxWidth: "420px",
-              boxShadow: "0 24px 80px rgba(0, 0, 0, 0.25)",
-            }}
           >
-            {/* Header */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "14px",
-                marginBottom: phoneMissing ? "16px" : "24px",
-              }}
-            >
-              <div
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "50%",
-                  background: " #001b6c",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: "1.1rem",
-                  flexShrink: 0,
-                }}
-              >
+            <div className="flex items-center gap-3.5 mb-6">
+              <div className="w-12 h-12 rounded-full bg-[#00A0E3] flex items-center justify-center text-white font-bold text-lg shrink-0">
                 {getUserInitials()}
               </div>
-              <div style={{ flex: 1 }}>
-                <h3
-                  style={{
-                    margin: 0,
-                    fontSize: "1.2rem",
-                    color: "#1a1a2e",
-                    fontWeight: 700,
-                  }}
-                >
-                  {phoneMissing ? "Complete Your Profile" : "Edit Profile"}
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 m-0">
+                  {phoneMissing ? 'Complete Your Profile' : 'Edit Profile'}
                 </h3>
-                <p style={{ margin: 0, fontSize: "0.85rem", color: "#888" }}>
-                  {phoneMissing
-                    ? "One quick step before you start"
-                    : "Update your personal details"}
+                <p className="text-sm text-gray-500 m-0">
+                  {phoneMissing ? 'One quick step before you start' : 'Update your personal details'}
                 </p>
               </div>
               {!phoneMissing && (
                 <button
                   onClick={() => setShowEditProfile(false)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "1.3rem",
-                    color: "#aaa",
-                    cursor: "pointer",
-                    padding: "4px",
-                    lineHeight: 1,
-                  }}
+                  className="text-gray-400 hover:text-gray-600 bg-transparent border-none text-xl cursor-pointer p-1"
                 >
-                  <FontAwesomeIcon icon={faTimes} />
+                  <X size={20} />
                 </button>
               )}
             </div>
 
-            {/* Phone required message */}
             {phoneMissing && (
-              <div
-                style={{
-                  background: "#f0f7ff",
-                  border: "1px solid #d0e3ff",
-                  borderRadius: "10px",
-                  padding: "12px 14px",
-                  marginBottom: "20px",
-                  fontSize: "0.85rem",
-                  color: "#1a1a2e",
-                  lineHeight: 1.5,
-                }}
-              >
-                Please enter your mobile number to continue learning and get
-                updates and support on WhatsApp.
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-5 text-sm text-gray-800 leading-relaxed">
+                Please enter your mobile number to continue learning and get updates and support on WhatsApp.
               </div>
             )}
 
-            <Form>
-              <Form.Group style={{ marginBottom: "18px" }}>
-                <Form.Label
-                  style={{
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    color: "#444",
-                    marginBottom: "6px",
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={faUser}
-                    style={{ marginRight: "6px", color: "#001b6c" }}
-                  />
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 mb-1.5">
+                  <User size={14} className="text-[#00A0E3]" />
                   Full Name
-                </Form.Label>
-                <Form.Control
+                </label>
+                <input
                   value={profileData.fullname}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, fullname: e.target.value })
-                  }
+                  onChange={(e) => setProfileData({ ...profileData, fullname: e.target.value })}
                   disabled={profileLoading}
-                  style={{
-                    borderRadius: "10px",
-                    border: "1.5px solid #e0e4ec",
-                    padding: "10px 14px",
-                    fontSize: "0.95rem",
-                  }}
+                  className="w-full rounded-xl border-[1.5px] border-gray-200 py-2.5 px-3.5 text-[0.95rem] outline-none focus:border-[#00A0E3] focus:ring-2 focus:ring-[#00A0E3]/10 transition-all"
                 />
-              </Form.Group>
+              </div>
 
-              <Form.Group style={{ marginBottom: "24px" }}>
-                <Form.Label
-                  style={{
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    color: "#444",
-                    marginBottom: "6px",
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={faBell}
-                    style={{ marginRight: "6px", color: "#001b6c" }}
-                  />
-                  Phone Number{" "}
-                  {phoneMissing && <span style={{ color: "#e53e3e" }}>*</span>}
-                </Form.Label>
-                <Form.Control
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 mb-1.5">
+                  <Phone size={14} className="text-[#00A0E3]" />
+                  Phone Number {phoneMissing && <span className="text-red-500">*</span>}
+                </label>
+                <input
                   value={profileData.phone_number}
                   onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
                     setProfileData({ ...profileData, phone_number: val });
                     if (phoneError) setPhoneError("");
                   }}
                   disabled={profileLoading}
                   placeholder="Enter your 10-digit mobile number"
                   maxLength={10}
-                  style={{
-                    borderRadius: "10px",
-                    border: phoneError
-                      ? "1.5px solid #e53e3e"
-                      : "1.5px solid #e0e4ec",
-                    padding: "10px 14px",
-                    fontSize: "0.95rem",
-                  }}
+                  className={`w-full rounded-xl border-[1.5px] py-2.5 px-3.5 text-[0.95rem] outline-none transition-all focus:ring-2 focus:ring-[#00A0E3]/10 ${phoneError ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#00A0E3]'}`}
                 />
                 {phoneError && (
-                  <p
-                    style={{
-                      color: "#e53e3e",
-                      fontSize: "0.8rem",
-                      margin: "6px 0 0 2px",
-                    }}
-                  >
-                    {phoneError}
-                  </p>
+                  <p className="text-red-500 text-xs mt-1.5">{phoneError}</p>
                 )}
-              </Form.Group>
+              </div>
 
-              <div style={{ display: "flex", gap: "10px" }}>
+              <div className="flex gap-2.5 mt-2">
                 {!phoneMissing && (
                   <button
                     type="button"
                     onClick={() => setShowEditProfile(false)}
-                    style={{
-                      flex: 1,
-                      padding: "11px 20px",
-                      borderRadius: "10px",
-                      border: "1.5px solid #e0e4ec",
-                      background: "#fff",
-                      cursor: "pointer",
-                      fontWeight: 600,
-                      fontSize: "0.9rem",
-                      color: "#555",
-                    }}
+                    className="flex-1 py-2.5 px-5 rounded-xl border-[1.5px] border-gray-200 bg-white cursor-pointer font-semibold text-sm text-gray-500 hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
@@ -635,23 +449,12 @@ const Layout = ({ children }) => {
                 <button
                   type="button"
                   onClick={updateProfile}
-                  style={{
-                    flex: 1,
-                    padding: "11px 20px",
-                    borderRadius: "10px",
-                    border: "none",
-                    background: "#001b6c",
-                    color: "#fff",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: "0.9rem",
-                    boxShadow: "0 4px 14px rgba(0, 27, 108, 0.3)",
-                  }}
+                  className="flex-1 py-2.5 px-5 rounded-xl border-none bg-[#00A0E3] text-white cursor-pointer font-semibold text-sm shadow-lg shadow-[#00A0E3]/30 hover:bg-[#0080B8] transition-colors"
                 >
                   Save Changes
                 </button>
               </div>
-            </Form>
+            </div>
           </div>
         </div>
       )}

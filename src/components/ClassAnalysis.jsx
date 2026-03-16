@@ -1,11 +1,11 @@
 // ClassAnalysis.jsx - Complete with Mock Data for All Classes and Time Periods
 
 import React, { useState } from 'react';
+import { Trophy, TrendingUp, Lightbulb, BarChart3 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
-import './ClassAnalysis.css';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -670,54 +670,54 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
   // Class Overview Dashboard
   const renderClassOverviewDashboard = () => {
     return (
-      <div className="class-overview-container">
-        <div className="overview-header">
-          <div className="overview-title-section">
-            <h2 className="overview-title">📊 CLASS OVERVIEW DASHBOARD</h2>
-            <p className="overview-subtitle">Overall class performance metrics and insights</p>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-gray-800">
+        <div className="mb-6">
+          <div className="">
+            <h2 className="text-base font-semibold text-gray-800 m-0 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-[#00A0E3]" /> CLASS OVERVIEW DASHBOARD</h2>
+            <p className="text-gray-500 mt-2 m-0 text-sm">Overall class performance metrics and insights</p>
           </div>
         </div>
 
         {/* Enhanced Summary Cards */}
-        <div className="summary-cards-grid">
-          <div className="summary-card card-blue">
-            <div className="card-icon">👥</div>
-            <div className="card-content">
-              <div className="card-value">{currentClassData.summary.totalStudents}</div>
-              <div className="card-label">Total Students</div>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 mb-8">
+          <div className="p-4 rounded-xl flex flex-col relative overflow-hidden shadow-md transition-all duration-300 cursor-pointer min-h-[120px] text-white bg-gradient-to-br from-[#00A0E3] to-blue-700 hover:-translate-y-1 hover:shadow-lg">
+            <div className="text-xl mb-2">👥</div>
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="text-2xl font-bold m-0 mb-1">{currentClassData.summary.totalStudents}</div>
+              <div className="text-base font-medium m-0 opacity-90">Total Students</div>
             </div>
           </div>
           
-          <div className="summary-card card-green">
-            <div className="card-icon">📊</div>
-            <div className="card-content">
-              <div className="card-value">{currentClassData.summary.averageScore}%</div>
-              <div className="card-label">Average Score</div>
+          <div className="p-4 rounded-xl flex flex-col relative overflow-hidden shadow-md transition-all duration-300 cursor-pointer min-h-[120px] text-white bg-gradient-to-br from-emerald-500 to-emerald-600 hover:-translate-y-1 hover:shadow-lg">
+            <div><BarChart3 className="w-6 h-6 text-white" /></div>
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="text-2xl font-bold m-0 mb-1">{currentClassData.summary.averageScore}%</div>
+              <div className="text-base font-medium m-0 opacity-90">Average Score</div>
             </div>
           </div>
           
-          <div className="summary-card card-yellow">
-            <div className="card-icon">📝</div>
-            <div className="card-content">
-              <div className="card-value">{currentClassData.summary.assignments}</div>
-              <div className="card-label">Assignments</div>
+          <div className="p-4 rounded-xl flex flex-col relative overflow-hidden shadow-md transition-all duration-300 cursor-pointer min-h-[120px] text-white bg-gradient-to-br from-amber-500 to-amber-600 hover:-translate-y-1 hover:shadow-lg">
+            <div className="text-xl mb-2">📝</div>
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="text-2xl font-bold m-0 mb-1">{currentClassData.summary.assignments}</div>
+              <div className="text-base font-medium m-0 opacity-90">Assignments</div>
             </div>
           </div>
           
-          <div className="summary-card card-purple">
-            <div className="card-icon">✅</div>
-            <div className="card-content">
-              <div className="card-value">{currentClassData.summary.completionRate}%</div>
-              <div className="card-label">Completion Rate</div>
+          <div className="p-4 rounded-xl flex flex-col relative overflow-hidden shadow-md transition-all duration-300 cursor-pointer min-h-[120px] text-white bg-gradient-to-br from-[#00A0E3] to-[#0080B8] hover:-translate-y-1 hover:shadow-lg">
+            <div className="text-xl mb-2">✅</div>
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="text-2xl font-bold m-0 mb-1">{currentClassData.summary.completionRate}%</div>
+              <div className="text-base font-medium m-0 opacity-90">Completion Rate</div>
             </div>
           </div>
         </div>
 
         {/* Charts Section */}
-        <div className="charts-container">
-          <div className="chart-card">
-            <h3 className="chart-title">Student Performance Comparison</h3>
-            <div className="chart-wrapper">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="bg-[#F8FAFC] rounded-xl p-5 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+            <h3 className="text-[15px] font-semibold m-0 mb-4 text-gray-800">Student Performance Comparison</h3>
+            <div className="mb-3 h-[400px]">
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={currentClassData.studentPerformance} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -743,9 +743,9 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
             </div>
           </div>
 
-          <div className="chart-card">
-            <h3 className="chart-title">Class Performance Summary</h3>
-            <div className="chart-wrapper">
+          <div className="bg-[#F8FAFC] rounded-xl p-5 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+            <h3 className="text-[15px] font-semibold m-0 mb-4 text-gray-800">Class Performance Summary</h3>
+            <div className="mb-3 h-[400px]">
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={overallClassStatsData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -765,7 +765,7 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="chart-info">
+            <div className="text-xs text-gray-500 text-right">
               <div>Type: Classwork</div>
               <div>Average: 51.5%</div>
             </div>
@@ -782,7 +782,7 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
     const students = trendResult.students || [];
     
     // Define colors for the lines
-    const lineColors = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+    const lineColors = ['#00A0E3', '#00A0E3', '#10b981', '#f59e0b', '#ef4444'];
     
     // Get period-specific top performers data
     const getPeriodTopPerformers = () => {
@@ -809,17 +809,17 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
     const periodTopPerformers = getPeriodTopPerformers();
     
     return (
-      <div className="progress-trends-container">
-        <div className="trends-header">
-          <h2 className="trends-title">📈 Class Progress Trends</h2>
-          <p className="trends-subtitle">Top Performers Analysis</p>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-gray-800">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 m-0 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-[#00A0E3]" /> Class Progress Trends</h2>
+          <p className="text-gray-500 mt-2 m-0 text-sm">Top Performers Analysis</p>
         </div>
 
-        <div className="filter-buttons-container">
+        <div className="flex gap-2 mb-6">
           {['1D', '5D', '10D', '15D', '1M', 'MAX'].map((filter) => (
             <button 
               key={filter} 
-              className={`filter-btn ${filter === trendPeriod ? 'active' : ''}`}
+              className={`px-4 py-2 border-2 rounded-lg text-sm font-medium cursor-pointer transition-all duration-300 ${filter === trendPeriod ? 'bg-gradient-to-r from-[#00A0E3] to-blue-700 text-white border-[#00A0E3] shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:-translate-y-0.5 hover:shadow-md hover:border-[#00A0E3] hover:text-[#00A0E3]'}`}
               onClick={() => setTrendPeriod(filter)}
             >
               {filter}
@@ -828,9 +828,9 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
         </div>
 
         {/* Top Performers Bar Chart - Main Chart */}
-        <div className="top-performers-section">
-          <h3 className="section-title">🏆 Top Performers - {trendPeriod} Period</h3>
-          <div className="chart-wrapper large">
+        <div className="bg-[#F8FAFC] rounded-xl p-5">
+          <h3 className="text-base font-semibold m-0 mb-5 text-gray-800 flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-500" /> Top Performers - {trendPeriod} Period</h3>
+          <div className="mb-4 h-[500px]">
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={periodTopPerformers} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -848,14 +848,14 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
                   ticks={[0, 20, 40, 60, 80, 100]}
                 />
                 <Tooltip formatter={(value) => [value + '%', 'Average Score']} />
-                <Bar dataKey="average" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="average" fill="#00A0E3" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           
-          <div className="performance-legend">
-            <div className="legend-item">
-              <div className="legend-color all-performers"></div>
+          <div className="flex justify-center gap-6 pt-4">
+            <div className="flex items-center gap-2 text-sm text-gray-500 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="w-4 h-4 rounded bg-[#00A0E3]"></div>
               <span>Performance for {trendPeriod === '1D' ? '1 Day' : 
                                    trendPeriod === '5D' ? '5 Days' : 
                                    trendPeriod === '10D' ? '10 Days' : 
@@ -868,8 +868,8 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
 
         {/* Performance Trend Line Chart - Secondary Chart */}
         {/* <div className="trend-chart-section">
-          <h3 className="section-title">📊 Performance Trend - {trendPeriod}</h3>
-          <div className="chart-wrapper large">
+          <h3 className="text-base font-semibold m-0 mb-5 text-gray-800 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-[#00A0E3]" /> Performance Trend - {trendPeriod}</h3>
+          <div className="mb-4 h-[500px]">
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -906,23 +906,23 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
 
         {/* Time Period Summary */}
         {/* <div className="period-summary">
-          <h4>📊 Period Summary for {trendPeriod}</h4>
+          <h4 className="flex items-center gap-2"><BarChart3 className="w-5 h-5 text-[#00A0E3]" /> Period Summary for {trendPeriod}</h4>
           <div className="summary-stats">
-            <div className="stat-item">
-              <span className="stat-label">Top Scorer:</span>
-              <span className="stat-value">{periodTopPerformers[0]?.student} ({periodTopPerformers[0]?.average}%)</span>
+            <div className="flex justify-between p-3 px-4 bg-white rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+              <span className="text-[13px] text-gray-500 mt-1 m-0">Top Scorer:</span>
+              <span className="text-xl font-bold text-gray-800 m-0">{periodTopPerformers[0]?.student} ({periodTopPerformers[0]?.average}%)</span>
             </div>
-            <div className="stat-item">
-              <span className="stat-label">Lowest Scorer:</span>
-              <span className="stat-value">{periodTopPerformers[4]?.student} ({periodTopPerformers[4]?.average}%)</span>
+            <div className="flex justify-between p-3 px-4 bg-white rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+              <span className="text-[13px] text-gray-500 mt-1 m-0">Lowest Scorer:</span>
+              <span className="text-xl font-bold text-gray-800 m-0">{periodTopPerformers[4]?.student} ({periodTopPerformers[4]?.average}%)</span>
             </div>
-            <div className="stat-item">
-              <span className="stat-label">Class Average:</span>
-              <span className="stat-value">{Math.round(periodTopPerformers.reduce((sum, p) => sum + p.average, 0) / 5)}%</span>
+            <div className="flex justify-between p-3 px-4 bg-white rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+              <span className="text-[13px] text-gray-500 mt-1 m-0">Class Average:</span>
+              <span className="text-xl font-bold text-gray-800 m-0">{Math.round(periodTopPerformers.reduce((sum, p) => sum + p.average, 0) / 5)}%</span>
             </div>
-            <div className="stat-item">
-              <span className="stat-label">Score Range:</span>
-              <span className="stat-value">{periodTopPerformers[4]?.average}% - {periodTopPerformers[0]?.average}%</span>
+            <div className="flex justify-between p-3 px-4 bg-white rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+              <span className="text-[13px] text-gray-500 mt-1 m-0">Score Range:</span>
+              <span className="text-xl font-bold text-gray-800 m-0">{periodTopPerformers[4]?.average}% - {periodTopPerformers[0]?.average}%</span>
             </div>
           </div>
         </div> */}
@@ -935,18 +935,18 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
     const chapterData = getChapterSubTopics(selectedChapter);
     
     return (
-      <div className="topic-analysis-container">
-        <div className="topic-header">
-          <h2 className="topic-title">🎯 Topic Analysis</h2>
-          <p className="topic-subtitle">Performance breakdown by academic topics</p>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-gray-800">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 m-0">🎯 Topic Analysis</h2>
+          <p className="text-gray-500 mt-2 m-0 text-sm">Performance breakdown by academic topics</p>
         </div>
 
-        <div className="chapter-filter-section">
-          <label className="filter-label">📚 Select Chapter (Main Topic):</label>
+        <div className="mb-8">
+          <label className="block font-medium text-gray-700 mb-2 text-xs uppercase tracking-wide">📚 Select Chapter (Main Topic):</label>
           <select 
             value={selectedChapter} 
             onChange={(e) => setSelectedChapter(e.target.value)}
-            className="chapter-dropdown"
+            className="w-full max-w-[300px] px-4 py-3 border-2 border-gray-200 rounded-lg text-sm bg-white text-gray-800 transition-all duration-300 hover:border-[#00A0E3] hover:ring-2 hover:ring-[#00A0E3]/10"
           >
             {chapterOptions.map(chapter => (
               <option key={chapter} value={chapter}>{chapter}</option>
@@ -957,36 +957,36 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
         {selectedChapter === 'All Chapters' ? (
           <>
             {/* Summary Stats */}
-            <div className="topic-summary-stats">
-              <div className="stat-card">
-                <div className="stat-icon">📊</div>
-                <div className="stat-content">
-                  <div className="stat-value">10</div>
-                  <div className="stat-label">Total Topics</div>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4 mb-8">
+              <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+                <div><BarChart3 className="w-6 h-6 text-[#00A0E3]" /></div>
+                <div className="">
+                  <div className="text-xl font-bold text-gray-800 m-0">10</div>
+                  <div className="text-[13px] text-gray-500 mt-1 m-0">Total Topics</div>
                 </div>
               </div>
-              <div className="stat-card">
-                <div className="stat-icon">📈</div>
-                <div className="stat-content">
-                  <div className="stat-value">58.3%</div>
-                  <div className="stat-label">Overall Average</div>
+              <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+                <div><TrendingUp className="w-6 h-6 text-[#00A0E3]" /></div>
+                <div className="">
+                  <div className="text-xl font-bold text-gray-800 m-0">58.3%</div>
+                  <div className="text-[13px] text-gray-500 mt-1 m-0">Overall Average</div>
                 </div>
               </div>
-              <div className="stat-card">
-                <div className="stat-icon">📚</div>
-                <div className="stat-content">
-                  <div className="stat-value">8</div>
-                  <div className="stat-label">Available Chapters</div>
+              <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+                <div className="text-xl">📚</div>
+                <div className="">
+                  <div className="text-xl font-bold text-gray-800 m-0">8</div>
+                  <div className="text-[13px] text-gray-500 mt-1 m-0">Available Chapters</div>
                 </div>
               </div>
             </div>
 
             {/* All Topics Chart */}
-            <div className="topic-chart-section">
-              <h3 className="chart-title">🎯 Class Topic Performance Analysis</h3>
-              <p className="chart-subtitle">All Topics Ranked by Class Performance (Lowest to Highest)</p>
+            <div className="bg-[#F8FAFC] rounded-xl p-5 mb-6">
+              <h3 className="text-[15px] font-semibold m-0 mb-4 text-gray-800">🎯 Class Topic Performance Analysis</h3>
+              <p className="text-[13px] text-gray-500 mt-2 mb-5 m-0">All Topics Ranked by Class Performance (Lowest to Highest)</p>
               
-              <div className="chart-wrapper large">
+              <div className="mb-4 h-[500px]">
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart 
                     data={allTopicsRankedData} 
@@ -1008,7 +1008,7 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
                       ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
                     />
                     <Tooltip formatter={(value) => [value + '%', 'Average Performance']} />
-                    <Bar dataKey="average" fill="#3b82f6" radius={[2, 2, 0, 0]} />
+                    <Bar dataKey="average" fill="#00A0E3" radius={[2, 2, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1017,12 +1017,12 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
         ) : chapterData ? (
           <>
             {/* Chapter Sub-topic Performance as Bar Chart */}
-            <div className="chapter-analysis-section">
-              <h3 className="section-title">🎯 Class Sub-topic Performance: {selectedChapter}</h3>
-              <p className="section-subtitle">Sub-topics Ranked by Class Performance (Lowest to Highest)</p>
+            <div className="mt-6">
+              <h3 className="text-base font-semibold m-0 mb-5 text-gray-800 flex items-center gap-2">🎯 Class Sub-topic Performance: {selectedChapter}</h3>
+              <p className="text-sm text-gray-500 mt-1">Sub-topics Ranked by Class Performance (Lowest to Highest)</p>
               
               {/* Bar Chart for Sub-topics */}
-              <div className="subtopic-bar-chart">
+              <div className="bg-[#F8FAFC] rounded-xl p-5 mb-6 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart 
                     data={chapterData.chartData}
@@ -1043,36 +1043,36 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
                       ticks={[0, 20, 40, 60, 80, 100]}
                     />
                     <Tooltip formatter={(value) => [value + '%', 'Average']} />
-                    <Bar dataKey="average" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="average" fill="#00A0E3" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
               {/* Chapter Statistics */}
-              <div className="chapter-stats">
-                <h4 className="stats-title">📊 {selectedChapter} Sub-topic Details</h4>
-                <div className="stats-grid">
-                  <div className="stat-item">
-                    <span className="stat-label">Sub-topics Found</span>
-                    <span className="stat-value">{chapterData.stats.subTopicsFound}</span>
+              <div className="bg-[#F8FAFC] rounded-xl p-5">
+                <h4 className="text-base font-semibold text-gray-800 m-0 mb-4 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-[#00A0E3]" /> {selectedChapter} Sub-topic Details</h4>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-6">
+                  <div className="flex justify-between p-3 px-4 bg-white rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+                    <span className="text-[13px] text-gray-500 mt-1 m-0">Sub-topics Found</span>
+                    <span className="text-xl font-bold text-gray-800 m-0">{chapterData.stats.subTopicsFound}</span>
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Chapter Average</span>
-                    <span className="stat-value">{chapterData.stats.chapterAverage}%</span>
+                  <div className="flex justify-between p-3 px-4 bg-white rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+                    <span className="text-[13px] text-gray-500 mt-1 m-0">Chapter Average</span>
+                    <span className="text-xl font-bold text-gray-800 m-0">{chapterData.stats.chapterAverage}%</span>
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Needs Most Attention</span>
-                    <span className="stat-value">{chapterData.stats.needsMostAttention}%</span>
+                  <div className="flex justify-between p-3 px-4 bg-white rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+                    <span className="text-[13px] text-gray-500 mt-1 m-0">Needs Most Attention</span>
+                    <span className="text-xl font-bold text-gray-800 m-0">{chapterData.stats.needsMostAttention}%</span>
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Best Performance</span>
-                    <span className="stat-value">{chapterData.stats.bestPerformance}%</span>
+                  <div className="flex justify-between p-3 px-4 bg-white rounded-lg border-l-4 border-l-[#00A0E3] text-gray-800 transition-all duration-300 hover:translate-x-1 hover:shadow-md">
+                    <span className="text-[13px] text-gray-500 mt-1 m-0">Best Performance</span>
+                    <span className="text-xl font-bold text-gray-800 m-0">{chapterData.stats.bestPerformance}%</span>
                   </div>
                 </div>
 
                 {/* Detailed Performance Table */}
-                <div className="performance-table">
-                  <h5 className="table-title">📋 Detailed Sub-topic Performance Table</h5>
+                <div className="mt-6">
+                  <h5 className="text-sm font-semibold text-gray-800 m-0 mb-3">📋 Detailed Sub-topic Performance Table</h5>
                   <table>
                     <thead>
                       <tr>
@@ -1100,14 +1100,14 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
             </div>
           </>
         ) : (
-          <div className="no-subtopics-section">
-            <div className="empty-state">
-              <div className="empty-icon">🚫</div>
-              <h3 className="empty-title">No Sub-topics Found for Chapter: {selectedChapter}</h3>
-              <p className="empty-message">Please select a different chapter or check data format</p>
+          <div className="py-8">
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="text-4xl mb-3">🚫</div>
+              <h3 className="text-lg font-semibold text-[#0B1120] mb-2">No Sub-topics Found for Chapter: {selectedChapter}</h3>
+              <p className="text-gray-500 text-sm">Please select a different chapter or check data format</p>
             </div>
             
-            <div className="troubleshooting">
+            <div className="mt-4 text-xs text-gray-400">
               <h4>⚠ No sub-topics found for chapter '{selectedChapter}'. This might mean:</h4>
               <ul>
                 <li>The chapter '{selectedChapter}' doesn't have sub-topics with '-' separator</li>
@@ -1126,30 +1126,30 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
     const filteredResults = getFilteredResults();
     
     return (
-      <div className="submitted-results-container">
-        <div className="submitted-results-header">
-          <h2 className="submitted-results-title">📝 Submitted Results</h2>
-          <p className="submitted-results-subtitle">Track student submissions and marks</p>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-gray-800">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 m-0">📝 Submitted Results</h2>
+          <p className="text-gray-500 mt-2 m-0 text-sm">Track student submissions and marks</p>
         </div>
 
         {/* Filters Section */}
-        <div className="filters-section">
-          <div className="filter-group">
-            <label className="filter-label">Date:</label>
+        <div className="flex gap-4 mb-6 flex-wrap">
+          <div className="flex flex-col gap-1">
+            <label className="block font-medium text-gray-700 mb-2 text-xs uppercase tracking-wide">Date:</label>
             <input
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="filter-input"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-800 transition-all duration-300 hover:border-[#00A0E3] focus:outline-none focus:border-[#00A0E3] focus:ring-2 focus:ring-[#00A0E3]/10"
             />
           </div>
           
-          <div className="filter-group">
-            <label className="filter-label">Show:</label>
+          <div className="flex flex-col gap-1">
+            <label className="block font-medium text-gray-700 mb-2 text-xs uppercase tracking-wide">Show:</label>
             <select
               value={submissionFilter}
               onChange={(e) => setSubmissionFilter(e.target.value)}
-              className="filter-select"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-800 transition-all duration-300 hover:border-[#00A0E3] focus:outline-none focus:border-[#00A0E3] focus:ring-2 focus:ring-[#00A0E3]/10"
             >
               <option value="all">All</option>
               <option value="homework">Only Homework</option>
@@ -1159,7 +1159,7 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
         </div>
 
         {/* Results Table */}
-        <div className="submitted-results-table">
+        <div className="overflow-x-auto">
           <table>
             <thead>
               <tr>
@@ -1176,12 +1176,12 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
                   <td>{result.studentId}</td>
                   <td>{result.marks}</td>
                   <td>
-                    <span className={`submission-status ${result.homeworkSubmitted ? 'submitted' : 'not-submitted'}`}>
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${result.homeworkSubmitted ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {result.homeworkSubmitted ? '✓ Submitted' : '✗ Not Submitted'}
                     </span>
                   </td>
                   <td>
-                    <span className={`submission-status ${result.classworkSubmitted ? 'submitted' : 'not-submitted'}`}>
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${result.classworkSubmitted ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {result.classworkSubmitted ? '✓ Submitted' : '✗ Not Submitted'}
                     </span>
                   </td>
@@ -1198,155 +1198,155 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
   // Enhanced Summary with All Tab Data
   const renderSummary = () => {
     return (
-      <div className="summary-container">
-        <div className="summary-header">
-          <h2 className="summary-title">📋 CLASSROOM PERFORMANCE SUMMARY</h2>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-gray-800">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 m-0">📋 CLASSROOM PERFORMANCE SUMMARY</h2>
         </div>
 
         {/* Achievement Cards */}
-        <div className="achievements-section">
-          <h3 className="section-title">🏆 ACHIEVEMENTS</h3>
-          <div className="achievement-cards">
-            <div className="achievement-card gold">
-              <div className="achievement-icon">🥇</div>
-              <div className="achievement-content">
-                <div className="achievement-title">Top Performer</div>
-                <div className="achievement-value">{currentClassData.topPerformers[0].student} - {currentClassData.topPerformers[0].average}%</div>
+        <div className="mb-8">
+          <h3 className="text-base font-semibold m-0 mb-5 text-gray-800 flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-500" /> ACHIEVEMENTS</h3>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-5">
+            <div className="p-5 rounded-xl flex items-center gap-4 shadow-md transition-all duration-300 relative overflow-hidden text-white bg-gradient-to-br from-amber-400 to-amber-500 hover:-translate-y-1 hover:shadow-lg">
+              <div className="text-3xl">🥇</div>
+              <div className="">
+                <div className="text-sm font-medium mb-1 text-white/95">Top Performer</div>
+                <div className="text-base font-bold text-white">{currentClassData.topPerformers[0].student} - {currentClassData.topPerformers[0].average}%</div>
               </div>
             </div>
             
-            <div className="achievement-card silver">
-              <div className="achievement-icon">📈</div>
-              <div className="achievement-content">
-                <div className="achievement-title">Best Chapter</div>
-                <div className="achievement-value">Coordinate Geometry - 71.4%</div>
+            <div className="p-5 rounded-xl flex items-center gap-4 shadow-md transition-all duration-300 relative overflow-hidden text-white bg-gradient-to-br from-emerald-500 to-emerald-600 hover:-translate-y-1 hover:shadow-lg">
+              <div><TrendingUp className="w-8 h-8 text-white" /></div>
+              <div className="">
+                <div className="text-sm font-medium mb-1 text-white/95">Best Chapter</div>
+                <div className="text-base font-bold text-white">Coordinate Geometry - 71.4%</div>
               </div>
             </div>
             
-            <div className="achievement-card bronze">
-              <div className="achievement-icon">✅</div>
-              <div className="achievement-content">
-                <div className="achievement-title">Completion Rate</div>
-                <div className="achievement-value">{currentClassData.summary.completionRate}% Overall</div>
+            <div className="p-5 rounded-xl flex items-center gap-4 shadow-md transition-all duration-300 relative overflow-hidden text-white bg-gradient-to-br from-[#00A0E3] to-[#0080B8] hover:-translate-y-1 hover:shadow-lg">
+              <div className="text-3xl">✅</div>
+              <div className="">
+                <div className="text-sm font-medium mb-1 text-white/95">Completion Rate</div>
+                <div className="text-base font-bold text-white">{currentClassData.summary.completionRate}% Overall</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Class Overview Summary */}
-        <div className="summary-section">
-          <h3 className="summary-section-title">📊 Class Overview</h3>
-          <div className="summary-content">
-            <div className="summary-item">
-              <span className="summary-label">Total Students:</span>
-              <span className="summary-value">{currentClassData.summary.totalStudents}</span>
+        <div className="mb-6 bg-[#F8FAFC] rounded-xl p-5 border border-gray-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#00A0E3]">
+          <h3 className="text-base font-semibold text-gray-800 m-0 mb-4 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-[#00A0E3]" /> Class Overview</h3>
+          <div className="grid gap-3">
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Total Students:</span>
+              <span className="text-[#0B1120] font-semibold">{currentClassData.summary.totalStudents}</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Average Score:</span>
-              <span className="summary-value">{currentClassData.summary.averageScore}%</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Average Score:</span>
+              <span className="text-[#0B1120] font-semibold">{currentClassData.summary.averageScore}%</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Total Assignments:</span>
-              <span className="summary-value">{currentClassData.summary.assignments}</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Total Assignments:</span>
+              <span className="text-[#0B1120] font-semibold">{currentClassData.summary.assignments}</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Completion Rate:</span>
-              <span className="summary-value">{currentClassData.summary.completionRate}%</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Completion Rate:</span>
+              <span className="text-[#0B1120] font-semibold">{currentClassData.summary.completionRate}%</span>
             </div>
           </div>
         </div>
 
         {/* Progress Trends Summary */}
-        <div className="summary-section">
-          <h3 className="summary-section-title">📈 Progress Trends</h3>
-          <div className="summary-content">
-            <div className="summary-item">
-              <span className="summary-label">Top Performer:</span>
-              <span className="summary-value">{currentClassData.topPerformers[0].student} ({currentClassData.topPerformers[0].average}%)</span>
+        <div className="mb-6 bg-[#F8FAFC] rounded-xl p-5 border border-gray-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#00A0E3]">
+          <h3 className="text-base font-semibold text-gray-800 m-0 mb-4 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-[#00A0E3]" /> Progress Trends</h3>
+          <div className="grid gap-3">
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Top Performer:</span>
+              <span className="text-[#0B1120] font-semibold">{currentClassData.topPerformers[0].student} ({currentClassData.topPerformers[0].average}%)</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Lowest Performer:</span>
-              <span className="summary-value">{currentClassData.topPerformers[4].student} ({currentClassData.topPerformers[4].average}%)</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Lowest Performer:</span>
+              <span className="text-[#0B1120] font-semibold">{currentClassData.topPerformers[4].student} ({currentClassData.topPerformers[4].average}%)</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Class Average:</span>
-              <span className="summary-value">{Math.round(currentClassData.topPerformers.reduce((sum, p) => sum + p.average, 0) / 5)}%</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Class Average:</span>
+              <span className="text-[#0B1120] font-semibold">{Math.round(currentClassData.topPerformers.reduce((sum, p) => sum + p.average, 0) / 5)}%</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Trend Direction:</span>
-              <span className="summary-value">📈 Improving</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Trend Direction:</span>
+              <span className="text-[#0B1120] font-semibold"><TrendingUp className="w-4 h-4 inline" /> Improving</span>
             </div>
           </div>
         </div>
 
         {/* Topic Analysis Summary */}
-        <div className="summary-section">
-          <h3 className="summary-section-title">🎯 Topic Analysis</h3>
-          <div className="summary-content">
-            <div className="summary-item">
-              <span className="summary-label">Total Topics:</span>
-              <span className="summary-value">10</span>
+        <div className="mb-6 bg-[#F8FAFC] rounded-xl p-5 border border-gray-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#00A0E3]">
+          <h3 className="text-base font-semibold text-gray-800 m-0 mb-4 flex items-center gap-2">🎯 Topic Analysis</h3>
+          <div className="grid gap-3">
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Total Topics:</span>
+              <span className="text-[#0B1120] font-semibold">10</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Best Topic:</span>
-              <span className="summary-value">Coordinate Geometry (71.4%)</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Best Topic:</span>
+              <span className="text-[#0B1120] font-semibold">Coordinate Geometry (71.4%)</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Weakest Topic:</span>
-              <span className="summary-value">Linear Equations (46.7%)</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Weakest Topic:</span>
+              <span className="text-[#0B1120] font-semibold">Linear Equations (46.7%)</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Topics Average:</span>
-              <span className="summary-value">58.3%</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Topics Average:</span>
+              <span className="text-[#0B1120] font-semibold">58.3%</span>
             </div>
           </div>
         </div>
 
         {/* Submitted Results Summary */}
-        <div className="summary-section">
-          <h3 className="summary-section-title">📝 Submission Summary</h3>
-          <div className="summary-content">
-            <div className="summary-item">
-              <span className="summary-label">Total Submissions:</span>
-              <span className="summary-value">{currentClassData.submittedResults.length}</span>
+        <div className="mb-6 bg-[#F8FAFC] rounded-xl p-5 border border-gray-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#00A0E3]">
+          <h3 className="text-base font-semibold text-gray-800 m-0 mb-4 flex items-center gap-2">📝 Submission Summary</h3>
+          <div className="grid gap-3">
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Total Submissions:</span>
+              <span className="text-[#0B1120] font-semibold">{currentClassData.submittedResults.length}</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Homework Completion:</span>
-              <span className="summary-value">{Math.round((currentClassData.submittedResults.filter(r => r.homeworkSubmitted).length / currentClassData.submittedResults.length) * 100)}%</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Homework Completion:</span>
+              <span className="text-[#0B1120] font-semibold">{Math.round((currentClassData.submittedResults.filter(r => r.homeworkSubmitted).length / currentClassData.submittedResults.length) * 100)}%</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Classwork Completion:</span>
-              <span className="summary-value">{Math.round((currentClassData.submittedResults.filter(r => r.classworkSubmitted).length / currentClassData.submittedResults.length) * 100)}%</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Classwork Completion:</span>
+              <span className="text-[#0B1120] font-semibold">{Math.round((currentClassData.submittedResults.filter(r => r.classworkSubmitted).length / currentClassData.submittedResults.length) * 100)}%</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Average Marks:</span>
-              <span className="summary-value">{Math.round(currentClassData.submittedResults.reduce((sum, r) => sum + r.marks, 0) / currentClassData.submittedResults.length)}</span>
+            <div className="flex justify-between py-2 border-b border-gray-200 last:border-b-0 transition-all duration-300 hover:pl-2 hover:bg-white hover:-mx-2 hover:pr-2 hover:rounded">
+              <span className="text-gray-500 text-sm">Average Marks:</span>
+              <span className="text-[#0B1120] font-semibold">{Math.round(currentClassData.submittedResults.reduce((sum, r) => sum + r.marks, 0) / currentClassData.submittedResults.length)}</span>
             </div>
           </div>
         </div>
 
         {/* Key Insights */}
-        <div className="insights-section">
-          <h3 className="section-title">💡 KEY INSIGHTS & RECOMMENDATIONS</h3>
-          <div className="insight-cards">
-            <div className="insight-card success">
-              <div className="insight-header">
-                <div className="insight-icon">✅</div>
-                <div className="insight-title">Strengths</div>
+        <div className="mt-8">
+          <h3 className="text-base font-semibold m-0 mb-5 text-gray-800 flex items-center gap-2"><Lightbulb className="w-5 h-5 text-[#00A0E3]" /> KEY INSIGHTS & RECOMMENDATIONS</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl shadow-sm border border-green-200 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-xl">✅</div>
+                <div className="font-semibold text-[#0B1120]">Strengths</div>
               </div>
-              <ul className="insight-list">
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                 <li>Consistent improvement over {trendPeriod} period</li>
                 <li>Strong performance in Coordinate Geometry (71.4%)</li>
                 <li>High completion rate ({currentClassData.summary.completionRate}%)</li>
               </ul>
             </div>
             
-            <div className="insight-card warning">
-              <div className="insight-header">
-                <div className="insight-icon">⚠</div>
-                <div className="insight-title">Areas for Improvement</div>
+            <div className="bg-white rounded-xl shadow-sm border border-yellow-200 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-xl">⚠</div>
+                <div className="font-semibold text-[#0B1120]">Areas for Improvement</div>
               </div>
-              <ul className="insight-list">
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                 <li>Linear Equations needs focus (46.7%)</li>
                 <li>Classwork strategies need enhancement</li>
                 <li>Support needed for lower performers</li>
@@ -1359,18 +1359,18 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
   };
 
   return (
-    <div className="class-analysis-main-content">
-      <div className="class-analysis-header">
-        <div className="class-header-top">
-          <div className="class-header-info">
-            <div className="class-header-icon">📊</div>
+    <div className="p-5 bg-[#F8FAFC] min-h-screen relative text-gray-800">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div><BarChart3 className="w-8 h-8 text-[#00A0E3]" /></div>
             <div>
-              <h2 className="class-header-title">Class Analysis Dashboard</h2>
-              <p className="class-header-subtitle">Comprehensive performance analysis for {selectedClass?.name || 'Class 10th'}</p>
+              <h2 className="text-2xl font-bold text-gray-800 m-0">Class Analysis Dashboard</h2>
+              <p className="text-gray-500 mt-1 m-0 text-sm">Comprehensive performance analysis for {selectedClass?.name || 'Class 10th'}</p>
             </div>
           </div>
-          <div className="class-selector-container">
-            <span className="class-selector-label">Select Class</span>
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-gray-500">Select Class</span>
             <select
               value={selectedClass?.name || 'Class 10th'}
               onChange={(e) => {
@@ -1379,7 +1379,7 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
                   onClassChange(classData);
                 }
               }}
-              className="class-header-dropdown"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 bg-white transition-all duration-300 hover:border-[#00A0E3] hover:ring-2 hover:ring-[#00A0E3]/10"
             >
               <option value="Class 6th">Class 6th 👥</option>
               <option value="Class 7th">Class 7th 👥</option>
@@ -1394,41 +1394,41 @@ const ClassAnalysis = ({ selectedClass, classesData, onClassChange }) => {
       </div>
 
       {/* Updated Sub-tabs with 5 tabs */}
-      <div className="class-sub-tabs">
+      <div className="flex gap-2 mb-6 flex-wrap">
         <button
           onClick={() => setClassAnalysisTab('overview')}
-          className={`class-sub-tab ${classAnalysisTab === 'overview' ? 'active' : ''}`}
+          className={`px-5 py-3 border-none rounded-lg font-medium cursor-pointer transition-all duration-300 shadow-sm ${classAnalysisTab === 'overview' ? 'bg-[#00A0E3] text-white -translate-y-0.5 shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-800 hover:-translate-y-px'}`}
         >
-          📊 Class Overview
+          <BarChart3 className="w-4 h-4 inline" /> Class Overview
         </button>
         <button
           onClick={() => setClassAnalysisTab('trends')}
-          className={`class-sub-tab ${classAnalysisTab === 'trends' ? 'active' : ''}`}
+          className={`px-5 py-3 border-none rounded-lg font-medium cursor-pointer transition-all duration-300 shadow-sm ${classAnalysisTab === 'trends' ? 'bg-[#00A0E3] text-white -translate-y-0.5 shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-800 hover:-translate-y-px'}`}
         >
-          📈 Class Progress Trends
+          <TrendingUp className="w-4 h-4 inline" /> Class Progress Trends
         </button>
         <button
           onClick={() => setClassAnalysisTab('topics')}
-          className={`class-sub-tab ${classAnalysisTab === 'topics' ? 'active' : ''}`}
+          className={`px-5 py-3 border-none rounded-lg font-medium cursor-pointer transition-all duration-300 shadow-sm ${classAnalysisTab === 'topics' ? 'bg-[#00A0E3] text-white -translate-y-0.5 shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-800 hover:-translate-y-px'}`}
         >
           🎯 Chapter-Topic Analysis
         </button>
         <button
           onClick={() => setClassAnalysisTab('submitted')}
-          className={`class-sub-tab ${classAnalysisTab === 'submitted' ? 'active' : ''}`}
+          className={`px-5 py-3 border-none rounded-lg font-medium cursor-pointer transition-all duration-300 shadow-sm ${classAnalysisTab === 'submitted' ? 'bg-[#00A0E3] text-white -translate-y-0.5 shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-800 hover:-translate-y-px'}`}
         >
           📝 Submitted Results
         </button>
         <button
           onClick={() => setClassAnalysisTab('summary')}
-          className={`class-sub-tab ${classAnalysisTab === 'summary' ? 'active' : ''}`}
+          className={`px-5 py-3 border-none rounded-lg font-medium cursor-pointer transition-all duration-300 shadow-sm ${classAnalysisTab === 'summary' ? 'bg-[#00A0E3] text-white -translate-y-0.5 shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-800 hover:-translate-y-px'}`}
         >
           📋 Summary
         </button>
       </div>
 
       {/* Class Analysis Content */}
-      <div className="class-analysis-content">
+      <div className="">
         {classAnalysisTab === 'overview' && renderClassOverviewDashboard()}
         {classAnalysisTab === 'trends' && renderClassProgressTrends()}
         {classAnalysisTab === 'topics' && renderTopicAnalysis()}

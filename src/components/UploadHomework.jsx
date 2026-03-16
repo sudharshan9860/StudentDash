@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
-import './UploadHomework.css';
 
 const UploadHomework = () => {
   const [homeworkList, setHomeworkList] = useState([]);
@@ -117,7 +116,7 @@ const UploadHomework = () => {
       const formData = new FormData();
       // keep API compatible: send array with a single id
       formData.append('homework_code', selectedHomeworkId.trim());
-      
+
       // Append multiple PDF files
       pdfFiles.forEach((pdf, index) => {
         formData.append('pdf_response', pdf);
@@ -130,7 +129,7 @@ const UploadHomework = () => {
           setUploadProgress(percentCompleted);
         },
       });
-      
+
 
       if (response.status === 200 || response.status === 201) {
         setSuccess(true);
@@ -160,54 +159,54 @@ const UploadHomework = () => {
   };
 
   return (
-    <div className="upload-homework-container">
-      <div className="upload-homework-wrapper">
-        <h2 className="upload-homework-title">📑 Upload Homework PDF</h2>
+    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8">
+      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-xl font-bold text-[#0B1120] mb-6">Upload Homework PDF</h2>
 
         {error && (
-          <div className="alert alert-error">
-            <span className="alert-icon">❌</span>
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2">
+            <span>&#10060;</span>
             {error}
           </div>
         )}
 
         {success && (
-          <div className="alert alert-success">
-            <span className="alert-icon">✅</span>
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-2">
+            <span>&#9989;</span>
             {pdfFiles.length} homework file(s) uploaded successfully!
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="upload-homework-form">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Homework Selection Section */}
-          <div className="form-section">
-            <h3 className="section-title">Select Homework</h3>
+          <div>
+            <h3 className="text-lg font-semibold text-[#0B1120] mb-3">Select Homework</h3>
 
             {fetchingHomework ? (
-              <div className="loading-spinner">
-                <div className="spinner"></div>
-                <span>Loading homework list...</span>
+              <div className="flex items-center gap-3 py-4">
+                <div className="w-5 h-5 border-2 border-[#00A0E3] border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-gray-500">Loading homework list...</span>
               </div>
             ) : (
               <>
-                <div className="homework-list">
+                <div className="space-y-2 max-h-60 overflow-y-auto">
                   {homeworkList.length === 0 ? (
-                    <div className="empty-state">
+                    <div className="text-center py-4 text-gray-400">
                       <p>No homework available</p>
                     </div>
                   ) : (
                     homeworkList.map((homework) => (
-                      <div className="homework-item" key={homework}>
-                        <label className="checkbox-label">
+                      <div key={homework} className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                        <label className="flex items-center gap-3 cursor-pointer">
                           <input
-                            type="radio"                         // <-- radio
-                            name="homework"                      // same name to group
+                            type="radio"
+                            name="homework"
                             checked={selectedHomeworkId === homework}
                             onChange={() => handleHomeworkSelect(homework)}
-                            className="checkbox-input"
+                            className="w-4 h-4 text-[#00A0E3] focus:ring-[#00A0E3]"
                           />
-                          <div className="homework-info">
-                            <span className="homework-title">
+                          <div>
+                            <span className="font-medium text-[#0B1120]">
                               {homework || `Homework #${homework}`}
                             </span>
                           </div>
@@ -217,7 +216,7 @@ const UploadHomework = () => {
                   )}
                 </div>
 
-                <div className="selected-count">
+                <div className="mt-2 text-sm text-gray-500">
                   {selectedHomeworkId ? '1 homework selected' : '0 homework selected'}
                 </div>
               </>
@@ -225,13 +224,13 @@ const UploadHomework = () => {
           </div>
 
           {/* File Upload Section */}
-          <div className="form-section">
-            <h3 className="section-title">Upload PDF Files</h3>
+          <div>
+            <h3 className="text-lg font-semibold text-[#0B1120] mb-3">Upload PDF Files</h3>
 
-            <div className="file-upload-container">
-              <label htmlFor="pdf-upload" className="file-upload-label">
-                <div className="file-upload-icon">📄</div>
-                <span className="file-upload-text">
+            <div>
+              <label htmlFor="pdf-upload" className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-[#00A0E3] transition-colors">
+                <div className="text-3xl mb-2">&#128196;</div>
+                <span className="text-gray-600">
                   {pdfFiles.length > 0 ? `Choose ${pdfFiles.length} file(s)` : 'Choose PDF files'}
                 </span>
               </label>
@@ -241,31 +240,31 @@ const UploadHomework = () => {
                 accept=".pdf"
                 onChange={handleFileChange}
                 multiple
-                className="file-input"
+                className="hidden"
               />
             </div>
 
             {/* File Preview */}
             {pdfFiles.length > 0 && (
-              <div className="file-preview-container">
-                <div className="file-preview-header">
-                  <span className="file-count">Selected {pdfFiles.length} file(s):</span>
+              <div className="mt-4">
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-600">Selected {pdfFiles.length} file(s):</span>
                 </div>
-                <div className="file-list">
+                <div className="space-y-2">
                   {pdfFiles.map((file, index) => (
-                    <div key={index} className="file-item">
-                      <span className="file-icon">📄</span>
-                      <div className="file-details">
-                        <span className="file-name">{file.name}</span>
-                        <span className="file-size">({formatFileSize(file.size)})</span>
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <span>&#128196;</span>
+                        <span className="text-sm font-medium text-[#0B1120]">{file.name}</span>
+                        <span className="text-xs text-gray-400">({formatFileSize(file.size)})</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => removePdfFile(index)}
-                        className="remove-file-btn"
+                        className="text-red-500 hover:text-red-700 text-lg font-bold px-2"
                         title="Remove file"
                       >
-                        ×
+                        &times;
                       </button>
                     </div>
                   ))}
@@ -276,11 +275,11 @@ const UploadHomework = () => {
 
           {/* Upload Progress */}
           {loading && uploadProgress > 0 && (
-            <div className="upload-progress">
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${uploadProgress}%` }}></div>
+            <div className="space-y-2">
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div className="bg-[#00A0E3] h-full rounded-full transition-all" style={{ width: `${uploadProgress}%` }}></div>
               </div>
-              <span className="progress-text">{uploadProgress}%</span>
+              <span className="text-sm text-gray-600">{uploadProgress}%</span>
             </div>
           )}
 
@@ -288,16 +287,16 @@ const UploadHomework = () => {
           <button
             type="submit"
             disabled={loading || !selectedHomeworkId || pdfFiles.length === 0}
-            className="submit-button"
+            className="w-full bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg px-4 py-3 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
-                <span className="spinner-small"></span>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 Uploading {pdfFiles.length} file(s)...
               </>
             ) : (
               <>
-                <span>📤</span>
+                <span>&#128228;</span>
                 Upload {pdfFiles.length} Homework File(s)
               </>
             )}

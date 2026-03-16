@@ -1,27 +1,25 @@
 // src/components/ChatBotPage.jsx
 import React, { useEffect, useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faPaperPlane,
-  faUpload,
-  faMicrophone,
-  faStop,
-  faTrash,
-  faChartLine,
-  faExclamationTriangle,
-  faBook,
-  faGraduationCap,
-  faRobot,
-  faLightbulb,
-  faWandMagicSparkles,
-  faTimes,
-  faArrowRight,
-} from "@fortawesome/free-solid-svg-icons";
-import { Modal, Button } from "react-bootstrap";
+  Send,
+  Upload,
+  Mic,
+  Square,
+  Trash2,
+  TrendingUp,
+  AlertTriangle,
+  BookOpen,
+  GraduationCap,
+  Bot,
+  Lightbulb,
+  Sparkles,
+  X,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
 import axios from "axios";
 import MarkdownWithMath from "./MarkdownWithMath";
-import "./ChatBotPage.css";
 import { useAlert } from "./AlertBox";
 import { AuthContext } from "./AuthContext";
 import axiosInstance from "../api/axiosInstance";
@@ -39,9 +37,9 @@ const formatMessage = (text) => {
   if (!text) return null;
   if (Array.isArray(text)) {
     return (
-      <div className="paragraph-solution">
+      <div className="space-y-2">
         {text.map((p, i) => (
-          <p key={i} className="solution-paragraph">
+          <p key={i} className="text-sm">
             <MarkdownWithMath content={p} />
           </p>
         ))}
@@ -55,31 +53,31 @@ const formatMessage = (text) => {
 const VideoListComponent = ({ videos }) => {
   if (!videos || videos.length === 0) return null;
   return (
-    <div className="chat-video-list-container">
+    <div className="mt-3 space-y-3">
       {videos.map((videoGroup, gi) => (
-        <div key={gi} className="video-group">
+        <div key={gi}>
           {videoGroup.concept_name && (
-            <h6 className="video-concept-title">{videoGroup.concept_name}</h6>
+            <h6 className="text-xs font-semibold text-slate-500 mb-2">{videoGroup.concept_name}</h6>
           )}
           {videoGroup.videos &&
             videoGroup.videos.map((video, vi) => (
               <div
                 key={`${gi}-${vi}`}
-                className="video-card"
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors"
                 onClick={() => window.open(video.url, "_blank", "noopener,noreferrer")}
                 role="button"
                 tabIndex={0}
               >
-                <div className="video-icon">
+                <div className="shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF0000" width="32" height="32">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                   </svg>
                 </div>
-                <div className="video-info">
-                  <div className="video-title">{video.title}</div>
-                  <div className="video-meta">
-                    {video.channel && <span className="video-meta-item">{video.channel}</span>}
-                    {video.duration && <span className="video-meta-item">{video.duration}</span>}
+                <div className="min-w-0">
+                  <div className="text-sm font-medium truncate">{video.title}</div>
+                  <div className="flex gap-2 text-xs text-slate-400">
+                    {video.channel && <span>{video.channel}</span>}
+                    {video.duration && <span>{video.duration}</span>}
                   </div>
                 </div>
               </div>
@@ -536,40 +534,35 @@ const ChatBotPage = () => {
   };
 
   // ====== SUGGESTION CARDS CONFIG ======
+  const suggestionIconMap = {
+    blue: "text-[#00A0E3]",
+    amber: "text-amber-500",
+    emerald: "text-emerald-500",
+    purple: "text-purple-500",
+  };
+
+  const SuggestionIcon = ({ type, color }) => {
+    const colorClass = suggestionIconMap[color] || "text-slate-500";
+    switch (type) {
+      case "progress": return <TrendingUp size={20} className={colorClass} />;
+      case "weak": return <AlertTriangle size={20} className={colorClass} />;
+      case "remedial": return <BookOpen size={20} className={colorClass} />;
+      case "exam": return <Lightbulb size={20} className={colorClass} />;
+      case "class": return <TrendingUp size={20} className={colorClass} />;
+      default: return <Lightbulb size={20} className={colorClass} />;
+    }
+  };
+
   const studentSuggestions = [
-    {
-      icon: faChartLine, color: "blue",
-      title: "My Progress", desc: "View your learning analytics",
-      message: "What is my progress?",
-    },
-    {
-      icon: faExclamationTriangle, color: "amber",
-      title: "Weak Areas", desc: "Identify areas for improvement",
-      message: "What are my weaknesses?",
-    },
-    {
-      icon: faBook, color: "emerald",
-      title: "Remedial Plan", desc: "Personalized study schedule",
-      isDurationDropdown: true,
-    },
-    {
-      icon: faLightbulb, color: "purple",
-      title: "Exam Analysis", desc: "Question-wise breakdown",
-      isExamDropdown: true,
-    },
+    { type: "progress", color: "blue", title: "My Progress", desc: "View your learning analytics", message: "What is my progress?" },
+    { type: "weak", color: "amber", title: "Weak Areas", desc: "Identify areas for improvement", message: "What are my weaknesses?" },
+    { type: "remedial", color: "emerald", title: "Remedial Plan", desc: "Personalized study schedule", isDurationDropdown: true },
+    { type: "exam", color: "purple", title: "Exam Analysis", desc: "Question-wise breakdown", isExamDropdown: true },
   ];
 
   const teacherSuggestions = [
-    {
-      icon: faChartLine, color: "blue",
-      title: "Class Overview", desc: "Performance across all students",
-      message: "Show class performance overview",
-    },
-    {
-      icon: faLightbulb, color: "purple",
-      title: "Exam Analysis", desc: "Tabular exam-wise breakdown",
-      message: "Give me exam-wise analysis in tabular format",
-    },
+    { type: "class", color: "blue", title: "Class Overview", desc: "Performance across all students", message: "Show class performance overview" },
+    { type: "exam", color: "purple", title: "Exam Analysis", desc: "Tabular exam-wise breakdown", message: "Give me exam-wise analysis in tabular format" },
   ];
 
   const suggestions = userRole === "teacher" ? teacherSuggestions : studentSuggestions;
@@ -618,58 +611,133 @@ const ChatBotPage = () => {
 
   const botAvatar = isDarkMode ? darkModeGif : lightModeGif;
 
+  // ====== INPUT BAR COMPONENT ======
+  const renderInputBar = () => (
+    <div className={`border-t px-4 py-3 ${isDarkMode ? "border-slate-700 bg-[#0B1120]" : "border-slate-200 bg-white"}`}>
+      <div className="max-w-3xl mx-auto">
+        <form onSubmit={sendMessage}>
+          <div className={`flex items-end gap-2 rounded-2xl border-2 px-3 py-2 transition-colors ${
+            isDarkMode ? "border-slate-600 bg-slate-800" : "border-slate-200 bg-[#F8FAFC]"
+          } focus-within:border-[#00A0E3]`}>
+            {previewUrl && (
+              <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0">
+                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                <button type="button" onClick={clearSelectedFile} className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center">
+                  <X size={12} />
+                </button>
+              </div>
+            )}
+            <input
+              type="text"
+              className={`flex-1 bg-transparent border-none outline-none text-sm py-2 ${isDarkMode ? "text-white placeholder-slate-500" : "text-[#0B1120] placeholder-slate-400"}`}
+              placeholder={
+                connectionStatus === "connected"
+                  ? userRole === "teacher"
+                    ? "Ask about student performance, exams..."
+                    : "Ask a question, upload a problem..."
+                  : "Connecting..."
+              }
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={connectionStatus !== "connected" || isTyping}
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => handleFile(e.target.files?.[0])}
+              accept="image/*"
+              style={{ display: "none" }}
+            />
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                className={`p-2 rounded-lg transition-colors ${isDarkMode ? "hover:bg-slate-700 text-slate-400" : "hover:bg-slate-200 text-slate-500"}`}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={connectionStatus !== "connected" || isTyping}
+                title="Upload image"
+              >
+                <Upload size={18} />
+              </button>
+              <button
+                type="button"
+                className={`p-2 rounded-lg transition-colors ${isRecording ? "bg-red-500 text-white" : isDarkMode ? "hover:bg-slate-700 text-slate-400" : "hover:bg-slate-200 text-slate-500"}`}
+                onClick={() => (isRecording ? stopRecording() : startRecording())}
+                disabled={connectionStatus !== "connected" || isTyping}
+                title={isRecording ? "Stop recording" : "Voice input"}
+              >
+                {isRecording ? <Square size={18} /> : <Mic size={18} />}
+              </button>
+              <button
+                type="submit"
+                className="p-2 rounded-lg bg-[#00A0E3] text-white hover:bg-[#0080B8] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={connectionStatus !== "connected" || isTyping || (!newMessage.trim() && !selectedFile)}
+                title="Send"
+              >
+                <Send size={18} />
+              </button>
+            </div>
+          </div>
+        </form>
+        <p className={`text-center text-xs mt-2 ${isDarkMode ? "text-slate-600" : "text-slate-400"}`}>
+          AI can make mistakes. Always verify important information.
+        </p>
+      </div>
+    </div>
+  );
+
   // ====== RENDER ======
   return (
     <>
       <AlertContainer />
-      <div className="chatbot-page">
+      <div className={`flex flex-col h-full ${isDarkMode ? "bg-[#0B1120] text-white" : "bg-white text-[#0B1120]"}`}>
         {/* If no conversation yet, show welcome + cards */}
         {!hasStartedChat && messages.length === 0 ? (
           <>
-            <div className="chatbot-welcome">
-              <div className="chatbot-welcome-avatar">
-                <img src={botAvatar} alt="AI Assistant" />
+            <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+              <div className="w-20 h-20 rounded-full overflow-hidden mb-4">
+                <img src={botAvatar} alt="AI Assistant" className="w-full h-full object-cover" />
               </div>
-              <h1 className="chatbot-welcome-title">
+              <h1 className="text-2xl font-bold mb-2 text-center">
                 {userRole === "teacher" ? "Class Analytics Assistant" : "How can I help you today?"}
               </h1>
-              <p className="chatbot-welcome-subtitle">
+              <p className={`text-sm text-center max-w-lg mb-8 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
                 {userRole === "teacher"
                   ? "Get instant insights on student performance, exam results, and class analytics."
                   : "Ask doubts, analyze performance, get personalized study plans, or upload questions for instant solutions."}
               </p>
 
-              <div className="chatbot-suggestions-grid">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl">
                 {suggestions.map((s, i) => (
                   <div
                     key={i}
-                    className="chatbot-suggestion-card"
+                    className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${
+                      isDarkMode
+                        ? "border-slate-700 hover:border-[#00A0E3] bg-slate-800/50"
+                        : "border-slate-200 hover:border-[#00A0E3] bg-[#F8FAFC]"
+                    }`}
                     onClick={() => handleSuggestionClick(s)}
                   >
-                    <div className={`chatbot-card-icon ${s.color}`}>
-                      <FontAwesomeIcon icon={s.icon} />
+                    <SuggestionIcon type={s.type} color={s.color} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm">{s.title}</div>
+                      <div className={`text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>{s.desc}</div>
                     </div>
-                    <div className="chatbot-card-content">
-                      <div className="chatbot-card-title">{s.title}</div>
-                      <div className="chatbot-card-desc">{s.desc}</div>
-                    </div>
-                    <span className="chatbot-card-arrow">
-                      <FontAwesomeIcon icon={faArrowRight} />
-                    </span>
+                    <ArrowRight size={16} className="text-slate-400 shrink-0" />
                   </div>
                 ))}
               </div>
 
               {/* Exam selector dropdown */}
               {showExamDropdown && (
-                <div className="chatbot-input-suggestions" style={{ marginTop: 16, justifyContent: "center" }}>
+                <div className="flex flex-wrap gap-2 mt-4 justify-center">
                   {isLoadingExams ? (
-                    <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>Loading exams...</span>
+                    <span className="text-xs text-slate-400">Loading exams...</span>
                   ) : examNames.length === 0 ? (
-                    <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>No exams found</span>
+                    <span className="text-xs text-slate-400">No exams found</span>
                   ) : (
                     examNames.map((name, i) => (
-                      <button key={i} className="chatbot-input-chip" onClick={() => handleExamSelect(name)}>
+                      <button key={i} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isDarkMode ? "border-slate-600 hover:border-[#00A0E3] hover:bg-[#00A0E3]/10" : "border-slate-300 hover:border-[#00A0E3] hover:bg-[#00A0E3]/5"}`} onClick={() => handleExamSelect(name)}>
                         {name}
                       </button>
                     ))
@@ -679,9 +747,9 @@ const ChatBotPage = () => {
 
               {/* Duration selector dropdown */}
               {showDurationDropdown && (
-                <div className="chatbot-input-suggestions" style={{ marginTop: 16, justifyContent: "center" }}>
+                <div className="flex flex-wrap gap-2 mt-4 justify-center">
                   {durationOptions.map((opt, i) => (
-                    <button key={i} className="chatbot-input-chip" onClick={() => handleDurationSelect(opt.value)}>
+                    <button key={i} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isDarkMode ? "border-slate-600 hover:border-[#00A0E3] hover:bg-[#00A0E3]/10" : "border-slate-300 hover:border-[#00A0E3] hover:bg-[#00A0E3]/5"}`} onClick={() => handleDurationSelect(opt.value)}>
                       {opt.label}
                     </button>
                   ))}
@@ -690,142 +758,80 @@ const ChatBotPage = () => {
             </div>
 
             {/* Input bar at bottom */}
-            <div className="chatbot-input-bar">
-              <div className="chatbot-input-wrapper">
-                <form onSubmit={sendMessage}>
-                  <div className="chatbot-input-box">
-                    {previewUrl && (
-                      <div className="chatbot-image-preview">
-                        <img src={previewUrl} alt="Preview" />
-                        <button type="button" onClick={clearSelectedFile}>
-                          <FontAwesomeIcon icon={faTimes} />
-                        </button>
-                      </div>
-                    )}
-                    <input
-                      type="text"
-                      className="chatbot-input-field"
-                      placeholder={
-                        connectionStatus === "connected"
-                          ? userRole === "teacher"
-                            ? "Ask about student performance, exams..."
-                            : "Ask a question, upload a problem..."
-                          : "Connecting..."
-                      }
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      disabled={connectionStatus !== "connected" || isTyping}
-                    />
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={(e) => handleFile(e.target.files?.[0])}
-                      accept="image/*"
-                      style={{ display: "none" }}
-                    />
-                    <div className="chatbot-input-actions">
-                      <button
-                        type="button"
-                        className="chatbot-input-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={connectionStatus !== "connected" || isTyping}
-                        title="Upload image"
-                      >
-                        <FontAwesomeIcon icon={faUpload} />
-                      </button>
-                      <button
-                        type="button"
-                        className={`chatbot-input-btn ${isRecording ? "recording" : ""}`}
-                        onClick={() => (isRecording ? stopRecording() : startRecording())}
-                        disabled={connectionStatus !== "connected" || isTyping}
-                        title={isRecording ? "Stop recording" : "Voice input"}
-                      >
-                        <FontAwesomeIcon icon={isRecording ? faStop : faMicrophone} />
-                      </button>
-                      <button
-                        type="submit"
-                        className="chatbot-input-btn send"
-                        disabled={connectionStatus !== "connected" || isTyping || (!newMessage.trim() && !selectedFile)}
-                        title="Send"
-                      >
-                        <FontAwesomeIcon icon={faPaperPlane} />
-                      </button>
-                    </div>
-                  </div>
-                </form>
-                <p className="chatbot-disclaimer">
-                  AI can make mistakes. Always verify important information.
-                </p>
-              </div>
-            </div>
+            {renderInputBar()}
           </>
         ) : (
           /* ====== CONVERSATION VIEW ====== */
-          <div className="chatbot-conversation">
+          <>
             {/* Top bar */}
-            <div className="chatbot-topbar">
-              <div className="chatbot-topbar-left">
-                <img src={botAvatar} alt="AI" className="chatbot-topbar-avatar" />
+            <div className={`flex items-center justify-between px-4 py-3 border-b shrink-0 ${isDarkMode ? "border-slate-700 bg-[#0B1120]" : "border-slate-200 bg-white"}`}>
+              <div className="flex items-center gap-3">
+                <img src={botAvatar} alt="AI" className="w-8 h-8 rounded-full object-cover" />
                 <div>
-                  <div className="chatbot-topbar-title">
+                  <div className="font-semibold text-sm">
                     {userRole === "teacher" ? "Analytics Assistant" : "Math Assistant"}
                   </div>
-                  <div className="chatbot-topbar-status">
+                  <div className={`text-xs ${connectionStatus === "connected" ? "text-green-500" : connectionStatus === "checking" ? "text-amber-500" : "text-red-500"}`}>
                     {connectionStatus === "connected" ? "Online" : connectionStatus === "checking" ? "Connecting..." : "Offline"}
                   </div>
                 </div>
               </div>
-              <div className="chatbot-topbar-actions">
+              <div className="flex items-center gap-2">
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="chatbot-topbar-lang"
+                  className={`text-xs rounded-lg border px-2 py-1 ${isDarkMode ? "bg-slate-800 border-slate-600 text-white" : "bg-white border-slate-200 text-[#0B1120]"}`}
                 >
                   <option value="en">EN</option>
                   <option value="hi">HI</option>
                   <option value="te">TE</option>
                 </select>
                 <button
-                  className="chatbot-topbar-btn"
+                  className={`p-2 rounded-lg transition-colors ${isDarkMode ? "hover:bg-slate-700 text-slate-400" : "hover:bg-slate-100 text-slate-500"}`}
                   onClick={clearChat}
                   disabled={!sessionId}
                   title="New chat"
                 >
-                  <FontAwesomeIcon icon={faTrash} />
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="chatbot-messages-area">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
               {messages.map((m) => (
-                <div key={m.id} className={`chatbot-msg ${m.sender === "user" ? "user" : "ai"}`}>
+                <div key={m.id} className={`flex gap-3 ${m.sender === "user" ? "flex-row-reverse" : ""}`}>
                   {m.sender === "ai" ? (
-                    <div className="chatbot-msg-avatar">
-                      <img src={botAvatar} alt="AI" />
+                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+                      <img src={botAvatar} alt="AI" className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className="chatbot-msg-avatar user-avatar">
+                    <div className="w-8 h-8 rounded-full bg-[#00A0E3] text-white flex items-center justify-center text-xs font-bold shrink-0">
                       {getUserInitials()}
                     </div>
                   )}
-                  <div>
-                    <div className="chatbot-msg-bubble">
+                  <div className={`max-w-[75%] ${m.sender === "user" ? "text-right" : ""}`}>
+                    <div className={`inline-block rounded-2xl px-4 py-3 text-sm ${
+                      m.sender === "user"
+                        ? "bg-[#00A0E3] text-white rounded-br-md"
+                        : isDarkMode
+                          ? "bg-slate-800 border border-slate-700 rounded-bl-md"
+                          : "bg-[#F8FAFC] border border-slate-200 rounded-bl-md"
+                    }`}>
                       <div><MarkdownWithMath content={m.text} /></div>
                       {m.videos && <VideoListComponent videos={m.videos} />}
                       {m.audioUrl && (
-                        <div style={{ marginTop: 8 }}>
-                          <audio controls src={m.audioUrl} />
+                        <div className="mt-2">
+                          <audio controls src={m.audioUrl} className="max-w-full" />
                         </div>
                       )}
                       {m.image && (
-                        <div style={{ marginTop: 8 }}>
-                          <img src={m.image} alt="Uploaded" style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 8 }} />
+                        <div className="mt-2">
+                          <img src={m.image} alt="Uploaded" className="max-w-full max-h-48 rounded-lg" />
                         </div>
                       )}
                     </div>
-                    <div className="chatbot-msg-time">
+                    <div className={`text-xs mt-1 ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
                       {m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
                     </div>
                   </div>
@@ -833,220 +839,169 @@ const ChatBotPage = () => {
               ))}
 
               {isTyping && (
-                <div className="chatbot-msg ai">
-                  <div className="chatbot-msg-avatar">
-                    <img src={botAvatar} alt="AI" />
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+                    <img src={botAvatar} alt="AI" className="w-full h-full object-cover" />
                   </div>
-                  <div className="chatbot-typing">
-                    <span className="chatbot-typing-dot"></span>
-                    <span className="chatbot-typing-dot"></span>
-                    <span className="chatbot-typing-dot"></span>
+                  <div className={`inline-flex gap-1 items-center px-4 py-3 rounded-2xl rounded-bl-md ${isDarkMode ? "bg-slate-800" : "bg-[#F8FAFC]"}`}>
+                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input bar */}
-            <div className="chatbot-input-bar">
-              <div className="chatbot-input-wrapper">
-                {/* Quick suggestions row */}
-                {!isTyping && (
-                  <div className="chatbot-input-suggestions" style={{ marginBottom: 8 }}>
-                    {suggestions.map((s, i) => (
-                      <button
-                        key={i}
-                        className="chatbot-input-chip"
-                        onClick={() => handleSuggestionClick(s)}
-                      >
-                        <FontAwesomeIcon icon={s.icon} style={{ fontSize: "0.7rem" }} />
-                        {s.title}
-                      </button>
-                    ))}
-                  </div>
-                )}
+            {/* Quick suggestions + input bar */}
+            <div>
+              {!isTyping && (
+                <div className={`flex flex-wrap gap-2 px-4 py-2 ${isDarkMode ? "border-t border-slate-700" : "border-t border-slate-100"}`}>
+                  {suggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                        isDarkMode ? "border-slate-600 hover:border-[#00A0E3] hover:bg-[#00A0E3]/10" : "border-slate-200 hover:border-[#00A0E3] hover:bg-[#00A0E3]/5"
+                      }`}
+                      onClick={() => handleSuggestionClick(s)}
+                    >
+                      <SuggestionIcon type={s.type} color={s.color} />
+                      {s.title}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-                {/* Exam/Duration dropdowns */}
-                {showExamDropdown && (
-                  <div className="chatbot-input-suggestions" style={{ marginBottom: 8 }}>
-                    {isLoadingExams ? (
-                      <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>Loading...</span>
-                    ) : examNames.length === 0 ? (
-                      <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>No exams</span>
-                    ) : (
-                      examNames.map((name, i) => (
-                        <button key={i} className="chatbot-input-chip" onClick={() => handleExamSelect(name)}>
-                          {name}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-                {showDurationDropdown && (
-                  <div className="chatbot-input-suggestions" style={{ marginBottom: 8 }}>
-                    {durationOptions.map((opt, i) => (
-                      <button key={i} className="chatbot-input-chip" onClick={() => handleDurationSelect(opt.value)}>
-                        {opt.label}
+              {/* Exam/Duration dropdowns */}
+              {showExamDropdown && (
+                <div className={`flex flex-wrap gap-2 px-4 py-2 ${isDarkMode ? "border-t border-slate-700" : "border-t border-slate-100"}`}>
+                  {isLoadingExams ? (
+                    <span className="text-xs text-slate-400">Loading...</span>
+                  ) : examNames.length === 0 ? (
+                    <span className="text-xs text-slate-400">No exams</span>
+                  ) : (
+                    examNames.map((name, i) => (
+                      <button key={i} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isDarkMode ? "border-slate-600 hover:border-[#00A0E3]" : "border-slate-200 hover:border-[#00A0E3]"}`} onClick={() => handleExamSelect(name)}>
+                        {name}
                       </button>
-                    ))}
+                    ))
+                  )}
+                </div>
+              )}
+              {showDurationDropdown && (
+                <div className={`flex flex-wrap gap-2 px-4 py-2 ${isDarkMode ? "border-t border-slate-700" : "border-t border-slate-100"}`}>
+                  {durationOptions.map((opt, i) => (
+                    <button key={i} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isDarkMode ? "border-slate-600 hover:border-[#00A0E3]" : "border-slate-200 hover:border-[#00A0E3]"}`} onClick={() => handleDurationSelect(opt.value)}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {renderInputBar()}
+            </div>
+          </>
+        )}
+
+        {/* Image Action Modal */}
+        {showImageModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50" onClick={clearSelectedFile} />
+            <div className={`relative rounded-2xl shadow-2xl w-full max-w-md mx-4 ${isDarkMode ? "bg-slate-800" : "bg-white"}`}>
+              <div className={`flex items-center justify-between px-5 py-4 border-b ${isDarkMode ? "border-slate-700" : "border-slate-200"}`}>
+                <h3 className="font-bold">Choose Analysis</h3>
+                <button onClick={clearSelectedFile} className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700"><X size={18} /></button>
+              </div>
+              <div className="p-5">
+                {previewUrl && (
+                  <div className="text-center mb-4">
+                    <img src={previewUrl} alt="preview" className="max-w-full max-h-60 rounded-lg object-contain mx-auto" />
                   </div>
                 )}
-
-                <form onSubmit={sendMessage}>
-                  <div className="chatbot-input-box">
-                    {previewUrl && (
-                      <div className="chatbot-image-preview">
-                        <img src={previewUrl} alt="Preview" />
-                        <button type="button" onClick={clearSelectedFile}>
-                          <FontAwesomeIcon icon={faTimes} />
-                        </button>
-                      </div>
-                    )}
+                <div className="space-y-2">
+                  <button className="w-full py-2.5 rounded-lg font-medium text-white bg-[#00A0E3] hover:bg-[#0080B8] transition-colors disabled:opacity-50" onClick={() => sendImageWithCommand("solve it")} disabled={connectionStatus !== "connected"}>
+                    Solve It
+                  </button>
+                  <button className="w-full py-2.5 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50" onClick={() => sendImageWithCommand("correct it")} disabled={connectionStatus !== "connected"}>
+                    Correct It
+                  </button>
+                  <div className="flex gap-2">
                     <input
                       type="text"
-                      className="chatbot-input-field"
-                      placeholder={
-                        connectionStatus === "connected"
-                          ? "Type your question..."
-                          : "Connecting..."
-                      }
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      disabled={connectionStatus !== "connected" || isTyping}
+                      className={`flex-1 px-3 py-2 rounded-lg border text-sm ${isDarkMode ? "bg-slate-700 border-slate-600 text-white" : "bg-white border-slate-200"}`}
+                      onChange={(e) => setInputText(e.target.value)}
+                      placeholder="Custom instruction..."
                     />
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={(e) => handleFile(e.target.files?.[0])}
-                      accept="image/*"
-                      style={{ display: "none" }}
-                    />
-                    <div className="chatbot-input-actions">
-                      <button
-                        type="button"
-                        className="chatbot-input-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={connectionStatus !== "connected" || isTyping}
-                        title="Upload"
-                      >
-                        <FontAwesomeIcon icon={faUpload} />
-                      </button>
-                      <button
-                        type="button"
-                        className={`chatbot-input-btn ${isRecording ? "recording" : ""}`}
-                        onClick={() => (isRecording ? stopRecording() : startRecording())}
-                        disabled={connectionStatus !== "connected" || isTyping}
-                        title={isRecording ? "Stop" : "Voice"}
-                      >
-                        <FontAwesomeIcon icon={isRecording ? faStop : faMicrophone} />
-                      </button>
-                      <button
-                        type="submit"
-                        className="chatbot-input-btn send"
-                        disabled={connectionStatus !== "connected" || isTyping || (!newMessage.trim() && !selectedFile)}
-                        title="Send"
-                      >
-                        <FontAwesomeIcon icon={faPaperPlane} />
-                      </button>
-                    </div>
+                    <button className="px-4 py-2 rounded-lg font-medium text-white bg-[#00A0E3] hover:bg-[#0080B8] transition-colors disabled:opacity-50" onClick={() => sendImageWithCommand(inputText)} disabled={connectionStatus !== "connected"}>
+                      Send
+                    </button>
                   </div>
-                </form>
-                <p className="chatbot-disclaimer">
-                  AI can make mistakes. Always verify important information.
-                </p>
+                </div>
+              </div>
+              <div className={`flex justify-end px-5 py-3 border-t ${isDarkMode ? "border-slate-700" : "border-slate-200"}`}>
+                <button className={`px-4 py-2 rounded-lg text-sm font-medium ${isDarkMode ? "bg-slate-700 text-slate-300 hover:bg-slate-600" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`} onClick={clearSelectedFile}>Cancel</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Image Action Modal */}
-        <Modal show={showImageModal} onHide={clearSelectedFile} centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Choose Analysis</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {previewUrl && (
-              <div style={{ textAlign: "center", marginBottom: 12 }}>
-                <img src={previewUrl} alt="preview" style={{ maxWidth: "100%", maxHeight: 240, borderRadius: 8, objectFit: "contain" }} />
-              </div>
-            )}
-            <div className="d-grid gap-2">
-              <Button variant="primary" onClick={() => sendImageWithCommand("solve it")} disabled={connectionStatus !== "connected"}>
-                Solve It
-              </Button>
-              <Button variant="success" onClick={() => sendImageWithCommand("correct it")} disabled={connectionStatus !== "connected"}>
-                Correct It
-              </Button>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input
-                  type="text"
-                  style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: "1px solid #dee2e6" }}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Custom instruction..."
-                />
-                <Button onClick={() => sendImageWithCommand(inputText)} disabled={connectionStatus !== "connected"}>
-                  Send
-                </Button>
-              </div>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={clearSelectedFile}>Cancel</Button>
-          </Modal.Footer>
-        </Modal>
-
         {/* AI-Correct Multi-Image Modal */}
-        <Modal show={showCorrectImageModal} onHide={clearCorrectImages} centered size="lg">
-          <Modal.Header closeButton>
-            <Modal.Title>Upload Your Solution for AI-Correct</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <p className="text-muted mb-3">Upload images of your handwritten solution.</p>
-            <input type="file" ref={correctFileInputRef} onChange={handleCorrectFileChange} accept="image/*" multiple style={{ display: "none" }} />
-            {correctImagePreviews.length > 0 && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 8, marginBottom: 16 }}>
-                {correctImagePreviews.map((p, i) => (
-                  <div key={i} style={{ position: "relative", aspectRatio: "1", borderRadius: 8, overflow: "hidden", border: "1px solid #dee2e6" }}>
-                    <img src={p} alt={`${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCorrectImagePreviews((prev) => { if (prev[i]) URL.revokeObjectURL(prev[i]); return prev.filter((_, j) => j !== i); });
-                        setCorrectImageFiles((prev) => prev.filter((_, j) => j !== i));
-                      }}
-                      style={{ position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: "50%", border: "none", background: "rgba(220,53,69,0.9)", color: "#fff", cursor: "pointer", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center" }}
-                    >x</button>
-                  </div>
-                ))}
+        {showCorrectImageModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50" onClick={clearCorrectImages} />
+            <div className={`relative rounded-2xl shadow-2xl w-full max-w-lg mx-4 ${isDarkMode ? "bg-slate-800" : "bg-white"}`}>
+              <div className={`flex items-center justify-between px-5 py-4 border-b ${isDarkMode ? "border-slate-700" : "border-slate-200"}`}>
+                <h3 className="font-bold">Upload Your Solution for AI-Correct</h3>
+                <button onClick={clearCorrectImages} className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700"><X size={18} /></button>
               </div>
-            )}
-            <div
-              style={{ border: "2px dashed #dee2e6", borderRadius: 8, padding: 24, textAlign: "center", cursor: "pointer", background: "#f8f9fa" }}
-              onClick={() => correctFileInputRef.current?.click()}
-            >
-              <FontAwesomeIcon icon={faUpload} size="lg" style={{ color: "#6c757d", marginBottom: 8 }} />
-              <p className="mb-0" style={{ color: "#6c757d" }}>
-                {correctImagePreviews.length > 0 ? "Add more images" : "Click to upload solution images"}
-              </p>
+              <div className="p-5">
+                <p className={`text-sm mb-3 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Upload images of your handwritten solution.</p>
+                <input type="file" ref={correctFileInputRef} onChange={handleCorrectFileChange} accept="image/*" multiple style={{ display: "none" }} />
+                {correctImagePreviews.length > 0 && (
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 mb-4">
+                    {correctImagePreviews.map((p, i) => (
+                      <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                        <img src={p} alt={`${i + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCorrectImagePreviews((prev) => { if (prev[i]) URL.revokeObjectURL(prev[i]); return prev.filter((_, j) => j !== i); });
+                            setCorrectImageFiles((prev) => prev.filter((_, j) => j !== i));
+                          }}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/90 text-white flex items-center justify-center text-xs"
+                        >x</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${isDarkMode ? "border-slate-600 hover:border-slate-500 bg-slate-700/50" : "border-slate-300 hover:border-slate-400 bg-[#F8FAFC]"}`}
+                  onClick={() => correctFileInputRef.current?.click()}
+                >
+                  <Upload size={24} className={`mx-auto mb-2 ${isDarkMode ? "text-slate-500" : "text-slate-400"}`} />
+                  <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    {correctImagePreviews.length > 0 ? "Add more images" : "Click to upload solution images"}
+                  </p>
+                </div>
+              </div>
+              <div className={`flex justify-end gap-2 px-5 py-3 border-t ${isDarkMode ? "border-slate-700" : "border-slate-200"}`}>
+                <button className={`px-4 py-2 rounded-lg text-sm font-medium ${isDarkMode ? "bg-slate-700 text-slate-300 hover:bg-slate-600" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`} onClick={clearCorrectImages}>Cancel</button>
+                <button
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#00A0E3] hover:bg-[#0080B8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={correctImageFiles.length === 0 || isTyping}
+                  onClick={async () => {
+                    const images = [...correctImageFiles];
+                    clearCorrectImages();
+                    await handleApiAction("correct", "AI-Correct", images);
+                  }}
+                >
+                  <Sparkles size={16} />
+                  Submit for AI-Correct
+                </button>
+              </div>
             </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={clearCorrectImages}>Cancel</Button>
-            <Button
-              variant="primary"
-              disabled={correctImageFiles.length === 0 || isTyping}
-              onClick={async () => {
-                const images = [...correctImageFiles];
-                clearCorrectImages();
-                await handleApiAction("correct", "AI-Correct", images);
-              }}
-            >
-              <FontAwesomeIcon icon={faWandMagicSparkles} className="me-1" />
-              Submit for AI-Correct
-            </Button>
-          </Modal.Footer>
-        </Modal>
+          </div>
+        )}
       </div>
     </>
   );

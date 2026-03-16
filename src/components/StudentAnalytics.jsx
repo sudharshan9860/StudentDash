@@ -16,20 +16,18 @@ import {
   Filler,
 } from "chart.js";
 import { AuthContext } from "./AuthContext";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChartLine,
-  faBook,
-  faBullseye,
-  faClipboardList,
-  faFilter,
-  faDownload,
-  faCheckCircle,
-  faTimesCircle,
-  faExclamationTriangle,
-  faLightbulb,
-} from "@fortawesome/free-solid-svg-icons";
-import "./StudentAnalytics.css";
+  TrendingUp,
+  BookOpen,
+  Target,
+  ClipboardList,
+  Filter,
+  Download,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Lightbulb,
+} from "lucide-react";
 
 // Register ChartJS components
 ChartJS.register(
@@ -52,7 +50,7 @@ const StudentAnalytics = () => {
   const [performanceFilter, setPerformanceFilter] = useState("all");
   const [chapterFilter, setChapterFilter] = useState("all");
   const [viewMode, setViewMode] = useState("all"); // all, homework, classwork
-  
+
   // Mock data for the student
   const studentData = {
     name: username || "Student",
@@ -63,7 +61,7 @@ const StudentAnalytics = () => {
   // Date-wise progression data for line chart
   const dateWiseData = {
     labels: [
-      "Aug 31", "Sep 1", "Sep 2", "Sep 3", "Sep 4", "Sep 5", "Sep 6", 
+      "Aug 31", "Sep 1", "Sep 2", "Sep 3", "Sep 4", "Sep 5", "Sep 6",
       "Sep 7", "Sep 8", "Sep 9", "Sep 10", "Sep 11", "Sep 12", "Sep 13",
       "Sep 14", "Sep 15", "Sep 16", "Sep 17", "Sep 18", "Sep 19", "Sep 20",
       "Sep 21", "Sep 23", "Sep 25", "Sep 27", "Sep 29"
@@ -164,7 +162,7 @@ const StudentAnalytics = () => {
   // Chapter Analysis data
   const chapterData = {
     labels: [
-      "Calculus Integration", "Algebra Linear Equations", "Geometry", 
+      "Calculus Integration", "Algebra Linear Equations", "Geometry",
       "Algebra - System of Equations", "Algebra", "Probability",
       "Trigonometry", "Quadratic Equations", "Calculus Derivatives",
       "Functions and Graphs", "Coordinate Geometry"
@@ -312,14 +310,14 @@ const StudentAnalytics = () => {
     { id: "Q1", chapter: "Algebra - Linear Equations", date: "8/30/2025", question: "Find the shortest distance...", score: "15/20", performance: 73, status: "CORRECT", studentMistake: "Irrelevant formula application", approach: "Minimize the distance function using calculus" },
     { id: "Q2", chapter: "Trigonometry", date: "8/31/2025", question: "Find the vertex of parabola...", score: "15/20", performance: 75, status: "CORRECT", studentMistake: "Fig = 5", approach: "Minimize the distance function using calculus" },
     { id: "Q3", chapter: "Calculus - Integration", date: "8/1/2025", question: "Find the system solution...", score: "15/20", performance: 77, status: "CORRECT", studentMistake: "Sy = 6", approach: "Minimize the distance function using calculus" },
-    { id: "Q4", chapter: "Coordinate Geometry", date: "8/2/2025", question: "Find the equation of line...", score: "15/20", performance: 78, status: "CORRECT", studentMistake: "Area = ½ × base × height", approach: "Minimize the distance function using calculus" },
-    { id: "Q5", chapter: "Statistics", date: "8/3/2025", question: "Find the trigonometric value...", score: "15/20", performance: 81, status: "CORRECT", studentMistake: "cos(60°) = 0.5", approach: "Minimize the distance function using calculus" },
+    { id: "Q4", chapter: "Coordinate Geometry", date: "8/2/2025", question: "Find the equation of line...", score: "15/20", performance: 78, status: "CORRECT", studentMistake: "Area = 1/2 x base x height", approach: "Minimize the distance function using calculus" },
+    { id: "Q5", chapter: "Statistics", date: "8/3/2025", question: "Find the trigonometric value...", score: "15/20", performance: 81, status: "CORRECT", studentMistake: "cos(60) = 0.5", approach: "Minimize the distance function using calculus" },
     { id: "Q6", chapter: "Probability", date: "9/4/2025", question: "Find the shortest distance...", score: "17/20", performance: 83, status: "CORRECT", studentMistake: "Calculation error", approach: "Minimize the distance function using calculus" },
     { id: "Q7", chapter: "Quadratic Applications", date: "9/5/2025", question: "Find the vertex of parabola...", score: "17/20", performance: 85, status: "CORRECT", studentMistake: "Minor oversight", approach: "Minimize the distance function using calculus" },
     { id: "Q8", chapter: "Algebra - Linear Equations", date: "9/6/2025", question: "Find the system solution...", score: "17/20", performance: 87, status: "PARTIAL", studentMistake: "Irrelevant formula application", approach: "Minimize the distance function using calculus" },
     { id: "Q9", chapter: "Trigonometry", date: "9/7/2025", question: "Find the equation of line...", score: "18/20", performance: 89, status: "PARTIAL", studentMistake: "Fig = 5", approach: "Minimize the distance function using calculus" },
     { id: "Q10", chapter: "Calculus - Integration", date: "9/8/2025", question: "Find the trigonometric value...", score: "18/20", performance: 91, status: "PARTIAL", studentMistake: "Sy = 6", approach: "Minimize the distance function using calculus" },
-    { id: "Q11", chapter: "Coordinate Geometry", date: "9/9/2025", question: "Find the shortest distance...", score: "19/20", performance: 93, status: "PARTIAL", studentMistake: "Area = ½ × base × height", approach: "Minimize the distance function using calculus" },
+    { id: "Q11", chapter: "Coordinate Geometry", date: "9/9/2025", question: "Find the shortest distance...", score: "19/20", performance: 93, status: "PARTIAL", studentMistake: "Area = 1/2 x base x height", approach: "Minimize the distance function using calculus" },
   ];
 
   // Summary Statistics
@@ -342,40 +340,40 @@ const StudentAnalytics = () => {
   };
 
   return (
-    <Container fluid className="student-analytics-container p-4">
+    <Container fluid className="p-4 bg-[#F8FAFC] min-h-screen">
       {/* Header */}
-      <div className="analytics-header mb-4">
-        <h4 className="mb-1">
-          <FontAwesomeIcon icon={faChartLine} className="me-2" />
+      <div className="mb-6">
+        <h4 className="text-xl font-bold text-[#0B1120] mb-1 flex items-center gap-2">
+          <TrendingUp size={22} className="text-[#00A0E3]" />
           Student Analysis Dashboard
         </h4>
-        <p className="text-muted mb-0">Analyzing performance for {studentData.name} ({studentData.studentId})</p>
+        <p className="text-gray-400 text-sm">Analyzing performance for {studentData.name} ({studentData.studentId})</p>
       </div>
 
       {/* Main Tabs */}
       <Tab.Container activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
-        <Nav variant="pills" className="analytics-tabs mb-4">
+        <Nav variant="pills" className="flex flex-wrap gap-2 mb-6">
           <Nav.Item>
-            <Nav.Link eventKey="datewise" className="px-4">
-              <FontAwesomeIcon icon={faChartLine} className="me-2" />
+            <Nav.Link eventKey="datewise" className="px-4 flex items-center gap-2">
+              <TrendingUp size={14} />
               Score- Date-wise progression
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link eventKey="chapter" className="px-4">
-              <FontAwesomeIcon icon={faBook} className="me-2" />
+            <Nav.Link eventKey="chapter" className="px-4 flex items-center gap-2">
+              <BookOpen size={14} />
               Chapter Analysis
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link eventKey="mistakes" className="px-4">
-              <FontAwesomeIcon icon={faBullseye} className="me-2" />
+            <Nav.Link eventKey="mistakes" className="px-4 flex items-center gap-2">
+              <Target size={14} />
               Mistake-Progress-Analysis
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link eventKey="summary" className="px-4">
-              <FontAwesomeIcon icon={faClipboardList} className="me-2" />
+            <Nav.Link eventKey="summary" className="px-4 flex items-center gap-2">
+              <ClipboardList size={14} />
               Summary
             </Nav.Link>
           </Nav.Item>
@@ -384,54 +382,60 @@ const StudentAnalytics = () => {
         <Tab.Content>
           {/* Date-wise Progression Tab */}
           <Tab.Pane eventKey="datewise">
-            <Card className="border-0 shadow-sm">
-              <Card.Header className="bg-gradient-primary text-white p-3">
-                <div className="d-flex flex-column gap-3">
-                  <h6 className="mb-0">
-                    📊 Homework vs Classwork: Date-wise Performance Analysis
+            <Card className="border-0 shadow-sm rounded-xl">
+              <Card.Header className="bg-gradient-to-r from-[#00A0E3] to-[#0080B8] text-white p-4 rounded-t-xl">
+                <div className="flex flex-col gap-3">
+                  <h6 className="mb-0 font-semibold">
+                    Homework vs Classwork: Date-wise Performance Analysis
                   </h6>
-                  <div className="view-options d-flex gap-2 ms-auto">
-                    <Button 
-                      size="sm" 
-                      variant={viewOption === 'combined' ? 'light' : 'outline-light'}
+                  <div className="flex gap-2 ml-auto">
+                    <button
+                      className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                        viewOption === 'combined'
+                          ? 'bg-white text-[#0B1120]'
+                          : 'bg-transparent border border-white/50 text-white hover:bg-white/10'
+                      }`}
                       onClick={() => setViewOption('combined')}
-                      className="view-toggle-btn"
                     >
-                      📊 Combined View
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={viewOption === 'homework' ? 'light' : 'outline-light'}
+                      Combined View
+                    </button>
+                    <button
+                      className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                        viewOption === 'homework'
+                          ? 'bg-white text-[#0B1120]'
+                          : 'bg-transparent border border-white/50 text-white hover:bg-white/10'
+                      }`}
                       onClick={() => setViewOption('homework')}
-                      className="view-toggle-btn"
                     >
-                      📘 Homework Only
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={viewOption === 'classwork' ? 'light' : 'outline-light'}
+                      Homework Only
+                    </button>
+                    <button
+                      className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                        viewOption === 'classwork'
+                          ? 'bg-white text-[#0B1120]'
+                          : 'bg-transparent border border-white/50 text-white hover:bg-white/10'
+                      }`}
                       onClick={() => setViewOption('classwork')}
-                      className="view-toggle-btn"
                     >
-                      📗 Classwork Only
-                    </Button>
+                      Classwork Only
+                    </button>
                   </div>
                 </div>
               </Card.Header>
               <Card.Body>
                 <div style={{ height: "400px", padding: "20px" }}>
-                  <Line 
+                  <Line
                     data={{
                       ...dateWiseData,
                       datasets: viewOption === 'combined' ? dateWiseData.datasets :
                                viewOption === 'homework' ? [dateWiseData.datasets[0]] :
                                [dateWiseData.datasets[1]]
                     }}
-                    options={lineChartOptions} 
+                    options={lineChartOptions}
                   />
                 </div>
-                <div className="text-end mt-3">
-                  <span className="badge bg-warning text-dark me-2">Improvement Trend: 13% per assignment</span>
+                <div className="text-right mt-3">
+                  <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs rounded-full font-medium">Improvement Trend: 13% per assignment</span>
                 </div>
               </Card.Body>
             </Card>
@@ -439,14 +443,14 @@ const StudentAnalytics = () => {
 
           {/* Chapter Analysis Tab */}
           <Tab.Pane eventKey="chapter">
-            <Card className="border-0 shadow-sm">
-              <Card.Header className="bg-info text-white">
-                <div className="d-flex justify-content-between align-items-center">
-                  <h6 className="mb-0">📚 Topic Analysis</h6>
-                  <div className="view-options d-flex gap-2">
-                    <Button size="sm" variant="light">
-                      📊 View Options
-                    </Button>
+            <Card className="border-0 shadow-sm rounded-xl">
+              <Card.Header className="bg-cyan-500 text-white rounded-t-xl">
+                <div className="flex justify-between items-center">
+                  <h6 className="mb-0 font-semibold">Topic Analysis</h6>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1.5 text-xs bg-white text-[#0B1120] rounded-lg">
+                      View Options
+                    </button>
                   </div>
                 </div>
               </Card.Header>
@@ -454,34 +458,26 @@ const StudentAnalytics = () => {
                 <div style={{ height: "400px", padding: "20px" }}>
                   <Bar data={chapterData} options={barChartOptions} />
                 </div>
-                <Row className="mt-4">
-                  <Col md={6}>
-                    <Card className="border-0 bg-light">
-                      <Card.Body>
-                        <h6>💡 Focus on Calculus Integration</h6>
-                        <small className="text-muted">23% performance, 10% weightage</small>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                  <Col md={6}>
-                    <Card className="border-0 bg-light">
-                      <Card.Body>
-                        <h6>💪 Strong in Coordinate Geometry</h6>
-                        <small className="text-muted">93% performance, 8% weightage</small>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                </Row>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="bg-[#F8FAFC] rounded-xl p-4">
+                    <h6 className="font-semibold text-[#0B1120] mb-1">Focus on Calculus Integration</h6>
+                    <span className="text-xs text-gray-400">23% performance, 10% weightage</span>
+                  </div>
+                  <div className="bg-[#F8FAFC] rounded-xl p-4">
+                    <h6 className="font-semibold text-[#0B1120] mb-1">Strong in Coordinate Geometry</h6>
+                    <span className="text-xs text-gray-400">93% performance, 8% weightage</span>
+                  </div>
+                </div>
               </Card.Body>
             </Card>
           </Tab.Pane>
 
           {/* Mistake Analysis Tab */}
           <Tab.Pane eventKey="mistakes">
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm rounded-xl">
               <Card.Body>
-                <h5 className="mb-4">
-                  <FontAwesomeIcon icon={faBullseye} className="me-2 text-info" />
+                <h5 className="mb-4 font-semibold text-[#0B1120] flex items-center gap-2">
+                  <Target size={20} className="text-cyan-500" />
                   Mistake-Progress-Analysis
                 </h5>
                 <Row>
@@ -490,57 +486,45 @@ const StudentAnalytics = () => {
                       <Doughnut data={mistakeData} options={doughnutOptions} />
                     </div>
                     <div className="text-center mt-3">
-                      <p className="text-muted">
-                        Total: <strong>150</strong> Questions
+                      <p className="text-gray-400 text-sm">
+                        Total: <strong className="text-[#0B1120]">150</strong> Questions
                       </p>
                     </div>
                   </Col>
                   <Col md={6}>
                     <div className="mt-4">
-                      <h6 className="mb-3">📊 Priority Chapters (Based on NCERT Weightage)</h6>
-                      <Row className="g-3">
-                        <Col xs={12}>
-                          <Card className="border-0 bg-danger bg-opacity-10">
-                            <Card.Body>
-                              <h6 className="text-danger mb-2">🔴 HIGH PRIORITY</h6>
-                              <p className="mb-1 fw-bold">Calculus - Integration</p>
-                              <small className="text-muted">23% performance, 10% weightage</small>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                        <Col xs={12}>
-                          <Card className="border-0 bg-warning bg-opacity-10">
-                            <Card.Body>
-                              <h6 className="text-warning mb-2">⚠ MEDIUM PRIORITY</h6>
-                              <p className="mb-1 fw-bold">Quadratic Applications</p>
-                              <small className="text-muted">83% performance, 12% weightage</small>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                        <Col xs={12}>
-                          <Card className="border-0 bg-success bg-opacity-10">
-                            <Card.Body>
-                              <h6 className="text-success mb-2">✅ MAINTAIN</h6>
-                              <p className="mb-1 fw-bold">Trigonometry</p>
-                              <small className="text-muted">93% performance, 10% weightage</small>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                      </Row>
+                      <h6 className="mb-3 font-semibold text-[#0B1120]">Priority Chapters (Based on NCERT Weightage)</h6>
+                      <div className="space-y-3">
+                        <div className="bg-red-50 rounded-xl p-4">
+                          <h6 className="text-red-600 font-semibold mb-2 text-sm">HIGH PRIORITY</h6>
+                          <p className="mb-1 font-bold text-[#0B1120]">Calculus - Integration</p>
+                          <span className="text-xs text-gray-400">23% performance, 10% weightage</span>
+                        </div>
+                        <div className="bg-amber-50 rounded-xl p-4">
+                          <h6 className="text-amber-600 font-semibold mb-2 text-sm">MEDIUM PRIORITY</h6>
+                          <p className="mb-1 font-bold text-[#0B1120]">Quadratic Applications</p>
+                          <span className="text-xs text-gray-400">83% performance, 12% weightage</span>
+                        </div>
+                        <div className="bg-emerald-50 rounded-xl p-4">
+                          <h6 className="text-emerald-600 font-semibold mb-2 text-sm">MAINTAIN</h6>
+                          <p className="mb-1 font-bold text-[#0B1120]">Trigonometry</p>
+                          <span className="text-xs text-gray-400">93% performance, 10% weightage</span>
+                        </div>
+                      </div>
                     </div>
                   </Col>
                 </Row>
-                
+
                 {/* Filtered Results Section */}
-                <div className="mt-5">
-                  <h6 className="mb-3">
-                    <FontAwesomeIcon icon={faFilter} className="me-2" />
+                <div className="mt-8">
+                  <h6 className="mb-3 font-semibold text-[#0B1120] flex items-center gap-2">
+                    <Filter size={16} className="text-[#00A0E3]" />
                     Explore Your Questions In Different Ways
                   </h6>
                   <Row className="mb-3">
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label>📊 Filter By Performance Percentage</Form.Label>
+                        <Form.Label className="text-sm text-gray-600">Filter By Performance Percentage</Form.Label>
                         <Form.Select value={performanceFilter} onChange={(e) => setPerformanceFilter(e.target.value)}>
                           <option value="all">All Percentages</option>
                           <option value="90-100">90-100%</option>
@@ -552,7 +536,7 @@ const StudentAnalytics = () => {
                     </Col>
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label>📚 Filter By Chapter</Form.Label>
+                        <Form.Label className="text-sm text-gray-600">Filter By Chapter</Form.Label>
                         <Form.Select value={chapterFilter} onChange={(e) => setChapterFilter(e.target.value)}>
                           <option value="all">All Chapters</option>
                           <option value="algebra">Algebra</option>
@@ -566,17 +550,17 @@ const StudentAnalytics = () => {
                 </div>
               </Card.Body>
             </Card>
-            
+
             {/* Filtered Results Table */}
-            <Card className="mt-4 border-0 shadow-sm">
-              <Card.Header className="bg-light">
-                <h6 className="mb-0">📋 Filtered Results - 20 Questions Found</h6>
-                <small className="text-muted">Showing questions based on your selected filters</small>
+            <Card className="mt-4 border-0 shadow-sm rounded-xl">
+              <Card.Header className="bg-[#F8FAFC] rounded-t-xl">
+                <h6 className="mb-0 font-semibold text-[#0B1120]">Filtered Results - 20 Questions Found</h6>
+                <small className="text-gray-400">Showing questions based on your selected filters</small>
               </Card.Header>
               <Card.Body className="p-0">
                 <div className="table-responsive">
                   <Table hover className="mb-0">
-                    <thead className="bg-light">
+                    <thead className="bg-[#F8FAFC]">
                       <tr>
                         <th style={{ width: '5%' }}>Question ID</th>
                         <th style={{ width: '15%' }}>Chapter</th>
@@ -593,42 +577,46 @@ const StudentAnalytics = () => {
                     <tbody>
                       {filteredResults.map((result) => (
                         <tr key={result.id}>
-                          <td className="fw-bold text-primary">{result.id}</td>
+                          <td className="font-bold text-[#00A0E3]">{result.id}</td>
                           <td><small>{result.chapter}</small></td>
                           <td><small>{result.date}</small></td>
                           <td><small>{result.question}</small></td>
                           <td><strong>{result.score}</strong></td>
                           <td>
-                            <div className="d-flex align-items-center">
-                              <ProgressBar 
-                                now={result.performance} 
+                            <div className="flex items-center gap-2">
+                              <ProgressBar
+                                now={result.performance}
                                 variant={result.performance >= 80 ? 'success' : result.performance >= 60 ? 'warning' : 'danger'}
-                                style={{ width: '60px', height: '6px' }} 
+                                style={{ width: '60px', height: '6px' }}
                                 className="me-2"
                               />
                               <small>{result.performance}%</small>
                             </div>
                           </td>
-                          <td><small className="text-muted">First submission, no prior mistakes</small></td>
+                          <td><small className="text-gray-400">First submission, no prior mistakes</small></td>
                           <td>
-                            <span className={`badge bg-${result.status === 'CORRECT' ? 'success' : 'warning'}`}>
+                            <span className={`inline-block px-2 py-0.5 text-xs rounded-full font-medium ${
+                              result.status === 'CORRECT'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-amber-100 text-amber-700'
+                            }`}>
                               {result.status}
                             </span>
                           </td>
-                          <td><small className="text-danger">{result.studentMistake}</small></td>
-                          <td><small className="text-success">{result.approach}</small></td>
+                          <td><small className="text-red-500">{result.studentMistake}</small></td>
+                          <td><small className="text-emerald-500">{result.approach}</small></td>
                         </tr>
                       ))}
                     </tbody>
                   </Table>
                 </div>
               </Card.Body>
-              <Card.Footer className="bg-white">
-                <div className="d-flex justify-content-between align-items-center">
-                  <small className="text-muted">Showing 1-11 of 20 results</small>
-                  <div>
-                    <Button size="sm" variant="outline-primary" className="me-2">Previous</Button>
-                    <Button size="sm" variant="outline-primary">Next</Button>
+              <Card.Footer className="bg-white rounded-b-xl">
+                <div className="flex justify-between items-center">
+                  <small className="text-gray-400">Showing 1-11 of 20 results</small>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1.5 text-sm border border-[#00A0E3] text-[#00A0E3] rounded-lg hover:bg-[#00A0E3] hover:text-white transition-colors">Previous</button>
+                    <button className="px-3 py-1.5 text-sm border border-[#00A0E3] text-[#00A0E3] rounded-lg hover:bg-[#00A0E3] hover:text-white transition-colors">Next</button>
                   </div>
                 </div>
               </Card.Footer>
@@ -638,181 +626,146 @@ const StudentAnalytics = () => {
           {/* Summary Tab */}
           <Tab.Pane eventKey="summary">
             <div className="mb-4">
-              <h5 className="mb-3">📊 Student Performance Summary</h5>
-              <div className="d-flex gap-2 mb-3">
-                <Button 
-                  variant={viewMode === 'all' ? 'success' : 'outline-success'}
-                  size="sm"
+              <h5 className="mb-3 font-bold text-[#0B1120]">Student Performance Summary</h5>
+              <div className="flex gap-2 mb-4">
+                <button
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    viewMode === 'all'
+                      ? 'bg-emerald-500 text-white'
+                      : 'border border-emerald-500 text-emerald-500 hover:bg-emerald-50'
+                  }`}
                   onClick={() => setViewMode('all')}
                 >
-                  ✅ All Data
-                </Button>
-                <Button 
-                  variant={viewMode === 'homework' ? 'primary' : 'outline-primary'}
-                  size="sm"
+                  All Data
+                </button>
+                <button
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    viewMode === 'homework'
+                      ? 'bg-[#00A0E3] text-white'
+                      : 'border border-[#00A0E3] text-[#00A0E3] hover:bg-blue-50'
+                  }`}
                   onClick={() => setViewMode('homework')}
                 >
-                  📘 Homework
-                </Button>
-                <Button 
-                  variant={viewMode === 'classwork' ? 'secondary' : 'outline-secondary'}
-                  size="sm"
+                  Homework
+                </button>
+                <button
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    viewMode === 'classwork'
+                      ? 'bg-gray-600 text-white'
+                      : 'border border-gray-400 text-gray-600 hover:bg-gray-50'
+                  }`}
                   onClick={() => setViewMode('classwork')}
                 >
-                  📗 Classwork
-                </Button>
+                  Classwork
+                </button>
               </div>
-              
-              {/* Performance Statistics Cards */}
-              <Row className="mb-4">
-                <Col md={3}>
-                  <Card className="text-center border-0 shadow-sm">
-                    <Card.Body>
-                      <h2 className="text-primary mb-0">{summaryStats.assessments}</h2>
-                      <small className="text-muted text-uppercase">Assessments</small>
-                    </Card.Body>
-                  </Card>
-                </Col>
-                <Col md={3}>
-                  <Card className="text-center border-0 shadow-sm">
-                    <Card.Body>
-                      <h2 className="text-info mb-0">{summaryStats.chapters}</h2>
-                      <small className="text-muted text-uppercase">Chapters</small>
-                    </Card.Body>
-                  </Card>
-                </Col>
-                <Col md={3}>
-                  <Card className="text-center border-0 shadow-sm">
-                    <Card.Body>
-                      <h2 className="text-success mb-0">{summaryStats.questions}</h2>
-                      <small className="text-muted text-uppercase">Questions</small>
-                    </Card.Body>
-                  </Card>
-                </Col>
-                <Col md={3}>
-                  <Card className="text-center border-0 shadow-sm">
-                    <Card.Body>
-                      <h2 className="text-warning mb-0">{summaryStats.accuracy}%</h2>
-                      <small className="text-muted text-uppercase">Accuracy</small>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </Row>
 
-              <Row>
+              {/* Performance Statistics Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white rounded-xl shadow-sm text-center p-5">
+                  <h2 className="text-3xl font-bold text-[#00A0E3] mb-0">{summaryStats.assessments}</h2>
+                  <span className="text-xs text-gray-400 uppercase tracking-wide">Assessments</span>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm text-center p-5">
+                  <h2 className="text-3xl font-bold text-cyan-500 mb-0">{summaryStats.chapters}</h2>
+                  <span className="text-xs text-gray-400 uppercase tracking-wide">Chapters</span>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm text-center p-5">
+                  <h2 className="text-3xl font-bold text-emerald-500 mb-0">{summaryStats.questions}</h2>
+                  <span className="text-xs text-gray-400 uppercase tracking-wide">Questions</span>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm text-center p-5">
+                  <h2 className="text-3xl font-bold text-amber-500 mb-0">{summaryStats.accuracy}%</h2>
+                  <span className="text-xs text-gray-400 uppercase tracking-wide">Accuracy</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Overall Performance Card */}
-                <Col md={6}>
-                  <Card className="border-0 shadow-sm h-100">
-                    <Card.Body>
-                      <h6 className="text-muted mb-3">
-                        <FontAwesomeIcon icon={faChartLine} className="me-2 text-primary" />
-                        Overall Performance
-                      </h6>
-                      <div className="text-center mb-4">
-                        <h1 className="text-primary display-3">59%</h1>
-                        <p className="text-muted">Focus on homework completion to improve understanding</p>
-                      </div>
-                      <Row className="text-center">
-                        <Col xs={6}>
-                          <div>
-                            <p className="mb-1 text-muted">Homework Avg:</p>
-                            <h4>{summaryStats.homeworkAvg}%</h4>
-                          </div>
-                        </Col>
-                        <Col xs={6}>
-                          <div>
-                            <p className="mb-1 text-muted">Classwork Avg:</p>
-                            <h4>{summaryStats.classworkAvg}%</h4>
-                          </div>
-                        </Col>
-                      </Row>
-                      <hr />
-                      <Row className="text-center">
-                        <Col xs={6}>
-                          <div>
-                            <p className="mb-1 text-muted">Performance Gap:</p>
-                            <h5 className="text-danger">{summaryStats.performanceGap}%</h5>
-                          </div>
-                        </Col>
-                        <Col xs={6}>
-                          <div>
-                            <p className="mb-1 text-muted">Improvement Rate:</p>
-                            <h5 className="text-success">+{summaryStats.improvementRate}%</h5>
-                          </div>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-                </Col>
+                <div className="bg-white rounded-xl shadow-sm p-6 h-full">
+                  <h6 className="text-gray-400 mb-4 flex items-center gap-2 text-sm">
+                    <TrendingUp size={16} className="text-[#00A0E3]" />
+                    Overall Performance
+                  </h6>
+                  <div className="text-center mb-6">
+                    <h1 className="text-6xl font-bold text-[#00A0E3]">59%</h1>
+                    <p className="text-gray-400 text-sm mt-2">Focus on homework completion to improve understanding</p>
+                  </div>
+                  <div className="grid grid-cols-2 text-center mb-4">
+                    <div>
+                      <p className="mb-1 text-gray-400 text-sm">Homework Avg:</p>
+                      <h4 className="text-xl font-bold text-[#0B1120]">{summaryStats.homeworkAvg}%</h4>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-gray-400 text-sm">Classwork Avg:</p>
+                      <h4 className="text-xl font-bold text-[#0B1120]">{summaryStats.classworkAvg}%</h4>
+                    </div>
+                  </div>
+                  <hr className="border-gray-100" />
+                  <div className="grid grid-cols-2 text-center mt-4">
+                    <div>
+                      <p className="mb-1 text-gray-400 text-sm">Performance Gap:</p>
+                      <h5 className="text-lg font-bold text-red-500">{summaryStats.performanceGap}%</h5>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-gray-400 text-sm">Improvement Rate:</p>
+                      <h5 className="text-lg font-bold text-emerald-500">+{summaryStats.improvementRate}%</h5>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Priority Chapters Card */}
-                <Col md={6}>
-                  <Card className="border-0 shadow-sm h-100">
-                    <Card.Body>
-                      <h6 className="text-muted mb-3">
-                        <FontAwesomeIcon icon={faExclamationTriangle} className="me-2 text-warning" />
-                        Priority Chapters (NCERT Weightage)
-                      </h6>
-                      
-                      <div className="mb-4">
-                        <Card className="border-0 bg-danger bg-opacity-10 mb-3">
-                          <Card.Body className="py-3">
-                            <h6 className="text-danger mb-2">🔴 HIGH PRIORITY</h6>
-                            <p className="mb-1 fw-bold">Calculus - Integration</p>
-                            <small className="text-muted">23% performance • 10% weightage</small>
-                          </Card.Body>
-                        </Card>
+                <div className="bg-white rounded-xl shadow-sm p-6 h-full">
+                  <h6 className="text-gray-400 mb-4 flex items-center gap-2 text-sm">
+                    <AlertTriangle size={16} className="text-amber-500" />
+                    Priority Chapters (NCERT Weightage)
+                  </h6>
 
-                        <Card className="border-0 bg-warning bg-opacity-10 mb-3">
-                          <Card.Body className="py-3">
-                            <h6 className="text-warning mb-2">⚠ MEDIUM PRIORITY</h6>
-                            <p className="mb-1 fw-bold">Quadratic Applications</p>
-                            <small className="text-muted">83% performance • 12% weightage</small>
-                          </Card.Body>
-                        </Card>
+                  <div className="space-y-3">
+                    <div className="bg-red-50 rounded-xl p-4">
+                      <h6 className="text-red-600 font-semibold mb-2 text-sm">HIGH PRIORITY</h6>
+                      <p className="mb-1 font-bold text-[#0B1120]">Calculus - Integration</p>
+                      <span className="text-xs text-gray-400">23% performance - 10% weightage</span>
+                    </div>
 
-                        <Card className="border-0 bg-success bg-opacity-10">
-                          <Card.Body className="py-3">
-                            <h6 className="text-success mb-2">✅ MAINTAIN PRIORITY</h6>
-                            <p className="mb-1 fw-bold">Trigonometry</p>
-                            <small className="text-muted">93% performance • 10% weightage</small>
-                          </Card.Body>
-                        </Card>
-                      </div>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </Row>
+                    <div className="bg-amber-50 rounded-xl p-4">
+                      <h6 className="text-amber-600 font-semibold mb-2 text-sm">MEDIUM PRIORITY</h6>
+                      <p className="mb-1 font-bold text-[#0B1120]">Quadratic Applications</p>
+                      <span className="text-xs text-gray-400">83% performance - 12% weightage</span>
+                    </div>
+
+                    <div className="bg-emerald-50 rounded-xl p-4">
+                      <h6 className="text-emerald-600 font-semibold mb-2 text-sm">MAINTAIN PRIORITY</h6>
+                      <p className="mb-1 font-bold text-[#0B1120]">Trigonometry</p>
+                      <span className="text-xs text-gray-400">93% performance - 10% weightage</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* Recommendations */}
-              <Card className="mt-4 border-0 shadow-sm">
-                <Card.Body>
-                  <h6 className="mb-3">
-                    <FontAwesomeIcon icon={faLightbulb} className="me-2 text-warning" />
-                    Recommendations
-                  </h6>
-                  <Row>
-                    <Col md={6}>
-                      <div className="d-flex align-items-center p-3 bg-light rounded mb-3">
-                        <FontAwesomeIcon icon={faBook} className="text-primary me-3" size="2x" />
-                        <div>
-                          <h6 className="mb-1">Review fundamental concepts thoroughly</h6>
-                          <small className="text-muted">Focus on understanding basic principles before solving complex problems</small>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={6}>
-                      <div className="d-flex align-items-center p-3 bg-light rounded mb-3">
-                        <FontAwesomeIcon icon={faCheckCircle} className="text-success me-3" size="2x" />
-                        <div>
-                          <h6 className="mb-1">Continue regular practice to maintain momentum</h6>
-                          <small className="text-muted">Your improvement trend shows consistent progress</small>
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
+              <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
+                <h6 className="mb-4 font-semibold text-[#0B1120] flex items-center gap-2">
+                  <Lightbulb size={18} className="text-amber-500" />
+                  Recommendations
+                </h6>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-4 p-4 bg-[#F8FAFC] rounded-xl">
+                    <BookOpen size={32} className="text-[#00A0E3] flex-shrink-0" />
+                    <div>
+                      <h6 className="font-semibold text-[#0B1120] mb-1">Review fundamental concepts thoroughly</h6>
+                      <span className="text-xs text-gray-400">Focus on understanding basic principles before solving complex problems</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-[#F8FAFC] rounded-xl">
+                    <CheckCircle size={32} className="text-emerald-500 flex-shrink-0" />
+                    <div>
+                      <h6 className="font-semibold text-[#0B1120] mb-1">Continue regular practice to maintain momentum</h6>
+                      <span className="text-xs text-gray-400">Your improvement trend shows consistent progress</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </Tab.Pane>
         </Tab.Content>

@@ -1,25 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Nav, Badge, Row, Col, Card, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUser,
-  faSchool,
-  faHome,
-  faChevronRight,
-  faCheckCircle,
-  faTimesCircle,
-  faExclamationCircle,
-  faCode,
-  faCalculator,
-  faSquareRootAlt,
-  faBook,
-  faClock,
-  faFileAlt
-} from '@fortawesome/free-solid-svg-icons';
+  User,
+  School,
+  Home,
+  ChevronRight,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Code,
+  Calculator,
+  Radical,
+  BookOpen,
+  Clock,
+  FileText,
+} from 'lucide-react';
 import axiosInstance from '../api/axiosInstance';
 import SessionDetails from './SessionDetails';
-import './UnifiedSessions.css';
 import HomeworkDetailsModal from './HomeworkDetailsModal';
 import ClassworkDetailsModal from './ClassworkDetailsModal ';
 import ExamDetailsModal from './ExamDetailsModal';
@@ -36,7 +33,7 @@ const UnifiedSessions = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('darkMode') === 'true';
   });
-  
+
   // Data state
   const [recentSessions, setRecentSessions] = useState([]);
   const [homeworkSubmissions, setHomeworkSubmissions] = useState([]);
@@ -53,11 +50,11 @@ const UnifiedSessions = () => {
   // Selection state for self sessions
   const [selectedSession, setSelectedSession] = useState(null);
   const [showSessionDetails, setShowSessionDetails] = useState(false);
-  
+
   // Selection state for homework
   const [selectedHomework, setSelectedHomework] = useState(null);
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
-  
+
   // Selection state for classwork
   const [selectedClasswork, setSelectedClasswork] = useState(null);
   const [showClassworkModal, setShowClassworkModal] = useState(false);
@@ -122,7 +119,7 @@ useEffect(() => {
       setLoadingSessions(true);
       setError(null);
       const response = await axiosInstance.get('/sessiondata/');
-      
+
       if (response.data && response.data.status === 'success' && Array.isArray(response.data.sessions)) {
         const allGapData = response.data.sessions.flatMap(session => {
           try {
@@ -317,13 +314,13 @@ useEffect(() => {
   // Icon/color helpers
   const getSessionIcon = (subject, answeringType) => {
     if (subject && subject.toLowerCase().includes('math')) {
-      return faCalculator;
+      return Calculator;
     } else if ((subject && subject.toLowerCase().includes('code')) || (subject && subject.toLowerCase().includes('computer'))) {
-      return faCode;
+      return Code;
     } else if (answeringType === 'solve') {
-      return faSquareRootAlt;
+      return Radical;
     } else {
-      return faBook;
+      return BookOpen;
     }
   };
 
@@ -339,7 +336,7 @@ useEffect(() => {
     } else if (subject && subject.toLowerCase().includes('biology')) {
       return '#8E44AD';
     } else {
-      return '#00C1D4';
+      return '#00A0E3';
     }
   };
 
@@ -375,11 +372,11 @@ useEffect(() => {
   const getStatusInfo = (submission) => {
     const percentage = submission.overall_percentage || submission.percentage || 0;
     if (percentage >= 80) {
-      return { icon: faCheckCircle, color: '#34A853', status: 'Excellent' };
+      return { color: '#34A853', status: 'Excellent' };
     } else if (percentage >= 60) {
-      return { icon: faExclamationCircle, color: '#FBBC05', status: 'Good' };
+      return { color: '#FBBC05', status: 'Good' };
     } else {
-      return { icon: faTimesCircle, color: '#EA4335', status: 'Needs Improvement' };
+      return { color: '#EA4335', status: 'Needs Improvement' };
     }
   };
 
@@ -387,9 +384,9 @@ useEffect(() => {
     if (!timestamp) return 'N/A';
     try {
       const date = new Date(timestamp);
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
@@ -399,209 +396,24 @@ useEffect(() => {
     }
   };
 
-  // Render recent session card (self tab)
-  const renderSessionCard = (session, index) => (
-    <Col key={index} md={4} sm={6} className="mb-3">
-      <Card 
-        className={`session-card ${isDarkMode ? 'dark-card' : ''}`} 
-        onClick={() => {
-          setSelectedSession(session);
-          setShowSessionDetails(true);
-        }}
-        style={{ borderColor: getSessionColor(session.subject, session.answering_type) }}
-      >
-        <Card.Body className="d-flex align-items-center">
-          <div 
-            className="session-icon-container"
-            style={{ backgroundColor: getSessionColor(session.subject, session.answering_type) }}
-          >
-            <FontAwesomeIcon 
-              icon={getSessionIcon(session.subject, session.answering_type)} 
-              className="session-icon" 
-            />
-          </div>
-          <div className="session-info flex-grow-1 ms-3">
-            <h5 className="session-title">{getSessionTitle(session)}</h5>
-            <div className="d-flex justify-content-between">
-              <span className="session-time">{formatTimeAgo(session.date)}</span>
-              <span className="session-score">
-                Score: <strong>{session.student_score}</strong>
-              </span>
-            </div>
-            {/* <Button
-              variant="outline-info"
-              size="sm"
-              className="mt-2 gap-analysis-btn"
-              onClick={e => {
-                e.stopPropagation();
-                navigate(`/gap-analysis-report`, { state: { session } });
-              }}
-            >
-              Gap Analysis
-            </Button> */}
-          </div>
-          <FontAwesomeIcon icon={faChevronRight} className="session-arrow" />
-        </Card.Body>
-      </Card>
-    </Col>
-  );
-
-  // Render homework submission card
-  const renderHomeworkCard = (submission, index) => {
-    const statusInfo = getStatusInfo(submission);
-    const worksheetId = submission.worksheet_id || submission.homework || `HW-${submission.submission_id}`;
-    
-    return (
-      <Col key={index} md={4} sm={6} className="mb-3">
-        <Card 
-          className={`submission-card ${isDarkMode ? 'dark-card' : ''}`}
-          style={{ borderColor: statusInfo.color }}
-        >
-          <Card.Body>
-            <div className="d-flex align-items-start">
-              {/* <div className="submission-status-icon me-3">
-                <FontAwesomeIcon 
-                  icon={statusInfo.icon} 
-                  size="2x" 
-                  style={{ color: statusInfo.color }}
-                />
-              </div> */}
-              <div className="submission-info flex-grow-1">
-                <h5 className="submission-title mb-1">
-                  {worksheetId}
-                </h5>
-                <div className="submission-meta mb-2">
-                  <small className="text-muted d-block">
-                    {formatDate(submission.submission_date)}
-                  </small>
-                  {/* <div className="mt-1">
-                    <Badge bg={statusInfo.status === 'Excellent' ? 'success' : 
-                              statusInfo.status === 'Good' ? 'warning' : 'danger'}>
-                      {submission.grade || 'N/A'} - {submission.overall_percentage || 0}%
-                    </Badge>
-                  </div> */}
-                </div>
-
-                <div className="mt-3 d-flex gap-2">
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    className="view-details-btn"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setSelectedHomework(submission);
-                      setShowHomeworkModal(true);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                  {/* <Button
-                    variant="outline-info"
-                    size="sm"
-                    className="gap-analysis-btn"
-                    onClick={e => {
-                      e.stopPropagation();
-                      navigate(`/homework-gap-analysis/${worksheetId}`, { state: { submission } });
-                    }}
-                  >
-                    Gap Analysis
-                  </Button> */}
-                </div>
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
-      </Col>
-    );
-  };
-
-  // Render classwork submission card
-  const renderClassworkCard = (submission, index) => {
-    const statusInfo = getStatusInfo(submission);
-    const worksheetId = submission.classwork_code || submission.worksheet_id || `CW-${submission.submission_id}`;
-    
-    return (
-      <Col key={index} md={4} sm={6} className="mb-3">
-        <Card 
-          className={`submission-card ${isDarkMode ? 'dark-card' : ''}`}
-          style={{ borderColor: statusInfo.color }}
-        >
-          <Card.Body>
-            <div className="d-flex align-items-start">
-              {/* <div className="submission-status-icon me-3">
-                <FontAwesomeIcon 
-                  icon={statusInfo.icon} 
-                  size="2x" 
-                  style={{ color: statusInfo.color }}
-                />
-              </div> */}
-              <div className="submission-info flex-grow-1">
-                <h5 className="submission-title mb-1">
-                  {worksheetId}
-                </h5>
-                <div className="submission-meta mb-2">
-                  <small className="text-muted d-block">
-                    {formatDate(submission.submission_date)}
-                  </small>
-                  <div className="mt-1">
-                    {/* <Badge bg={statusInfo.status === 'Excellent' ? 'success' : 
-                              statusInfo.status === 'Good' ? 'warning' : 'danger'}>
-                      {submission.grade || 'N/A'} - {submission.percentage || 0}%
-                    </Badge> */}
-                  </div>
-                </div>
-
-                <div className="mt-3 d-flex gap-2">
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    className="view-details-btn"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setSelectedClasswork(submission);
-                      setShowClassworkModal(true);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                  {/* <Button
-                    variant="outline-info"
-                    size="sm"
-                    className="gap-analysis-btn"
-                    onClick={e => {
-                      e.stopPropagation();
-                      navigate(`/classwork-gap-analysis/${worksheetId}`, { state: { submission } });
-                    }}
-                  >
-                    Gap Analysis
-                  </Button> */}
-                </div>
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
-      </Col>
-    );
-  };
-
   // Helper function to get grade color
   const getGradeColor = (grade) => {
     switch (grade) {
-      case 'A': case 'A+': return 'success';
-      case 'B': case 'B+': return 'info';
-      case 'C': case 'C+': return 'warning';
-      case 'D': return 'danger';
-      case 'F': return 'danger';
-      default: return 'secondary';
+      case 'A': case 'A+': return 'bg-green-100 text-green-800';
+      case 'B': case 'B+': return 'bg-blue-100 text-blue-800';
+      case 'C': case 'C+': return 'bg-yellow-100 text-yellow-800';
+      case 'D': return 'bg-red-100 text-red-800';
+      case 'F': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   // Helper function to get percentage color
   const getPercentageColor = (percentage) => {
-    if (percentage >= 80) return 'success';
-    if (percentage >= 60) return 'info';
-    if (percentage >= 40) return 'warning';
-    return 'danger';
+    if (percentage >= 80) return 'bg-green-100 text-green-800';
+    if (percentage >= 60) return 'bg-blue-100 text-blue-800';
+    if (percentage >= 40) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
   };
 
   // Helper to extract PDF URL from answer_sheet_snapshot (handles multiple formats)
@@ -635,72 +447,178 @@ useEffect(() => {
     setSelectedPdfTitle('');
   };
 
+  // Render recent session card (self tab)
+  const renderSessionCard = (session, index) => {
+    const SessionIcon = getSessionIcon(session.subject, session.answering_type);
+    const sessionColor = getSessionColor(session.subject, session.answering_type);
+
+    return (
+      <div key={index} className="w-full sm:w-1/2 lg:w-1/3 p-2">
+        <div
+          className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-md transition-all duration-200 flex items-center gap-4"
+          onClick={() => {
+            setSelectedSession(session);
+            setShowSessionDetails(true);
+          }}
+          style={{ borderLeftWidth: '4px', borderLeftColor: sessionColor }}
+        >
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: sessionColor }}
+          >
+            <SessionIcon className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h5 className="text-sm font-semibold text-[#0B1120] truncate">{getSessionTitle(session)}</h5>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-xs text-gray-400">{formatTimeAgo(session.date)}</span>
+              <span className="text-xs text-gray-600">
+                Score: <strong className="text-[#0B1120]">{session.student_score}</strong>
+              </span>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        </div>
+      </div>
+    );
+  };
+
+  // Render homework submission card
+  const renderHomeworkCard = (submission, index) => {
+    const statusInfo = getStatusInfo(submission);
+    const worksheetId = submission.worksheet_id || submission.homework || `HW-${submission.submission_id}`;
+
+    return (
+      <div key={index} className="w-full sm:w-1/2 lg:w-1/3 p-2">
+        <div
+          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          style={{ borderLeftWidth: '4px', borderLeftColor: statusInfo.color }}
+        >
+          <div className="flex-1">
+            <h5 className="text-sm font-semibold text-[#0B1120] mb-1">
+              {worksheetId}
+            </h5>
+            <div className="mb-3">
+              <span className="text-xs text-gray-400 block">
+                {formatDate(submission.submission_date)}
+              </span>
+            </div>
+
+            <div className="flex gap-2 mt-3">
+              <button
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3] hover:text-white transition-colors"
+                onClick={e => {
+                  e.stopPropagation();
+                  setSelectedHomework(submission);
+                  setShowHomeworkModal(true);
+                }}
+              >
+                View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render classwork submission card
+  const renderClassworkCard = (submission, index) => {
+    const statusInfo = getStatusInfo(submission);
+    const worksheetId = submission.classwork_code || submission.worksheet_id || `CW-${submission.submission_id}`;
+
+    return (
+      <div key={index} className="w-full sm:w-1/2 lg:w-1/3 p-2">
+        <div
+          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          style={{ borderLeftWidth: '4px', borderLeftColor: statusInfo.color }}
+        >
+          <div className="flex-1">
+            <h5 className="text-sm font-semibold text-[#0B1120] mb-1">
+              {worksheetId}
+            </h5>
+            <div className="mb-3">
+              <span className="text-xs text-gray-400 block">
+                {formatDate(submission.submission_date)}
+              </span>
+            </div>
+
+            <div className="flex gap-2 mt-3">
+              <button
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3] hover:text-white transition-colors"
+                onClick={e => {
+                  e.stopPropagation();
+                  setSelectedClasswork(submission);
+                  setShowClassworkModal(true);
+                }}
+              >
+                View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Render exam result card
   const renderExamCard = (result, index) => {
     const percentage = result.overall_percentage || 0;
     const statusInfo = getStatusInfo(result);
 
     return (
-      <Col key={index} md={4} sm={6} className="mb-3">
-        <Card
-          className={`submission-card ${isDarkMode ? 'dark-card' : ''}`}
-          style={{ borderColor: statusInfo.color }}
+      <div key={index} className="w-full sm:w-1/2 lg:w-1/3 p-2">
+        <div
+          className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+          style={{ borderLeftWidth: '4px', borderLeftColor: statusInfo.color }}
         >
-          <Card.Body>
-            <div className="d-flex align-items-start">
-              <div className="submission-info flex-grow-1">
-                <h5 className="submission-title mb-1">
-                  {result.exam_name || 'Exam'}
-                </h5>
-                <div className="submission-meta mb-2">
-                  <small className="text-muted d-block">
-                    {result.class_section || 'N/A'} | {result.exam_type || 'N/A'}
-                  </small>
-                  <div className="mt-1">
-                    <Badge bg={getGradeColor(result.grade)}>
-                      Grade {result.grade || 'N/A'}
-                    </Badge>
-                    <Badge bg={getPercentageColor(percentage)} className="ms-2">
-                      {percentage.toFixed(1)}%
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="mt-2">
-                  <small className="text-muted">
-                    <strong>Score:</strong> {result.total_marks_obtained || 0} / {result.total_max_marks || 0}
-                  </small>
-                </div>
-
-                <div className="mt-3 d-flex gap-2">
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    className="view-details-btn"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setSelectedExam(result);
-                      setShowExamModal(true);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                  {getAnswerSheetUrl(result.answer_sheet_snapshot) && (
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="view-details-btn"
-                      onClick={e => handleViewAnswerSheet(e, result)}
-                    >
-                      View Answer Sheet
-                    </Button>
-                  )}
-                </div>
+          <div className="flex-1">
+            <h5 className="text-sm font-semibold text-[#0B1120] mb-1">
+              {result.exam_name || 'Exam'}
+            </h5>
+            <div className="mb-2">
+              <span className="text-xs text-gray-400 block">
+                {result.class_section || 'N/A'} | {result.exam_type || 'N/A'}
+              </span>
+              <div className="flex gap-2 mt-1.5">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getGradeColor(result.grade)}`}>
+                  Grade {result.grade || 'N/A'}
+                </span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPercentageColor(percentage)}`}>
+                  {percentage.toFixed(1)}%
+                </span>
               </div>
             </div>
-          </Card.Body>
-        </Card>
-      </Col>
+
+            <div className="mt-2">
+              <span className="text-xs text-gray-400">
+                <strong className="text-[#0B1120]">Score:</strong> {result.total_marks_obtained || 0} / {result.total_max_marks || 0}
+              </span>
+            </div>
+
+            <div className="flex gap-2 mt-3">
+              <button
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3] hover:text-white transition-colors"
+                onClick={e => {
+                  e.stopPropagation();
+                  setSelectedExam(result);
+                  setShowExamModal(true);
+                }}
+              >
+                View Details
+              </button>
+              {getAnswerSheetUrl(result.answer_sheet_snapshot) && (
+                <button
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3] hover:text-white transition-colors"
+                  onClick={e => handleViewAnswerSheet(e, result)}
+                >
+                  View Answer Sheet
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -712,112 +630,74 @@ useEffect(() => {
     (activeTab === 'exams' && loadingExams) ||
     (activeTab === 'homework' && loadingHomework);
 
+  const tabs = [
+    { key: 'self', label: 'Self', icon: User },
+    { key: 'classwork', label: 'Classwork', icon: School },
+    { key: 'exams', label: 'Exams', icon: FileText },
+    { key: 'homework', label: 'Homework', icon: Home },
+  ];
+
   return (
-    <Container fluid className="unified-sessions-container">
-      <h3 className="section-title">
-        <FontAwesomeIcon icon={faClock} className="me-2" />
+    <div className="w-full px-4 py-4">
+      <h3 className="text-lg font-bold text-[#0B1120] flex items-center gap-2 mb-4">
+        <Clock className="w-5 h-5 text-[#00A0E3]" />
         Learning Activity
       </h3>
 
       {/* Tabs */}
-      <Nav variant="tabs" className="unified-tabs">
-        <Nav.Item>
-          <Nav.Link
-            active={activeTab === 'self'}
-            onClick={() => setActiveTab('self')}
-            className={`d-flex align-items-center ${activeTab === 'self' ? 'active' : ''}`}
-            data-tab="self"
-          >
-            <FontAwesomeIcon icon={faUser} className="me-2" />
-            Self
-            {getTabCount('self') !== null && (
-              <Badge pill className="ms-2 tab-badge">
-                {getTabCount('self')}
-              </Badge>
-            )}
-          </Nav.Link>
-        </Nav.Item>
-        
-        <Nav.Item>
-          <Nav.Link
-            active={activeTab === 'classwork'}
-            onClick={() => setActiveTab('classwork')}
-            className={`d-flex align-items-center ${activeTab === 'classwork' ? 'active' : ''}`}
-            data-tab="classwork"
-          >
-            <FontAwesomeIcon icon={faSchool} className="me-2" />
-            Classwork
-            {getTabCount('classwork') !== null && (
-              <Badge pill className="ms-2 tab-badge">
-                {getTabCount('classwork')}
-              </Badge>
-            )}
-          </Nav.Link>
-        </Nav.Item>
-        
-        <Nav.Item>
-          <Nav.Link
-            active={activeTab === 'exams'}
-            onClick={() => setActiveTab('exams')}
-            className={`d-flex align-items-center ${activeTab === 'exams' ? 'active' : ''}`}
-            data-tab="exams"
-          >
-            <FontAwesomeIcon icon={faFileAlt} className="me-2" />
-            Exams
-            {getTabCount('exams') !== null && (
-              <Badge pill className="ms-2 tab-badge">
-                {getTabCount('exams')}
-              </Badge>
-            )}
-          </Nav.Link>
-        </Nav.Item>
+      <div className="flex gap-1 border-b border-gray-200 mb-4 overflow-x-auto">
+        {tabs.map(tab => {
+          const TabIcon = tab.icon;
+          const isActive = activeTab === tab.key;
+          const count = getTabCount(tab.key);
 
-        <Nav.Item>
-          <Nav.Link
-            active={activeTab === 'homework'}
-            onClick={() => setActiveTab('homework')}
-            className={`d-flex align-items-center ${activeTab === 'homework' ? 'active' : ''}`}
-            data-tab="homework"
-          >
-            <FontAwesomeIcon icon={faHome} className="me-2" />
-            Homework
-            {getTabCount('homework') !== null && (
-              <Badge pill className="ms-2 tab-badge">
-                {getTabCount('homework')}
-              </Badge>
-            )}
-          </Nav.Link>
-        </Nav.Item>
-      </Nav>
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${
+                isActive
+                  ? 'bg-[#00A0E3] text-white'
+                  : 'text-gray-500 hover:text-[#00A0E3] hover:bg-gray-50'
+              }`}
+            >
+              <TabIcon className="w-4 h-4" />
+              {tab.label}
+              {count !== null && (
+                <span className={`ml-1 px-1.5 py-0.5 text-[10px] font-semibold rounded-full ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Content */}
-      <div className="content-container">
+      <div className="min-h-[200px]">
         {isLoading ? (
-          <div className="text-center py-4">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
+          <div className="flex justify-center items-center py-12">
+            <div className="w-8 h-8 border-4 border-[#00A0E3] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : error ? (
-          <div className="text-center py-4 text-danger">
-            {error}
-            <div className="mt-2">
-              <Button
-                variant="outline-primary"
-                size="sm"
-                onClick={() => {
-                  if (activeTab === 'self') fetchRecentSessions();
-                  else if (activeTab === 'classwork') fetchClassworkSubmissions();
-                  else if (activeTab === 'exams') fetchExamResults();
-                  else fetchHomeworkSubmissions();
-                }}
-              >
-                Retry
-              </Button>
-            </div>
+          <div className="text-center py-8">
+            <p className="text-red-500 mb-3">{error}</p>
+            <button
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-[#00A0E3] hover:bg-[#0080B8] text-white transition-colors"
+              onClick={() => {
+                if (activeTab === 'self') fetchRecentSessions();
+                else if (activeTab === 'classwork') fetchClassworkSubmissions();
+                else if (activeTab === 'exams') fetchExamResults();
+                else fetchHomeworkSubmissions();
+              }}
+            >
+              Retry
+            </button>
           </div>
         ) : filteredData.length === 0 ? (
-          <div className="text-center py-4 no-data-message">
+          <div className="text-center py-12 text-gray-400 text-sm">
             {activeTab === 'self'
               ? 'You have not attempted any questions in recent sessions.'
               : activeTab === 'exams'
@@ -825,8 +705,8 @@ useEffect(() => {
               : `No ${activeTab} submissions found.`}
           </div>
         ) : (
-          <Row className="content-grid">
-            {activeTab === 'self' && 
+          <div className="flex flex-wrap -mx-2">
+            {activeTab === 'self' &&
               filteredData.map((session, index) => renderSessionCard(session, index))
             }
             {activeTab === 'homework' &&
@@ -838,7 +718,7 @@ useEffect(() => {
             {activeTab === 'exams' &&
               filteredData.map((result, index) => renderExamCard(result, index))
             }
-          </Row>
+          </div>
         )}
       </div>
 
@@ -885,7 +765,7 @@ useEffect(() => {
         pdfUrl={selectedPdfUrl}
         title={selectedPdfTitle}
       />
-    </Container>
+    </div>
   );
 };
 

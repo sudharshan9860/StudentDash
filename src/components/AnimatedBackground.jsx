@@ -1,33 +1,32 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import "./AnimatedBackground.css";
 
 // Math and Science symbols for the floating animation
 const SYMBOLS = [
   // Math symbols
-  "∫", "∑", "∏", "√", "∞", "π", "θ", "α", "β", "γ", "δ", "λ", "μ", "σ", "Δ", "Ω",
-  "±", "÷", "×", "≠", "≈", "≤", "≥", "∂", "∇", "∈", "∉", "⊂", "⊃", "∪", "∩",
+  "\u222B", "\u2211", "\u220F", "\u221A", "\u221E", "\u03C0", "\u03B8", "\u03B1", "\u03B2", "\u03B3", "\u03B4", "\u03BB", "\u03BC", "\u03C3", "\u0394", "\u03A9",
+  "\u00B1", "\u00F7", "\u00D7", "\u2260", "\u2248", "\u2264", "\u2265", "\u2202", "\u2207", "\u2208", "\u2209", "\u2282", "\u2283", "\u222A", "\u2229",
   // Science symbols
-  "⚛", "🧬", "🔬", "⚡", "☢", "⚗", "🧪", "📐", "📏", "🔭",
+  "\u269B", "\uD83E\uDDEC", "\uD83D\uDD2C", "\u26A1", "\u2622", "\u2697", "\uD83E\uDDEA", "\uD83D\uDCD0", "\uD83D\uDCCF", "\uD83D\uDD2D",
   // Formulas and expressions
-  "E=mc²", "F=ma", "a²+b²", "sin", "cos", "tan", "log", "ln", "lim", "dx",
-  "H₂O", "CO₂", "O₂", "NaCl", "Fe", "Au", "Ag", "Cu",
+  "E=mc\u00B2", "F=ma", "a\u00B2+b\u00B2", "sin", "cos", "tan", "log", "ln", "lim", "dx",
+  "H\u2082O", "CO\u2082", "O\u2082", "NaCl", "Fe", "Au", "Ag", "Cu",
   // Geometric shapes
-  "△", "□", "○", "◇", "⬡", "⬢",
+  "\u25B3", "\u25A1", "\u25CB", "\u25C7", "\u2B21", "\u2B22",
   // Numbers
   "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
 ];
 
 // Color palette for symbols
 const COLORS = [
-  "rgba(139, 92, 246, 0.6)",   // Purple
-  "rgba(99, 102, 241, 0.6)",   // Indigo
-  "rgba(59, 130, 246, 0.6)",   // Blue
-  "rgba(6, 182, 212, 0.6)",    // Cyan
-  "rgba(16, 185, 129, 0.6)",   // Emerald
-  "rgba(245, 158, 11, 0.5)",   // Amber
-  "rgba(236, 72, 153, 0.5)",   // Pink
-  "rgba(168, 85, 247, 0.6)",   // Violet
+  "rgba(0, 160, 227, 0.6)",   // Blue accent
+  "rgba(0, 128, 184, 0.6)",   // Blue hover
+  "rgba(0, 160, 227, 0.5)",   // Blue lighter
+  "rgba(0, 128, 184, 0.5)",   // Blue hover lighter
+  "rgba(11, 17, 32, 0.3)",    // Dark accent
+  "rgba(0, 160, 227, 0.4)",   // Blue subtle
+  "rgba(0, 128, 184, 0.4)",   // Blue hover subtle
+  "rgba(11, 17, 32, 0.2)",    // Dark subtle
 ];
 
 // Generate random number within range
@@ -78,7 +77,6 @@ const FloatingSymbol = React.memo(({ config, isDarkMode }) => {
 
   return (
     <motion.div
-      className="floating-symbol"
       style={{
         position: "absolute",
         fontSize: `${config.size}px`,
@@ -112,10 +110,10 @@ FloatingSymbol.displayName = "FloatingSymbol";
 // Glowing orb component for ambient lighting effect
 const GlowingOrb = React.memo(({ index, isDarkMode }) => {
   const colors = [
-    "rgba(139, 92, 246, 0.15)",
-    "rgba(59, 130, 246, 0.12)",
-    "rgba(6, 182, 212, 0.12)",
-    "rgba(168, 85, 247, 0.15)",
+    "rgba(0, 160, 227, 0.15)",
+    "rgba(0, 128, 184, 0.12)",
+    "rgba(0, 160, 227, 0.12)",
+    "rgba(0, 128, 184, 0.15)",
   ];
 
   const size = random(200, 400);
@@ -125,7 +123,6 @@ const GlowingOrb = React.memo(({ index, isDarkMode }) => {
 
   return (
     <motion.div
-      className="glowing-orb"
       style={{
         position: "absolute",
         width: `${size}px`,
@@ -162,18 +159,14 @@ GlowingOrb.displayName = "GlowingOrb";
 const GridPattern = React.memo(({ isDarkMode }) => {
   return (
     <div
-      className="grid-pattern"
+      className="absolute inset-0 pointer-events-none z-0"
       style={{
-        position: "absolute",
-        inset: 0,
         backgroundImage: isDarkMode
-          ? `linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
-             linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px)`
-          : `linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
-             linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px)`,
+          ? `linear-gradient(rgba(0, 160, 227, 0.03) 1px, transparent 1px),
+             linear-gradient(90deg, rgba(0, 160, 227, 0.03) 1px, transparent 1px)`
+          : `linear-gradient(rgba(0, 128, 184, 0.04) 1px, transparent 1px),
+             linear-gradient(90deg, rgba(0, 128, 184, 0.04) 1px, transparent 1px)`,
         backgroundSize: "50px 50px",
-        pointerEvents: "none",
-        zIndex: 0,
       }}
     />
   );
@@ -240,10 +233,13 @@ function AnimatedBackground({ isDarkMode = false, symbolCount = 30, showOrbs = t
   );
 
   return (
-    <div className={`animated-background ${isDarkMode ? 'dark' : 'light'}`}>
-      {/* Base gradient */}
-      <div className="background-gradient" />
-
+    <div
+      className={`fixed inset-0 overflow-hidden z-0 ${
+        isDarkMode
+          ? 'bg-gradient-to-br from-[#0B1120] via-[#0B1120]/95 to-[#0B1120]'
+          : 'bg-gradient-to-br from-[#F8FAFC] via-white to-[#F8FAFC]'
+      }`}
+    >
       {/* Grid pattern */}
       <GridPattern isDarkMode={isDarkMode} />
 
@@ -253,14 +249,21 @@ function AnimatedBackground({ isDarkMode = false, symbolCount = 30, showOrbs = t
       ))}
 
       {/* Floating symbols */}
-      <div className="symbols-container">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {symbols.map((config) => (
           <FloatingSymbol key={config.id} config={config} isDarkMode={isDarkMode} />
         ))}
       </div>
 
       {/* Vignette overlay */}
-      <div className="vignette-overlay" />
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background: isDarkMode
+            ? 'radial-gradient(ellipse at center, transparent 50%, rgba(11, 17, 32, 0.4) 100%)'
+            : 'radial-gradient(ellipse at center, transparent 50%, rgba(248, 250, 252, 0.4) 100%)',
+        }}
+      />
     </div>
   );
 }

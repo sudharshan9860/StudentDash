@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import QuestionEvaluationCard from './shared/QuestionEvaluationCard';
 import PerformanceHeader from './shared/PerformanceHeader';
-import './StudentExamDetails.css';
 import MarkdownWithMath from './MarkdownWithMath'; 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -956,16 +955,16 @@ const getPerformanceLabel = (percentage) => {
 
   if (loading) {
     return (
-      <div className="student-details-loading">
-        <div className="spinner-large"></div>
-        <p>Loading detailed evaluation...</p>
+      <div className="flex flex-col items-center justify-center p-12 gap-4">
+        <div className="w-12 h-12 border-4 border-gray-200 border-t-[#00A0E3] rounded-full animate-spin"></div>
+        <p className="text-gray-500">Loading detailed evaluation...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="alert alert-error">
+      <div className="flex items-center gap-3 px-5 py-4 rounded-lg mb-6 bg-red-50 border border-red-200 text-red-800">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="10"/>
           <line x1="12" y1="8" x2="12" y2="12"/>
@@ -978,38 +977,38 @@ const getPerformanceLabel = (percentage) => {
 
   if (!examMetadata) {
     return (
-      <div className="alert alert-error">
+      <div className="flex items-center gap-3 px-5 py-4 rounded-lg mb-6 bg-red-50 border border-red-200 text-red-800">
         <span>No data available</span>
       </div>
     );
   }
 
 return (
-  <div className="student-exam-details-container">
-    <PerformanceHeader 
+  <div className="p-0 max-w-full">
+    <PerformanceHeader
       metadata={examMetadata}
       isTeacherView={isTeacherView}
     />
 
     {(examMetadata.strengths.length > 0 || examMetadata.improvements.length > 0) && (
-      <div className="insights-section">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
         {examMetadata.strengths.length > 0 && (
-          <div className="strengths-box">
-            <h3>✅ Strengths</h3>
-            <ul>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 border-l-4 border-l-emerald-500">
+            <h3 className="m-0 mb-4 text-lg font-bold text-gray-800">✅ Strengths</h3>
+            <ul className="list-disc pl-6 m-0">
               {examMetadata.strengths.map((strength, idx) => (
-                <li key={idx}>{strength}</li>
+                <li key={idx} className="py-2 text-sm text-gray-600 leading-relaxed">{strength}</li>
               ))}
             </ul>
           </div>
         )}
 
         {examMetadata.improvements.length > 0 && (
-          <div className="improvements-box">
-            <h3>💡 Areas for Improvement</h3>
-            <ul>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 border-l-4 border-l-amber-500">
+            <h3 className="m-0 mb-4 text-lg font-bold text-gray-800">💡 Areas for Improvement</h3>
+            <ul className="list-disc pl-6 m-0">
               {examMetadata.improvements.map((improvement, idx) => (
-                <li key={idx}>{improvement}</li>
+                <li key={idx} className="py-2 text-sm text-gray-600 leading-relaxed">{improvement}</li>
               ))}
             </ul>
           </div>
@@ -1019,17 +1018,17 @@ return (
 
     {/* FIXED: Questions Summary Table */}
 {questionDetails.length > 0 && (
-  <div className="questions-summary-section">
-    <h3>📋 Questions Summary</h3>
-    <div className="table-wrapper">
-      <table className="questions-summary-table">
+  <div className="my-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <h3 className="m-0 mb-5 text-xl font-bold text-gray-800">📋 Questions Summary</h3>
+    <div className="overflow-x-auto -mx-2">
+      <table className="w-full border-collapse text-sm min-w-[1100px]">
         <thead>
-          <tr>
-            <th className="th-question-no">Question No.</th>
-            <th className="th-marks">Marks</th>
-            <th className="th-error-type">Error Type</th>
-            <th className="th-mistakes">Mistakes Made</th>
-            <th className="th-gap">Gap Analysis</th>
+          <tr className="bg-gradient-to-r from-slate-800 to-slate-600 border-b-[3px] border-slate-900">
+            <th className="w-[8%] text-center p-4 text-left font-semibold text-xs uppercase tracking-wide text-white whitespace-nowrap border-r border-white/10">Question No.</th>
+            <th className="w-[10%] text-center p-4 text-left font-semibold text-xs uppercase tracking-wide text-white whitespace-nowrap border-r border-white/10">Marks</th>
+            <th className="w-[12%] text-center p-4 text-left font-semibold text-xs uppercase tracking-wide text-white whitespace-nowrap border-r border-white/10">Error Type</th>
+            <th className="w-[30%] p-4 text-left font-semibold text-xs uppercase tracking-wide text-white whitespace-nowrap border-r border-white/10">Mistakes Made</th>
+            <th className="w-[40%] p-4 text-left font-semibold text-xs uppercase tracking-wide text-white whitespace-nowrap">Gap Analysis</th>
           </tr>
         </thead>
         <tbody>
@@ -1038,12 +1037,12 @@ return (
             const errorType = q.error_type || 'Unknown';
             const mistakesMade = q.mistakes_made || 'None';
             const gapAnalysis = q.gap_analysis || 'No gaps identified';
-            
+
             // Determine row status
             const isCorrect = errorType === 'None' || errorType === 'no_error';
             const hasError = !isCorrect && errorType !== 'unattempted';
             const isUnattempted = errorType === 'unattempted';
-            
+
             // Get error type display label and badge color
             const getErrorTypeLabel = (type) => {
               const labels = {
@@ -1059,63 +1058,72 @@ return (
               };
               return labels[type] || type;
             };
-            
+
             const getErrorTypeBadgeClass = (type) => {
-              if (type === 'None' || type === 'no_error') return 'error-badge-none';
-              if (type === 'unattempted') return 'error-badge-unattempted';
-              if (type === 'incomplete') return 'error-badge-incomplete';
-              return 'error-badge-error';
+              if (type === 'None' || type === 'no_error') return 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300';
+              if (type === 'unattempted') return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 border border-gray-300';
+              if (type === 'incomplete') return 'bg-gradient-to-r from-orange-200 to-orange-300 text-orange-800 border border-orange-400';
+              return 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300';
             };
-            
+
             return (
-              <tr 
-                key={idx} 
-                className={
-                  isCorrect ? 'correct-row' : 
-                  isUnattempted ? 'unattempted-row' : 
-                  hasError ? 'error-row' : ''
-                }
+              <tr
+                key={idx}
+                className={`transition-all duration-200 hover:bg-gray-50 hover:-translate-y-px hover:shadow-sm ${
+                  isCorrect ? 'bg-gradient-to-r from-green-50 to-white border-l-4 border-l-emerald-500' :
+                  isUnattempted ? 'bg-gradient-to-r from-gray-50 to-white border-l-4 border-l-gray-400' :
+                  hasError ? 'bg-gradient-to-r from-red-50 to-white border-l-4 border-l-red-500' : ''
+                }`}
               >
-                <td className="question-number-cell">
-                  <strong>{q.question_number || `Q${idx + 1}`}</strong>
+                <td className="text-center p-4 border-b border-gray-200 align-top text-base text-gray-800">
+                  <strong className="font-bold text-[#0080B8]">{q.question_number || `Q${idx + 1}`}</strong>
                 </td>
-                
-                <td className="marks-cell">
-                  <span className="marks-display">{marks}</span>
+
+                <td className="text-center p-4 border-b border-gray-200 align-top">
+                  <span className="inline-block px-3.5 py-1.5 bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-800 rounded-lg font-semibold text-sm border border-indigo-300">{marks}</span>
                 </td>
-                
-                <td className="error-type-cell">
-                  <span className={`error-type-badge ${getErrorTypeBadgeClass(errorType)}`}>
+
+                <td className="text-center p-4 border-b border-gray-200 align-top">
+                  <span className={`inline-block px-3 py-1.5 rounded-md text-xs font-semibold capitalize whitespace-nowrap ${getErrorTypeBadgeClass(errorType)}`}>
                     {getErrorTypeLabel(errorType)}
                   </span>
                 </td>
-                
-                <td className="mistakes-cell">
-                  <div className="mistakes-content">
+
+                <td className="p-3 border-b border-gray-200 align-top">
+                  <div className="text-sm leading-relaxed text-gray-500">
                     {mistakesMade === 'None' || mistakesMade === 'N/A' ? (
-                      <span className="mistakes-badge no-mistake">None</span>
+                      <span className="inline-block px-3 py-1.5 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-200">None</span>
                     ) : (
                       <MarkdownWithMath content={mistakesMade} />
                     )}
                   </div>
                 </td>
-                
-                <td className="gap-analysis-cell">
-                  <div className="gap-content">
+
+                <td className="p-3 border-b border-gray-200 align-top">
+                  <div className="text-sm leading-relaxed text-gray-500">
                     <MarkdownWithMath content={gapAnalysis} />
                   </div>
                 </td>
               </tr>
             );
           })}
-          
+
           {/* Overall Summary Row - Now spans 5 columns */}
-          <tr className="overall-summary-row">
-            <td colSpan="5">
-              <div className="overall-summary-content">
-                <div className="summary-item">
-                  <span className="summary-label">Overall Percentage:</span>
-                  <span className={`percentage-badge ${getPerformanceClass(examMetadata.percentage || 0)}`}>
+          <tr className="bg-gradient-to-r from-amber-100 to-amber-200 border-y-[3px] border-amber-400">
+            <td colSpan="5" className="p-5 border-b-0">
+              <div className="flex justify-center items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-bold text-amber-900">Overall Percentage:</span>
+                  <span className={`inline-block px-5 py-2 rounded-lg text-lg font-bold ${
+                    (() => {
+                      const pc = getPerformanceClass(examMetadata.percentage || 0);
+                      if (pc === 'excellent') return 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border-2 border-green-300';
+                      if (pc === 'good') return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border-2 border-blue-300';
+                      if (pc === 'average') return 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800 border-2 border-amber-300';
+                      if (pc === 'below-average') return 'bg-gradient-to-r from-orange-200 to-orange-300 text-orange-800 border-2 border-orange-400';
+                      return 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border-2 border-red-300';
+                    })()
+                  }`}>
                     <strong>{(examMetadata.percentage || 0).toFixed(1)}%</strong>
                   </span>
                 </div>
@@ -1129,10 +1137,10 @@ return (
 )}
 
     {questionDetails.length > 0 && (
-      <div className="detailed-evaluation-section">
-        <h3>🔍 Detailed Questions Evaluation</h3>
+      <div className="my-8">
+        <h3 className="m-0 mb-6 text-2xl font-bold text-gray-800 pb-3 border-b-2 border-gray-200">🔍 Detailed Questions Evaluation</h3>
         {questionDetails.map((question, idx) => (
-          <QuestionEvaluationCard 
+          <QuestionEvaluationCard
             key={idx}
             questionNumber={question.question_number || idx + 1}
             questionData={question}
@@ -1144,13 +1152,13 @@ return (
 
     {/* Remedial Action Section */}
     {examMetadata?.remedialAction && (
-      <div className="remedial-action-section">
-        <div className="remedial-header">
-          <span className="remedial-icon">💊</span>
-          <h3 className="remedial-title">Remedial Action</h3>
+      <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl p-6 my-6 shadow-sm border-l-4 border-l-amber-500">
+        <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-amber-500/30">
+          <span className="text-2xl drop-shadow-sm">💊</span>
+          <h3 className="text-xl font-bold text-amber-800 m-0 tracking-tight">Remedial Action</h3>
         </div>
-        <div className="remedial-content">
-          <div className="remedial-text">
+        <div className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="text-[15px] leading-[1.7] text-amber-900 m-0 whitespace-pre-wrap">
             <MarkdownWithMath content={examMetadata.remedialAction} />
           </div>
         </div>
@@ -1159,13 +1167,13 @@ return (
 
     {/* Overall Detailed Analysis */}
     {summaryData?.detailed_analysis && (
-      <div className="overall-analysis-section">
-        <div className="analysis-header">
-          <span className="analysis-icon">📊</span>
-          <h3 className="analysis-title">Overall Performance Analysis</h3>
+      <div className="mt-8 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 rounded-xl overflow-hidden shadow-md">
+        <div className="flex items-center gap-3 px-6 py-5 bg-gradient-to-r from-emerald-500 to-emerald-600 border-b-[3px] border-emerald-700">
+          <span className="text-[1.75rem] leading-none">📊</span>
+          <h3 className="text-xl font-bold text-white m-0 tracking-wide">Overall Performance Analysis</h3>
         </div>
-        <div className="analysis-content">
-          <p className="analysis-text">{summaryData.detailed_analysis}</p>
+        <div className="p-7 bg-white">
+          <p className="text-base text-gray-800 leading-[1.8] m-0 text-justify whitespace-pre-wrap">{summaryData.detailed_analysis}</p>
         </div>
       </div>
     )}

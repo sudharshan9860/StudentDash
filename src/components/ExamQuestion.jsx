@@ -1,28 +1,25 @@
 // ExamQuestion.jsx - Component for solving exam questions with timer and navigation
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Card, Row, Col, ProgressBar, Modal } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faClock,
-  faArrowLeft,
-  faArrowRight,
-  faCheckCircle,
-  faTimesCircle,
-  faExclamationTriangle,
-  faListOl,
-  faFlag,
-  faPaperPlane,
-  faCamera,
-  faUpload,
-  faStopwatch,
-  faEye,
-} from "@fortawesome/free-solid-svg-icons";
+  Clock,
+  Timer,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  ListOrdered,
+  Flag,
+  Send,
+  Camera,
+  Upload,
+  Eye,
+} from "lucide-react";
 import CameraCapture from "./CameraCapture";
 import MarkdownWithMath from "./MarkdownWithMath";
 import { getImageSrc } from "../utils/imageUtils";
 import axiosInstance from "../api/axiosInstance";
-import "./ExamQuestion.css";
 
 // Generate a unique exam session ID
 const generateExamSessionId = (metadata, startTime) => {
@@ -68,13 +65,13 @@ function ExamQuestion() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showNavigationModal, setShowNavigationModal] = useState(false);
   const [showFullQuestionListModal, setShowFullQuestionListModal] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState({}); // { questionIndex: [{ file, previewUrl }, ...] }
+  const [uploadedImages, setUploadedImages] = useState({});
   const [imageSourceType, setImageSourceType] = useState("upload");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
   // Total exam time tracking
-  const totalExamDurationSeconds = examSettings.totalDurationSeconds || 1800; // Default 30 min
+  const totalExamDurationSeconds = examSettings.totalDurationSeconds || 1800;
   const [totalTimeElapsed, setTotalTimeElapsed] = useState(
     persistedState?.totalTimeElapsed || 0
   );
@@ -128,39 +125,28 @@ function ExamQuestion() {
     }
   }, [examSessionId, currentQuestionIndex, answers, questionTimers, flaggedQuestions, totalTimeElapsed]);
 
-  // Timer logic - tracks both total exam time and per-question time
+  // Timer logic
   useEffect(() => {
-    // Initialize question start time
     questionStartTimeRef.current = Date.now();
-
-    // Load the already spent time for this question
     const alreadySpentOnThisQuestion = questionTimers[currentQuestionIndex] || 0;
     setCurrentQuestionTimeElapsed(alreadySpentOnThisQuestion);
 
     timerRef.current = setInterval(() => {
       const now = Date.now();
       const sessionTimeSpent = Math.floor((now - questionStartTimeRef.current) / 1000);
-
-      // Update current question elapsed time
       setCurrentQuestionTimeElapsed(alreadySpentOnThisQuestion + sessionTimeSpent);
 
-      // Update total exam time
       setTotalTimeElapsed((prev) => {
         const newTotal = prev + 1;
-
-        // Auto-submit when total time expires
         if (newTotal >= totalExamDurationSeconds) {
           clearInterval(timerRef.current);
           handleAutoSubmit();
         }
-
         return newTotal;
       });
 
-      // Save to localStorage every 5 seconds
       if (now - lastSaveTimeRef.current >= 5000) {
         lastSaveTimeRef.current = now;
-        // We need to save with updated questionTimers
         const updatedQuestionTimers = {
           ...questionTimers,
           [currentQuestionIndex]: alreadySpentOnThisQuestion + sessionTimeSpent,
@@ -186,7 +172,7 @@ function ExamQuestion() {
         clearInterval(timerRef.current);
       }
     };
-  }, [currentQuestionIndex]); // Only re-run when question changes
+  }, [currentQuestionIndex]);
 
   // Save time spent when leaving a question
   const saveTimeSpent = useCallback(() => {
@@ -205,10 +191,8 @@ function ExamQuestion() {
   // Handle auto-submit when time expires
   const handleAutoSubmit = useCallback(() => {
     saveTimeSpent();
-    // Clean up localStorage
     localStorage.removeItem(examSessionId);
 
-    // Calculate results and navigate
     let correctAnswers = 0;
     const questionResults = questions.map((q, index) => {
       const userAnswer = answers[index];
@@ -262,39 +246,34 @@ function ExamQuestion() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Format time remaining (shows remaining time from total)
   const timeRemaining = totalExamDurationSeconds - totalTimeElapsed;
 
-  // Get timer color based on remaining time
-  const getTimerColor = () => {
+  const getTimerColorClass = () => {
     const percentage = (timeRemaining / totalExamDurationSeconds) * 100;
-    if (percentage > 50) return "success";
-    if (percentage > 25) return "warning";
-    return "danger";
+    if (percentage > 50) return "text-[#22c55e]";
+    if (percentage > 25) return "text-yellow-500";
+    return "text-[#ef4444]";
   };
 
-  // Get question time color (just for visual - no penalty)
-  const getQuestionTimeColor = () => {
-    if (currentQuestionTimeElapsed < 60) return "info"; // Under 1 min
-    if (currentQuestionTimeElapsed < 120) return "primary"; // 1-2 min
-    if (currentQuestionTimeElapsed < 180) return "warning"; // 2-3 min
-    return "secondary"; // Over 3 min
+  const getTimerBarColorClass = () => {
+    const percentage = (timeRemaining / totalExamDurationSeconds) * 100;
+    if (percentage > 50) return "bg-[#22c55e]";
+    if (percentage > 25) return "bg-yellow-500";
+    return "bg-[#ef4444]";
   };
 
   // Handle answer selection
   const handleAnswerSelect = (answer) => {
     setAnswers(prev => ({ ...prev, [currentQuestionIndex]: "__image_uploaded__" }));
-
   };
 
-  // Handle image capture (appends to existing images)
+  // Handle image capture
   const handleCapturedImage = (imageBlob) => {
     const file = new File(
       [imageBlob],
       `answer-${currentQuestionIndex}-${Date.now()}.jpg`,
       { type: "image/jpeg" }
     );
-
     const previewUrl = URL.createObjectURL(file);
 
     setUploadedImages((prev) => ({
@@ -302,15 +281,13 @@ function ExamQuestion() {
       [currentQuestionIndex]: [...(prev[currentQuestionIndex] || []), { file, previewUrl }],
     }));
 
-    // Mark question as answered when camera picture captured
     setAnswers((prev) => ({
       ...prev,
       [currentQuestionIndex]: "__image_uploaded__",
     }));
   };
-  
 
-  // Handle file upload (supports multiple images)
+  // Handle file upload
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -336,17 +313,15 @@ function ExamQuestion() {
       [currentQuestionIndex]: [...(prev[currentQuestionIndex] || []), ...newImages],
     }));
 
-    // Mark question as answered when image uploaded
     setAnswers((prev) => ({
       ...prev,
       [currentQuestionIndex]: "__image_uploaded__",
     }));
 
-    // Reset file input
     e.target.value = "";
   };
-  
-  // Remove specific uploaded image by index
+
+  // Remove specific uploaded image
   const handleRemoveImage = (imageIndex) => {
     setUploadedImages((prev) => {
       const currentImages = prev[currentQuestionIndex] || [];
@@ -357,7 +332,6 @@ function ExamQuestion() {
 
       if (newImages.length === 0) {
         const { [currentQuestionIndex]: _, ...rest } = prev;
-        // Remove answer marker if no images left
         setAnswers((prevAnswers) => {
           const { [currentQuestionIndex]: __, ...restAnswers } = prevAnswers;
           return restAnswers;
@@ -369,7 +343,7 @@ function ExamQuestion() {
     });
   };
 
-  // Toggle flag for current question
+  // Toggle flag
   const toggleFlag = () => {
     setFlaggedQuestions((prev) => {
       const newFlags = new Set(prev);
@@ -382,7 +356,6 @@ function ExamQuestion() {
     });
   };
 
-  // Navigate to previous question
   const goToPrevious = () => {
     saveTimeSpent();
     if (currentQuestionIndex > 0) {
@@ -390,7 +363,6 @@ function ExamQuestion() {
     }
   };
 
-  // Navigate to next question
   const goToNext = () => {
     saveTimeSpent();
     if (currentQuestionIndex < questions.length - 1) {
@@ -398,14 +370,12 @@ function ExamQuestion() {
     }
   };
 
-  // Go to specific question
   const goToQuestion = (index) => {
     saveTimeSpent();
     setCurrentQuestionIndex(index);
     setShowNavigationModal(false);
   };
 
-  // Get question status for navigation
   const getQuestionStatus = (index) => {
     if (answers[index]) return "answered";
     if (flaggedQuestions.has(index)) return "flagged";
@@ -413,7 +383,6 @@ function ExamQuestion() {
     return "unanswered";
   };
 
-  // Calculate exam stats
   const getExamStats = () => {
     const answered = Object.keys(answers).length;
     const flagged = flaggedQuestions.size;
@@ -424,8 +393,6 @@ function ExamQuestion() {
   // Handle exam submission
   const handleSubmitExam = async () => {
     const finalQuestionTime = saveTimeSpent();
-
-    // Get final question timers with current question updated
     const finalQuestionTimers = {
       ...questionTimers,
       [currentQuestionIndex]: finalQuestionTime,
@@ -435,28 +402,20 @@ function ExamQuestion() {
     setSubmitError(null);
 
     try {
-      // Prepare FormData for API (matching backend ExamProcessAPIView structure)
       const formData = new FormData();
 
-      // Add class_id from metadata
       if (metadata.class_id) {
         formData.append("class_id", metadata.class_id);
       }
-
-      // Add subject_id from metadata
       if (metadata.subject_id) {
         formData.append("subject_id", metadata.subject_id);
       }
-
-      // Add chapters - append each chapter separately (backend uses getlist)
       if (metadata.chapters && Array.isArray(metadata.chapters)) {
         metadata.chapters.forEach((chapter) => {
           formData.append("chapters", chapter);
         });
       }
 
-      // Prepare questions array for API
-      // Backend expects: question_text, difficulty (question_level maps to difficulty)
       const questionsPayload = questions.map((q, index) => ({
         question_text: q.question || "",
         difficulty: q.question_level || "Medium",
@@ -464,11 +423,8 @@ function ExamQuestion() {
         topic: q.topic || null,
       }));
 
-      // Add questions as JSON string (backend parses this with json.loads)
       formData.append("questions", JSON.stringify(questionsPayload));
 
-      // Add answer_files - all uploaded images for all questions
-      // Backend expects: request.FILES.getlist("answer_files")
       questions.forEach((_, index) => {
         const questionImages = uploadedImages[index] || [];
         questionImages.forEach((imageData) => {
@@ -478,46 +434,37 @@ function ExamQuestion() {
         });
       });
 
-      // Call POST /exam-process/ API
       const response = await axiosInstance.post("/exam-process/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      // Clean up localStorage after successful submission
       localStorage.removeItem(examSessionId);
 
-      // Map API response to results
-      // Backend returns: { results: [...], total_score, total_max_marks, exam_id }
       const apiResults = response.data.results || [];
       const apiTotalScore = response.data.total_score || 0;
       const apiTotalMaxMarks = response.data.total_max_marks || 0;
       const apiExamId = response.data.exam_id || null;
 
-      // Helper function to normalize data - API may return string or array
       const normalizeToArray = (value) => {
         if (!value) return [];
         if (Array.isArray(value)) return value;
-        if (typeof value === "string") return [value]; // Convert string to single-item array
+        if (typeof value === "string") return [value];
         return [];
       };
 
-      // Helper function to normalize score breakdown - API may return string or object
       const normalizeScoreBreakdown = (value) => {
         if (!value) return null;
         if (typeof value === "object" && !Array.isArray(value)) return value;
-        if (typeof value === "string") return value; // Keep as string for display
+        if (typeof value === "string") return value;
         return null;
       };
 
-      // Create question results with evaluation data
       const questionResults = questions.map((q, index) => {
-        // Backend returns: { question_text, difficulty, evaluation: {...} }
         const resultItem = apiResults[index] || {};
         const evaluation = resultItem.evaluation || {};
         const userAnswer = answers[index];
-
 
         return {
           questionId: q.question_id,
@@ -532,7 +479,6 @@ function ExamQuestion() {
           maxMarks: evaluation.max_marks || q.marks || 0,
           topic: q.topic,
           uploadedImages: uploadedImages[index]?.map((img) => img.previewUrl) || [],
-          // Evaluation specific fields from API - normalized for consistent handling
           evaluation: {
             score: evaluation.score || 0,
             maxMarks: evaluation.max_marks || q.marks || 0,
@@ -546,13 +492,11 @@ function ExamQuestion() {
         };
       });
 
-      // Use API totals if available, otherwise calculate
       const totalMarks = apiTotalMaxMarks || questions.reduce((sum, q) => sum + (q.marks || 0), 0);
       const obtainedMarks = apiTotalScore;
       const percentage = totalMarks > 0 ? ((obtainedMarks / totalMarks) * 100).toFixed(1) : "0.0";
       const totalTimeSpent = Object.values(finalQuestionTimers).reduce((sum, t) => sum + t, 0);
 
-      // Count correct/incorrect/unanswered
       let correctAnswers = 0;
       let incorrectAnswers = 0;
       let unanswered = 0;
@@ -563,15 +507,11 @@ function ExamQuestion() {
           unanswered++;
         } else if (result.marks === result.maxMarks) {
           correctAnswers++;
-        } else if (result.marks > 0) {
-          // Partial marks - count as attempted but not fully correct
-          incorrectAnswers++;
         } else {
           incorrectAnswers++;
         }
       });
 
-      // Navigate to results page with evaluation data
       navigate("/exam-result", {
         state: {
           questionResults,
@@ -590,7 +530,7 @@ function ExamQuestion() {
             timeExpired: false,
           },
           metadata,
-          apiResponse: response.data, // Full API response for reference
+          apiResponse: response.data,
         },
       });
     } catch (error) {
@@ -604,193 +544,199 @@ function ExamQuestion() {
     }
   };
 
-  // Current question
   const currentQuestion = questions[currentQuestionIndex];
 
   if (!currentQuestion) {
     return (
-      <div className="exam-question-loading">
-        <p>Loading exam...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <p className="text-[#0B1120] text-lg">Loading exam...</p>
       </div>
     );
   }
 
   const stats = getExamStats();
 
+  const getStatusClasses = (status) => {
+    switch (status) {
+      case "answered": return "bg-[#22c55e] text-white";
+      case "flagged": return "bg-yellow-500 text-white";
+      case "current": return "bg-[#00A0E3] text-white";
+      default: return "bg-gray-200 text-[#0B1120]";
+    }
+  };
+
+  const getLevelClasses = (level) => {
+    const l = (level || "Medium").toLowerCase();
+    if (l === "easy") return "bg-green-100 text-[#22c55e]";
+    if (l === "hard") return "bg-red-100 text-[#ef4444]";
+    return "bg-yellow-100 text-yellow-700";
+  };
+
   return (
-    <div className={`exam-question-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className="min-h-screen bg-[#F8FAFC] pb-8">
       {/* Header with Timer */}
-      <div className="exam-header">
-        <div className="exam-header-left">
-          <span className="exam-title">{metadata.subjectName || "Exam"}</span>
-          <span className="exam-chapter">
+      <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+        <div className="flex flex-col">
+          <span className="text-lg font-bold text-[#0B1120]">{metadata.subjectName || "Exam"}</span>
+          <span className="text-sm text-gray-500">
             {metadata.chapterNames?.join(", ") || "Multiple Chapters"}
           </span>
         </div>
 
-        <div className="exam-timers-container">
+        <div className="flex items-center gap-4">
           {/* Total Exam Time Remaining */}
-          <div className="exam-timer1 total-timer">
-            <FontAwesomeIcon icon={faClock} className="me-2" />
-            <span className={`timer-value timer-${getTimerColor()}`}>
+          <div className="flex items-center gap-2 bg-[#F8FAFC] rounded-lg px-3 py-2">
+            <Clock className="w-4 h-4 text-[#00A0E3]" />
+            <span className={`font-mono font-bold text-lg ${getTimerColorClass()}`}>
               {formatTime(Math.max(0, timeRemaining))}
             </span>
-            <span className="timer-label">Remaining</span>
+            <span className="text-xs text-gray-400">Left</span>
           </div>
 
-          {/* Current Question Time Elapsed */}
-          <div className="exam-timer1 question-timer">
-            <FontAwesomeIcon icon={faStopwatch} className="me-2" />
-            <span className={`timer-value timer-${getQuestionTimeColor()}`}>
+          {/* Current Question Time */}
+          <div className="flex items-center gap-2 bg-[#F8FAFC] rounded-lg px-3 py-2">
+            <Timer className="w-4 h-4 text-[#00A0E3]" />
+            <span className="font-mono font-bold text-lg text-[#00A0E3]">
               {formatTime(currentQuestionTimeElapsed)}
             </span>
-            <span className="timer-label">This Q</span>
+            <span className="text-xs text-gray-400">This Q</span>
           </div>
         </div>
 
-        <div className="exam-header-right">
-          <Button
-            variant="outline-info"
-            className="btn-navigation me-2"
+        <div className="flex items-center gap-2">
+          <button
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3] hover:text-white transition-colors text-sm font-medium"
             onClick={() => setShowFullQuestionListModal(true)}
           >
-            <FontAwesomeIcon icon={faEye} className="me-2" />
+            <Eye className="w-4 h-4" />
             View All
-          </Button>
-          <Button
-            variant="outline-primary"
-            className="btn-navigation"
+          </button>
+          <button
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3] hover:text-white transition-colors text-sm font-medium"
             onClick={() => setShowNavigationModal(true)}
           >
-            <FontAwesomeIcon icon={faListOl} className="me-2" />
+            <ListOrdered className="w-4 h-4" />
             Questions
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="exam-progress-container">
-        <ProgressBar
-          now={Math.max(0, timeRemaining)}
-          max={totalExamDurationSeconds}
-          variant={getTimerColor()}
-          className="exam-progress-bar"
-        />
-        <div className="progress-stats">
-          <span className="stat-item">
-            <span className="stat-value">{currentQuestionIndex + 1}</span>
-            <span className="stat-label">/ {questions.length}</span>
+      <div className="px-4 pt-3">
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+          <div
+            className={`h-2 rounded-full transition-all duration-300 ${getTimerBarColorClass()}`}
+            style={{ width: `${Math.max(0, (timeRemaining / totalExamDurationSeconds) * 100)}%` }}
+          />
+        </div>
+        <div className="flex items-center gap-3 text-sm text-gray-600">
+          <span>
+            <span className="font-bold text-[#0B1120]">{currentQuestionIndex + 1}</span>
+            <span className="text-gray-400"> / {questions.length}</span>
           </span>
-          <span className="stat-divider">|</span>
-          <span className="stat-item answered">
-            <FontAwesomeIcon icon={faCheckCircle} className="me-1" />
+          <span className="text-gray-300">|</span>
+          <span className="flex items-center gap-1 text-[#22c55e]">
+            <CheckCircle className="w-3.5 h-3.5" />
             {stats.answered} Answered
           </span>
-          <span className="stat-divider">|</span>
-          <span className="stat-item flagged">
-            <FontAwesomeIcon icon={faFlag} className="me-1" />
+          <span className="text-gray-300">|</span>
+          <span className="flex items-center gap-1 text-yellow-500">
+            <Flag className="w-3.5 h-3.5" />
             {stats.flagged} Flagged
           </span>
         </div>
       </div>
 
       {/* Question Card */}
-      <Card className="question-card">
-        <Card.Body>
+      <div className="max-w-4xl mx-auto px-4 mt-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           {/* Question Header */}
-          <div className="question-header1">
-            <span className="question-number">Question {currentQuestionIndex + 1}</span>
-            <span className={`question-level1 level-${(currentQuestion.question_level || "Medium").toLowerCase()}`}>
-              {currentQuestion.question_level || "Medium"}
-            </span>
-            <Button
-              variant={flaggedQuestions.has(currentQuestionIndex) ? "warning" : "outline-secondary"}
-              className="btn-flag"
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-bold text-[#0B1120]">Question {currentQuestionIndex + 1}</span>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getLevelClasses(currentQuestion.question_level)}`}>
+                {currentQuestion.question_level || "Medium"}
+              </span>
+            </div>
+            <button
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                flaggedQuestions.has(currentQuestionIndex)
+                  ? "bg-yellow-500 text-white"
+                  : "border border-gray-300 text-gray-500 hover:border-yellow-500 hover:text-yellow-500"
+              }`}
               onClick={toggleFlag}
             >
-              <FontAwesomeIcon icon={faFlag} />
-              {flaggedQuestions.has(currentQuestionIndex) ? " Flagged" : " Flag"}
-            </Button>
+              <Flag className="w-4 h-4" />
+              {flaggedQuestions.has(currentQuestionIndex) ? "Flagged" : "Flag"}
+            </button>
           </div>
 
           {/* Question Content */}
-          <div className="question-content">
-            <div className="question-text">
+          <div className="mb-6">
+            <div className="text-[#0B1120] text-base leading-relaxed">
               <MarkdownWithMath content={currentQuestion.question} />
             </div>
             {currentQuestion.question_image &&
               currentQuestion.question_image !== "No image for question" &&
               currentQuestion.question_image.length > 50 && (
-              <div className="question-image-container" style={{ marginTop: "16px", textAlign: "center" }}>
+              <div className="mt-4 text-center">
                 <img
                   src={getImageSrc(currentQuestion.question_image)}
                   alt="Question"
-                  className="question-image"
-                  style={{ display: "block", maxWidth: "100%", height: "auto", objectFit: "contain" }}
+                  className="block max-w-full h-auto object-contain rounded-lg"
                 />
               </div>
             )}
           </div>
 
-          {/* Options */}
-          {/* {currentQuestion.options && currentQuestion.options.length > 0 && (
-            <div className="options-container">
-              {currentQuestion.options.map((option, index) => (
-                <button
-                  key={index}
-                  className={`option-button ${
-                    answers[currentQuestionIndex] === option ? "selected" : ""
-                  }`}
-                  onClick={() => handleAnswerSelect(option)}
-                >
-                  <span className="option-letter">
-                    {String.fromCharCode(65 + index)}
-                  </span>
-                  <span className="option-text">{option}</span>
-                </button>
-              ))}
-            </div>
-          )} */}
-
           {/* Image Upload Section */}
-          <div className="image-upload-section">
-            <h6>Upload Your Work (Optional)</h6>
-            <div className="image-source-buttons">
-            <Button
-                variant={imageSourceType === "upload" ? "primary" : "outline-primary"}
+          <div className="border-t border-gray-100 pt-5">
+            <h6 className="text-sm font-semibold text-[#0B1120] mb-3">Upload Your Work (Optional)</h6>
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  imageSourceType === "upload"
+                    ? "bg-[#00A0E3] text-white"
+                    : "border border-[#00A0E3] text-[#00A0E3] hover:bg-blue-50"
+                }`}
                 onClick={() => setImageSourceType("upload")}
-                size="sm"
               >
-                <FontAwesomeIcon icon={faUpload} className="me-2" />
+                <Upload className="w-4 h-4" />
                 Upload
-              </Button>
-              <Button
-                variant={imageSourceType === "camera" ? "primary" : "outline-primary"}
+              </button>
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  imageSourceType === "camera"
+                    ? "bg-[#00A0E3] text-white"
+                    : "border border-[#00A0E3] text-[#00A0E3] hover:bg-blue-50"
+                }`}
                 onClick={() => setImageSourceType("camera")}
-                size="sm"
               >
-                <FontAwesomeIcon icon={faCamera} className="me-2" />
+                <Camera className="w-4 h-4" />
                 Camera
-              </Button>
-             
+              </button>
             </div>
 
             {imageSourceType === "upload" ? (
-              <div className="upload-container">
+              <div className="relative">
                 <input
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleFileUpload}
-                  className="file-input"
+                  className="hidden"
                   id="file-upload"
                 />
-                <label htmlFor="file-upload" className="file-label">
+                <label
+                  htmlFor="file-upload"
+                  className="flex items-center justify-center w-full py-8 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-[#00A0E3] hover:bg-blue-50/30 transition-colors text-gray-500 text-sm"
+                >
+                  <Upload className="w-5 h-5 mr-2 text-[#00A0E3]" />
                   Click to upload images (multiple allowed)
                 </label>
               </div>
             ) : (
-              <div className="camera-container">
+              <div className="rounded-xl overflow-hidden border border-gray-200">
                 <CameraCapture
                   onImageCapture={handleCapturedImage}
                   videoConstraints={{
@@ -800,250 +746,227 @@ function ExamQuestion() {
                   }}
                 />
               </div>
-            )  }
+            )}
 
             {/* Preview uploaded images */}
             {uploadedImages[currentQuestionIndex]?.length > 0 && (
-              <div className="uploaded-previews">
-                <div className="preview-count">
+              <div className="mt-4">
+                <p className="text-sm text-[#00A0E3] font-medium mb-2">
                   {uploadedImages[currentQuestionIndex].length} image(s) uploaded
-                </div>
-                <div className="preview-grid">
+                </p>
+                <div className="grid grid-cols-3 gap-3">
                   {uploadedImages[currentQuestionIndex].map((image, index) => (
-                    <div key={index} className="uploaded-preview">
+                    <div key={index} className="relative group rounded-lg overflow-hidden border border-gray-200">
                       <img
                         src={image.previewUrl}
                         alt={`Your work ${index + 1}`}
-                        className="preview-image"
+                        className="w-full h-24 object-cover"
                       />
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        className="remove-image-btn1 d-flex align-items-center justify-content-center"
+                      <button
+                        className="absolute top-1 right-1 w-6 h-6 bg-[#ef4444] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleRemoveImage(index)}
                       >
-                        <FontAwesomeIcon icon={faTimesCircle} />
-                      </Button>
+                        <XCircle className="w-4 h-4" />
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
             )}
           </div>
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
 
       {/* Navigation Buttons */}
-      <div className="exam-navigation">
-        <Button
-          variant="outline-secondary"
-          className="nav-btn btn-prev"
+      <div className="max-w-4xl mx-auto px-4 mt-4 flex items-center justify-between">
+        <button
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors font-medium disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={goToPrevious}
           disabled={currentQuestionIndex === 0}
         >
-          <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+          <ChevronLeft className="w-4 h-4" />
           Previous
-        </Button>
+        </button>
 
         {currentQuestionIndex < questions.length - 1 ? (
-          <Button variant="primary" className="nav-btn btn-next" onClick={goToNext}>
+          <button
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#00A0E3] hover:bg-[#0080B8] text-white font-medium transition-colors"
+            onClick={goToNext}
+          >
             Next
-            <FontAwesomeIcon icon={faArrowRight} className="ms-2" />
-          </Button>
+            <ChevronRight className="w-4 h-4" />
+          </button>
         ) : (
-          <Button
-            variant="success"
-            className="nav-btn btn-submit"
+          <button
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#22c55e] hover:bg-green-600 text-white font-medium transition-colors"
             onClick={() => setShowSubmitModal(true)}
           >
-            <FontAwesomeIcon icon={faPaperPlane} className="me-2" />
+            <Send className="w-4 h-4" />
             Submit Exam
-          </Button>
+          </button>
         )}
       </div>
 
       {/* Question Navigation Modal */}
-      <Modal
-        show={showNavigationModal}
-        onHide={() => setShowNavigationModal(false)}
-        centered
-        className={isDarkMode ? "dark-mode" : ""}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Question Navigator</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="question-grid">
-            {questions.map((_, index) => (
-              <button
-                key={index}
-                className={`question-nav-btn ${getQuestionStatus(index)}`}
-                onClick={() => goToQuestion(index)}
-              >
-                {index + 1}
+      {showNavigationModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowNavigationModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-bold text-[#0B1120]">Question Navigator</h3>
+              <button className="text-gray-400 hover:text-gray-600" onClick={() => setShowNavigationModal(false)}>
+                <XCircle className="w-5 h-5" />
               </button>
-            ))}
+            </div>
+            <div className="grid grid-cols-8 gap-2 mb-5">
+              {questions.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${getStatusClasses(getQuestionStatus(index))}`}
+                  onClick={() => goToQuestion(index)}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-4 text-xs text-gray-500 border-t border-gray-100 pt-3">
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#00A0E3]"></span>Current</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#22c55e]"></span>Answered</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-yellow-500"></span>Flagged</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-gray-200"></span>Unanswered</span>
+            </div>
           </div>
-          <div className="nav-legend">
-            <span className="legend-item current">
-              <span className="legend-dot"></span> Current
-            </span>
-            <span className="legend-item answered">
-              <span className="legend-dot"></span> Answered
-            </span>
-            <span className="legend-item flagged">
-              <span className="legend-dot"></span> Flagged
-            </span>
-            <span className="legend-item unanswered">
-              <span className="legend-dot"></span> Unanswered
-            </span>
-          </div>
-        </Modal.Body>
-      </Modal>
+        </div>
+      )}
 
       {/* Submit Confirmation Modal */}
-      <Modal
-        show={showSubmitModal}
-        onHide={() => setShowSubmitModal(false)}
-        centered
-        className={isDarkMode ? "dark-mode" : ""}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <FontAwesomeIcon icon={faExclamationTriangle} className="me-2 text-warning" />
-            Submit Exam?
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="submit-stats">
-            <Row>
-              <Col xs={4}>
-                <div className="submit-stat answered">
-                  <FontAwesomeIcon icon={faCheckCircle} />
-                  <span className="stat-number">{stats.answered}</span>
-                  <span className="stat-text">Answered</span>
-                </div>
-              </Col>
-              <Col xs={4}>
-                <div className="submit-stat flagged">
-                  <FontAwesomeIcon icon={faFlag} />
-                  <span className="stat-number">{stats.flagged}</span>
-                  <span className="stat-text">Flagged</span>
-                </div>
-              </Col>
-              <Col xs={4}>
-                <div className="submit-stat unanswered">
-                  <FontAwesomeIcon icon={faTimesCircle} />
-                  <span className="stat-number">{stats.unanswered}</span>
-                  <span className="stat-text">Unanswered</span>
-                </div>
-              </Col>
-            </Row>
-          </div>
-          <p className="submit-warning">
-            Are you sure you want to submit the exam? This action cannot be undone.
-          </p>
-        </Modal.Body>
-        {submitError && (
-          <div className="alert alert-danger mx-3 mb-3">
-            {submitError}
-          </div>
-        )}
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowSubmitModal(false)}
-            disabled={isSubmitting}
-          >
-            Continue Exam
-          </Button>
-          <Button
-            variant="success"
-            onClick={handleSubmitExam}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Evaluating...
-              </>
-            ) : (
-              <>
-                <FontAwesomeIcon icon={faPaperPlane} className="me-2" />
-                Submit Exam
-              </>
+      {showSubmitModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowSubmitModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-5">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              <h3 className="text-lg font-bold text-[#0B1120]">Submit Exam?</h3>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="flex flex-col items-center p-3 bg-green-50 rounded-xl">
+                <CheckCircle className="w-5 h-5 text-[#22c55e] mb-1" />
+                <span className="text-xl font-bold text-[#22c55e]">{stats.answered}</span>
+                <span className="text-xs text-gray-500">Answered</span>
+              </div>
+              <div className="flex flex-col items-center p-3 bg-yellow-50 rounded-xl">
+                <Flag className="w-5 h-5 text-yellow-500 mb-1" />
+                <span className="text-xl font-bold text-yellow-500">{stats.flagged}</span>
+                <span className="text-xs text-gray-500">Flagged</span>
+              </div>
+              <div className="flex flex-col items-center p-3 bg-red-50 rounded-xl">
+                <XCircle className="w-5 h-5 text-[#ef4444] mb-1" />
+                <span className="text-xl font-bold text-[#ef4444]">{stats.unanswered}</span>
+                <span className="text-xs text-gray-500">Unanswered</span>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-500 mb-4">
+              Are you sure you want to submit the exam? This action cannot be undone.
+            </p>
+
+            {submitError && (
+              <div className="bg-red-50 border border-red-200 text-[#ef4444] text-sm rounded-lg p-3 mb-4">
+                {submitError}
+              </div>
             )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors font-medium"
+                onClick={() => setShowSubmitModal(false)}
+                disabled={isSubmitting}
+              >
+                Continue Exam
+              </button>
+              <button
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#22c55e] hover:bg-green-600 text-white font-medium transition-colors disabled:opacity-50"
+                onClick={handleSubmitExam}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    Evaluating...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Submit Exam
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Full Question List Modal */}
-      <Modal
-        show={showFullQuestionListModal}
-        onHide={() => setShowFullQuestionListModal(false)}
-        centered
-        size="lg"
-        className={`full-question-list-modal ${isDarkMode ? "dark-mode" : ""}`}
-        scrollable
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <FontAwesomeIcon icon={faEye} className="me-2 text-info" />
-            All Questions ({questions.length})
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="full-question-list-body">
-          <div className="full-question-list">
-            {questions.map((question, index) => {
-              const status = getQuestionStatus(index);
-              const timeSpent = questionTimers[index] || 0;
-              const hasImages = uploadedImages[index]?.length > 0;
+      {showFullQuestionListModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowFullQuestionListModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Eye className="w-5 h-5 text-[#00A0E3]" />
+                <h3 className="text-lg font-bold text-[#0B1120]">All Questions ({questions.length})</h3>
+              </div>
+              <button className="text-gray-400 hover:text-gray-600" onClick={() => setShowFullQuestionListModal(false)}>
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
 
-              return (
-                <div
-                  key={index}
-                  className={`full-question-item ${status} ${index === currentQuestionIndex ? 'current-highlight' : ''}`}
-                >
-                  <div className="question-item-header">
-                    <div className="question-item-left">
-                      <span className={`question-item-number status-${status}`}>
-                        Q{index + 1}
-                      </span>
-                      <span className={`question-item-level level-${(question.question_level || "Medium").toLowerCase()}`}>
-                        {question.question_level || "Medium"}
-                      </span>
-                      {flaggedQuestions.has(index) && (
-                        <span className="question-item-flag">
-                          <FontAwesomeIcon icon={faFlag} />
+            <div className="overflow-y-auto flex-1 px-6 py-4 space-y-3">
+              {questions.map((question, index) => {
+                const status = getQuestionStatus(index);
+                const timeSpent = questionTimers[index] || 0;
+                const hasImages = uploadedImages[index]?.length > 0;
+
+                return (
+                  <div
+                    key={index}
+                    className={`rounded-xl border p-4 transition-colors ${
+                      index === currentQuestionIndex ? "border-[#00A0E3] bg-blue-50/30" : "border-gray-100 bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${getStatusClasses(status)}`}>
+                          Q{index + 1}
                         </span>
-                      )}
-                      {hasImages && (
-                        <span className="question-item-images">
-                          <FontAwesomeIcon icon={faCamera} />
-                          {uploadedImages[index].length}
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getLevelClasses(question.question_level)}`}>
+                          {question.question_level || "Medium"}
                         </span>
-                      )}
+                        {flaggedQuestions.has(index) && (
+                          <Flag className="w-3.5 h-3.5 text-yellow-500" />
+                        )}
+                        {hasImages && (
+                          <span className="flex items-center gap-1 text-xs text-gray-500">
+                            <Camera className="w-3.5 h-3.5" />
+                            {uploadedImages[index].length}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1 text-xs text-gray-400">
+                          <Timer className="w-3.5 h-3.5" />
+                          {formatTime(timeSpent)}
+                        </span>
+                        <button
+                          className="px-3 py-1 rounded-lg border border-[#00A0E3] text-[#00A0E3] text-xs font-medium hover:bg-[#00A0E3] hover:text-white transition-colors"
+                          onClick={() => {
+                            goToQuestion(index);
+                            setShowFullQuestionListModal(false);
+                          }}
+                        >
+                          Go to
+                        </button>
+                      </div>
                     </div>
-                    <div className="question-item-right">
-                      <span className="question-item-time">
-                        <FontAwesomeIcon icon={faStopwatch} className="me-1" />
-                        {formatTime(timeSpent)}
-                      </span>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="question-item-goto"
-                        onClick={() => {
-                          goToQuestion(index);
-                          setShowFullQuestionListModal(false);
-                        }}
-                      >
-                        Go to
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="question-item-content">
-                    <div className="question-item-text">
+                    <div className="text-sm text-[#0B1120] leading-relaxed line-clamp-2">
                       <MarkdownWithMath content={question.question} />
                     </div>
                     {question.question_image &&
@@ -1052,39 +975,31 @@ function ExamQuestion() {
                       <img
                         src={getImageSrc(question.question_image)}
                         alt={`Question ${index + 1}`}
-                        className="question-item-image"
-                        style={{ display: "block", maxWidth: "100%", height: "auto", objectFit: "contain", marginTop: "8px" }}
+                        className="block max-w-full h-auto object-contain mt-2 rounded-lg max-h-32"
                       />
                     )}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100">
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#00A0E3]"></span>Current</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#22c55e]"></span>Answered</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-yellow-500"></span>Flagged</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-gray-200"></span>Unanswered</span>
+              </div>
+              <button
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium"
+                onClick={() => setShowFullQuestionListModal(false)}
+              >
+                Close
+              </button>
+            </div>
           </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <div className="full-question-legend">
-            <span className="legend-item current">
-              <span className="legend-dot"></span> Current
-            </span>
-            <span className="legend-item answered">
-              <span className="legend-dot"></span> Answered
-            </span>
-            <span className="legend-item flagged">
-              <span className="legend-dot"></span> Flagged
-            </span>
-            <span className="legend-item unanswered">
-              <span className="legend-dot"></span> Unanswered
-            </span>
-          </div>
-          <Button
-            variant="secondary"
-            onClick={() => setShowFullQuestionListModal(false)}
-          >
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        </div>
+      )}
     </div>
   );
 }

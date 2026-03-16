@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChartLine, faArrowUp, faArrowDown, faMinus, faTrophy, faBolt, faStar, faFire, faCrown, faMedal, faGem, faSpinner, faRocket } from '@fortawesome/free-solid-svg-icons';
-import './ProgressComparison.css';
-import mascotGif from '../assets/newbot.gif';
+import { TrendingUp, Loader2, Zap } from 'lucide-react';
 import axiosInstance from '../api/axiosInstance';
 
 // Transform API data to graph format
@@ -16,8 +13,8 @@ const transformApiData = (graphData) => {
     return {
       day: item.day,
       label: item.label,
-      icon: index === 0 ? '🚀' : '📚',
-      color: '#667eea',
+      icon: index === 0 ? '\u{1F680}' : '\u{1F4DA}',
+      color: '#00A0E3',
       targetPoints: item.target,
       actualPoints: item.actual,
       isBelowTarget,
@@ -155,7 +152,7 @@ const ProgressComparison = () => {
     if (actualGraphPoints.length > 1) {
       ctx.beginPath();
       ctx.moveTo(actualGraphPoints[0].x, actualGraphPoints[0].y);
-      
+
       for (let i = 1; i < actualGraphPoints.length; i++) {
         const xc = (actualGraphPoints[i].x + actualGraphPoints[i - 1].x) / 2;
         const yc = (actualGraphPoints[i].y + actualGraphPoints[i - 1].y) / 2;
@@ -167,8 +164,8 @@ const ProgressComparison = () => {
       ctx.closePath();
 
       const areaGradient = ctx.createLinearGradient(0, padding.top, 0, height - padding.bottom);
-      areaGradient.addColorStop(0, 'rgba(102, 126, 234, 0.4)');
-      areaGradient.addColorStop(0.4, 'rgba(240, 147, 251, 0.3)');
+      areaGradient.addColorStop(0, 'rgba(0, 160, 227, 0.4)');
+      areaGradient.addColorStop(0.4, 'rgba(0, 160, 227, 0.25)');
       areaGradient.addColorStop(1, 'rgba(255, 215, 0, 0.1)');
       ctx.fillStyle = areaGradient;
       ctx.fill();
@@ -264,7 +261,7 @@ const ProgressComparison = () => {
     if (actualGraphPoints.length > 1) {
       ctx.beginPath();
       ctx.moveTo(actualGraphPoints[0].x, actualGraphPoints[0].y);
-      
+
       for (let i = 1; i < actualGraphPoints.length; i++) {
         const xc = (actualGraphPoints[i].x + actualGraphPoints[i - 1].x) / 2;
         const yc = (actualGraphPoints[i].y + actualGraphPoints[i - 1].y) / 2;
@@ -281,11 +278,11 @@ const ProgressComparison = () => {
         actualGraphPoints[0].x, 0,
         actualGraphPoints[actualGraphPoints.length - 1].x, 0
       );
-      lineGradient.addColorStop(0, '#667eea');
+      lineGradient.addColorStop(0, '#00A0E3');
       lineGradient.addColorStop(0.3, '#ef4444');
-      lineGradient.addColorStop(0.6, '#f093fb');
+      lineGradient.addColorStop(0.6, '#00A0E3');
       lineGradient.addColorStop(1, '#ffd700');
-      
+
       ctx.strokeStyle = lineGradient;
       ctx.lineWidth = 4;
       ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
@@ -352,7 +349,7 @@ const ProgressComparison = () => {
         ctx.fillStyle = '#ef4444';
         ctx.shadowColor = 'rgba(239, 68, 68, 0.6)';
         ctx.shadowBlur = 4;
-       
+
         ctx.shadowBlur = 0;
       } else if (isAboveTarget) {
         // Show actual score for excellent performance
@@ -390,15 +387,15 @@ const ProgressComparison = () => {
     progressData.forEach((d, i) => {
       const x = actualGraphPoints[i].x;
       const lines = d.label.split('\n');
-      
+
       ctx.fillStyle = 'rgba(226, 232, 240, 0.95)';
       ctx.font = '11px Arial';
       ctx.textAlign = 'center';
-      
+
       lines.forEach((line, lineIndex) => {
         ctx.fillText(line, x, height - padding.bottom + 35 + lineIndex * 13);
       });
-      
+
       // Day number
       ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
       ctx.font = '9px Arial';
@@ -432,10 +429,10 @@ const ProgressComparison = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="progress-comparison-container gamified">
-        <div className="loading-container">
-          <FontAwesomeIcon icon={faSpinner} spin className="loading-spinner" />
-          <p>Loading your progress...</p>
+      <div className="relative min-h-[400px] bg-gradient-to-br from-[#0B1120] to-gray-900 rounded-xl p-6 overflow-hidden">
+        <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
+          <Loader2 className="w-10 h-10 text-[#00A0E3] animate-spin mb-4" />
+          <p className="text-gray-300 text-lg">Loading your progress...</p>
         </div>
       </div>
     );
@@ -444,10 +441,10 @@ const ProgressComparison = () => {
   // Error state
   if (error) {
     return (
-      <div className="progress-comparison-container gamified">
-        <div className="error-container">
-          <p className="error-message">Failed to load progress data</p>
-          <p className="error-details">{error}</p>
+      <div className="relative min-h-[400px] bg-gradient-to-br from-[#0B1120] to-gray-900 rounded-xl p-6 overflow-hidden">
+        <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
+          <p className="text-red-400 text-lg font-semibold">Failed to load progress data</p>
+          <p className="text-gray-400 text-sm mt-2">{error}</p>
         </div>
       </div>
     );
@@ -456,23 +453,26 @@ const ProgressComparison = () => {
   // No plans available
   if (plans.length === 0) {
     return (
-      <div className="empty-state-wrapper">
-        <img src={mascotGif} alt="Study Buddy" className="empty-mascot" />
-        <p className="empty-description">Take an exam to unlock your personalized learning path!</p>
-        <Link to="/exam-mode" className="empty-cta-link">
-          <FontAwesomeIcon icon={faBolt} /> Get Started
+      <div className="flex flex-col items-center justify-center py-12 px-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <span className="text-5xl mb-4" role="img" aria-label="robot">&#129302;</span>
+        <p className="text-gray-600 text-center text-lg mb-6">Take an exam to unlock your personalized learning path!</p>
+        <Link
+          to="/exam-mode"
+          className="inline-flex items-center gap-2 bg-[#00A0E3] hover:bg-[#0080B8] text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+        >
+          <Zap className="w-5 h-5" /> Get Started
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="progress-comparison-container gamified">
+    <div className="relative min-h-[400px] bg-gradient-to-br from-[#0B1120] to-gray-900 rounded-xl p-6 overflow-hidden">
       {/* Floating particles */}
       {particles.map(particle => (
         <div
           key={particle.id}
-          className="particle"
+          className="absolute pointer-events-none animate-pulse opacity-40"
           style={{
             left: `${particle.left}%`,
             top: `${particle.top}%`,
@@ -481,26 +481,28 @@ const ProgressComparison = () => {
             animationDelay: `${particle.delay}s`
           }}
         >
-          ✨
+          &#10024;
         </div>
       ))}
 
       {/* Header with Plan Selector */}
-      <div className="gamified-header">
-        <div className="title-badge">
-          <FontAwesomeIcon icon={faChartLine} className="title-icon" />
-          <span>📚 Smart Exam Tracker</span>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-[#00A0E3]/20 text-[#00A0E3] px-4 py-2 rounded-full">
+            <TrendingUp className="w-5 h-5" />
+            <span className="font-bold text-sm">Smart Exam Tracker</span>
+          </div>
         </div>
 
         {/* Plan Selector */}
         {plans.length > 1 && (
-          <div className="plan-selector">
-            <label htmlFor="plan-select">Select Plan:</label>
+          <div className="flex items-center gap-2">
+            <label htmlFor="plan-select" className="text-gray-300 text-sm font-medium">Select Plan:</label>
             <select
               id="plan-select"
               value={selectedPlanId || ''}
               onChange={(e) => setSelectedPlanId(Number(e.target.value))}
-              className="plan-dropdown"
+              className="bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00A0E3]"
             >
               {plans.map((plan) => (
                 <option key={plan.plan_id} value={plan.plan_id}>
@@ -511,129 +513,45 @@ const ProgressComparison = () => {
           </div>
         )}
 
-        <div className="graph-mascot">
-          <img src={mascotGif} alt="Study Buddy" className="mascot-gif" />
-          <div className="mascot-speech-bubble">
-            <span>Keep going! You're doing great! 🌟</span>
+        <div className="flex items-center gap-3">
+          <span className="text-3xl" role="img" aria-label="mascot">&#129302;</span>
+          <div className="bg-gray-800/80 text-gray-200 text-xs px-3 py-2 rounded-lg border border-gray-700">
+            <span>Keep going! You're doing great!</span>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      {/* <div className="stats-grid">
-        <div className="stat-card xp-card">
-          <div className="stat-icon">⚡</div>
-          <div className="stat-value">{totalXP.toLocaleString()}</div>
-          <div className="stat-label">Total XP</div>
-        </div>
-        
-        <div className="stat-card level-card">
-          <div className="stat-icon">🏆</div>
-          <div className="stat-value">Level {currentLevel}</div>
-          <div className="stat-label">Current Rank</div>
-        </div>
-        
-        <div className="stat-card tasks-card">
-          <div className="stat-icon">✅</div>
-          <div className="stat-value">{completedTasks}/{totalTasks}</div>
-          <div className="stat-label">Tasks Done</div>
-        </div>
-        
-        <div className="stat-card score-card">
-          <div className="stat-icon">📊</div>
-          <div className="stat-value">{latestData.actualPoints}%</div>
-          <div className="stat-label">Score</div>
-        </div>
-      </div> */}
-
       {/* Main Graph */}
-      <div className="graph-container">
-        <h3 className="graph-title">
-          <span className="graph-icon">📈</span>
+      <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+        <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+          <span>&#128200;</span>
           Your Epic Journey
-          <span className="live-badge"> </span>
         </h3>
 
-        <div className="canvas-wrapper">
-          <canvas ref={canvasRef} className="progress-canvas" />
-
-          {/* Mascot positioned on top right of graph */}
-          
+        <div className="relative w-full" style={{ height: '350px' }}>
+          <canvas ref={canvasRef} className="w-full h-full" />
         </div>
 
         {/* Legend */}
-        <div className="graph-legend">
-         
-          <div className="legend-item1">
-            <span className="legend-line target-line-solid"></span>
-            <span>Target Line</span>
+        <div className="flex flex-wrap items-center justify-center gap-6 mt-4 pt-4 border-t border-gray-700/50">
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-6 h-[3px] bg-emerald-500 rounded-full"></span>
+            <span className="text-gray-300 text-xs">Target Line</span>
           </div>
-          <div className="legend-item1">
-            <span className="legend-line actual-line"></span>
-            <span>Your Progress</span>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-6 h-[3px] bg-gradient-to-r from-[#00A0E3] to-yellow-400 rounded-full"></span>
+            <span className="text-gray-300 text-xs">Your Progress</span>
           </div>
-          <div className="legend-item1">
-            <span className="legend-dot safe-dot"></span>
-            <span>In Safe Zone</span>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-3 h-3 bg-emerald-500 rounded-full"></span>
+            <span className="text-gray-300 text-xs">In Safe Zone</span>
           </div>
-          <div className="legend-item1">
-            <span className="legend-dot danger-dot"></span>
-            <span>Needs Improvement</span>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-3 h-3 bg-red-500 rounded-full"></span>
+            <span className="text-gray-300 text-xs">Needs Improvement</span>
           </div>
         </div>
       </div>
-
-      {/* Level Progress Bar */}
-      {/* <div className="level-progress-container">
-        <div className="progress-header">
-          <span className="progress-label">
-            🎯 Level {currentLevel} → Level {currentLevel + 1}
-          </span>
-          <span className="progress-xp">
-            {totalXP % 1000} / 1,000 XP
-          </span>
-        </div>
-        <div className="progress-bar-outer">
-          <div className="progress-bar-inner" style={{ width: `${xpProgress}%` }}>
-            <div className="progress-avatar">🦸</div>
-          </div>
-          <div className="progress-percentage">{Math.round(xpProgress)}%</div>
-        </div>
-        <p className="progress-message">
-          🚀 Only <strong>{1000 - (totalXP % 1000)} XP</strong> to level up!
-        </p>
-      </div> */}
-
-      {/* Achievements Bar */}
-      {/* <div className="achievements-container">
-        <h4 className="achievements-title">
-          <FontAwesomeIcon icon={faMedal} /> Your Achievements
-        </h4>
-        <div className="achievements-grid">
-          {achievements.map(achievement => (
-            <div
-              key={achievement.id}
-              className={`achievement-badge ${achievement.unlocked ? 'unlocked' : 'locked'}`}
-              title={achievement.title}
-            >
-              <div className="badge-icon">{achievement.icon}</div>
-              <div className="badge-title">{achievement.title}</div>
-              {achievement.unlocked && <div className="badge-check">✓</div>}
-            </div>
-          ))}
-        </div>
-      </div> */}
-
-      {/* Hero Mode Message */}
-      {/* <div className="hero-mode-footer">
-        <div className="footer-icon">
-          <FontAwesomeIcon icon={faTrophy} />
-        </div>
-        <div className="footer-message">
-          <strong>🎮 EPIC COMEBACK!</strong> You activated Hero Mode and crushed it! 
-          From struggle to glory - that's the champion mindset! Keep this momentum going! 🚀
-        </div>
-      </div> */}
     </div>
   );
 };

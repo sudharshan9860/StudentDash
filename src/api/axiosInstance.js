@@ -75,9 +75,8 @@ axiosInstance.interceptors.response.use(
 
     // Handle expired access token
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (originalRequest.url.includes("/api/token/")) {
+      if (originalRequest.url.includes("/api/token/") || originalRequest.url.includes("/api/logout/")) {
         clearAllTokens();
-        window.location.href = "/login";
         return Promise.reject(error);
       }
 

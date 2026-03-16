@@ -7,9 +7,6 @@
  * - Lazy loading with Suspense
  * - Memory-optimized with proper cleanup
  * - Single canvas instance to prevent WebGL context loss
- *
- * @author Senior Engineer Implementation
- * @version 2.1.0
  */
 
 import React, { useRef, useEffect, useMemo, memo, Suspense, useState, useCallback } from 'react';
@@ -17,8 +14,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, useAnimations, OrbitControls } from '@react-three/drei';
 import { useMascot } from '../contexts/MascotContext';
 import * as THREE from 'three';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { Eye, EyeOff } from 'lucide-react';
 
 // Model path constant
 const MODEL_PATH = '/models/new-mascot.glb';
@@ -65,7 +61,6 @@ const MascotModel = memo(({
     let targetAction = actions[targetAnimation];
 
     if (!targetAction) {
-      // Try to find animation case-insensitively
       const animationKey = Object.keys(actions).find(
         key => key.toLowerCase() === targetAnimation?.toLowerCase()
       );
@@ -76,7 +71,6 @@ const MascotModel = memo(({
 
     if (!targetAction) {
       console.warn(`[Mascot3D] Animation "${targetAnimation}" not found. Available:`, Object.keys(actions));
-      // Fall back to 't-pose' or first available animation
       targetAction = actions['t-pose'] || Object.values(actions)[0];
       if (!targetAction) return;
     }
@@ -106,7 +100,7 @@ const MascotModel = memo(({
 
   }, [currentAnimation, actions, transitionDuration, loopAnimation]);
 
-  // Update mixer on each frame - THIS IS CRITICAL
+  // Update mixer on each frame
   useFrame((state, delta) => {
     mixer?.update(delta);
   });
@@ -139,7 +133,7 @@ const LoadingFallback = () => {
   return (
     <mesh ref={meshRef}>
       <boxGeometry args={[0.5, 0.5, 0.5]} />
-      <meshStandardMaterial color="#667eea" wireframe />
+      <meshStandardMaterial color="#00A0E3" wireframe />
     </mesh>
   );
 };
@@ -182,11 +176,10 @@ const Mascot3D = memo(({
   return (
     <div
       ref={containerRef}
-      className={`mascot-3d-container ${className}`}
+      className={`relative ${className}`}
       style={{
         width,
         height,
-        position: 'relative',
         ...style,
       }}
     >
@@ -256,12 +249,8 @@ export const InlineMascot = memo(({
     <Mascot3D
       width={width}
       height={height}
-      className={`inline-mascot ${className}`}
-      style={{
-        display: 'inline-block',
-        verticalAlign: 'middle',
-        ...style,
-      }}
+      className={`inline-block align-middle ${className}`}
+      style={style}
       onLoaded={onLoaded}
     />
   );
@@ -271,13 +260,6 @@ InlineMascot.displayName = 'InlineMascot';
 
 /**
  * Floating Mascot - For fixed position on screen with speech bubble support
- * FAANG-level floating mascot with contextual behavior
- *
- * Features:
- * - Visibility toggle with elegant hide/show animation
- * - Persistent visibility state across page navigation
- * - Smooth transitions with cubic-bezier easing
- * - Accessible toggle button with proper ARIA labels
  */
 export const FloatingMascot = memo(({
   position = 'bottom-right',
@@ -292,21 +274,13 @@ export const FloatingMascot = memo(({
   const [isBubbleVisible, setIsBubbleVisible] = useState(false);
   const [bubbleAnimating, setBubbleAnimating] = useState(false);
 
-  // Persistent visibility state - stored in sessionStorage for page navigation persistence
+  // Persistent visibility state
   const [isMascotHidden, setIsMascotHidden] = useState(() => {
     const stored = sessionStorage.getItem('mascot_visibility_hidden');
     return stored === 'true';
   });
 
-  // Track hover state for toggle button
   const [isToggleHovered, setIsToggleHovered] = useState(false);
-
-  const positions = {
-    'bottom-right': { bottom: 20, right: 20 },
-    'bottom-left': { bottom: 20, left: 20 },
-    'top-right': { top: 100, right: 20 },
-    'top-left': { top: 100, left: 20 },
-  };
 
   const sizes = {
     small: { width: 100, height: 120 },
@@ -314,7 +288,6 @@ export const FloatingMascot = memo(({
     large: { width: 180, height: 220 },
   };
 
-  const positionStyle = positions[position] || positions['bottom-right'];
   const { width, height } = sizes[size] || sizes.medium;
   const isRightAligned = position.includes('right');
 
@@ -341,25 +314,21 @@ export const FloatingMascot = memo(({
     }
   }, [showBubble, speechBubble, isBubbleVisible, onBubbleDismiss]);
 
-  // Calculate final position with offset
-  const finalPositionStyle = {
-    ...positionStyle,
-    ...(positionStyle.bottom !== undefined && { bottom: positionStyle.bottom + bottomOffset }),
-  };
-
   return (
     <div
-      className={`floating-mascot-container ${className} ${isMascotHidden ? 'mascot-hidden' : 'mascot-visible'}`}
+      className={`fixed z-[1000] ${className}`}
       style={{
-        position: 'fixed',
         bottom: "40vh",
         right: "5vh",
-        zIndex: 1000,
       }}
     >
-      {/* Visibility Toggle Button - Always visible for accessibility */}
+      {/* Visibility Toggle Button */}
       <button
-        className={`mascot-visibility-toggle ${isToggleHovered ? 'toggle-hovered' : ''} ${isMascotHidden ? 'mascot-is-hidden' : ''}`}
+        className={`absolute -top-3 -right-1 w-8 h-8 rounded-full border-2 border-white shadow-md flex items-center justify-center cursor-pointer transition-all z-10 ${
+          isMascotHidden
+            ? 'bg-gray-400 hover:bg-gray-500'
+            : 'bg-[#00A0E3] hover:bg-[#0080B8]'
+        }`}
         onClick={handleVisibilityToggle}
         onMouseEnter={() => setIsToggleHovered(true)}
         onMouseLeave={() => setIsToggleHovered(false)}
@@ -369,16 +338,19 @@ export const FloatingMascot = memo(({
         title={isMascotHidden ? 'Show Mascot' : 'Hide Mascot'}
         type="button"
       >
-        <FontAwesomeIcon
-          icon={isMascotHidden ? faEyeSlash : faEye}
-          className="toggle-icon"
-        />
+        {isMascotHidden ? (
+          <EyeOff className="w-4 h-4 text-white" />
+        ) : (
+          <Eye className="w-4 h-4 text-white" />
+        )}
       </button>
 
-      {/* Speech Bubble - Only show when mascot is visible */}
+      {/* Speech Bubble */}
       {!isMascotHidden && isBubbleVisible && speechBubble && (
         <div
-          className={`speech-bubble ${isRightAligned ? 'bubble-right' : 'bubble-left'} ${bubbleAnimating ? 'bubble-visible' : 'bubble-hidden'}`}
+          className={`absolute bottom-full mb-3 bg-white rounded-xl shadow-lg border border-gray-200 p-3 max-w-[200px] cursor-pointer transition-all duration-300 ${
+            isRightAligned ? 'right-0' : 'left-0'
+          } ${bubbleAnimating ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
           onClick={() => {
             setBubbleAnimating(false);
             setTimeout(() => {
@@ -387,26 +359,33 @@ export const FloatingMascot = memo(({
             }, 300);
           }}
         >
-          <div className="bubble-content">
+          <div className="flex items-start gap-2">
             {typeof speechBubble === 'string' ? (
-              <span className="bubble-text">{speechBubble}</span>
+              <span className="text-sm text-[#0B1120]">{speechBubble}</span>
             ) : (
               speechBubble
             )}
-            <span className="bubble-dismiss">×</span>
+            <span className="text-gray-400 text-xs cursor-pointer hover:text-gray-600 flex-shrink-0">x</span>
           </div>
-          <div className={`bubble-arrow ${isRightAligned ? 'arrow-right' : 'arrow-left'}`} />
+          <div
+            className={`absolute -bottom-2 w-4 h-4 bg-white border-r border-b border-gray-200 transform rotate-45 ${
+              isRightAligned ? 'right-6' : 'left-6'
+            }`}
+          />
         </div>
       )}
 
-      {/* Mascot Container with glow effect - Animated hide/show */}
-      <div className={`floating-mascot-wrapper ${isMascotHidden ? 'wrapper-hidden' : 'wrapper-visible'}`}>
-        <div className="mascot-glow" />
+      {/* Mascot Container */}
+      <div
+        className={`transition-all duration-500 ease-in-out ${
+          isMascotHidden ? 'opacity-0 scale-0 pointer-events-none' : 'opacity-100 scale-100'
+        }`}
+      >
+        <div className="absolute inset-0 rounded-full bg-[#00A0E3]/10 blur-xl" />
         <Mascot3D
           width={width}
           height={height}
           onLoaded={onLoaded}
-          className="floating-mascot-canvas"
         />
       </div>
     </div>

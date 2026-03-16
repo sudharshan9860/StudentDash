@@ -1,10 +1,8 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faTimes, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import React, { useContext, useState } from 'react';
+import { Bell, CheckCircle } from 'lucide-react';
 import { NotificationContext } from '../contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
-import './LiveNotifications.css';
 
 const LiveNotifications = () => {
   const {
@@ -26,13 +24,13 @@ const LiveNotifications = () => {
 
   const getNotificationIcon = (type) => {
     const iconMap = {
-      achievement: '🏆',
-      progress: '📈',
-      recommendation: '💡',
-      reminder: '⏰',
-      homework: '📖'
+      achievement: '\uD83C\uDFC6',
+      progress: '\uD83D\uDCC8',
+      recommendation: '\uD83D\uDCA1',
+      reminder: '\u23F0',
+      homework: '\uD83D\uDCD6'
     };
-    return iconMap[type] || '🔔';
+    return iconMap[type] || '\uD83D\uDD14';
   };
 
   const fetchOldNotifications = async () => {
@@ -93,63 +91,49 @@ const LiveNotifications = () => {
   };
 
   return (
-    <div className="live-notifications-card">
+    <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
       {/* Header */}
-      <div className="live-notifications-header">
-        <h3>
-          <FontAwesomeIcon icon={faBell} className="notifications-icon" />
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-[#0B1120] m-0">
+          <Bell className="w-5 h-5 text-[#00A0E3]" />
           Notifications
           {unreadCount > 0 && (
-            <span className="unread-badge">{unreadCount}</span>
+            <span className="bg-[#00A0E3] text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center">
+              {unreadCount}
+            </span>
           )}
         </h3>
-        {/* {notifications.length > 0 && (
-          <button
-            className="clear-all-btn"
-            onClick={clearAllNotifications}
-            title="Clear all"
-          >
-            Clear All
-          </button>
-        )} */}
       </div>
 
       {/* Notifications List */}
-      <div className="live-notifications-list">
+      <div className="max-h-[400px] overflow-y-auto">
         {displayNotifications.length === 0 ? (
-          <div className="no-notifications">
-            <FontAwesomeIcon icon={faCheckCircle} className="no-notif-icon" />
-            <p>No new notifications</p>
-            <span>You're all caught up!</span>
+          <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+            <CheckCircle className="w-10 h-10 mb-3 text-[#00A0E3]/40" />
+            <p className="text-[#0B1120] font-medium mb-1">No new notifications</p>
+            <span className="text-sm text-gray-400">You're all caught up!</span>
           </div>
         ) : (
           <>
             {displayNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`notification-item ${!notification.read ? 'unread' : ''}`}
+                className={`flex items-start gap-3 px-5 py-3 cursor-pointer transition-colors hover:bg-[#F8FAFC] border-b border-gray-50 ${
+                  !notification.read ? 'bg-[#00A0E3]/5' : ''
+                }`}
                 onClick={() => handleNotificationClick(notification)}
               >
-                <div className="notification-icon-wrapper">
-                  <span className="notification-emoji">
-                    {getNotificationIcon(notification.type)}
-                  </span>
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#F8FAFC] flex items-center justify-center text-lg">
+                  <span>{getNotificationIcon(notification.type)}</span>
                 </div>
-                <div className="notification-content">
-                  <div className="notification-message">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-[#0B1120] leading-snug">
                     {notification.message}
                   </div>
-                  <div className="notification-time">
+                  <div className="text-xs text-gray-400 mt-1">
                     {formatTimestamp(notification.timestamp)}
                   </div>
                 </div>
-                {/* <button
-                  className="notification-dismiss"
-                  onClick={(e) => handleDismiss(notification.id, e)}
-                  title="Dismiss"
-                >
-                  <FontAwesomeIcon icon={faTimes} />
-                </button> */}
               </div>
             ))}
           </>
@@ -158,9 +142,9 @@ const LiveNotifications = () => {
 
       {/* Load More Button */}
       {!showOldNotifications && notifications.length > 5 && (
-        <div className="load-more-wrapper">
+        <div className="px-5 py-3 border-t border-gray-100">
           <button
-            className="load-more-btn"
+            className="w-full py-2 text-sm font-medium text-[#00A0E3] hover:text-[#0080B8] bg-transparent border border-[#00A0E3]/20 rounded-lg hover:bg-[#00A0E3]/5 transition-colors disabled:opacity-50"
             onClick={fetchOldNotifications}
             disabled={loadingOldNotifications}
           >
@@ -171,9 +155,9 @@ const LiveNotifications = () => {
 
       {/* Show Recent Button (when old notifications are shown) */}
       {showOldNotifications && (
-        <div className="load-more-wrapper">
+        <div className="px-5 py-3 border-t border-gray-100">
           <button
-            className="load-more-btn"
+            className="w-full py-2 text-sm font-medium text-[#00A0E3] hover:text-[#0080B8] bg-transparent border border-[#00A0E3]/20 rounded-lg hover:bg-[#00A0E3]/5 transition-colors"
             onClick={() => setShowOldNotifications(false)}
           >
             Show Recent Only

@@ -228,12 +228,12 @@ function LoginPage() {
             {/* <FontAwesomeIcon icon={faArrowLeft} /> */}
             {/* <span>Back</span> */}
           </Link>
-          <a
+          {/* <a
             href="https://www.smartlearners.ai/free-trial"
             className="create-account-link"
           >
             Create an account
-          </a>
+          </a> */}
         </div>
 
         <div className="logo-section-new">

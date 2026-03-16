@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { soundManager, SOUND_TYPES } from '../utils/SoundManager';
+import { Volume2 } from 'lucide-react';
 
 const SoundConfigModal = ({ show, onHide }) => {
   const [isSoundEnabled, setIsSoundEnabled] = useState(soundManager.isSoundEnabled);
@@ -24,12 +25,15 @@ const SoundConfigModal = ({ show, onHide }) => {
   return (
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Sound Settings</Modal.Title>
+        <Modal.Title className="flex items-center gap-2">
+          <Volume2 className="w-5 h-5 text-[#00A0E3]" />
+          Sound Settings
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
           <Form.Group className="mb-3">
-            <Form.Check 
+            <Form.Check
               type="switch"
               id="sound-toggle"
               label="Enable Sounds"
@@ -37,41 +41,43 @@ const SoundConfigModal = ({ show, onHide }) => {
               onChange={handleToggleSound}
             />
           </Form.Group>
-          
+
           <Form.Group className="mb-3">
             <Form.Label>Volume</Form.Label>
-            <Form.Range 
-              min="0" 
-              max="1" 
-              step="0.1" 
+            <Form.Range
+              min="0"
+              max="1"
+              step="0.1"
               value={volume}
               onChange={handleVolumeChange}
               disabled={!isSoundEnabled}
             />
           </Form.Group>
 
-          <div className="sound-test-buttons">
-            <h6>Test Sounds</h6>
-            <div className="d-flex flex-wrap gap-2">
+          <div>
+            <h6 className="text-[#0B1120] font-semibold mb-2">Test Sounds</h6>
+            <div className="flex flex-wrap gap-2">
               {Object.values(SOUND_TYPES).map((soundType) => (
-                <Button 
+                <button
                   key={soundType}
-                  variant="outline-primary" 
-                  size="sm"
+                  className="px-3 py-1.5 text-sm border border-[#00A0E3] text-[#00A0E3] rounded-md hover:bg-[#00A0E3] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => playTestSound(soundType)}
                   disabled={!isSoundEnabled}
                 >
                   {soundType.replace(/_/g, ' ')}
-                </Button>
+                </button>
               ))}
             </div>
           </div>
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
+        <button
+          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md text-sm"
+          onClick={onHide}
+        >
           Close
-        </Button>
+        </button>
       </Modal.Footer>
     </Modal>
   );

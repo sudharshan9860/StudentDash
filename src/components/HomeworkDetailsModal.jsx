@@ -1,31 +1,15 @@
 // src/components/HomeworkDetailsModal.jsx
 import React, { useMemo } from 'react';
-import { Modal, Button, Badge, ProgressBar, Alert } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCalendarAlt,
-  faBookOpen,
-  faChartLine,
-  faCheckCircle,
-  faTimesCircle,
-  faExclamationTriangle,
-  faLightbulb,
-  faBrain,
-  faCalculator,
-  faCommentDots,
-  faEdit,
-  faStar,
-  faStarHalfAlt,
-  faGraduationCap,
-  faDownload,
-  faClipboardCheck
-} from '@fortawesome/free-solid-svg-icons';
+  Calendar, BookOpen, TrendingUp, CheckCircle, XCircle,
+  AlertTriangle, Lightbulb, Brain, Calculator, MessageCircle,
+  Pencil, Star, StarHalf, GraduationCap, ClipboardCheck, X
+} from 'lucide-react';
 import MarkdownWithMath from './MarkdownWithMath';
-import './HomeworkDetailsModal.css';
 
 const HomeworkDetailsModal = ({ show, onHide, submission }) => {
   const questions = useMemo(() => submission?.result_json?.questions || [], [submission]);
-  
+
   // Calculate total score and percentage
   const totalScore = useMemo(() => {
     return questions.reduce((sum, q) => sum + (q.total_score || 0), 0);
@@ -53,42 +37,33 @@ const HomeworkDetailsModal = ({ show, onHide, submission }) => {
   };
 
   // Helper function to get grade color
-  const getGradeColor = (grade) => {
+  const getGradeColorClass = (grade) => {
     switch (grade) {
-      case 'A': case 'A+': return 'success';
-      case 'B': case 'B+': return 'info';
-      case 'C': case 'C+': return 'warning';
-      case 'D': return 'danger';
-      case 'F': return 'danger';
-      default: return 'secondary';
+      case 'A': case 'A+': return 'text-green-600 bg-green-100';
+      case 'B': case 'B+': return 'text-blue-600 bg-blue-100';
+      case 'C': case 'C+': return 'text-yellow-600 bg-yellow-100';
+      case 'D': case 'F': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
     }
   };
 
   // Helper function to get category/error type icon and color
   const getCategoryInfo = (category) => {
     const categoryLower = (category || '').toLowerCase();
-    
-   if (categoryLower.includes('partially-')) {
-    return { icon: faStarHalfAlt, color: 'info', label: 'Partially Correct' };}
-    else if (categoryLower.includes('correct') || categoryLower.includes('no_error')) {
-      return { icon: faCheckCircle, color: 'success', label: 'Correct' };
-    } else if (categoryLower.includes('calculation') || categoryLower.includes('numerical')) {
-      return { icon: faCalculator, color: 'danger', label: 'Calculation Error' };
-    } else if (categoryLower.includes('conceptual')) {
-      return { icon: faBrain, color: 'warning', label: 'Conceptual Error' };
-    } else if (categoryLower.includes('logical')) {
-      return { icon: faExclamationTriangle, color: 'warning', label: 'Logical Error' };
-    } else {
-      return { icon: faExclamationTriangle, color: 'secondary', label: category || 'Unknown' };
-    }
-  };
 
-  // Helper function to get percentage color
-  const getPercentageColor = (percentage) => {
-    if (percentage >= 80) return 'success';
-    if (percentage >= 60) return 'info';
-    if (percentage >= 40) return 'warning';
-    return 'danger';
+    if (categoryLower.includes('partially-')) {
+      return { icon: StarHalf, colorClass: 'text-blue-600 bg-blue-100', label: 'Partially Correct' };
+    } else if (categoryLower.includes('correct') || categoryLower.includes('no_error')) {
+      return { icon: CheckCircle, colorClass: 'text-green-600 bg-green-100', label: 'Correct' };
+    } else if (categoryLower.includes('calculation') || categoryLower.includes('numerical')) {
+      return { icon: Calculator, colorClass: 'text-red-600 bg-red-100', label: 'Calculation Error' };
+    } else if (categoryLower.includes('conceptual')) {
+      return { icon: Brain, colorClass: 'text-yellow-600 bg-yellow-100', label: 'Conceptual Error' };
+    } else if (categoryLower.includes('logical')) {
+      return { icon: AlertTriangle, colorClass: 'text-yellow-600 bg-yellow-100', label: 'Logical Error' };
+    } else {
+      return { icon: AlertTriangle, colorClass: 'text-gray-600 bg-gray-100', label: category || 'Unknown' };
+    }
   };
 
   // Format date
@@ -106,243 +81,197 @@ const HomeworkDetailsModal = ({ show, onHide, submission }) => {
 
   const grade = getGrade(overallPercentage);
 
+  if (!show) return null;
+
   return (
-    <Modal show={show} onHide={onHide} size="lg" scrollable centered className="homework-details-modal">
-      <Modal.Header closeButton className="bg-primary text-white">
-        <Modal.Title>
-          <FontAwesomeIcon icon={faBookOpen} className="me-2" />
-          Homework Details - {submission?.worksheet_id || submission?.homework || 'N/A'}
-        </Modal.Title>
-      </Modal.Header>
-
-      <Modal.Body>
-        {/* Submission Overview */}
-        <div className="mb-4 p-3 bg-light rounded">
-          <div className="row">
-            <div className="col-md-6">
-              <p className="mb-2">
-                <FontAwesomeIcon icon={faCalendarAlt} className="text-primary me-2" />
-                <strong>Submitted On:</strong>{" "}
-                {formatDate(submission?.submission_timestamp || submission?.submission_date)}
-              </p>
-              {submission?.class && (
-                <p className="mb-2">
-                  <FontAwesomeIcon icon={faGraduationCap} className="text-info me-2" />
-                  <strong>Class:</strong> {submission.class} | 
-                  <strong className="ms-2">Board:</strong> {submission.board || 'CBSE'}
-                </p>
-              )}
-            </div>
-            <div className="col-md-6">
-              <p className="mb-2">
-                <FontAwesomeIcon icon={faChartLine} className="text-info me-2" />
-                <strong>Overall Score:</strong>{" "}
-                <span className="fw-bold">{totalScore}</span> / {maxPossibleScore}
-                {" "}
-                <Badge bg={getGradeColor(grade)} className="ms-2">
-                  Grade {grade}
-                </Badge>
-              </p>
-              {submission?.difficulty_level && (
-                <p className="mb-2">
-                  <FontAwesomeIcon icon={faClipboardCheck} className="text-warning me-2" />
-                  <strong>Difficulty:</strong>{" "}
-                  <Badge bg={
-                    submission.difficulty_level === 'Hard' ? 'danger' : 
-                    submission.difficulty_level === 'Medium' ? 'warning' : 'success'
-                  }>
-                    {submission.difficulty_level}
-                  </Badge>
-                </p>
-              )}
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onHide}>
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-[#00A0E3] text-white rounded-t-xl">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-5 h-5" />
+            <h2 className="text-lg font-semibold">
+              Homework Details - {submission?.worksheet_id || submission?.homework || 'N/A'}
+            </h2>
           </div>
+          <button onClick={onHide} className="p-1 hover:bg-white/20 rounded transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Progress Bar */}
-          {/* <div className="mt-3">
-            <div className="d-flex justify-content-between mb-1">
-              <small className="text-muted">Overall Performance</small>
-              <small className="fw-bold">{overallPercentage}%</small>
-            </div>
-            <ProgressBar 
-              now={overallPercentage} 
-              variant={getPercentageColor(overallPercentage)}
-              animated
-              striped
-              label={`${overallPercentage}%`}
-              style={{ height: '25px' }}
-            />
-          </div> */}
-
-          {/* Summary Stats */}
-          {questions.length > 0 && (
-            <div className="row mt-3 d-flex justify-content-around">
-              <div className="col-md-4">
-                <div className="text-center">
-                  <FontAwesomeIcon icon={faClipboardCheck} className="text-primary mb-1" size="lg" />
-                  <p className="mb-0 small text-muted">Total Questions</p>
-                  <p className="mb-0 fw-bold">{questions.length}</p>
-                </div>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Submission Overview */}
+          <div className="mb-6 p-4 bg-[#F8FAFC] rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <p className="flex items-center gap-2 text-sm text-[#0B1120]">
+                  <Calendar className="w-4 h-4 text-[#00A0E3]" />
+                  <strong>Submitted On:</strong>{" "}
+                  {formatDate(submission?.submission_timestamp || submission?.submission_date)}
+                </p>
+                {submission?.class && (
+                  <p className="flex items-center gap-2 text-sm text-[#0B1120]">
+                    <GraduationCap className="w-4 h-4 text-[#00A0E3]" />
+                    <strong>Class:</strong> {submission.class} |
+                    <strong className="ml-2">Board:</strong> {submission.board || 'CBSE'}
+                  </p>
+                )}
               </div>
-             
-              <div className="col-md-4">
+              <div className="space-y-2">
+                <p className="flex items-center gap-2 text-sm text-[#0B1120]">
+                  <TrendingUp className="w-4 h-4 text-[#00A0E3]" />
+                  <strong>Overall Score:</strong>{" "}
+                  <span className="font-bold">{totalScore}</span> / {maxPossibleScore}
+                  <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full ${getGradeColorClass(grade)}`}>
+                    Grade {grade}
+                  </span>
+                </p>
+                {submission?.difficulty_level && (
+                  <p className="flex items-center gap-2 text-sm text-[#0B1120]">
+                    <ClipboardCheck className="w-4 h-4 text-yellow-500" />
+                    <strong>Difficulty:</strong>{" "}
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                      submission.difficulty_level === 'Hard' ? 'text-red-600 bg-red-100' :
+                      submission.difficulty_level === 'Medium' ? 'text-yellow-600 bg-yellow-100' : 'text-green-600 bg-green-100'
+                    }`}>
+                      {submission.difficulty_level}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Summary Stats */}
+            {questions.length > 0 && (
+              <div className="flex justify-around mt-4 pt-4 border-t border-gray-200">
                 <div className="text-center">
-                  <FontAwesomeIcon icon={faStar} className="text-warning mb-1" size="lg" />
-                  <p className="mb-0 small text-muted">Avg. Score</p>
-                  <p className="mb-0 fw-bold">
+                  <ClipboardCheck className="w-5 h-5 text-[#00A0E3] mx-auto mb-1" />
+                  <p className="text-xs text-gray-500">Total Questions</p>
+                  <p className="font-bold text-[#0B1120]">{questions.length}</p>
+                </div>
+                <div className="text-center">
+                  <Star className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
+                  <p className="text-xs text-gray-500">Avg. Score</p>
+                  <p className="font-bold text-[#0B1120]">
                     {questions.length > 0 ? Math.round(totalScore / questions.length * 10) / 10 : 0}
                   </p>
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Questions Section */}
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-[#0B1120] mb-4">
+            <Lightbulb className="w-5 h-5 text-yellow-500" />
+            Question-wise Analysis
+          </h3>
+
+          {questions.length === 0 ? (
+            <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              No questions found in this submission.
             </div>
+          ) : (
+            questions.map((q, index) => {
+              const categoryInfo = getCategoryInfo(q.answer_category || q.error_type);
+              const CategoryIcon = categoryInfo.icon;
+              const concepts = q.concept_required || q.concepts_required || [];
+              const questionScore = q.total_score || 0;
+              const questionMaxScore = q.max_score || q.max_marks || 0;
+
+              return (
+                <div key={index} className="mb-4 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                  {/* Question Header */}
+                  <div className="p-3 bg-[#F8FAFC] border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <h4 className="flex items-center gap-2 font-semibold text-[#0B1120]">
+                        <BookOpen className="w-4 h-4 text-[#00A0E3]" />
+                        Question {index + 1}
+                      </h4>
+                      <div className="flex items-center gap-3">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full ${categoryInfo.colorClass}`}>
+                          <CategoryIcon className="w-3.5 h-3.5" />
+                          {categoryInfo.label}
+                        </span>
+                        <span className="font-bold text-sm text-[#0B1120]">
+                          {questionScore} / {questionMaxScore} marks
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Question Details */}
+                  <div className="p-4">
+                    {/* Question Text */}
+                    {(q.question_text || q.question) && (
+                      <div className="mb-3 p-3 bg-[#F8FAFC] rounded-lg">
+                        <h6 className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                          <BookOpen className="w-4 h-4" />
+                          Question:
+                        </h6>
+                        <div className="pl-3">
+                          <MarkdownWithMath content={q.question_text || q.question} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Concepts Required */}
+                    {concepts.length > 0 && (
+                      <div className="mb-3">
+                        <strong className="flex items-center gap-2 text-sm text-gray-500">
+                          <Brain className="w-4 h-4" />
+                          Concepts Required:
+                        </strong>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {concepts.map((concept, idx) => (
+                            <span key={idx} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
+                              <MarkdownWithMath content={concept} />
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Corrections/Mistakes */}
+                    {(q.correction_comment || q.mistakes_made) && (
+                      <div className="mb-3 p-3 bg-red-50 border border-red-100 rounded-lg">
+                        <strong className="flex items-center gap-2 text-sm text-red-700">
+                          <Pencil className="w-4 h-4" />
+                          Corrections Needed:
+                        </strong>
+                        <MarkdownWithMath content={q.correction_comment || q.mistakes_made} />
+                      </div>
+                    )}
+
+                    {/* Feedback/Comments */}
+                    {(q.comment || q.gap_analysis) && (
+                      <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                        <strong className="flex items-center gap-2 text-sm text-blue-700">
+                          <MessageCircle className="w-4 h-4" />
+                          Teacher's Feedback:
+                        </strong>
+                        <MarkdownWithMath content={q.comment || q.gap_analysis} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
 
-        {/* Questions Section */}
-        <h5 className="mb-3 d-flex align-items-center">
-          <FontAwesomeIcon icon={faLightbulb} className="text-warning me-2" />
-          Question-wise Analysis
-        </h5>
-
-        {questions.length === 0 ? (
-          <Alert variant="warning">
-            <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
-            No questions found in this submission.
-          </Alert>
-        ) : (
-          questions.map((q, index) => {
-            const categoryInfo = getCategoryInfo(q.answer_category || q.error_type);
-            const questionScore = q.total_score || 0;
-            const questionMaxScore = q.max_score || q.max_marks || 0;
-            const questionPercentage = questionMaxScore > 0 
-              ? Math.round((questionScore / questionMaxScore) * 100) 
-              : 0;
-            const concepts = q.concept_required || q.concepts_required || [];
-
-            return (
-              <div key={index} className="mb-4 border rounded overflow-hidden shadow-sm">
-                {/* Question Header */}
-                <div className="p-3 bg-light border-bottom">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="mb-0 d-flex align-items-center">
-                      <FontAwesomeIcon icon={faBookOpen} className="text-primary me-2" />
-                      Question {index + 1}
-                    </h6>
-                    <div className="d-flex align-items-center gap-3">
-                      <Badge bg={categoryInfo.color} className="d-flex align-items-center">
-                        <FontAwesomeIcon icon={categoryInfo.icon} className="me-1" />
-                        {categoryInfo.label}
-                      </Badge>
-                      <span className="fw-bold">
-                        {questionScore} / {questionMaxScore} marks
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Question Details */}
-                <div className="p-3">
-                  {/* Question Text */}
-                  {(q.question_text || q.question) && (
-                    <div className="mb-3 p-3 bg-light rounded">
-                      <h6 className="text-muted mb-2">
-                        <FontAwesomeIcon icon={faBookOpen} className="me-2" />
-                        Question:
-                      </h6>
-                      <div className="ps-3">
-                        <MarkdownWithMath content={q.question_text || q.question} />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Score Progress */}
-                  <div className="mb-3">
-                    {/* <div className="d-flex justify-content-between mb-1">
-                      <small className="text-muted">Score Achievement</small>
-                      <small className="fw-bold">{questionPercentage}%</small>
-                    </div> */}
-                    {/* <ProgressBar 
-                      now={questionPercentage} 
-                      variant={getPercentageColor(questionPercentage)}
-                      label={`${questionPercentage}%`}
-                      style={{ height: '20px' }}
-                    /> */}
-                  </div>
-
-                  {/* Concepts Required */}
-                  {concepts.length > 0 && (
-                    <div className="mb-3">
-                      <strong className="text-muted">
-                        <FontAwesomeIcon icon={faBrain} className="me-2" />
-                        Concepts Required:
-                      </strong>
-                      <div className="mt-2">
-                        {concepts.map((concept, idx) => (
-                          <Badge key={idx} bg="secondary" className="me-2 mb-1">
-                            <MarkdownWithMath content={concept} />
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Corrections/Mistakes */}
-                  {(q.correction_comment || q.mistakes_made) && (
-                    <Alert variant="danger" className="mb-3">
-                      <strong>
-                        <FontAwesomeIcon icon={faEdit} className="me-2" />
-                        Corrections Needed:
-                      </strong>
-                   
-                        <MarkdownWithMath content={q.correction_comment || q.mistakes_made} />
-                  
-                    </Alert>
-                  )}
-
-                  {/* Feedback/Comments */}
-                  {(q.comment || q.gap_analysis) && (
-                    <Alert variant="info" className="mb-0">
-                      <strong>
-                        <FontAwesomeIcon icon={faCommentDots} className="me-2" />
-                        Teacher's Feedback:
-                      </strong>
-               
-                        <MarkdownWithMath content={q.comment || q.gap_analysis} />
-                
-                    </Alert>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </Modal.Body>
-
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          Close
-        </Button>
-        {/* <Button 
-          variant="info" 
-          onClick={() => {
-            // Implement download functionality
-            console.log('Download report for:', submission?.worksheet_id);
-          }}
-        >
-          <FontAwesomeIcon icon={faDownload} className="me-2" />
-          Download Report
-        </Button> */}
-        {/* <Button 
-          variant="primary" 
-          onClick={() => {
-            // Navigate to detailed gap analysis if needed
-            console.log('View gap analysis for:', submission?.worksheet_id);
-          }}
-        >
-          View Full Gap Analysis
-        </Button> */}
-      </Modal.Footer>
-    </Modal>
+        {/* Footer */}
+        <div className="flex justify-end px-6 py-4 border-t border-gray-200">
+          <button
+            onClick={onHide}
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

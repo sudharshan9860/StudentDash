@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Row, Col, Modal, Table, Badge, Card } from 'react-bootstrap';
 import Select from 'react-select';
 import axiosInstance from '../api/axiosInstance';
 import QuestionListModal from './QuestionListModal';
-import './QuickExerciseComponent.css';
 import MarkdownWithMath from "./MarkdownWithMath";
 import { useAlert } from './AlertBox';
 import { getImageSrc } from '../utils/imageUtils';
@@ -23,7 +21,7 @@ const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
   const [selectedChapters, setSelectedChapters] = useState([]);
   const [questionType, setQuestionType] = useState("");
   const [questionLevel, setQuestionLevel] = useState("");
-  const [selectedExercises, setSelectedExercises] = useState([]); 
+  const [selectedExercises, setSelectedExercises] = useState([]);
   const [selectedWorksheet, setSelectedWorksheet] = useState("");
   const [showQuestionList, setShowQuestionList] = useState(false);
   const [questionList, setQuestionList] = useState([]);
@@ -396,15 +394,15 @@ const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
         const mockQuestions = selectedExercises.map((exercise) => {
           const subtopicIndex = subTopics.findIndex(st => st === exercise);
           const exerciseNumber = subtopicIndex !== -1 ? subtopicIndex + 1 : 1;
-          
+
           return {
-            question: `Exercise ${exerciseNumber} from Chapter ${selectedChapters.map(c => 
+            question: `Exercise ${exerciseNumber} from Chapter ${selectedChapters.map(c =>
               chapters.find(ch => ch.topic_code === c)?.name || c).join(", ")}`,
             question_image: null,
             subtopic: exercise
           };
         });
-        
+
 
         setQuestionList(mockQuestions);
         setSelectedQuestions([]); // Reset selected questions
@@ -438,7 +436,7 @@ const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
       const subtopicIndex = subTopics.findIndex(st => st === exercise);
       return subtopicIndex !== -1 ? subtopicIndex + 1 : "";
     }).filter(num => num !== "").join(", ");
-    
+
     const exerciseText = exerciseNumbers ? `Exercises ${exerciseNumbers}` : "Selected Exercises";
     setHomeworkTitle(`${subjectName} - ${chapterName} ${exerciseText}`);
   };
@@ -615,246 +613,230 @@ const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
   // Render the homework form
   const renderHomeworkForm = () => {
     return (
-      <div className="homework-form-container">
-        <h3>Create Homework Assignment</h3>
-        {error && <div className="error-message">{error}</div>}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-lg font-bold text-[#0B1120] mb-4">Create Homework Assignment</h3>
+        {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>}
 
-        <Form onSubmit={handleHomeworkSubmit}>
-          <Row className="mb-3">
-            <Col xs={12} md={6}>
-              <Form.Group controlId="homeworkCode">
-                <Form.Label>Homework Code</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={homeworkCode}
-                  onChange={(e) => setHomeworkCode(e.target.value)}
-                  placeholder="Enter a unique code"
-                  required
-                />
-              </Form.Group>
-            </Col>
-            <Col xs={12} md={6}>
-              <Form.Group controlId="dueDate">
-                <Form.Label>Due Date</Form.Label>
-                <Form.Control
-                  type="datetime-local"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  required
-                />
-              </Form.Group>
-            </Col>
-          </Row>
+        <form onSubmit={handleHomeworkSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-[#0B1120] mb-1">Homework Code</label>
+              <input
+                type="text"
+                value={homeworkCode}
+                onChange={(e) => setHomeworkCode(e.target.value)}
+                placeholder="Enter a unique code"
+                required
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#0B1120] mb-1">Due Date</label>
+              <input
+                type="datetime-local"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                required
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none"
+              />
+            </div>
+          </div>
 
-          <Form.Group controlId="homeworkTitle" className="mb-3">
-            <Form.Label>Assignment Title</Form.Label>
-            <Form.Control
+          <div>
+            <label className="block text-sm font-medium text-[#0B1120] mb-1">Assignment Title</label>
+            <input
               type="text"
               value={homeworkTitle}
               onChange={(e) => setHomeworkTitle(e.target.value)}
               placeholder="Enter assignment title"
               required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none"
             />
-          </Form.Group>
+          </div>
 
-          <Form.Group controlId="homeworkDescription" className="mb-3">
-            <Form.Label>Additional Instructions (Optional)</Form.Label>
-            <Form.Control
-              as="textarea"
+          <div>
+            <label className="block text-sm font-medium text-[#0B1120] mb-1">Additional Instructions (Optional)</label>
+            <textarea
               rows={3}
               value={homeworkDescription}
               onChange={(e) => setHomeworkDescription(e.target.value)}
               placeholder="Enter any additional instructions"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none"
             />
-          </Form.Group>
+          </div>
 
-          <div className="selected-questions-preview mb-3">
-            <h5>Selected Questions ({selectedQuestions.length})</h5>
-            <ul className="question-preview-list">
+          <div>
+            <h5 className="text-sm font-semibold text-[#0B1120] mb-2">Selected Questions ({selectedQuestions.length})</h5>
+            <ul className="space-y-2">
               {selectedQuestions.map((q, idx) => (
-                <li key={idx} className="question-preview-item">
-                  <span className="question-number">{idx + 1}.</span>
-                  {/* <span className="question-text">{q.question}</span> */}
-                  <MarkdownWithMath content={q.question} />
-                  {q.image && (
-                    <div className="question-image-small">
-                      <img src={getImageSrc(q.question_image
-)} alt={`Question ${idx + 1}`} />
-                    </div>
-                  )}
+                <li key={idx} className="flex gap-2 p-2 bg-gray-50 rounded-lg">
+                  <span className="font-semibold text-[#00A0E3]">{idx + 1}.</span>
+                  <div className="flex-1">
+                    <MarkdownWithMath content={q.question} />
+                    {q.image && (
+                      <div className="mt-1">
+                        <img src={getImageSrc(q.question_image)} alt={`Question ${idx + 1}`} className="max-h-24 rounded" />
+                      </div>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="d-flex justify-content-between">
-            <Button
-              variant="secondary"
+          <div className="flex justify-between">
+            <button
+              type="button"
               onClick={() => {
                 setShowHomeworkForm(false);
                 setShowQuestionList(true);
               }}
+              className="bg-gray-200 hover:bg-gray-300 text-[#0B1120] rounded-lg px-4 py-2 font-medium transition-colors"
             >
               Back to Questions
-            </Button>
-            <Button
-              variant="primary"
+            </button>
+            <button
               type="submit"
               disabled={isSubmitting}
+              className="bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg px-4 py-2 font-medium transition-colors disabled:opacity-50"
             >
               {isSubmitting ? 'Creating...' : 'Create Homework Assignment'}
-            </Button>
+            </button>
           </div>
-        </Form>
+        </form>
       </div>
     );
   };
 
   // Render classwork PDF upload form
   const renderClassworkForm = () => (
-    <div className="homework-form-container">
-      <h3>Create Classwork PDF & Submit Questions</h3>
-      {classworkError && <div className="error-message">{classworkError}</div>}
-      <Form onSubmit={handleClassworkSubmit}>
-        <Row className="mb-3">
-          <Col xs={12} md={6}>
-            <Form.Group controlId="classworkCode">
-              <Form.Label>Classwork Code</Form.Label>
-              <Form.Control
-                type="text"
-                value={classworkCode}
-                onChange={(e) => setClassworkCode(e.target.value)}
-                placeholder="Enter a unique code"
-                required
-              />
-            </Form.Group>
-          </Col>
-          <Col xs={12} md={6}>
-            <Form.Group controlId="classworkDueDate">
-              <Form.Label>Duration in hours</Form.Label>
-              <Form.Control
-                type="number"
-                value={classworkDueDate}
-                onChange={(e) => setClassworkDueDate(e.target.value)}
-                required
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-        <Form.Group controlId="classworkTitle" className="mb-3">
-          <Form.Label>Classwork Title</Form.Label>
-          <Form.Control
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h3 className="text-lg font-bold text-[#0B1120] mb-4">Create Classwork PDF & Submit Questions</h3>
+      {classworkError && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{classworkError}</div>}
+      <form onSubmit={handleClassworkSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-[#0B1120] mb-1">Classwork Code</label>
+            <input
+              type="text"
+              value={classworkCode}
+              onChange={(e) => setClassworkCode(e.target.value)}
+              placeholder="Enter a unique code"
+              required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#0B1120] mb-1">Duration in hours</label>
+            <input
+              type="number"
+              value={classworkDueDate}
+              onChange={(e) => setClassworkDueDate(e.target.value)}
+              required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#0B1120] mb-1">Classwork Title</label>
+          <input
             type="text"
             value={classworkTitle}
             onChange={(e) => setClassworkTitle(e.target.value)}
             placeholder="Enter classwork title"
             required
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none"
           />
-        </Form.Group>
-        <Form.Group controlId="classworkDescription" className="mb-3">
-          <Form.Label>Additional Instructions (Optional)</Form.Label>
-          <Form.Control
-            as="textarea"
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#0B1120] mb-1">Additional Instructions (Optional)</label>
+          <textarea
             rows={3}
             value={classworkDescription}
             onChange={(e) => setClassworkDescription(e.target.value)}
             placeholder="Enter any additional instructions"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none"
           />
-        </Form.Group>
+        </div>
 
         {/* Multiple PDF upload with 30MB limit per file */}
-        <Form.Group controlId="classworkPDF" className="mb-3">
-          <Form.Label>Upload Student Work PDFs (Max 30MB per file)</Form.Label>
-          <Form.Control
+        <div>
+          <label className="block text-sm font-medium text-[#0B1120] mb-1">Upload Student Work PDFs (Max 30MB per file)</label>
+          <input
             type="file"
             accept="application/pdf,.pdf"
             onChange={handleClassworkPDFChange}
             multiple
-            
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-[#00A0E3] file:text-white file:text-sm file:cursor-pointer"
           />
           {classworkPDFs.length > 0 && (
-            <div style={{ marginTop: 8 }}>
-              <div style={{ color: '#28a745', marginBottom: 8 }}>
-                ✓ Selected {classworkPDFs.length} file(s):
+            <div className="mt-2">
+              <div className="text-green-600 text-sm mb-2">
+                Selected {classworkPDFs.length} file(s):
               </div>
-              <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '4px', padding: '8px' }}>
+              <div className="max-h-[150px] overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-1">
                 {classworkPDFs.map((pdf, index) => (
-                  <div key={index} style={{ 
-                    marginBottom: '4px', 
-                    fontSize: '14px', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    padding: '4px 8px',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '4px'
-                  }}>
+                  <div key={index} className="flex justify-between items-center p-1 px-2 bg-gray-50 rounded text-sm">
                     <span>
-                      <span style={{ color: '#28a745' }}>•</span> {pdf.name} ({(pdf.size / (1024 * 1024)).toFixed(2)} MB)
+                      <span className="text-green-600 mr-1">&bull;</span> {pdf.name} ({(pdf.size / (1024 * 1024)).toFixed(2)} MB)
                     </span>
                     <button
                       type="button"
                       onClick={() => removeClassworkPDF(index)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#dc3545',
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        padding: '2px 6px',
-                        borderRadius: '3px'
-                      }}
+                      className="text-red-500 hover:text-red-700 text-lg font-bold px-1"
                       title="Remove file"
                     >
-                      ×
+                      &times;
                     </button>
                   </div>
                 ))}
               </div>
             </div>
           )}
-          <Form.Text className="text-muted">
+          <p className="mt-1 text-xs text-gray-400">
             Select multiple PDF files. Each file must be under 30MB.
-          </Form.Text>
-        </Form.Group>
+          </p>
+        </div>
 
         {/* Preview selected questions */}
-        <div className="selected-questions-preview mb-3">
-          <h5>Selected Questions ({selectedQuestions.length})</h5>
-          <ul className="question-preview-list">
+        <div>
+          <h5 className="text-sm font-semibold text-[#0B1120] mb-2">Selected Questions ({selectedQuestions.length})</h5>
+          <ul className="space-y-2">
             {selectedQuestions.map((q, idx) => (
-              <li key={idx} className="question-preview-item">
-                <span className="question-number">{idx + 1}.</span>
-                <MarkdownWithMath content={q.question} />
-                {q.image && (
-                  <div className="question-image-small">
-                    <img src={getImageSrc(q.question_image
-)} alt={`Question ${idx + 1}`} />
-                  </div>
-                )}
+              <li key={idx} className="flex gap-2 p-2 bg-gray-50 rounded-lg">
+                <span className="font-semibold text-[#00A0E3]">{idx + 1}.</span>
+                <div className="flex-1">
+                  <MarkdownWithMath content={q.question} />
+                  {q.image && (
+                    <div className="mt-1">
+                      <img src={getImageSrc(q.question_image)} alt={`Question ${idx + 1}`} className="max-h-24 rounded" />
+                    </div>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
         </div>
-        <div className="d-flex justify-content-between">
-          <Button
-            variant="secondary"
+        <div className="flex justify-between">
+          <button
+            type="button"
             onClick={() => {
               setShowClassworkForm(false);
               setShowQuestionList(true);
             }}
+            className="bg-gray-200 hover:bg-gray-300 text-[#0B1120] rounded-lg px-4 py-2 font-medium transition-colors"
           >
             Back to Questions
-          </Button>
-          <Button
-            variant="primary"
+          </button>
+          <button
             type="submit"
             disabled={isClassworkSubmitting || classworkPDFs.length === 0}
+            className="bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg px-4 py-2 font-medium transition-colors disabled:opacity-50"
           >
             {isClassworkSubmitting ? "Uploading..." : `Upload ${classworkPDFs.length} PDF(s) & Questions`}
-          </Button>
+          </button>
         </div>
-      </Form>
+      </form>
     </div>
   );
 
@@ -864,1082 +846,713 @@ const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
     return `Exercise ${index + 1}`;
   };
 
+  // Helper for grade badge colors
+  const getGradeBgColor = (grade) => {
+    if (grade === 'A') return 'bg-green-100 text-green-800';
+    if (grade === 'B') return 'bg-blue-100 text-blue-800';
+    if (grade === 'C') return 'bg-yellow-100 text-yellow-800';
+    if (grade === 'D') return 'bg-gray-100 text-gray-800';
+    return 'bg-red-100 text-red-800';
+  };
+
   // Render Previous Classwork Modal
-  const renderPreviousClassworkModal = () => (
-    <Modal
-      show={showPreviousClasswork}
-      onHide={() => setShowPreviousClasswork(false)}
-      size="xl"
-      scrollable
-    >
-      <Modal.Header closeButton>
-        <Modal.Title>Previous Classwork Submissions</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {previousClassworkError ? (
-          <div className="alert alert-danger">
-            {previousClassworkError}
+  const renderPreviousClassworkModal = () => {
+    if (!showPreviousClasswork) return null;
+    return (
+      <div className="fixed inset-0 z-[10000] flex items-start justify-center p-4 bg-black/50 overflow-y-auto">
+        <div className="bg-white rounded-xl shadow-lg w-full max-w-5xl my-8">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <h3 className="text-lg font-bold text-[#0B1120]">Previous Classwork Submissions</h3>
+            <button onClick={() => setShowPreviousClasswork(false)} className="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
           </div>
-        ) : previousClassworkData.length === 0 ? (
-          <div className="alert alert-info">
-            No previous classwork submissions found.
-          </div>
-        ) : (
-          <div className="previous-classwork-container">
-            {previousClassworkData.map((submission, index) => (
-              <Card key={submission.id || index} className="mb-4">
-                <Card.Header className="bg-primary text-white">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0">
-                      Classwork Code: {submission.class_code || 'N/A'}
-                    </h5>
-                    <div>
-                      <Badge bg="light" text="dark">
-                        {submission.assignment_type || 'classwork'}
-                      </Badge>
-                      {submission.total_class_minutes && (
-                        <Badge bg="info" className="ms-2">
-                          {submission.total_class_minutes} mins
-                        </Badge>
+          <div className="p-4 max-h-[70vh] overflow-y-auto">
+            {previousClassworkError ? (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{previousClassworkError}</div>
+            ) : previousClassworkData.length === 0 ? (
+              <div className="p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg">No previous classwork submissions found.</div>
+            ) : (
+              <div className="space-y-6">
+                {previousClassworkData.map((submission, index) => (
+                  <div key={submission.id || index} className="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div className="bg-[#00A0E3] text-white p-4 rounded-t-xl">
+                      <div className="flex justify-between items-center">
+                        <h5 className="font-semibold">Classwork Code: {submission.class_code || 'N/A'}</h5>
+                        <div className="flex gap-2">
+                          <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-white/20">
+                            {submission.assignment_type || 'classwork'}
+                          </span>
+                          {submission.total_class_minutes && (
+                            <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-white/20">
+                              {submission.total_class_minutes} mins
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      {/* Processing Summary */}
+                      {submission.processing_summary && (
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <h6 className="text-[#00A0E3] font-semibold mb-2">Processing Summary</h6>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div>
+                              <small className="text-gray-500">Processed At:</small>
+                              <p className="text-sm">{new Date(submission.processing_timestamp || submission.processing_summary.timestamp).toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <small className="text-gray-500">Total Pages:</small>
+                              <p className="text-sm">{submission.processing_summary.total_pages || 0}</p>
+                            </div>
+                            <div>
+                              <small className="text-gray-500">Files Processed:</small>
+                              <p className="text-sm">{submission.processing_summary.files_processed || 0}</p>
+                            </div>
+                            <div>
+                              <small className="text-gray-500">Students Evaluated:</small>
+                              <p className="text-sm">{submission.processing_summary.students_evaluated || 0}</p>
+                            </div>
+                          </div>
+                        </div>
                       )}
+
+                      {/* Class Analytics */}
+                      {submission.class_analytics && (
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <h6 className="text-[#00A0E3] font-semibold mb-2">Class Analytics</h6>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div>
+                              <small className="text-gray-500">Average Score:</small>
+                              <h5 className="text-lg font-bold">{submission.class_analytics.average_score || 0}%</h5>
+                            </div>
+                            <div>
+                              <small className="text-gray-500">Highest Score:</small>
+                              <h5 className="text-lg font-bold">{submission.class_analytics.highest_score || 0}%</h5>
+                            </div>
+                            <div>
+                              <small className="text-gray-500">Lowest Score:</small>
+                              <h5 className="text-lg font-bold">{submission.class_analytics.lowest_score || 0}%</h5>
+                            </div>
+                            <div>
+                              <small className="text-gray-500">Total Students:</small>
+                              <h5 className="text-lg font-bold">{submission.class_analytics.total_students || 0}</h5>
+                            </div>
+                          </div>
+
+                          {/* Grade Distribution */}
+                          {submission.class_analytics.grade_distribution && (
+                            <div className="mt-3">
+                              <small className="text-gray-500">Grade Distribution:</small>
+                              <div className="flex gap-2 mt-2 flex-wrap">
+                                {Object.entries(submission.class_analytics.grade_distribution).map(([grade, count]) => (
+                                  <span key={grade} className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getGradeBgColor(grade)}`}>
+                                    {grade}: {count}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Performance Distribution */}
+                      {submission.performance_distribution && (
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <h6 className="text-[#00A0E3] font-semibold mb-2">Performance Distribution</h6>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {Object.entries(submission.performance_distribution).map(([range, count]) => (
+                              <div key={range} className="flex items-center gap-2">
+                                <small className="text-gray-500">{range}%:</small>
+                                <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{count} students</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Student Results */}
+                      {submission.student_results && submission.student_results.length > 0 && (
+                        <div>
+                          <h6 className="text-[#00A0E3] font-semibold mb-2">Student Results</h6>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="bg-gray-50">
+                                  <th className="text-left p-2 border border-gray-200">Roll Number</th>
+                                  <th className="text-left p-2 border border-gray-200">Grade</th>
+                                  <th className="text-left p-2 border border-gray-200">Marks Obtained</th>
+                                  <th className="text-left p-2 border border-gray-200">Total Marks</th>
+                                  <th className="text-left p-2 border border-gray-200">Percentage</th>
+                                  <th className="text-left p-2 border border-gray-200">Questions Attempted</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {submission.student_results.map((student, sIndex) => (
+                                  <tr key={sIndex} className="hover:bg-gray-50">
+                                    <td className="p-2 border border-gray-200">{student.roll_number}</td>
+                                    <td className="p-2 border border-gray-200">
+                                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getGradeBgColor(student.grade)}`}>
+                                        {student.grade}
+                                      </span>
+                                    </td>
+                                    <td className="p-2 border border-gray-200">{student.total_marks_obtained || 0}</td>
+                                    <td className="p-2 border border-gray-200">{student.total_max_marks || 0}</td>
+                                    <td className="p-2 border border-gray-200">{student.overall_percentage || 0}%</td>
+                                    <td className="p-2 border border-gray-200">{student.questions ? student.questions.length : 0}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {/* Detailed Question Analysis for Each Student */}
+                          {submission.student_results.some(s => s.questions && s.questions.length > 0) && (
+                            <details className="mt-3">
+                              <summary className="cursor-pointer text-[#00A0E3] font-medium text-sm">View Detailed Question Analysis</summary>
+                              <div className="mt-2 space-y-3">
+                                {submission.student_results.map((student, sIndex) => (
+                                  student.questions && student.questions.length > 0 && (
+                                    <div key={sIndex} className="bg-white rounded-lg border border-gray-100">
+                                      <div className="p-2 bg-gray-50 rounded-t-lg">
+                                        <strong className="text-sm">Roll Number: {student.roll_number}</strong>
+                                      </div>
+                                      <div className="p-2 overflow-x-auto">
+                                        <table className="w-full text-xs">
+                                          <thead>
+                                            <tr className="bg-gray-50">
+                                              <th className="text-left p-1 border border-gray-200">Q.No</th>
+                                              <th className="text-left p-1 border border-gray-200">Score</th>
+                                              <th className="text-left p-1 border border-gray-200">Max</th>
+                                              <th className="text-left p-1 border border-gray-200">Error Type</th>
+                                              <th className="text-left p-1 border border-gray-200">Mistakes Made</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {student.questions.map((q, qIndex) => (
+                                              <tr key={qIndex}>
+                                                <td className="p-1 border border-gray-200">{q.question_number}</td>
+                                                <td className="p-1 border border-gray-200">{q.total_score || 0}</td>
+                                                <td className="p-1 border border-gray-200">{q.max_marks || 0}</td>
+                                                <td className="p-1 border border-gray-200">
+                                                  <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    {q.error_type || 'N/A'}
+                                                  </span>
+                                                </td>
+                                                <td className="p-1 border border-gray-200">{q.mistakes_made || 'N/A'}</td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    </div>
+                                  )
+                                ))}
+                              </div>
+                            </details>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Question Analytics */}
+                      {submission.class_analytics && submission.class_analytics.question_analytics && (
+                        <details>
+                          <summary className="cursor-pointer text-[#00A0E3] font-medium text-sm">View Question Analytics</summary>
+                          <div className="mt-2 p-3 bg-gray-50 rounded-lg overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="bg-gray-100">
+                                  <th className="text-left p-2 border border-gray-200">Question</th>
+                                  <th className="text-left p-2 border border-gray-200">Attempts</th>
+                                  <th className="text-left p-2 border border-gray-200">Average Score</th>
+                                  <th className="text-left p-2 border border-gray-200">Max Score</th>
+                                  <th className="text-left p-2 border border-gray-200">Average %</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {Object.entries(submission.class_analytics.question_analytics).map(([qNum, data]) => (
+                                  <tr key={qNum}>
+                                    <td className="p-2 border border-gray-200">{qNum}</td>
+                                    <td className="p-2 border border-gray-200">{data.attempts}</td>
+                                    <td className="p-2 border border-gray-200">{data.total_score}</td>
+                                    <td className="p-2 border border-gray-200">{data.max_score}</td>
+                                    <td className="p-2 border border-gray-200">{data.average_percentage}%</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </details>
+                      )}
+
+                      {/* Footer Info */}
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <small className="text-gray-500">Teacher ID: {submission.teacher_name || 'N/A'}</small>
+                          </div>
+                          <div className="text-right">
+                            <small className="text-gray-500">
+                              Submission Date: {submission.submission_date ? new Date(submission.submission_date).toLocaleString() : 'Not submitted'}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </Card.Header>
-                <Card.Body>
-                  {/* Processing Summary */}
-                  {submission.processing_summary && (
-                    <div className="mb-3 p-3 bg-light rounded">
-                      <h6 className="text-primary">Processing Summary</h6>
-                      <Row>
-                        <Col md={3}>
-                          <small className="text-muted">Processed At:</small>
-                          <p className="mb-1">
-                            {new Date(submission.processing_timestamp || submission.processing_summary.timestamp).toLocaleString()}
-                          </p>
-                        </Col>
-                        <Col md={3}>
-                          <small className="text-muted">Total Pages:</small>
-                          <p className="mb-1">{submission.processing_summary.total_pages || 0}</p>
-                        </Col>
-                        <Col md={3}>
-                          <small className="text-muted">Files Processed:</small>
-                          <p className="mb-1">{submission.processing_summary.files_processed || 0}</p>
-                        </Col>
-                        <Col md={3}>
-                          <small className="text-muted">Students Evaluated:</small>
-                          <p className="mb-1">{submission.processing_summary.students_evaluated || 0}</p>
-                        </Col>
-                      </Row>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end p-4 border-t border-gray-200">
+            <button onClick={() => setShowPreviousClasswork(false)} className="bg-gray-200 hover:bg-gray-300 text-[#0B1120] rounded-lg px-4 py-2 font-medium transition-colors">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render Previous Homework Modal
+  const renderPreviousHomeworkModal = () => {
+    if (!showPreviousHomework) return null;
+    return (
+      <div className="fixed inset-0 z-[10000] flex items-start justify-center p-4 bg-black/50 overflow-y-auto">
+        <div className="bg-white rounded-xl shadow-lg w-full max-w-5xl my-8">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-[#00A0E3] text-white rounded-t-xl">
+            <h3 className="text-lg font-bold">Previous Homework Analysis Report</h3>
+            <button onClick={() => setShowPreviousHomework(false)} className="text-white/80 hover:text-white text-2xl">&times;</button>
+          </div>
+          <div className="p-4 max-h-[70vh] overflow-y-auto">
+            {previousHomeworkError ? (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{previousHomeworkError}</div>
+            ) : previousHomeworkData.length === 0 ? (
+              <div className="p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-center">
+                <h5 className="font-semibold">No previous homework submissions found.</h5>
+                <p className="mt-1 text-sm">Start creating homework assignments to see analysis reports here.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {previousHomeworkData.map((submission, index) => (
+                  <div key={submission.id || index} className="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div className="p-4 border-b border-gray-200">
+                      <div className="flex justify-between items-center flex-wrap gap-2">
+                        <div></div>
+                        <div>
+                          <span className="inline-flex px-3 py-1 rounded-full text-lg font-medium bg-gray-100 text-[#0B1120]">
+                            Analysis Report of {submission.student_fullname} ({ submission.student_id || submission.result_json.roll_number})
+                          </span>
+                          <small className="block mt-1 text-gray-500 px-4">
+                            Submitted: {submission.submission_date ? new Date(submission.submission_date).toLocaleString() : 'N/A'}
+                          </small>
+                        </div>
+                      </div>
                     </div>
-                  )}
 
-                  {/* Class Analytics */}
-                  {submission.class_analytics && (
-                    <div className="mb-3 p-3 bg-light rounded">
-                      <h6 className="text-primary">Class Analytics</h6>
-                      <Row>
-                        <Col md={3}>
-                          <small className="text-muted">Average Score:</small>
-                          <h5 className="mb-1">{submission.class_analytics.average_score || 0}%</h5>
-                        </Col>
-                        <Col md={3}>
-                          <small className="text-muted">Highest Score:</small>
-                          <h5 className="mb-1">{submission.class_analytics.highest_score || 0}%</h5>
-                        </Col>
-                        <Col md={3}>
-                          <small className="text-muted">Lowest Score:</small>
-                          <h5 className="mb-1">{submission.class_analytics.lowest_score || 0}%</h5>
-                        </Col>
-                        <Col md={3}>
-                          <small className="text-muted">Total Students:</small>
-                          <h5 className="mb-1">{submission.class_analytics.total_students || 0}</h5>
-                        </Col>
-                      </Row>
+                    <div>
+                      {/* Overall Performance Summary */}
+                      {submission.result_json && submission.result_json.questions && (
+                        <div className="p-4 bg-gray-50">
+                          <h6 className="text-[#00A0E3] font-semibold mb-3">Performance Overview</h6>
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
+                              <div className="text-blue-500 text-2xl font-bold">
+                                {submission.result_json.questions.reduce((sum, q) => sum + (q.total_score || 0), 0)}/{submission.result_json.questions.reduce((sum, q) => sum + (q.max_score || q.max_marks), 0)}
+                              </div>
+                              <small className="text-gray-500">Total Score</small>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
-                      {/* Grade Distribution */}
-                      {submission.class_analytics.grade_distribution && (
-                        <div className="mt-3">
-                          <small className="text-muted">Grade Distribution:</small>
-                          <div className="d-flex gap-2 mt-2">
-                            {Object.entries(submission.class_analytics.grade_distribution).map(([grade, count]) => (
-                              <Badge
-                                key={grade}
-                                bg={grade === 'A' ? 'success' : grade === 'B' ? 'info' : grade === 'C' ? 'warning' : grade === 'D' ? 'secondary' : 'danger'}
-                                className="p-2"
-                              >
-                                {grade}: {count}
-                              </Badge>
+                      {/* Detailed Question Analysis */}
+                      {submission.result_json && submission.result_json.questions && (
+                        <div className="p-4">
+                          <h6 className="text-[#00A0E3] font-semibold mb-3">Question-by-Question Analysis</h6>
+
+                          <div className="space-y-3">
+                            {submission.result_json.questions.map((question, qIndex) => (
+                              <div key={qIndex} className="bg-white rounded-lg shadow-sm border border-gray-100">
+                                <div className={`p-3 rounded-t-lg ${question.answer_category === 'Correct' ? 'bg-green-500 text-white' :
+                                  question.answer_category === 'Partially-Correct' ? 'bg-yellow-400 text-[#0B1120]' :
+                                    'bg-red-500 text-white'
+                                  }`}>
+                                  <div className="flex justify-between items-center">
+                                    <h6 className="font-semibold text-sm">
+                                      Question {qIndex + 1}: {question.topic || question.question_number}
+                                    </h6>
+                                    <div className="flex items-center gap-2">
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="p-3">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="md:col-span-2 space-y-3">
+                                      <div>
+                                        <strong className="text-[#00A0E3] text-sm">Student's Work:</strong>
+                                        <div className="mt-1 text-gray-600 text-sm"><MarkdownWithMath content={question.comment || question.gap_analysis} /></div>
+                                      </div>
+
+                                      <div>
+                                        <strong className="text-[#00A0E3] text-sm">Correction:</strong>
+                                        <div className="mt-1 text-green-600 text-sm"><MarkdownWithMath content={question.correction_comment || question.mistakes_made} /></div>
+                                      </div>
+                                    </div>
+
+                                    <div className="bg-gray-50 p-3 rounded-lg">
+                                      <h6 className="text-[#00A0E3] font-semibold text-sm mb-2">Analysis</h6>
+
+                                      <div className="mb-2">
+                                        <small className="text-gray-500">Score:</small>
+                                        <div className="flex items-center gap-1">
+                                          <span className="font-bold">{question.total_score}</span>
+                                          <span className="text-gray-400">/</span>
+                                          <span className="text-gray-400">{question.max_score || question.max_marks}</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="mb-2">
+                                        <small className="text-gray-500">Category:</small>
+                                        <span className={`ml-2 inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                                          question.answer_category || question.error_type === 'Correct' ? 'bg-green-100 text-green-800' :
+                                            question.answer_category || question.error_type === 'Partially-Correct' ? 'bg-yellow-100 text-yellow-800' :
+                                              'bg-red-100 text-red-800'
+                                        }`}>
+                                          {question.answer_category || question.error_type}
+                                        </span>
+                                      </div>
+
+                                      <div className="mb-2">
+                                        <small className="text-gray-500">Concepts:</small>
+                                        <div className="mt-1 flex flex-wrap gap-1">
+                                          {question.concepts_required && question.concepts_required.map((concept, cIndex) => (
+                                            <span key={cIndex} className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                              {concept}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             ))}
                           </div>
                         </div>
                       )}
                     </div>
-                  )}
-
-                  {/* Performance Distribution */}
-                  {submission.performance_distribution && (
-                    <div className="mb-3 p-3 bg-light rounded">
-                      <h6 className="text-primary">Performance Distribution</h6>
-                      <Row>
-                        {Object.entries(submission.performance_distribution).map(([range, count]) => (
-                          <Col md={4} key={range} className="mb-2">
-                            <small className="text-muted">{range}%:</small>
-                            <Badge bg="secondary" className="ms-2">{count} students</Badge>
-                          </Col>
-                        ))}
-                      </Row>
-                    </div>
-                  )}
-
-                  {/* Student Results */}
-                  {submission.student_results && submission.student_results.length > 0 && (
-                    <div className="mb-3">
-                      <h6 className="text-primary">Student Results</h6>
-                      <Table striped bordered hover responsive className="mt-2">
-                        <thead>
-                          <tr>
-                            <th>Roll Number</th>
-                            <th>Grade</th>
-                            <th>Marks Obtained</th>
-                            <th>Total Marks</th>
-                            <th>Percentage</th>
-                            <th>Questions Attempted</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {submission.student_results.map((student, sIndex) => (
-                            <tr key={sIndex}>
-                              <td>{student.roll_number}</td>
-                              <td>
-                                <Badge
-                                  bg={student.grade === 'A' ? 'success' :
-                                    student.grade === 'B' ? 'info' :
-                                      student.grade === 'C' ? 'warning' :
-                                        student.grade === 'D' ? 'secondary' : 'danger'}
-                                >
-                                  {student.grade}
-                                </Badge>
-                              </td>
-                              <td>{student.total_marks_obtained || 0}</td>
-                              <td>{student.total_max_marks || 0}</td>
-                              <td>{student.overall_percentage || 0}%</td>
-                              <td>{student.questions ? student.questions.length : 0}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </Table>
-
-                      {/* Detailed Question Analysis for Each Student */}
-                      {submission.student_results.some(s => s.questions && s.questions.length > 0) && (
-                        <details className="mt-3">
-                          <summary className="cursor-pointer text-primary">View Detailed Question Analysis</summary>
-                          <div className="mt-2">
-                            {submission.student_results.map((student, sIndex) => (
-                              student.questions && student.questions.length > 0 && (
-                                <Card key={sIndex} className="mb-2">
-                                  <Card.Header className="py-2">
-                                    <strong>Roll Number: {student.roll_number}</strong>
-                                  </Card.Header>
-                                  <Card.Body className="p-2">
-                                    <Table size="sm" bordered>
-                                      <thead>
-                                        <tr>
-                                          <th>Q.No</th>
-                                          <th>Score</th>
-                                          <th>Max</th>
-                                          <th>Error Type</th>
-                                          <th>Mistakes Made</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {student.questions.map((q, qIndex) => (
-                                          <tr key={qIndex}>
-                                            <td>{q.question_number}</td>
-                                            <td>{q.total_score || 0}</td>
-                                            <td>{q.max_marks || 0}</td>
-                                            <td>
-                                              <Badge bg="warning" text="dark">
-                                                {q.error_type || 'N/A'}
-                                              </Badge>
-                                            </td>
-                                            <td className="small">{q.mistakes_made || 'N/A'}</td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </Table>
-                                  </Card.Body>
-                                </Card>
-                              )
-                            ))}
-                          </div>
-                        </details>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Question Analytics */}
-                  {submission.class_analytics && submission.class_analytics.question_analytics && (
-                    <details className="mb-3">
-                      <summary className="cursor-pointer text-primary">View Question Analytics</summary>
-                      <div className="mt-2 p-3 bg-light rounded">
-                        <Table size="sm" bordered>
-                          <thead>
-                            <tr>
-                              <th>Question</th>
-                              <th>Attempts</th>
-                              <th>Average Score</th>
-                              <th>Max Score</th>
-                              <th>Average %</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {Object.entries(submission.class_analytics.question_analytics).map(([qNum, data]) => (
-                              <tr key={qNum}>
-                                <td>{qNum}</td>
-                                <td>{data.attempts}</td>
-                                <td>{data.total_score}</td>
-                                <td>{data.max_score}</td>
-                                <td>{data.average_percentage}%</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </Table>
-                      </div>
-                    </details>
-                  )}
-
-                  {/* Footer Info */}
-                  <div className="mt-3 pt-3 border-top">
-                    <Row>
-                      <Col md={6}>
-                        <small className="text-muted">Teacher ID: {submission.teacher_name || 'N/A'}</small>
-                      </Col>
-                      <Col md={6} className="text-end">
-                        <small className="text-muted">
-                          Submission Date: {submission.submission_date ? new Date(submission.submission_date).toLocaleString() : 'Not submitted'}
-                        </small>
-                      </Col>
-                    </Row>
                   </div>
-                </Card.Body>
-              </Card>
-            ))}
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={() => setShowPreviousClasswork(false)}>
-          Close
-        </Button>
-      </Modal.Footer>
-    </Modal>
-  );
-
-  // Render Previous Homework Modal
-  const renderPreviousHomeworkModal = () => (
-    <Modal
-      show={showPreviousHomework}
-      onHide={() => setShowPreviousHomework(false)}
-      size="xl"
-      scrollable
-    >
-      <Modal.Header closeButton className="bg-primary text-white">
-        <Modal.Title>
-          <i className="fas fa-chart-line me-2"></i>
-          Previous Homework Analysis Report
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body className="p-4">
-        {previousHomeworkError ? (
-          <div className="alert alert-danger">
-            <i className="fas fa-exclamation-triangle me-2"></i>
-            {previousHomeworkError}
+          <div className="flex justify-end p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+            <button onClick={() => setShowPreviousHomework(false)} className="bg-gray-200 hover:bg-gray-300 text-[#0B1120] rounded-lg px-4 py-2 font-medium transition-colors">
+              Close
+            </button>
           </div>
-        ) : previousHomeworkData.length === 0 ? (
-          <div className="alert alert-info text-center py-4">
-            <i className="fas fa-info-circle fa-2x mb-3"></i>
-            <h5>No previous homework submissions found.</h5>
-            <p className="mb-0">Start creating homework assignments to see analysis reports here.</p>
-          </div>
-        ) : (
-          <div className="homework-analysis-container">
-            {previousHomeworkData.map((submission, index) => (
-              <Card key={submission.id || index} className="mb-4 shadow-sm border-0">
-                <Card.Header className="bg-gradient-primary text-black py-3">
-                  
-                  <div className="d-flex justify-content-between align-items-center">
-                    
-                    <div>
-                      {/* <h5 className="mb-1">
-                        <i className="fas fa-homework me-2"></i>
-                        Homework: {submission.homework || 'N/A'}
-                      </h5> */}
-
-                    </div>
-                    
-                    <div className="text">
-                      
-                   
-                      <Badge bg="light" text="dark" className="homework-text fs-2 px-0 py-2">
-                    
-                        Analysis Report of {submission.student_fullname} ({ submission.student_id || submission.result_json.roll_number}) 
-                        
-                      </Badge>
-                      <small className="opacity-75 px-4">
-                        {/* Student: {submission.student_name || 'N/A'} |  */}
-                        Submitted: {submission.submission_date ? new Date(submission.submission_date).toLocaleString() : 'N/A'}
-                      </small>
-                    </div>
-                  </div>
-                </Card.Header>
-
-                <Card.Body className="p-0">
-                  {/* Overall Performance Summary */}
-                  {submission.result_json && submission.result_json.questions && (
-                    <div className="p-4 bg-light">
-                      <h6 className="text-primary mb-3">
-                        <i className="fas fa-chart-pie me-2"></i>
-                        Performance Overview
-                      </h6>
-                      <Row>
-                        {/* <Col md={3}>
-                          <div className="text-center p-3 bg-white rounded shadow-sm">
-                            <div className="text-success fs-4 fw-bold">
-                              {submission.result_json.questions.filter(q => q.answer_category === 'Correct').length}
-                            </div>
-                            <small className="text-muted">Correct Answers</small>
-                          </div>
-                        </Col>
-                        <Col md={3}>
-                          <div className="text-center p-3 bg-white rounded shadow-sm">
-                            <div className="text-warning fs-4 fw-bold">
-                              {submission.result_json.questions.filter(q => q.answer_category === 'Partially-Correct').length}
-                            </div>
-                            <small className="text-muted">Partially Correct</small>
-                          </div>
-                        </Col>
-                        <Col md={3}>
-                          <div className="text-center p-3 bg-white rounded shadow-sm">
-                            <div className="text-danger fs-4 fw-bold">
-                              {submission.result_json.questions.filter(q => q.answer_category !== 'Correct' && q.answer_category !== 'Partially-Correct').length}
-                            </div>
-                            <small className="text-muted">Incorrect</small>
-                          </div>
-                        </Col> */}
-                        <Col md={3}>
-                          <div className="text-center p-3 bg-white rounded shadow-sm">
-                            <div className="text-info fs-4 fw-bold">
-                              {submission.result_json.questions.reduce((sum, q) => sum + (q.total_score || 0), 0)}/{submission.result_json.questions.reduce((sum, q) => sum + (q.max_score || q.max_marks), 0)}
-                            </div>
-                            <small className="text-muted">Total Score</small>
-                          </div>
-                        </Col>
-                      </Row>
-                    </div>
-                  )}
-
-                  {/* Detailed Question Analysis */}
-                  {submission.result_json && submission.result_json.questions && (
-                    <div className="p-4">
-                      <h6 className="text-primary mb-3">
-                        <i className="fas fa-list-ul me-2"></i>
-                        Question-by-Question Analysis
-                      </h6>
-
-                      {submission.result_json.questions.map((question, qIndex) => (
-                        <Card key={qIndex} className="mb-3 border-0 shadow-sm">
-                          <Card.Header className={`py-2 ${question.answer_category === 'Correct' ? 'bg-success text-white' :
-                            question.answer_category === 'Partially-Correct' ? 'bg-warning text-dark' :
-                              'bg-danger text-white'
-                            }`}>
-                            <div className="d-flex justify-content-between align-items-center">
-                              <h6 className="mb-0">
-                                <i className="fas fa-question-circle me-2"></i>
-                                Question {qIndex + 1}: {question.topic || question.question_number}
-                              </h6>
-                              <div className="d-flex align-items-center gap-2">
-                                {/* <Badge bg="light" text="dark">
-                                  {question.answer_category}
-                                </Badge> */}
-                                {/* <span className="fs-6">
-                                  {question.total_score}/{question.max_score}
-                                </span> */}
-                              </div>
-                            </div>
-                          </Card.Header>
-
-                          <Card.Body className="p-3">
-                            <Row>
-                              <Col md={8}>
-                                {/* <div className="mb-3">
-                                  <strong className="text-primary">Question:</strong>
-                                  <p className="mb-2 mt-1">{question.question}</p>
-                                </div> */}
-
-                                <div className="mb-3">
-                                  <strong className="text-primary">Student's Work:</strong>
-                                  <p className="mb-2 mt-1 text-muted"><MarkdownWithMath content={question.comment || question.gap_analysis} /></p>
-                                </div>
-
-                                <div className="mb-3">
-                                  <strong className="text-primary">Correction:</strong>
-                                  <p className="mb-0 mt-1 text-success"><MarkdownWithMath content={question.correction_comment || question.mistakes_made} /></p>
-                                </div>
-                              </Col>
-
-                              <Col md={4}>
-                                <div className="bg-light p-3 rounded">
-                                  <h6 className="text-primary mb-2">Analysis</h6>
-
-                                  <div className="mb-2">
-                                    <small className="text-muted">Score:</small>
-                                    <div className="d-flex align-items-center gap-2">
-                                      <span className="fw-bold">{question.total_score}</span>
-                                      <span className="text-muted">/</span>
-                                      <span className="text-muted">{question.max_score || question.max_marks}</span>
-                                    </div>
-                                  </div>
-
-                                  <div className="mb-2">
-                                    <small className="text-muted">Category:</small>
-                                    <Badge
-                                      bg={
-                                        question.answer_category || question.error_type === 'Correct' ? 'success' :
-                                          question.answer_category || question.error_type === 'Partially-Correct' ? 'warning' :
-                                            'danger'
-                                      }
-                                      className="ms-2"
-                                    >
-                                      {question.answer_category || question.error_type}
-                                    </Badge>
-                                  </div>
-
-                                  <div className="mb-2">
-                                    <small className="text-muted">Concepts:</small>
-                                    <div className="mt-1">
-                                      {question.concepts_required && question.concepts_required.map((concept, cIndex) => (
-                                        <Badge key={cIndex} bg="info" className="me-1 mb-1">
-                                          {concept}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              </Col>
-                            </Row>
-                          </Card.Body>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Concepts Mastery Summary */}
-                  {/* {submission.result_json && (
-                    <div className="p-4 bg-light">
-                      <h6 className="text-primary mb-3">
-                        <i className="fas fa-brain me-2"></i>
-                       Strengths:
-                      </h6>
-
-                      <div className="row">
-                        {(() => {
-                          const conceptStats = {};
-
-
-                          return submission.result_json.strengths.map((concept) => (
-                            <Col md={6} key={concept} className="mb-3">
-                              <Card className="border-0 shadow-sm">
-                                <Card.Body className="p-3">
-                                  <div className="d-flex justify-content-between align-items-center mb-2">
-                                    <p className="mb-2 mt-1 text-success"><MarkdownWithMath content={concept} /></p>
-
-                                  </div>
-                                 
-                                </Card.Body>
-                              </Card>
-                            </Col>
-                          ));
-                        })()}
-                      </div>
-                    </div>
-                  )} */}
-
-                  {/* {submission.result_json && submission.result_json.questions && (
-                    <div className="p-4 bg-light">
-                      <h6 className="text-primary mb-3">
-                        <i className="fas fa-brain me-2"></i>
-                        Concepts Mastery Summary
-                      </h6>
-                      
-                      <div className="row">
-                        {(() => {
-                          const conceptStats = {};
-                          submission.result_json.questions.forEach(q => {
-                            if (q.concepts_required) {
-                              q.concepts_required.forEach(concept => {
-                                if (!conceptStats[concept]) {
-                                  conceptStats[concept] = { total: 0, correct: 0, questions: [] };
-                                }
-                                conceptStats[concept].total++;
-                                conceptStats[concept].questions.push(q);
-                                if (q.answer_category === 'Correct') {
-                                  conceptStats[concept].correct++;
-                                }
-                              });
-                            }
-                          });
-                          
-                          return Object.entries(conceptStats).map(([concept, stats]) => (
-                            <Col md={6} key={concept} className="mb-3">
-                              <Card className="border-0 shadow-sm">
-                                <Card.Body className="p-3">
-                                  <div className="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 className="mb-0 text-primary"><MarkdownWithMath content={concept} /></h6>
-                                    <Badge 
-                                      bg={
-                                        stats.correct === stats.total ? 'success' :
-                                        stats.correct >= stats.total * 0.7 ? 'warning' :
-                                        'danger'
-                                      }
-                                    >
-                                      {Math.round((stats.correct / stats.total) * 100)}%
-                                    </Badge>
-                                  </div>
-                                                                     <div className="progress mb-2" style={{ height: '8px' }}>
-                                     <div 
-                                       className={`progress-bar ${
-                                         stats.correct === stats.total ? 'bg-success' :
-                                         stats.correct >= stats.total * 0.7 ? 'bg-warning' :
-                                         'bg-danger'
-                                       }`}
-                                       style={{ width: `${(stats.correct / stats.total) * 100}%` }}
-                                     ></div>
-                                   </div>
-                                  <small className="text-muted">
-                                    {stats.correct} out of {stats.total} questions correct
-                                  </small>
-                                </Card.Body>
-                              </Card>
-                            </Col>
-                          ));
-                        })()}
-                      </div>
-                    </div>
-                  )} */}
-                </Card.Body>
-              </Card>
-            ))}
-          </div>
-        )}
-      </Modal.Body>
-      <Modal.Footer className="bg-light">
-        <Button variant="secondary" onClick={() => setShowPreviousHomework(false)}>
-          <i className="fas fa-times me-2"></i>
-          Close
-        </Button>
-        {/* <Button variant="primary" onClick={() => window.print()}>
-          <i className="fas fa-print me-2"></i>
-          Print Report
-        </Button> */}
-      </Modal.Footer>
-    </Modal>
-  );
+        </div>
+      </div>
+    );
+  };
 
   // Render Homework List Modal
-  const renderHomeworkListModal = () => (
-    <Modal
-      show={showHomeworkListModal}
-      onHide={() => setShowHomeworkListModal(false)}
-      size="lg"
-      centered
-    >
-      <Modal.Header closeButton className="bg-primary text-white">
-        <Modal.Title>
-          <i className="fas fa-list-alt me-2"></i>
-          Previous Homework Assignments
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {isLoadingHomeworkList ? (
-          <div className="text-center py-5">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-            <p className="mt-3">Fetching previous homework assignments...</p>
+  const renderHomeworkListModal = () => {
+    if (!showHomeworkListModal) return null;
+    return (
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50">
+        <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-[#00A0E3] text-white rounded-t-xl">
+            <h3 className="text-lg font-bold">Previous Homework Assignments</h3>
+            <button onClick={() => setShowHomeworkListModal(false)} className="text-white/80 hover:text-white text-2xl">&times;</button>
           </div>
-        ) : homeworkListError ? (
-          <div className="alert alert-danger text-center py-4">
-            <i className="fas fa-exclamation-triangle me-2"></i>
-            {homeworkListError}
-          </div>
-        ) : homeworkList.length === 0 ? (
-          <div className="alert alert-info text-center py-4">
-            <i className="fas fa-info-circle fa-2x mb-3"></i>
-            <h5>No previous homework assignments found.</h5>
-            <p className="mb-0">Start creating new homework assignments to see them here.</p>
-          </div>
-        ) : (
-          <div className="list-group">
-            {homeworkListData.map((homework, index) => (
-              <button
-                key={index}
-                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                onClick={() => handleHomeworkSelection(homework.homework_code)}
-              >
-                <div>
-                  <span className="fw-bold">{homework.homework_code}</span>
-                  {homework.submissions_count !== null && (
-                    <div className="small text-muted mt-1">
-                      <span className="text-success me-3">
-                        ✓ {homework.submissions_count} submitted
-                      </span>
-                      <span className="text-warning">
-                        ⏳ {homework.non_submitted_count} not submitted
-                      </span>
+          <div className="p-4 max-h-[60vh] overflow-y-auto">
+            {isLoadingHomeworkList ? (
+              <div className="text-center py-8">
+                <div className="w-8 h-8 border-3 border-[#00A0E3] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p className="mt-3 text-gray-500">Fetching previous homework assignments...</p>
+              </div>
+            ) : homeworkListError ? (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-center">{homeworkListError}</div>
+            ) : homeworkList.length === 0 ? (
+              <div className="p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-center">
+                <h5 className="font-semibold">No previous homework assignments found.</h5>
+                <p className="mt-1 text-sm">Start creating new homework assignments to see them here.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {homeworkListData.map((homework, index) => (
+                  <button
+                    key={index}
+                    className="w-full flex justify-between items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                    onClick={() => handleHomeworkSelection(homework.homework_code)}
+                  >
+                    <div>
+                      <span className="font-semibold text-[#0B1120]">{homework.homework_code}</span>
+                      {homework.submissions_count !== null && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          <span className="text-green-600 mr-3">
+                            {homework.submissions_count} submitted
+                          </span>
+                          <span className="text-amber-600">
+                            {homework.non_submitted_count} not submitted
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <Badge bg="primary" text="white">
-                  View Report
-                </Badge>
-              </button>
-            ))}
+                    <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-[#00A0E3] text-white">
+                      View Report
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={() => setShowHomeworkListModal(false)}>
-          Close
-        </Button>
-      </Modal.Footer>
-    </Modal>
-  );
+          <div className="flex justify-end p-4 border-t border-gray-200">
+            <button onClick={() => setShowHomeworkListModal(false)} className="bg-gray-200 hover:bg-gray-300 text-[#0B1120] rounded-lg px-4 py-2 font-medium transition-colors">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Render Classwork List Modal
-  const renderClassworkListModal = () => (
-    <Modal
-      show={showClassworkListModal}
-      onHide={() => setShowClassworkListModal(false)}
-      size="lg"
-      centered
-    >
-      <Modal.Header closeButton className="bg-primary text-white">
-        <Modal.Title>
-          <i className="fas fa-list-alt me-2"></i>
-          Previous Classwork Assignments
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {isLoadingClassworkList ? (
-          <div className="text-center py-5">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-            <p className="mt-3">Fetching previous classwork assignments...</p>
+  const renderClassworkListModal = () => {
+    if (!showClassworkListModal) return null;
+    return (
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50">
+        <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-[#00A0E3] text-white rounded-t-xl">
+            <h3 className="text-lg font-bold">Previous Classwork Assignments</h3>
+            <button onClick={() => setShowClassworkListModal(false)} className="text-white/80 hover:text-white text-2xl">&times;</button>
           </div>
-        ) : classworkListError ? (
-          <div className="alert alert-danger text-center py-4">
-            <i className="fas fa-exclamation-triangle me-2"></i>
-            {classworkListError}
+          <div className="p-4 max-h-[60vh] overflow-y-auto">
+            {isLoadingClassworkList ? (
+              <div className="text-center py-8">
+                <div className="w-8 h-8 border-3 border-[#00A0E3] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p className="mt-3 text-gray-500">Fetching previous classwork assignments...</p>
+              </div>
+            ) : classworkListError ? (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-center">{classworkListError}</div>
+            ) : classworkList.length === 0 ? (
+              <div className="p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-center">
+                <h5 className="font-semibold">No previous classwork assignments found.</h5>
+                <p className="mt-1 text-sm">Start creating new classwork assignments to see them here.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {classworkList.map((classworkCode, index) => (
+                  <button
+                    key={index}
+                    className="w-full flex justify-between items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                    onClick={() => handleClassworkSelection(classworkCode)}
+                  >
+                    <span className="text-[#0B1120]">{classworkCode}</span>
+                    <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#0B1120]">
+                      View Report
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        ) : classworkList.length === 0 ? (
-          <div className="alert alert-info text-center py-4">
-            <i className="fas fa-info-circle fa-2x mb-3"></i>
-            <h5>No previous classwork assignments found.</h5>
-            <p className="mb-0">Start creating new classwork assignments to see them here.</p>
+          <div className="flex justify-end p-4 border-t border-gray-200">
+            <button onClick={() => setShowClassworkListModal(false)} className="bg-gray-200 hover:bg-gray-300 text-[#0B1120] rounded-lg px-4 py-2 font-medium transition-colors">
+              Close
+            </button>
           </div>
-        ) : (
-          <div className="list-group">
-            {classworkList.map((classworkCode, index) => (
-              <button
-                key={index}
-                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                onClick={() => handleClassworkSelection(classworkCode)}
-              >
-                <span>{classworkCode}</span>
-                <Badge bg="light" text="dark">
-                  View Report
-                </Badge>
-              </button>
-            ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Shared form fields renderer for both homework and classwork modes
+  const renderQuestionSelectionForm = (title, description) => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h3 className="text-lg font-bold text-[#0B1120] mb-1">{title}</h3>
+      <p className="text-sm text-gray-500 mb-4">{description}</p>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-[#0B1120] mb-1">Class</label>
+            <select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none"
+            >
+              <option value="">Select Class</option>
+              {classes.map((cls) => (
+                <option key={cls.class_code} value={cls.class_code}>
+                  {cls.class_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#0B1120] mb-1">Subject</label>
+            <select
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+              disabled={!selectedClass}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+            >
+              <option value="">Select Subject</option>
+              {subjects.map((subject) => (
+                <option key={subject.subject_code} value={subject.subject_code}>
+                  {subject.subject_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-[#0B1120] mb-1">Chapters</label>
+            <Select
+              isMulti
+              options={chapters.map((chapter) => ({
+                value: chapter.topic_code,
+                label: chapter.name,
+              }))}
+              value={selectedChapters.map((code) => ({
+                value: code,
+                label: chapters.find(
+                  (chapter) => chapter.topic_code === code
+                )?.name,
+              }))}
+              onChange={(selectedOptions) => {
+                setSelectedChapters(
+                  selectedOptions.map((option) => option.value)
+                );
+              }}
+              classNamePrefix="react-select"
+              placeholder="Select Chapters"
+              isDisabled={!selectedSubject}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#0B1120] mb-1">Question Type</label>
+            <select
+              value={questionType}
+              onChange={(e) => setQuestionType(e.target.value)}
+              disabled={selectedChapters.length === 0}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+            >
+              <option value="">Select Question Type</option>
+              <option value="solved">Solved Examples</option>
+              <option value="exercise">Practice Exercises</option>
+              <option value="external">Set of Questions</option>
+              <option value="worksheets">Worksheets</option>
+            </select>
+          </div>
+        </div>
+        {/* Conditional selectors for Set or Worksheet */}
+        {questionType === "external" && (
+          <div>
+            <label className="block text-sm font-medium text-[#0B1120] mb-1">Select Exercises (Multiple Selection)</label>
+            <Select
+              isMulti
+              options={subTopics.map((subTopic, index) => ({
+                value: subTopic,
+                label: getSubtopicDisplayName(subTopic, index),
+              }))}
+              value={selectedExercises.map((exercise) => {
+                const index = subTopics.findIndex(st => st === exercise);
+                return {
+                  value: exercise,
+                  label: getSubtopicDisplayName(exercise, index),
+                };
+              })}
+              onChange={(selectedOptions) => {
+                setSelectedExercises(
+                  selectedOptions ? selectedOptions.map((option) => option.value) : []
+                );
+              }}
+              classNamePrefix="react-select"
+              placeholder="Select one or more exercises"
+              isDisabled={selectedChapters.length === 0}
+            />
           </div>
         )}
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={() => setShowClassworkListModal(false)}>
-          Close
-        </Button>
-      </Modal.Footer>
-    </Modal>
+        {questionType === "worksheets" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-[#0B1120] mb-1">Select Worksheet</label>
+              <select
+                value={selectedWorksheet}
+                onChange={(e) => setSelectedWorksheet(e.target.value)}
+                disabled={selectedChapters.length === 0}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#00A0E3] focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+              >
+                <option value="">Select Worksheet</option>
+                {worksheets.map((worksheet) => (
+                  <option key={worksheet.id || worksheet.worksheet_name} value={worksheet.worksheet_name}>
+                    {worksheet.worksheet_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={!isGenerateButtonEnabled()}
+            className="bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg px-6 py-2 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          >
+            {isLoading ? 'Loading...' : 'Generate Questions'}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 
   return (
     <>
       <AlertContainer />
-      <div className="quick-exercise-container">
+      <div className="space-y-4">
         {/* Add Previous Classwork Button only for classwork mode */}
         {mode === "classwork" && !showClassworkForm && (
-          <div className="d-flex justify-content-end mb-3">
-            <Button
-              variant="info"
+          <div className="flex justify-end">
+            <button
               onClick={fetchClassworkList}
               disabled={isLoadingClassworkList}
+              className="bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg px-4 py-2 font-medium transition-colors disabled:opacity-50"
             >
               {isLoadingClassworkList ? 'Loading...' : 'View Previous Classwork Assignments'}
-            </Button>
+            </button>
           </div>
         )}
 
         {mode === "homework" && !showHomeworkForm && (
-          <div className="d-flex justify-content-end mb-3">
-            {/* <Button 
-            variant="info" 
-            onClick={fetchPreviousHomeworkSubmissions}
-            disabled={isLoadingPreviousHomework}
-          >
-            {isLoadingPreviousHomework ? 'Loading...' : 'View Previous Homework Submissions'}
-          </Button> */}
+          <div className="flex justify-end">
+            {/* placeholder */}
           </div>
         )}
 
         {mode === "homework" && !showHomeworkForm && (
-          <div className="d-flex justify-content-end mb-3">
-            <Button
-              variant="info"
+          <div className="flex justify-end">
+            <button
               onClick={fetchHomeworkList}
               disabled={isLoadingHomeworkList}
+              className="bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg px-4 py-2 font-medium transition-colors disabled:opacity-50"
             >
               {isLoadingHomeworkList ? 'Loading...' : 'View Previous Homework Assignments'}
-            </Button>
+            </button>
           </div>
         )}
 
         {mode === "classwork"
           ? (
-            !showClassworkForm ? (
-              <div className="question-selection-container">
-                <h3>Quick Classwork Generator</h3>
-                <p className="text-muted">Select class, subject, and chapter to generate questions for classwork</p>
-                <Form onSubmit={handleSubmit}>
-                  <Row className="mb-3">
-                    <Col xs={12} md={6}>
-                      <Form.Group controlId="formClass">
-                        <Form.Label>Class</Form.Label>
-                        <Form.Control
-                          as="select"
-                          value={selectedClass}
-                          onChange={(e) => setSelectedClass(e.target.value)}
-                          className="form-control"
-                        >
-                          <option value="">Select Class</option>
-                          {classes.map((cls) => (
-                            <option key={cls.class_code} value={cls.class_code}>
-                              {cls.class_name}
-                            </option>
-                          ))}
-                        </Form.Control>
-                      </Form.Group>
-                    </Col>
-                    <Col xs={12} md={6}>
-                      <Form.Group controlId="formSubject">
-                        <Form.Label>Subject</Form.Label>
-                        <Form.Control
-                          as="select"
-                          value={selectedSubject}
-                          onChange={(e) => setSelectedSubject(e.target.value)}
-                          className="form-control"
-                          disabled={!selectedClass}
-                        >
-                          <option value="">Select Subject</option>
-                          {subjects.map((subject) => (
-                            <option
-                              key={subject.subject_code}
-                              value={subject.subject_code}
-                            >
-                              {subject.subject_name}
-                            </option>
-                          ))}
-                        </Form.Control>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  <Row className="mb-3">
-                    <Col className="select-chapters" xs={12} md={6}>
-                      <Form.Group controlId="formChapters">
-                        <Form.Label>Chapters</Form.Label>
-                        <Select
-                          isMulti
-                          options={chapters.map((chapter) => ({
-                            value: chapter.topic_code,
-                            label: chapter.name,
-                          }))}
-                          value={selectedChapters.map((code) => ({
-                            value: code,
-                            label: chapters.find(
-                              (chapter) => chapter.topic_code === code
-                            )?.name,
-                          }))}
-                          onChange={(selectedOptions) => {
-                            setSelectedChapters(
-                              selectedOptions.map((option) => option.value)
-                            );
-                          }}
-                          classNamePrefix="react-select"
-                          placeholder="Select Chapters"
-                          isDisabled={!selectedSubject}
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col xs={12} md={6}>
-                      <Form.Group controlId="formQuestionType">
-                        <Form.Label>Question Type</Form.Label>
-                        <Form.Control
-                          as="select"
-                          value={questionType}
-                          onChange={(e) => setQuestionType(e.target.value)}
-                          className="form-control"
-                          disabled={selectedChapters.length === 0}
-                        >
-                          <option value="">Select Question Type</option>
-                          <option value="solved">Solved Examples</option>
-                          <option value="exercise">Practice Exercises</option>
-                          <option value="external">Set of Questions</option>
-                          <option value="worksheets">Worksheets</option>
-
-                        </Form.Control>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  {/* Conditional selectors for Set or Worksheet */}
-                  {questionType === "external" && (
-                    <Row className="mb-3">
-                      <Col xs={12}>
-                        <Form.Group controlId="formQuestionLevel">
-                          <Form.Label>Select Exercises (Multiple Selection)</Form.Label>
-                          <Select
-                            isMulti
-                            options={subTopics.map((subTopic, index) => ({
-                              value: subTopic,
-                              label: getSubtopicDisplayName(subTopic, index),
-                            }))}
-                            value={selectedExercises.map((exercise) => {
-                              const index = subTopics.findIndex(st => st === exercise);
-                              return {
-                                value: exercise,
-                                label: getSubtopicDisplayName(exercise, index),
-                              };
-                            })}
-                            onChange={(selectedOptions) => {
-                              setSelectedExercises(
-                                selectedOptions ? selectedOptions.map((option) => option.value) : []
-                              );
-                            }}
-                            classNamePrefix="react-select"
-                            placeholder="Select one or more exercises"
-                            isDisabled={selectedChapters.length === 0}
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                  )}
-                  {questionType === "worksheets" && (
-                    <Row className="mb-3">
-                      <Col xs={12} md={6}>
-                        <Form.Group controlId="formWorksheet">
-                          <Form.Label>Select Worksheet</Form.Label>
-                          <Form.Control
-                            as="select"
-                            value={selectedWorksheet}
-                            onChange={(e) => setSelectedWorksheet(e.target.value)}
-                            className="form-control"
-                            disabled={selectedChapters.length === 0}
-                          >
-                            <option value="">Select Worksheet</option>
-                            {worksheets.map((worksheet) => (
-                              <option key={worksheet.id || worksheet.worksheet_name} value={worksheet.worksheet_name}>
-                                {worksheet.worksheet_name}
-                              </option>
-                            ))}
-                          </Form.Control>
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                  )}
-                  <div className="d-flex justify-content-end">
-                    <Button
-                      variant="primary"
-                      type="submit"
-                      className="btn-generate mt-3"
-                      disabled={!isGenerateButtonEnabled()}
-                    >
-                      {isLoading ? 'Loading...' : 'Generate Questions'}
-                    </Button>
-                  </div>
-                </Form>
-              </div>
-            ) : renderClassworkForm()
+            !showClassworkForm
+              ? renderQuestionSelectionForm("Quick Classwork Generator", "Select class, subject, and chapter to generate questions for classwork")
+              : renderClassworkForm()
           )
-          : (!showHomeworkForm ? (
-            <div className="question-selection-container">
-              <h3>Quick Homework Generator</h3>
-              <p className="text-muted">Select class, subject, and chapter to generate questions for homework</p>
-              <Form onSubmit={handleSubmit}>
-                <Row className="mb-3">
-                  <Col xs={12} md={6}>
-                    <Form.Group controlId="formClass">
-                      <Form.Label>Class</Form.Label>
-                      <Form.Control
-                        as="select"
-                        value={selectedClass}
-                        onChange={(e) => setSelectedClass(e.target.value)}
-                        className="form-control"
-                      >
-                        <option value="">Select Class</option>
-                        {classes.map((cls) => (
-                          <option key={cls.class_code} value={cls.class_code}>
-                            {cls.class_name}
-                          </option>
-                        ))}
-                      </Form.Control>
-                    </Form.Group>
-                  </Col>
-                  <Col xs={12} md={6}>
-                    <Form.Group controlId="formSubject">
-                      <Form.Label>Subject</Form.Label>
-                      <Form.Control
-                        as="select"
-                        value={selectedSubject}
-                        onChange={(e) => setSelectedSubject(e.target.value)}
-                        className="form-control"
-                        disabled={!selectedClass}
-                      >
-                        <option value="">Select Subject</option>
-                        {subjects.map((subject) => (
-                          <option
-                            key={subject.subject_code}
-                            value={subject.subject_code}
-                          >
-                            {subject.subject_name}
-                          </option>
-                        ))}
-                      </Form.Control>
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row className="mb-3">
-                  <Col className="select-chapters" xs={12} md={6}>
-                    <Form.Group controlId="formChapters">
-                      <Form.Label>Chapters</Form.Label>
-                      <Select
-                        isMulti
-                        options={chapters.map((chapter) => ({
-                          value: chapter.topic_code,
-                          label: chapter.name,
-                        }))}
-                        value={selectedChapters.map((code) => ({
-                          value: code,
-                          label: chapters.find(
-                            (chapter) => chapter.topic_code === code
-                          )?.name,
-                        }))}
-                        onChange={(selectedOptions) => {
-                          setSelectedChapters(
-                            selectedOptions.map((option) => option.value)
-                          );
-                        }}
-                        classNamePrefix="react-select"
-                        placeholder="Select Chapters"
-                        isDisabled={!selectedSubject}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col xs={12} md={6}>
-                    <Form.Group controlId="formQuestionType">
-                      <Form.Label>Question Type</Form.Label>
-                      <Form.Control
-                        as="select"
-                        value={questionType}
-                        onChange={(e) => setQuestionType(e.target.value)}
-                        className="form-control"
-                        disabled={selectedChapters.length === 0}
-                      >
-                        <option value="">Select Question Type</option>
-                        <option value="solved">Solved Examples</option>
-                        <option value="exercise">Practice Exercises</option>
-                        <option value="external">Set of Questions</option>
-                        <option value="worksheets">Worksheets</option>
-                      </Form.Control>
-                    </Form.Group>
-                  </Col>
-                </Row>
-                {/* Conditional selectors for Set or Worksheet */}
-                {questionType === "external" && (
-                    <Row className="mb-3">
-                      <Col xs={12}>
-                        <Form.Group controlId="formQuestionLevel">
-                          <Form.Label>Select Exercises (Multiple Selection)</Form.Label>
-                          <Select
-                            isMulti
-                            options={subTopics.map((subTopic, index) => ({
-                              value: subTopic,
-                              label: getSubtopicDisplayName(subTopic, index),
-                            }))}
-                            value={selectedExercises.map((exercise) => {
-                              const index = subTopics.findIndex(st => st === exercise);
-                              return {
-                                value: exercise,
-                                label: getSubtopicDisplayName(exercise, index),
-                              };
-                            })}
-                            onChange={(selectedOptions) => {
-                              setSelectedExercises(
-                                selectedOptions ? selectedOptions.map((option) => option.value) : []
-                              );
-                            }}
-                            classNamePrefix="react-select"
-                            placeholder="Select one or more exercises"
-                            isDisabled={selectedChapters.length === 0}
-                          />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                )}
-                {questionType === "worksheets" && (
-                  <Row className="mb-3">
-                    <Col xs={12} md={6}>
-                      <Form.Group controlId="formWorksheet">
-                        <Form.Label>Select Worksheet</Form.Label>
-                        <Form.Control
-                          as="select"
-                          value={selectedWorksheet}
-                          onChange={(e) => setSelectedWorksheet(e.target.value)}
-                          className="form-control"
-                          disabled={selectedChapters.length === 0}
-                        >
-                          <option value="">Select Worksheet</option>
-                          {worksheets.map((worksheet) => (
-                            <option key={worksheet.id || worksheet.worksheet_name} value={worksheet.worksheet_name}>
-                              {worksheet.worksheet_name}
-                            </option>
-                          ))}
-                        </Form.Control>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                )}
-                <div className="d-flex justify-content-end">
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    className="btn-generate mt-3"
-                    disabled={!isGenerateButtonEnabled()}
-                  >
-                    {isLoading ? 'Loading...' : 'Generate Questions'}
-                  </Button>
-                </div>
-              </Form>
-            </div>
-          ) : renderHomeworkForm())}
+          : (!showHomeworkForm
+            ? renderQuestionSelectionForm("Quick Homework Generator", "Select class, subject, and chapter to generate questions for homework")
+            : renderHomeworkForm())}
 
         {/* Question List Modal */}
         {showQuestionList && mode !== "classwork" && (
@@ -1972,7 +1585,7 @@ const QuickExerciseComponent = ({ onCreateHomework, mode = "homework" }) => {
                 const subtopicIndex = subTopics.findIndex(st => st === exercise);
                 return subtopicIndex !== -1 ? subtopicIndex + 1 : "";
               }).filter(num => num !== "").join(", ");
-              
+
               const exerciseText = exerciseNumbers ? `Exercises ${exerciseNumbers}` : "Selected Exercises";
               setClassworkTitle(`${subjectName} - ${chapterName} ${exerciseText}`);
             }}

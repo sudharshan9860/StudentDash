@@ -13,6 +13,7 @@ import { AuthContext } from '../components/AuthContext';
 import ShootingStars from './ShootingStars';
 import axiosInstance from '../api/axiosInstance'; // Make sure this exists
 import '../styles/LeaderboardAnimation.css';
+import { Trophy } from 'lucide-react';
 
 const LeaderboardPage = () => {
   const { username } = useContext(AuthContext);
@@ -83,7 +84,7 @@ const LeaderboardPage = () => {
                     idx === 1 ? 'silver' : 
                     'bronze'
                   }`}>
-                    🏆
+                    <Trophy className="w-5 h-5 text-amber-500" />
                   </div>
                 )}
               </td>

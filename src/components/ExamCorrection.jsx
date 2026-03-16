@@ -3,14 +3,32 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import AlertBox from "./AlertBox";
-import "./ExamCorrection.css";
+import {
+  FileText,
+  FilePlus,
+  FileCheck,
+  ChevronDown,
+  ArrowLeft,
+  BarChart3,
+  AlertCircle,
+  CheckCircle,
+  Info,
+  Upload,
+  Plus,
+  X,
+  Loader2,
+  Rocket,
+  Users,
+  User,
+  Lightbulb,
+} from "lucide-react";
 
 const ExamCorrection = () => {
   const navigate = useNavigate();
   const redirectTimeoutRef = useRef(null);
 
   // STEP 1: Correction mode selection
-  const [correctionMode, setCorrectionMode] = useState(null); // null | 'new' | 'existing'
+  const [correctionMode, setCorrectionMode] = useState(null);
 
   const HARDCODED_SUBJECTS = ["MATHEMATICS", "SCIENCE", "PHYSICS", "CHEMISTRY", "ENGLISH"];
 
@@ -19,10 +37,10 @@ const ExamCorrection = () => {
   const [selectedExistingExam, setSelectedExistingExam] = useState(null);
   const [loadingExams, setLoadingExams] = useState(false);
 
-  // NEW: Upload mode selection
-  const [uploadMode, setUploadMode] = useState("individual"); // 'individual' | 'group'
+  // Upload mode selection
+  const [uploadMode, setUploadMode] = useState("individual");
 
-  // Pending section for existing exam (applied after sections API loads)
+  // Pending section for existing exam
   const [pendingSection, setPendingSection] = useState("");
 
   // Classes and Sections from API
@@ -31,12 +49,12 @@ const ExamCorrection = () => {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [loadingSections, setLoadingSections] = useState(false);
 
-  // Form state (used for both modes)
+  // Form state
   const [examName, setExamName] = useState("");
   const [examType, setExamType] = useState("");
   const [className, setClassName] = useState("");
   const [section, setSection] = useState("");
-  const [subject, setSubject] = useState(""); // ← ADD THIS LINE
+  const [subject, setSubject] = useState("");
   const [rollNumberPattern, setRollNumberPattern] = useState(".*");
   const [maxWorkers, setMaxWorkers] = useState(5);
   const [questionPaper, setQuestionPaper] = useState(null);
@@ -58,24 +76,20 @@ const ExamCorrection = () => {
   // Teacher info
   const [teacherName, setTeacherName] = useState("");
 
-  // Helper: renames a File object with a "Student_" prefix while preserving the original name
+  // Helper: renames a File object with a "Student_" prefix
   const prefixStudentName = (file) => {
     const prefixedName = `Student_${file.name}`;
     return new File([file], prefixedName, { type: file.type });
   };
 
   useEffect(() => {
-    // Get teacher name from localStorage
     const fullName = localStorage.getItem("fullName");
     const username = localStorage.getItem("username");
     setTeacherName(fullName || username || "");
-
-    // Fetch available classes and existing exam names on mount
     fetchAvailableClasses();
     fetchExistingExamNames();
   }, []);
 
-  // Fetch sections when class changes (for both new and existing modes)
   useEffect(() => {
     if (className) {
       fetchAvailableSections(className);
@@ -87,17 +101,14 @@ const ExamCorrection = () => {
     }
   }, [className, correctionMode]);
 
-  // Fetch existing exams when user selects "existing" mode
   useEffect(() => {
     if (correctionMode === "existing") {
       fetchExistingExams();
     }
   }, [correctionMode]);
 
-  // Apply pending section once sections are loaded (for existing exam selection)
   useEffect(() => {
     if (pendingSection && availableSections.length > 0 && !loadingSections) {
-      // Match by section_name from API
       const match = availableSections.find(
         (s) =>
           s.section_name?.trim().toLowerCase() === pendingSection.toLowerCase(),
@@ -105,17 +116,14 @@ const ExamCorrection = () => {
       if (match) {
         setSection(match.section_name);
       } else {
-        // Fallback: set the parsed value directly
         setSection(pendingSection);
       }
       setPendingSection("");
     }
   }, [pendingSection, availableSections, loadingSections]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     let redirectTimeout;
-
     return () => {
       if (redirectTimeout) {
         clearTimeout(redirectTimeout);
@@ -123,7 +131,6 @@ const ExamCorrection = () => {
     };
   }, []);
 
-  // Fetch available classes for the teacher
   const fetchAvailableClasses = async () => {
     try {
       setLoadingClasses(true);
@@ -132,45 +139,34 @@ const ExamCorrection = () => {
       setAvailableClasses(classesData);
     } catch (error) {
       console.error("Error fetching classes:", error);
-      // Silently fail - user can still type if needed
     } finally {
       setLoadingClasses(false);
     }
   };
 
-  // Fetch available sections for a given class
   const fetchAvailableSections = async (selectedClass) => {
     try {
       setLoadingSections(true);
-      // Only reset section for new correction mode (not existing, where it's pre-filled)
       if (correctionMode !== "existing") {
         setSection("");
       }
-
-      // Create FormData for POST request
       const formData = new FormData();
       formData.append("class_name", selectedClass);
 
       const response = await axiosInstance.post(
         "/api/teacher-sections/",
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        },
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       const sectionsData = response.data.sections || [];
       setAvailableSections(sectionsData);
     } catch (error) {
       console.error("Error fetching sections:", error);
-      // Silently fail - user can still type if needed
     } finally {
       setLoadingSections(false);
     }
   };
 
-  // Fetch existing exam names for validation
   const fetchExistingExamNames = async () => {
     try {
       const response = await axiosInstance.get("/api/teacher-exam-names/");
@@ -181,24 +177,18 @@ const ExamCorrection = () => {
     }
   };
 
-  // Check if the current exam name already exists
   const isExamNameDuplicate =
     correctionMode === "new" &&
     examName.trim() !== "" &&
     existingExamNames.includes(examName.trim().toLowerCase());
 
-  // Fetch list of existing exams for the teacher
   const fetchExistingExams = async () => {
     try {
       setLoadingExams(true);
       setError(null);
-
-      // Using the same API as ExamAnalytics
       const response = await axiosInstance.get("/exam-details/");
       const examsData = response.data.exams || [];
-
       setExistingExams(examsData);
-
       if (examsData.length === 0) {
         setError("No existing exams found. Please create a new exam instead.");
       }
@@ -210,32 +200,25 @@ const ExamCorrection = () => {
     }
   };
 
-  // Handle existing exam selection
   const handleExistingExamSelect = (exam) => {
     setSelectedExistingExam(exam);
-    // Pre-fill form with existing exam data
     setExamName(exam.name);
     setExamType(exam.exam_type);
     const parsedClass = exam.class_section || "";
     const parsedSection = exam.section || "";
     setClassName(parsedClass);
-    // Section will be set after sections API loads via the effect below
-    // Store it so we can apply it once sections are fetched
     setPendingSection(parsedSection);
-    setSubject(exam.subject || ""); // ← ADD THIS LINE
+    setSubject(exam.subject || "");
     setError(null);
   };
 
-  // Handle question paper file selection
   const handleQuestionPaperChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type (PDF)
       if (file.type !== "application/pdf") {
         setError("Question paper must be a PDF file");
         return;
       }
-      // Validate file size (max 100MB)
       if (file.size > 500 * 1024 * 1024) {
         setError("Question paper file size must be less than 100MB");
         return;
@@ -245,11 +228,8 @@ const ExamCorrection = () => {
     }
   };
 
-  // Handle answer sheets file selection (supports adding multiple files incrementally)
   const handleAnswerSheetsChange = (e) => {
     const files = Array.from(e.target.files);
-
-    // Validate files
     const invalidFiles = files.filter((file) => {
       return file.type !== "application/pdf" || file.size > 100 * 1024 * 1024;
     });
@@ -259,63 +239,48 @@ const ExamCorrection = () => {
       return;
     }
 
-    // Append new files to existing ones (avoid duplicates by name)
-    // Rename files with "Student_" prefix, then append (avoid duplicates by prefixed name)
     setAnswerSheets((prev) => {
       const existingNames = new Set(prev.map((f) => f.name));
       const newFiles = files
-        .map((f) => prefixStudentName(f)) // rename: 1.pdf → Student_1.pdf
-        .filter((f) => !existingNames.has(f.name)); // deduplicate by new prefixed name
+        .map((f) => prefixStudentName(f))
+        .filter((f) => !existingNames.has(f.name));
       return [...prev, ...newFiles];
     });
     setError(null);
-
-    // Reset the input so the same file can be selected again if needed
     e.target.value = "";
   };
 
-  // Remove question paper
   const handleRemoveQuestionPaper = () => {
     setQuestionPaper(null);
   };
 
-  // Remove specific answer sheet
   const handleRemoveAnswerSheet = (index) => {
     setAnswerSheets((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Clear all answer sheets
   const handleClearAllAnswerSheets = () => {
     setAnswerSheets([]);
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!examName.trim()) {
       setError("Please enter exam name");
       return;
     }
-
     if (uploadMode === "individual" && !subject) {
       setError("Please select a subject");
       return;
     }
-
     if (!className.trim()) {
       setError("Please enter class name");
       return;
     }
-
-    // For NEW correction: question paper is required
-    // For EXISTING correction: question paper is optional (can reuse existing one)
     if (correctionMode === "new" && !questionPaper) {
       setError("Please upload question paper");
       return;
     }
-
     if (answerSheets.length === 0) {
       setError("Please upload at least one answer sheet");
       return;
@@ -328,47 +293,37 @@ const ExamCorrection = () => {
       setProcessingStatus("Uploading files...");
       setUploadProgress(0);
 
-      // Create FormData
       const formData = new FormData();
-
-      // Common fields
       formData.append("exam_name", examName.trim());
       formData.append("exam_type", examType);
       formData.append("teacher_name", teacherName);
       formData.append("class_name", className.trim());
       formData.append("section", section.trim());
-      formData.append("subject", subject); // ← ADD THIS LINE
+      formData.append("subject", subject);
       formData.append("roll_number_pattern", rollNumberPattern);
       formData.append("max_workers", maxWorkers.toString());
       formData.append("upload_mode", uploadMode);
 
-      // NEW: Add exam_id if this is an existing correction
       if (correctionMode === "existing" && selectedExistingExam) {
         formData.append("exam_id", selectedExistingExam.id.toString());
         formData.append("is_additional_correction", "true");
       }
 
-      // Append question paper (only if provided - for existing, it's optional)
       if (questionPaper) {
         formData.append("question_paper", questionPaper);
       }
 
-      // Append answer sheets
       answerSheets.forEach((sheet) => {
         formData.append("answer_sheets", sheet);
       });
 
-      // NEW: Determine API endpoint based on upload mode
       const apiEndpoint =
         uploadMode === "group"
           ? "api/exam-correction-group/"
           : "api/exam-correction/";
 
-      // Make API call with progress tracking
       const response = await axiosInstance.post(apiEndpoint, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total,
@@ -390,7 +345,6 @@ const ExamCorrection = () => {
         setProcessingStatus("Processing exam in background...");
       }
 
-      // Clear form inputs after successful submission
       setExamName("");
       setExamType("");
       setClassName("");
@@ -414,13 +368,12 @@ const ExamCorrection = () => {
     }
   };
 
-  // Reset form
   const handleReset = () => {
     setExamName("");
     setExamType("");
     setClassName("");
     setSection("");
-    setSubject(""); // ← ADD THIS LINE
+    setSubject("");
     setRollNumberPattern(".*");
     setMaxWorkers(5);
     setQuestionPaper(null);
@@ -433,19 +386,14 @@ const ExamCorrection = () => {
     setPendingSection("");
   };
 
-  // Go back to mode selection
   const handleBackToModeSelection = () => {
     setCorrectionMode(null);
     handleReset();
   };
 
-  // ==========================================
-  // STEP 1: MODE SELECTION VIEW (SIDE BY SIDE)
-  // ==========================================
-  // Alert component rendered as a fixed overlay
   const renderAlert = () =>
     alertMsg ? (
-      <div className="alert-container">
+      <div className="fixed top-4 right-4 z-50">
         <AlertBox
           message={alertMsg}
           type="success"
@@ -455,162 +403,110 @@ const ExamCorrection = () => {
       </div>
     ) : null;
 
+  // ==========================================
+  // STEP 1: MODE SELECTION VIEW
+  // ==========================================
   if (correctionMode === null) {
     return (
-      <div className="exam-correction-container">
+      <div className="min-h-screen bg-[#F8FAFC] pb-10">
         {renderAlert()}
-        <div className="exam-correction-header">
-          <div className="header-content">
-            <div className="header-icon">
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-                <path d="M9 15l2 2 4-4" />
-              </svg>
+        {/* Header */}
+        <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <FileCheck className="w-5 h-5 text-[#00A0E3]" />
             </div>
             <div>
-              <h1 className="correction-header-title">
-                📝 Exam Correction Hub
-              </h1>
-              <p className="header-subtitle">
-                Choose correction mode to get started
-              </p>
+              <h1 className="text-xl font-bold text-[#0B1120]">Exam Correction Hub</h1>
+              <p className="text-sm text-gray-500">Choose correction mode to get started</p>
             </div>
           </div>
           <button
-            className="view-analytics-btn"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-blue-50 text-sm font-medium transition-colors"
             onClick={() => {
               if (window.handleExamAnalyticsView) {
                 window.handleExamAnalyticsView();
               }
             }}
           >
-            <span>📊</span>
+            <BarChart3 className="w-4 h-4" />
             View Analytics
           </button>
         </div>
 
-        <div className="mode-selection-container">
-          {/* Side-by-Side Mode Cards */}
-          <div className="mode-cards-wrapper">
+        <div className="max-w-5xl mx-auto px-4 pt-8">
+          {/* Mode Cards */}
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
             {/* NEW CORRECTION CARD */}
-            <div
-              className="mode-card mode-card-new"
+            <button
+              className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-left hover:border-[#00A0E3] hover:shadow-md transition-all group"
               onClick={() => setCorrectionMode("new")}
             >
-              <div className="mode-card-icon">
-                <svg
-                  width="64"
-                  height="64"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14,2 14,8 20,8" />
-                  <line x1="12" y1="18" x2="12" y2="12" />
-                  <line x1="9" y1="15" x2="15" y2="15" />
-                </svg>
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-5 group-hover:bg-[#00A0E3]/10 transition-colors">
+                <FilePlus className="w-8 h-8 text-[#00A0E3]" />
               </div>
-              <h2 className="mode-card-title">New Correction</h2>
-              <p className="mode-card-description">
-                Start a brand new exam correction with question paper and answer
-                sheets
+              <h2 className="text-xl font-bold text-[#0B1120] mb-2">New Correction</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Start a brand new exam correction with question paper and answer sheets
               </p>
-              <ul className="mode-card-features">
-                <li>
-                  <span className="check-icon">✓</span> Upload new question
-                  paper
-                </li>
-                <li>
-                  <span className="check-icon">✓</span> Upload all student
-                  answer sheets
-                </li>
-                <li>
-                  <span className="check-icon">✓</span> Create new exam entry
-                </li>
-                <li>
-                  <span className="check-icon">✓</span> Full automated grading
-                </li>
+              <ul className="space-y-2 mb-5">
+                {["Upload new question paper", "Upload all student answer sheets", "Create new exam entry", "Full automated grading"].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle className="w-4 h-4 text-[#22c55e]" />
+                    {item}
+                  </li>
+                ))}
               </ul>
-              <button className="mode-card-btn mode-card-btn-new">
-                Select New Correction →
-              </button>
-            </div>
+              <span className="inline-flex items-center gap-1 text-[#00A0E3] font-medium text-sm">
+                Select New Correction
+                <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
+              </span>
+            </button>
 
             {/* EXISTING CORRECTION CARD */}
-            <div
-              className="mode-card mode-card-existing"
+            <button
+              className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-left hover:border-[#00A0E3] hover:shadow-md transition-all group"
               onClick={() => setCorrectionMode("existing")}
             >
-              <div className="mode-card-icon">
-                <svg
-                  width="64"
-                  height="64"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14,2 14,8 20,8" />
-                  <path d="M9 15l2 2 4-4" />
-                </svg>
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-5 group-hover:bg-[#00A0E3]/10 transition-colors">
+                <FileCheck className="w-8 h-8 text-[#00A0E3]" />
               </div>
-              <h2 className="mode-card-title">Add to Existing Exam</h2>
-              <p className="mode-card-description">
+              <h2 className="text-xl font-bold text-[#0B1120] mb-2">Add to Existing Exam</h2>
+              <p className="text-sm text-gray-500 mb-4">
                 Add more students to an existing exam (batch processing)
               </p>
-              <ul className="mode-card-features">
-                <li>
-                  <span className="check-icon">✓</span> Select existing exam
-                </li>
-                <li>
-                  <span className="check-icon">✓</span> Reuse question paper
-                  (optional)
-                </li>
-                <li>
-                  <span className="check-icon">✓</span> Upload additional answer
-                  sheets
-                </li>
-                <li>
-                  <span className="check-icon">✓</span> Merge with existing
-                  results
-                </li>
+              <ul className="space-y-2 mb-5">
+                {["Select existing exam", "Reuse question paper (optional)", "Upload additional answer sheets", "Merge with existing results"].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle className="w-4 h-4 text-[#22c55e]" />
+                    {item}
+                  </li>
+                ))}
               </ul>
-              <button className="mode-card-btn mode-card-btn-existing">
-                Select Existing Exam →
-              </button>
-            </div>
+              <span className="inline-flex items-center gap-1 text-[#00A0E3] font-medium text-sm">
+                Select Existing Exam
+                <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
+              </span>
+            </button>
           </div>
 
           {/* Info Section */}
-          <div className="mode-info-section">
-            <h3 className="mode-info-title">
-              <span className="info-icon">💡</span>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="flex items-center gap-2 text-base font-bold text-[#0B1120] mb-4">
+              <Lightbulb className="w-5 h-5 text-[#00A0E3]" />
               When to use each mode?
             </h3>
-            <div className="mode-info-grid">
-              <div className="mode-info-item mode-info-new">
-                <strong>New Correction:</strong>
-                <p>
-                  Use when starting a completely new exam with all students at
-                  once
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-blue-50 rounded-xl p-4">
+                <strong className="text-sm text-[#0B1120]">New Correction:</strong>
+                <p className="text-sm text-gray-600 mt-1">
+                  Use when starting a completely new exam with all students at once
                 </p>
               </div>
-              <div className="mode-info-item mode-info-existing">
-                <strong>Existing Exam:</strong>
-                <p>
-                  Use when you want to add more students to an already created
-                  exam (e.g., 20 students now + 20 later)
+              <div className="bg-blue-50 rounded-xl p-4">
+                <strong className="text-sm text-[#0B1120]">Existing Exam:</strong>
+                <p className="text-sm text-gray-600 mt-1">
+                  Use when you want to add more students to an already created exam (e.g., 20 students now + 20 later)
                 </p>
               </div>
             </div>
@@ -621,113 +517,101 @@ const ExamCorrection = () => {
   }
 
   // ==========================================
-  // STEP 2A: EXISTING EXAM SELECTION VIEW (GRID LAYOUT)
+  // STEP 2A: EXISTING EXAM SELECTION VIEW
   // ==========================================
   if (correctionMode === "existing" && !selectedExistingExam) {
     return (
-      <div className="exam-correction-container">
+      <div className="min-h-screen bg-[#F8FAFC] pb-10">
         {renderAlert()}
-        <div className="exam-correction-header">
-          <div className="header-content">
-            <button className="back-btn" onClick={handleBackToModeSelection}>
-              ← Back
+        <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#00A0E3] transition-colors"
+              onClick={handleBackToModeSelection}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
             </button>
             <div>
-              <h1 className="correction-header-title">Select Existing Exam</h1>
-              <p className="header-subtitle">
-                Choose an exam to add more students
-              </p>
+              <h1 className="text-xl font-bold text-[#0B1120]">Select Existing Exam</h1>
+              <p className="text-sm text-gray-500">Choose an exam to add more students</p>
             </div>
           </div>
           <button
-            className="view-analytics-btn"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-blue-50 text-sm font-medium transition-colors"
             onClick={() => {
               if (window.handleExamAnalyticsView) {
                 window.handleExamAnalyticsView();
               }
             }}
           >
-            <span>📊</span>
+            <BarChart3 className="w-4 h-4" />
             View Analytics
           </button>
         </div>
 
-        <div className="existing-exams-container">
+        <div className="max-w-5xl mx-auto px-4 pt-6">
           {error && (
-            <div className="alert alert-error">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-[#ef4444] text-sm rounded-xl p-4 mb-4">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {loadingExams ? (
-            <div className="loading-state">
-              <div className="spinner"></div>
-              <p>Loading existing exams...</p>
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 text-[#00A0E3] animate-spin mb-3" />
+              <p className="text-gray-500">Loading existing exams...</p>
             </div>
           ) : existingExams.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">📝</div>
-              <h3>No Existing Exams Found</h3>
-              <p>
+            <div className="flex flex-col items-center justify-center py-16">
+              <FileText className="w-12 h-12 text-gray-300 mb-3" />
+              <h3 className="text-lg font-bold text-[#0B1120] mb-1">No Existing Exams Found</h3>
+              <p className="text-sm text-gray-500 mb-4">
                 You don't have any exams yet. Please create a new exam instead.
               </p>
               <button
-                className="btn btn-primary"
+                className="px-4 py-2 rounded-lg bg-[#00A0E3] hover:bg-[#0080B8] text-white font-medium text-sm transition-colors"
                 onClick={handleBackToModeSelection}
               >
                 Go Back
               </button>
             </div>
           ) : (
-            <div className="exams-grid-container">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {existingExams.map((exam) => (
-                <div
+                <button
                   key={exam.id}
-                  className="exam-grid-card"
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-left hover:border-[#00A0E3] hover:shadow-md transition-all"
                   onClick={() => handleExistingExamSelect(exam)}
                 >
-                  <div className="exam-card-header">
-                    <h3 className="exam-name">{exam.name}</h3>
-                    <span
-                      className={`exam-type-badge exam-type-${exam.exam_type.toLowerCase()}`}
-                    >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-[#0B1120] truncate">{exam.name}</h3>
+                    <span className="px-2.5 py-1 rounded-full bg-blue-50 text-[#00A0E3] text-xs font-medium flex-shrink-0">
                       {exam.exam_type}
                     </span>
                   </div>
-                  <div className="exam-card-body">
-                    <div className="exam-info-row">
-                      <span className="info-label">Class:</span>
-                      <span className="info-value">{exam.class_section}</span>
+                  <div className="space-y-1.5 text-sm mb-4">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Class:</span>
+                      <span className="text-[#0B1120] font-medium">{exam.class_section}</span>
                     </div>
-                    <div className="exam-info-row">
-                      <span className="info-label">Current Students:</span>
-                      <span className="info-value">{exam.total_students}</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Current Students:</span>
+                      <span className="text-[#0B1120] font-medium">{exam.total_students}</span>
                     </div>
-                    <div className="exam-info-row">
-                      <span className="info-label">Avg Score:</span>
-                      <span className="info-value">
-                        {exam.average_score
-                          ? `${exam.average_score.toFixed(1)}%`
-                          : "N/A"}
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Avg Score:</span>
+                      <span className="text-[#0B1120] font-medium">
+                        {exam.average_score ? `${exam.average_score.toFixed(1)}%` : "N/A"}
                       </span>
                     </div>
                   </div>
-                  <button className="exam-select-btn">
-                    Select This Exam →
-                  </button>
-                </div>
+                  <span className="inline-flex items-center gap-1 text-[#00A0E3] font-medium text-sm">
+                    Select This Exam
+                    <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
+                  </span>
+                </button>
               ))}
             </div>
           )}
@@ -737,15 +621,15 @@ const ExamCorrection = () => {
   }
 
   // ==========================================
-  // STEP 2B/3: UPLOAD FORM VIEW (FULL WIDTH)
+  // STEP 2B/3: UPLOAD FORM VIEW
   // ==========================================
   return (
-    <div className="exam-correction-container">
+    <div className="min-h-screen bg-[#F8FAFC] pb-10">
       {renderAlert()}
-      <div className="exam-correction-header">
-        <div className="header-content">
+      <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <button
-            className="back-btn"
+            className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#00A0E3] transition-colors"
             onClick={() => {
               if (correctionMode === "existing") {
                 setSelectedExistingExam(null);
@@ -754,29 +638,19 @@ const ExamCorrection = () => {
               }
             }}
           >
-            ← Back
+            <ArrowLeft className="w-4 h-4" />
+            Back
           </button>
-          <div className="header-icon">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14,2 14,8 20,8" />
-              <path d="M9 15l2 2 4-4" />
-            </svg>
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <FileCheck className="w-5 h-5 text-[#00A0E3]" />
           </div>
           <div>
-            <h1 className="correction-header-title">
+            <h1 className="text-xl font-bold text-[#0B1120]">
               {correctionMode === "existing"
-                ? `📝 Add Students to: ${examName}`
-                : "📝 New Exam Correction"}
+                ? `Add Students to: ${examName}`
+                : "New Exam Correction"}
             </h1>
-            <p className="header-subtitle">
+            <p className="text-sm text-gray-500">
               {correctionMode === "existing"
                 ? "Upload additional answer sheets for this exam"
                 : "Upload question papers and answer sheets for automated grading"}
@@ -784,58 +658,36 @@ const ExamCorrection = () => {
           </div>
         </div>
         <button
-          className="view-analytics-btn"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-blue-50 text-sm font-medium transition-colors"
           onClick={() => {
             if (window.handleExamAnalyticsView) {
               window.handleExamAnalyticsView();
             }
           }}
         >
-          <span>📊</span>
+          <BarChart3 className="w-4 h-4" />
           View Analytics
         </button>
       </div>
 
-      {/* FULL WIDTH FORM (NO SIDEBAR) */}
-      <div className="exam1-form-container-full-width">
-        <form onSubmit={handleSubmit} className="exam-form">
+      <div className="max-w-4xl mx-auto px-4 pt-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Message */}
           {error && (
-            <div className="alert alert-error">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-[#ef4444] text-sm rounded-xl p-4">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Success Message */}
           {success && (
-            <div className="alert alert-success">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-[#22c55e] text-sm rounded-xl p-4">
+              <CheckCircle className="w-5 h-5 flex-shrink-0" />
               <span>
                 {correctionMode === "existing"
                   ? "Additional students uploaded successfully!"
-                  : "Exam submitted successfully!"}
+                  : "Exam submitted successfully!"}{" "}
                 Processing in background...
               </span>
             </div>
@@ -843,19 +695,8 @@ const ExamCorrection = () => {
 
           {/* Mode Indicator */}
           {correctionMode === "existing" && (
-            <div className="alert alert-info">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
+            <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-[#00A0E3] text-sm rounded-xl p-4">
+              <Info className="w-5 h-5 flex-shrink-0" />
               <span>
                 You're adding students to an existing exam. Current students:{" "}
                 {selectedExistingExam?.total_students || 0}
@@ -863,29 +704,19 @@ const ExamCorrection = () => {
             </div>
           )}
 
-          {/* ============================================
-    NEW: COMPACT UPLOAD MODE SELECTION
-    ============================================ */}
-          <div className="upload-mode-compact">
-            <h3 className="section-label">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
+          {/* Upload Mode Selection */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-[#0B1120] mb-4">
+              <Upload className="w-4 h-4 text-[#00A0E3]" />
               Upload Mode
             </h3>
-
-            <div className="radio-group">
+            <div className="grid md:grid-cols-2 gap-3">
               <label
-                className={`radio-option ${uploadMode === "group" ? "active" : ""}`}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
+                  uploadMode === "group"
+                    ? "border-[#00A0E3] bg-blue-50/50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
               >
                 <input
                   type="radio"
@@ -897,17 +728,23 @@ const ExamCorrection = () => {
                     if (e.target.value === "group") setSubject("");
                   }}
                   disabled={loading}
+                  className="hidden"
                 />
-                <span className="radio-label">
-                  <strong>Group of Students</strong>
-                  <span className="radio-description">
-                    Multiple students per PDF (batch upload)
-                  </span>
-                </span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${uploadMode === "group" ? "bg-[#00A0E3] text-white" : "bg-gray-100 text-gray-400"}`}>
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="font-semibold text-sm text-[#0B1120]">Group of Students</span>
+                  <span className="block text-xs text-gray-500">Multiple students per PDF (batch upload)</span>
+                </div>
               </label>
 
               <label
-                className={`radio-option ${uploadMode === "individual" ? "active" : ""}`}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
+                  uploadMode === "individual"
+                    ? "border-[#00A0E3] bg-blue-50/50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
               >
                 <input
                   type="radio"
@@ -919,133 +756,103 @@ const ExamCorrection = () => {
                     if (e.target.value === "group") setSubject("");
                   }}
                   disabled={loading}
+                  className="hidden"
                 />
-                <span className="radio-label">
-                  <strong>Individual Student</strong>
-                  <span className="radio-description">
-                    One student per PDF (standard upload)
-                  </span>
-                </span>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${uploadMode === "individual" ? "bg-[#00A0E3] text-white" : "bg-gray-100 text-gray-400"}`}>
+                  <User className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="font-semibold text-sm text-[#0B1120]">Individual Student</span>
+                  <span className="block text-xs text-gray-500">One student per PDF (standard upload)</span>
+                </div>
               </label>
             </div>
           </div>
 
           {/* Exam Details Section */}
-          <div className="form-section">
-            <h2 className="section-title">Exam Details</h2>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-base font-bold text-[#0B1120] mb-5">Exam Details</h2>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="examName">
-                  Exam Name <span className="required">*</span>
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label htmlFor="examName" className="block text-sm font-medium text-[#0B1120] mb-1.5">
+                  Exam Name <span className="text-[#ef4444]">*</span>
                 </label>
                 <input
                   type="text"
                   id="examName"
-                  className="form-input"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/20 focus:border-[#00A0E3] disabled:bg-gray-50 disabled:text-gray-400"
                   placeholder="e.g., Mathematics Midterm Exam"
                   value={examName}
                   onChange={(e) => setExamName(e.target.value)}
                   disabled={loading || correctionMode === "existing"}
                 />
                 {correctionMode === "existing" && (
-                  <small className="field-description">
-                    Pre-filled from existing exam
-                  </small>
+                  <p className="text-xs text-gray-400 mt-1">Pre-filled from existing exam</p>
                 )}
                 {isExamNameDuplicate && (
-                  <small
-                    className="field-description"
-                    style={{ color: "#e74c3c", fontWeight: 500 }}
-                  >
+                  <p className="text-xs text-[#ef4444] font-medium mt-1">
                     This exam name already exists. Please use a different name.
-                  </small>
+                  </p>
                 )}
               </div>
 
-              <div className="form-group">
-                <label htmlFor="examType">
-                  Exam Type <span className="required">*</span>
+              <div>
+                <label htmlFor="examType" className="block text-sm font-medium text-[#0B1120] mb-1.5">
+                  Exam Type <span className="text-[#ef4444]">*</span>
                 </label>
                 <input
                   type="text"
                   id="examType"
-                  className="form-input"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/20 focus:border-[#00A0E3] disabled:bg-gray-50 disabled:text-gray-400"
                   placeholder="e.g., Midterm, Final, Unit Test"
                   value={examType}
                   onChange={(e) => setExamType(e.target.value)}
-                  disabled={
-                    loading ||
-                    correctionMode === "existing" ||
-                    isExamNameDuplicate
-                  }
+                  disabled={loading || correctionMode === "existing" || isExamNameDuplicate}
                 />
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="className">
-                  Class <span className="required">*</span>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="className" className="block text-sm font-medium text-[#0B1120] mb-1.5">
+                  Class <span className="text-[#ef4444]">*</span>
                 </label>
-                <div className="select-wrapper">
+                <div className="relative">
                   <select
                     id="className"
-                    className="form-select"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/20 focus:border-[#00A0E3] appearance-none disabled:bg-gray-50 disabled:text-gray-400"
                     value={className}
                     onChange={(e) => setClassName(e.target.value)}
-                    disabled={
-                      loading || loadingClasses || correctionMode === "existing"
-                    }
+                    disabled={loading || loadingClasses || correctionMode === "existing"}
                   >
                     <option value="">
                       {loadingClasses ? "Loading classes..." : "Select Class"}
                     </option>
                     {availableClasses.map((cls, index) => (
-                      <option
-                        key={cls.class_name || index}
-                        value={cls.class_name}
-                      >
+                      <option key={cls.class_name || index} value={cls.class_name}>
                         Class {cls.class_name}
                       </option>
                     ))}
                   </select>
-                  <div className="select-icon">
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </div>
+                  <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
                 {correctionMode === "existing" && (
-                  <small className="field-description">
-                    Pre-filled from existing exam
-                  </small>
+                  <p className="text-xs text-gray-400 mt-1">Pre-filled from existing exam</p>
                 )}
               </div>
 
-              <div className="form-group">
-                <label htmlFor="section">
-                  Section <span className="required">*</span>
+              <div>
+                <label htmlFor="section" className="block text-sm font-medium text-[#0B1120] mb-1.5">
+                  Section <span className="text-[#ef4444]">*</span>
                 </label>
-                <div className="select-wrapper">
+                <div className="relative">
                   <select
                     id="section"
-                    className="form-select"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/20 focus:border-[#00A0E3] appearance-none disabled:bg-gray-50 disabled:text-gray-400"
                     value={section}
                     onChange={(e) => setSection(e.target.value)}
-                    disabled={
-                      loading ||
-                      loadingSections ||
-                      !className ||
-                      correctionMode === "existing"
-                    }
+                    disabled={loading || loadingSections || !className || correctionMode === "existing"}
                   >
                     <option value="">
                       {!className
@@ -1055,121 +862,76 @@ const ExamCorrection = () => {
                           : "Select Section"}
                     </option>
                     {availableSections.map((sec, index) => (
-                      <option
-                        key={sec.section_name || index}
-                        value={sec.section_name}
-                      >
+                      <option key={sec.section_name || index} value={sec.section_name}>
                         {sec.section_name}
                       </option>
                     ))}
                   </select>
-                  <div className="select-icon">
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </div>
+                  <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
                 {correctionMode === "existing" && (
-                  <small className="field-description">
-                    Pre-filled from existing exam
-                  </small>
+                  <p className="text-xs text-gray-400 mt-1">Pre-filled from existing exam</p>
                 )}
               </div>
 
               {/* Subject Dropdown - Only for Individual mode */}
               {uploadMode === "individual" && (
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="subject">
-                      Subject <span className="required">*</span>
-                    </label>
-                    <div className="select-wrapper">
-                      <select
-                        id="subject"
-                        className="form-select"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                        disabled={loading || correctionMode === "existing"}
-                      >
-                        <option value="">Select Subject</option>
-                        {HARDCODED_SUBJECTS.map((sub) => (
-                          <option key={sub} value={sub}>
-                            {sub}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="select-icon">
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                      </div>
-                    </div>
-                    {correctionMode === "existing" && (
-                      <small className="field-description">
-                        Pre-filled from existing exam
-                      </small>
-                    )}
+                <div>
+                  <label htmlFor="subject" className="block text-sm font-medium text-[#0B1120] mb-1.5">
+                    Subject <span className="text-[#ef4444]">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="subject"
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/20 focus:border-[#00A0E3] appearance-none disabled:bg-gray-50 disabled:text-gray-400"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      disabled={loading || correctionMode === "existing"}
+                    >
+                      <option value="">Select Subject</option>
+                      {HARDCODED_SUBJECTS.map((sub) => (
+                        <option key={sub} value={sub}>
+                          {sub}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
+                  {correctionMode === "existing" && (
+                    <p className="text-xs text-gray-400 mt-1">Pre-filled from existing exam</p>
+                  )}
                 </div>
               )}
             </div>
           </div>
 
-          {/* ============================================
-    NEW: SIDE-BY-SIDE FILE UPLOAD SECTION
-    ============================================ */}
-          <div className="upload-section">
-            <h3 className="section-label">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                <polyline points="13 2 13 9 20 9" />
-              </svg>
+          {/* File Upload Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-[#0B1120] mb-5">
+              <FileText className="w-4 h-4 text-[#00A0E3]" />
               Upload Files
             </h3>
 
-            <div className="upload-grid">
-              {/* LEFT: Question Paper Upload */}
-              <div className="upload-column">
-                <label className="upload-label">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Question Paper Upload */}
+              <div>
+                <label className="block text-sm font-medium text-[#0B1120] mb-2">
                   Question Paper
-                  {correctionMode === "new" && (
-                    <span className="required-mark">*</span>
-                  )}
-                  {correctionMode === "existing" && (
-                    <span className="optional-mark">(Optional)</span>
-                  )}
+                  {correctionMode === "new" && <span className="text-[#ef4444] ml-1">*</span>}
+                  {correctionMode === "existing" && <span className="text-gray-400 text-xs ml-2">(Optional)</span>}
                 </label>
 
                 {!questionPaper ? (
                   <label
                     htmlFor="questionPaperInput"
-                    className="upload-box compact"
+                    className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-[#00A0E3] hover:bg-blue-50/30 transition-colors"
                   >
-                    <div className="upload-icon-small">📄</div>
-                    <div className="upload-info">
-                      <span className="upload-title">Choose PDF</span>
-                      <span className="upload-hint">Max 100MB</span>
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-5 h-5 text-[#00A0E3]" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-[#0B1120]">Choose PDF</span>
+                      <span className="block text-xs text-gray-400">Max 100MB</span>
                     </div>
                     <input
                       type="file"
@@ -1177,70 +939,53 @@ const ExamCorrection = () => {
                       accept=".pdf"
                       onChange={handleQuestionPaperChange}
                       disabled={loading}
-                      className="hidden-input"
+                      className="hidden"
                     />
                   </label>
                 ) : (
-                  <div className="file-item">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                      <polyline points="13 2 13 9 20 9" />
-                    </svg>
-                    <div className="file-details">
-                      <span className="file-name">{questionPaper.name}</span>
-                      <span className="file-size">
+                  <div className="flex items-center gap-3 p-3 bg-[#F8FAFC] border border-gray-200 rounded-xl">
+                    <FileText className="w-5 h-5 text-[#00A0E3] flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[#0B1120] truncate">{questionPaper.name}</p>
+                      <p className="text-xs text-gray-400">
                         {(questionPaper.size / 1024 / 1024).toFixed(2)} MB
-                      </span>
+                      </p>
                     </div>
                     <button
                       type="button"
-                      className="remove-btn"
+                      className="w-7 h-7 rounded-full bg-red-50 text-[#ef4444] flex items-center justify-center hover:bg-red-100 transition-colors"
                       onClick={handleRemoveQuestionPaper}
                       disabled={loading}
-                      title="Remove file"
                     >
-                      ✕
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* RIGHT: Answer Sheets Upload */}
-              <div className="upload-column">
-                <label className="upload-label">
-                  Answer Sheets <span className="required-mark">*</span>
+              {/* Answer Sheets Upload */}
+              <div>
+                <label className="block text-sm font-medium text-[#0B1120] mb-2">
+                  Answer Sheets <span className="text-[#ef4444]">*</span>
                   {answerSheets.length > 0 && (
-                    <span className="file-counter">
-                      ({answerSheets.length} files)
-                    </span>
+                    <span className="text-[#00A0E3] text-xs ml-2">({answerSheets.length} files)</span>
                   )}
                 </label>
 
-                {/* Always show upload box when no files */}
                 {answerSheets.length === 0 && (
                   <label
                     htmlFor="answerSheetsInput"
-                    className="upload-box compact"
+                    className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-[#00A0E3] hover:bg-blue-50/30 transition-colors"
                   >
-                    <div className="upload-icon-small">📑</div>
-                    <div className="upload-info">
-                      <span className="upload-title">
-                        {uploadMode === "group"
-                          ? "Choose PDFs (Batch)"
-                          : "Choose PDFs"}
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-5 h-5 text-[#00A0E3]" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-[#0B1120]">
+                        {uploadMode === "group" ? "Choose PDFs (Batch)" : "Choose PDFs"}
                       </span>
-                      <span className="upload-hint">
-                        {uploadMode === "group"
-                          ? "Multiple students per file"
-                          : "One per student"}{" "}
-                        • Select multiple
+                      <span className="block text-xs text-gray-400">
+                        {uploadMode === "group" ? "Multiple students per file" : "One per student"} - Select multiple
                       </span>
                     </div>
                     <input
@@ -1250,62 +995,40 @@ const ExamCorrection = () => {
                       multiple
                       onChange={handleAnswerSheetsChange}
                       disabled={loading}
-                      className="hidden-input"
+                      className="hidden"
                     />
                   </label>
                 )}
 
-                {/* Show files list and add more button when files exist */}
                 {answerSheets.length > 0 && (
-                  <div className="files-container">
-                    <div className="files-scroll">
+                  <div className="space-y-2">
+                    <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
                       {answerSheets.map((sheet, index) => (
-                        <div key={index} className="file-item">
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                            <polyline points="13 2 13 9 20 9" />
-                          </svg>
-                          <div className="file-details">
-                            <span className="file-name">{sheet.name}</span>
-                            <span className="file-size">
+                        <div key={index} className="flex items-center gap-2 p-2 bg-[#F8FAFC] border border-gray-200 rounded-lg">
+                          <FileText className="w-4 h-4 text-[#00A0E3] flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-[#0B1120] truncate">{sheet.name}</p>
+                            <p className="text-xs text-gray-400">
                               {(sheet.size / 1024 / 1024).toFixed(2)} MB
-                            </span>
+                            </p>
                           </div>
                           <button
                             type="button"
-                            className="remove-btn"
+                            className="w-6 h-6 rounded-full bg-red-50 text-[#ef4444] flex items-center justify-center hover:bg-red-100 transition-colors flex-shrink-0"
                             onClick={() => handleRemoveAnswerSheet(index)}
                             disabled={loading}
-                            title="Remove file"
                           >
-                            ✕
+                            <X className="w-3 h-3" />
                           </button>
                         </div>
                       ))}
                     </div>
-                    <div className="files-actions">
+                    <div className="flex items-center justify-between">
                       <label
                         htmlFor="answerSheetsInputMore"
-                        className="add-more-btn"
+                        className="flex items-center gap-1 text-sm text-[#00A0E3] font-medium cursor-pointer hover:text-[#0080B8]"
                       >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <line x1="12" y1="5" x2="12" y2="19" />
-                          <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
+                        <Plus className="w-4 h-4" />
                         Add More PDFs
                         <input
                           type="file"
@@ -1314,12 +1037,12 @@ const ExamCorrection = () => {
                           multiple
                           onChange={handleAnswerSheetsChange}
                           disabled={loading}
-                          className="hidden-input"
+                          className="hidden"
                         />
                       </label>
                       <button
                         type="button"
-                        className="clear-all-link"
+                        className="text-sm text-[#ef4444] hover:text-red-600"
                         onClick={handleClearAllAnswerSheets}
                         disabled={loading}
                       >
@@ -1334,55 +1057,50 @@ const ExamCorrection = () => {
 
           {/* Upload Progress */}
           {loading && uploadProgress > 0 && (
-            <div className="upload-progress-section">
-              <div className="progress-info">
-                <span>Uploading...</span>
-                <span>{uploadProgress}%</span>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span className="text-[#0B1120] font-medium">Uploading...</span>
+                <span className="text-[#00A0E3] font-bold">{uploadProgress}%</span>
               </div>
-              <div className="progress-bar">
+              <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="progress-fill"
+                  className="h-2 rounded-full bg-[#00A0E3] transition-all"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
             </div>
           )}
 
-          {/* Submission Summary for Existing Correction */}
+          {/* Submission Summary */}
           {correctionMode === "existing" &&
             selectedExistingExam &&
             answerSheets.length > 0 && (
-              <div className="submission-summary">
-                <h3 className="summary-title">📊 Submission Summary</h3>
-                <div className="summary-grid">
-                  <div className="summary-item">
-                    <span className="summary-label">Existing Students:</span>
-                    <span className="summary-value">
-                      {selectedExistingExam.total_students}
-                    </span>
-                  </div>
-                  <div className="summary-item">
-                    <span className="summary-label">New Students:</span>
-                    <span className="summary-value highlight">
-                      {answerSheets.length}
-                    </span>
-                  </div>
-                  <div className="summary-item">
-                    <span className="summary-label">Total After Upload:</span>
-                    <span className="summary-value total">
-                      {selectedExistingExam.total_students +
-                        answerSheets.length}
-                    </span>
-                  </div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <h3 className="text-sm font-bold text-[#0B1120] mb-3">Submission Summary</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <span className="block text-xs text-gray-500 mb-1">Existing Students</span>
+                  <span className="text-lg font-bold text-[#0B1120]">{selectedExistingExam.total_students}</span>
+                </div>
+                <div className="text-center">
+                  <span className="block text-xs text-gray-500 mb-1">New Students</span>
+                  <span className="text-lg font-bold text-[#00A0E3]">{answerSheets.length}</span>
+                </div>
+                <div className="text-center">
+                  <span className="block text-xs text-gray-500 mb-1">Total After Upload</span>
+                  <span className="text-lg font-bold text-[#22c55e]">
+                    {selectedExistingExam.total_students + answerSheets.length}
+                  </span>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
           {/* Form Actions */}
-          <div className="form-actions">
+          <div className="flex items-center justify-end gap-3">
             <button
               type="button"
-              className="btn btn-secondary"
+              className="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-medium text-sm transition-colors"
               onClick={handleReset}
               disabled={loading}
             >
@@ -1390,22 +1108,18 @@ const ExamCorrection = () => {
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
-              disabled={
-                loading || answerSheets.length === 0 || isExamNameDuplicate
-              }
+              className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#00A0E3] hover:bg-[#0080B8] text-white font-medium text-sm transition-colors disabled:opacity-50"
+              disabled={loading || answerSheets.length === 0 || isExamNameDuplicate}
             >
               {loading ? (
                 <>
-                  <span className="spinner"></span>
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Processing...
                 </>
               ) : (
                 <>
-                  <span>🚀</span>
-                  {correctionMode === "existing"
-                    ? "Add Students"
-                    : "Start Correction"}
+                  <Rocket className="w-4 h-4" />
+                  {correctionMode === "existing" ? "Add Students" : "Start Correction"}
                 </>
               )}
             </button>

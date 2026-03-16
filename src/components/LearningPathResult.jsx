@@ -1,30 +1,27 @@
 // LearningPathResult.jsx - Result page for learning path question submissions
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Container, Row, Col, Accordion, Alert, Badge, Card } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faArrowLeft,
-  faArrowRight,
-  faChevronLeft,
-  faChevronRight,
-  faHome,
-  faRoad,
-  faTrophy,
-  faStar,
-  faLightbulb,
-  faBookOpen,
-  faCheckCircle,
-  faExclamationTriangle,
-  faChartBar,
-  faClock,
-  faGraduationCap,
-  faTimesCircle,
-  faCheck,
-} from "@fortawesome/free-solid-svg-icons";
+  ArrowLeft,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Route,
+  Trophy,
+  Star,
+  Lightbulb,
+  BookOpen,
+  CheckCircle,
+  AlertTriangle,
+  BarChart3,
+  Clock,
+  GraduationCap,
+  XCircle,
+  Check,
+} from "lucide-react";
 import MarkdownWithMath from "./MarkdownWithMath";
 import { getImageSrc } from "../utils/imageUtils";
-import "./LearningPathResult.css";
 
 function LearningPathResult() {
   const location = useLocation();
@@ -122,21 +119,11 @@ function LearningPathResult() {
           questionImage: nextQuestion.question_image || "",
           questionLevel: nextQuestion.question_level,
           topic: nextQuestion.topic || dayTopic,
-          dayNumber,
-          dayTopic,
-          planId,
-          examId,
-          class_id,
-          subject_id,
-          topic_ids,
+          dayNumber, dayTopic, planId, examId, class_id, subject_id, topic_ids,
           totalQuestionsInDay,
           currentQuestionIndex: currentQuestionIndex + 1,
-          allDayQuestions,
-          learningPathData,
-          learningPathForm,
-          completedQuestions,
-          activeDayIndex,
-          nextDayData,
+          allDayQuestions, learningPathData, learningPathForm,
+          completedQuestions, activeDayIndex, nextDayData,
         },
         replace: true,
       });
@@ -154,21 +141,11 @@ function LearningPathResult() {
           questionImage: prevQuestion.question_image || "",
           questionLevel: prevQuestion.question_level,
           topic: prevQuestion.topic || dayTopic,
-          dayNumber,
-          dayTopic,
-          planId,
-          examId,
-          class_id,
-          subject_id,
-          topic_ids,
+          dayNumber, dayTopic, planId, examId, class_id, subject_id, topic_ids,
           totalQuestionsInDay,
           currentQuestionIndex: currentQuestionIndex - 1,
-          allDayQuestions,
-          learningPathData,
-          learningPathForm,
-          completedQuestions,
-          activeDayIndex,
-          nextDayData,
+          allDayQuestions, learningPathData, learningPathForm,
+          completedQuestions, activeDayIndex, nextDayData,
         },
         replace: true,
       });
@@ -185,21 +162,10 @@ function LearningPathResult() {
         questionImage: currentQuestion.question_image || "",
         questionLevel: currentQuestion.question_level,
         topic: currentQuestion.topic || dayTopic,
-        dayNumber,
-        dayTopic,
-        planId,
-        examId,
-        class_id,
-        subject_id,
-        topic_ids,
-        totalQuestionsInDay,
-        currentQuestionIndex,
-        allDayQuestions,
-        learningPathData,
-        learningPathForm,
-        completedQuestions,
-        activeDayIndex,
-        nextDayData,
+        dayNumber, dayTopic, planId, examId, class_id, subject_id, topic_ids,
+        totalQuestionsInDay, currentQuestionIndex,
+        allDayQuestions, learningPathData, learningPathForm,
+        completedQuestions, activeDayIndex, nextDayData,
       },
       replace: true,
     });
@@ -209,14 +175,8 @@ function LearningPathResult() {
   const handleBackToSession = () => {
     navigate("/learning-path-session", {
       state: {
-        learningPathData,
-        planId,
-        examId,
-        class_id,
-        subject_id,
-        topic_ids,
-        learningPathForm,
-        nextDayData,
+        learningPathData, planId, examId, class_id, subject_id, topic_ids,
+        learningPathForm, nextDayData,
       },
       replace: true,
     });
@@ -230,29 +190,29 @@ function LearningPathResult() {
   // Render solution steps
   const renderSolutionSteps = (steps) => {
     if (!steps || !Array.isArray(steps) || steps.length === 0) {
-      return <p>No solution steps available.</p>;
+      return <p className="text-slate-500">No solution steps available.</p>;
     }
 
     return (
-      <div className="solution-steps">
+      <div className="space-y-4">
         {steps.map((step, index) => {
           const stepMatch = step.match(/^Step\s+(\d+):\s+(.*)/i);
 
           if (stepMatch) {
             const [_, stepNumber, stepContent] = stepMatch;
             return (
-              <div key={index} className="solution-step-container">
-                <div className="step-title">Step {stepNumber}:</div>
-                <div className="step-description">
+              <div key={index} className={`p-4 rounded-lg ${isDarkMode ? "bg-slate-700/50" : "bg-[#F8FAFC]"} border ${isDarkMode ? "border-slate-600" : "border-slate-200"}`}>
+                <div className="font-semibold text-[#00A0E3] mb-2">Step {stepNumber}:</div>
+                <div className="text-sm">
                   <MarkdownWithMath content={stepContent} />
                 </div>
               </div>
             );
           } else {
             return (
-              <div key={index} className="solution-step-container">
-                <div className="step-title">Step {index + 1}:</div>
-                <div className="step-content">
+              <div key={index} className={`p-4 rounded-lg ${isDarkMode ? "bg-slate-700/50" : "bg-[#F8FAFC]"} border ${isDarkMode ? "border-slate-600" : "border-slate-200"}`}>
+                <div className="font-semibold text-[#00A0E3] mb-2">Step {index + 1}:</div>
+                <div className="text-sm">
                   <MarkdownWithMath content={step} />
                 </div>
               </div>
@@ -270,30 +230,30 @@ function LearningPathResult() {
         return (
           <>
             {concepts && concepts.length > 0 && (
-              <Accordion defaultActiveKey={['0']} alwaysOpen className="concepts-accordion">
+              <div className="space-y-4">
                 {concepts.map((conceptItem, index) => (
-                  <Accordion.Item eventKey={index.toString()} key={index}>
-                    <Accordion.Header>
-                      <strong>Concept {index + 1}: {conceptItem.concept}</strong>
-                    </Accordion.Header>
-                    <Accordion.Body>
-                      <div className="lpr-concept-block">
-                        <h6 className="lpr-concept-heading">
-                          <FontAwesomeIcon icon={faLightbulb} className="me-2" />
+                  <details key={index} open className={`rounded-xl border overflow-hidden ${isDarkMode ? "border-slate-600 bg-slate-800" : "border-slate-200 bg-white"}`}>
+                    <summary className={`px-4 py-3 font-semibold cursor-pointer select-none ${isDarkMode ? "hover:bg-slate-700" : "hover:bg-slate-50"}`}>
+                      Concept {index + 1}: {conceptItem.concept}
+                    </summary>
+                    <div className="px-4 pb-4 space-y-4">
+                      <div className={`p-4 rounded-lg ${isDarkMode ? "bg-slate-700/50" : "bg-[#F8FAFC]"}`}>
+                        <h6 className="flex items-center gap-2 font-semibold text-amber-500 mb-2">
+                          <Lightbulb size={16} />
                           Explanation
                         </h6>
-                        <div className="lpr-concept-text">
+                        <div className="text-sm">
                           <MarkdownWithMath content={conceptItem.explanation} />
                         </div>
                       </div>
 
                       {conceptItem.example && (
-                        <div className="lpr-concept-block lpr-concept-block--example">
-                          <h6 className="lpr-concept-heading">
-                            <FontAwesomeIcon icon={faBookOpen} className="me-2" />
+                        <div className={`p-4 rounded-lg ${isDarkMode ? "bg-slate-700/50 border-l-4 border-[#00A0E3]" : "bg-blue-50 border-l-4 border-[#00A0E3]"}`}>
+                          <h6 className="flex items-center gap-2 font-semibold text-[#00A0E3] mb-2">
+                            <BookOpen size={16} />
                             Example
                           </h6>
-                          <div className="lpr-concept-text">
+                          <div className="text-sm">
                             {typeof conceptItem.example === "string" ? (
                               <MarkdownWithMath content={conceptItem.example} />
                             ) : (
@@ -302,7 +262,7 @@ function LearningPathResult() {
                                   <MarkdownWithMath content={conceptItem.example.problem} />
                                 )}
                                 {conceptItem.example.solution && (
-                                  <div className="lpr-concept-solution">
+                                  <div className="mt-2">
                                     <strong>Solution:</strong>
                                     <MarkdownWithMath content={conceptItem.example.solution} />
                                   </div>
@@ -314,20 +274,20 @@ function LearningPathResult() {
                       )}
 
                       {conceptItem.application && (
-                        <div className="lpr-concept-block lpr-concept-block--application">
-                          <h6 className="lpr-concept-heading">
-                            <FontAwesomeIcon icon={faGraduationCap} className="me-2" />
+                        <div className={`p-4 rounded-lg ${isDarkMode ? "bg-slate-700/50 border-l-4 border-green-500" : "bg-green-50 border-l-4 border-green-500"}`}>
+                          <h6 className="flex items-center gap-2 font-semibold text-green-600 mb-2">
+                            <GraduationCap size={16} />
                             Application
                           </h6>
-                          <div className="lpr-concept-text">
+                          <div className="text-sm">
                             <MarkdownWithMath content={conceptItem.application} />
                           </div>
                         </div>
                       )}
-                    </Accordion.Body>
-                  </Accordion.Item>
+                    </div>
+                  </details>
                 ))}
-              </Accordion>
+              </div>
             )}
           </>
         );
@@ -335,14 +295,12 @@ function LearningPathResult() {
       case "solve":
         return (
           <>
-            <div className="result-section">
-              <h5 className="section-title">
-                <FontAwesomeIcon icon={faBookOpen} className="me-2" />
+            <div className="mb-4">
+              <h5 className="flex items-center gap-2 font-semibold text-[#00A0E3] mb-3">
+                <BookOpen size={18} />
                 AI Solution
               </h5>
-              <div className="solution-content">
-                {renderSolutionSteps(ai_explaination)}
-              </div>
+              <div>{renderSolutionSteps(ai_explaination)}</div>
             </div>
           </>
         );
@@ -351,56 +309,45 @@ function LearningPathResult() {
         return (
           <>
             {/* Score Display */}
-            <div className="score-section">
-              <div className="score-display">
-                <div className="score-circle">
-                  <span className="score-value">{obtained_marks || 0}</span>
-                  <span className="score-divider">/</span>
-                  <span className="score-max">{total_marks || question_marks || 10}</span>
-                </div>
-                <div className="score-label">Score</div>
+            <div className="flex flex-col items-center mb-6">
+              <div className={`flex items-baseline gap-1 p-6 rounded-2xl ${isDarkMode ? "bg-slate-700" : "bg-[#F8FAFC]"} border ${isDarkMode ? "border-slate-600" : "border-slate-200"}`}>
+                <span className="text-4xl font-bold text-[#00A0E3]">{obtained_marks || 0}</span>
+                <span className="text-2xl text-slate-400">/</span>
+                <span className="text-2xl text-slate-500">{total_marks || question_marks || 10}</span>
               </div>
-
-              {/* {points !== undefined && (
-                <div className="points-earned">
-                  <FontAwesomeIcon icon={faStar} className="points-icon" />
-                  <span>+{points} Points Earned!</span>
-                </div>
-              )} */}
+              <div className="text-sm text-slate-500 mt-2">Score</div>
             </div>
 
             {/* AI Solution */}
-            <div className="result-section">
-              <h5 className="section-title">
-                <FontAwesomeIcon icon={faBookOpen} className="me-2" />
+            <div className="mb-6">
+              <h5 className="flex items-center gap-2 font-semibold text-[#00A0E3] mb-3">
+                <BookOpen size={18} />
                 AI Solution
               </h5>
-              <div className="solution-content">
-                {renderSolutionSteps(ai_explaination)}
-              </div>
+              <div>{renderSolutionSteps(ai_explaination)}</div>
             </div>
 
             {/* Error Type */}
             {error_type && (
-              <div className="result-section error-section">
-                <h5 className="section-title text-danger">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+              <div className="mb-4">
+                <h5 className="flex items-center gap-2 font-semibold text-red-500 mb-2">
+                  <AlertTriangle size={18} />
                   Error Type
                 </h5>
-                <Badge bg="danger" className="error-badge">
+                <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">
                   {error_type}
-                </Badge>
+                </span>
               </div>
             )}
 
             {/* Gap Analysis */}
             {gap_analysis && (
-              <div className="result-section gap-section">
-                <h5 className="section-title text-info">
-                  <FontAwesomeIcon icon={faChartBar} className="me-2" />
+              <div className="mb-4">
+                <h5 className="flex items-center gap-2 font-semibold text-cyan-500 mb-2">
+                  <BarChart3 size={18} />
                   Gap Analysis
                 </h5>
-                <div className="gap-content">
+                <div className={`p-4 rounded-lg text-sm ${isDarkMode ? "bg-cyan-900/20 border border-cyan-800" : "bg-cyan-50 border border-cyan-200"}`}>
                   <MarkdownWithMath content={gap_analysis} />
                 </div>
               </div>
@@ -408,16 +355,16 @@ function LearningPathResult() {
 
             {/* Mistakes Made */}
             {mistakes_made && (
-              <div className="result-section mistakes-section">
-                <h5 className="section-title text-warning">
-                  <FontAwesomeIcon icon={faTimesCircle} className="me-2" />
+              <div className="mb-4">
+                <h5 className="flex items-center gap-2 font-semibold text-amber-500 mb-2">
+                  <XCircle size={18} />
                   Mistakes Made
                 </h5>
-                <div className="mistakes-content">
+                <div className={`p-4 rounded-lg text-sm ${isDarkMode ? "bg-amber-900/20 border border-amber-800" : "bg-amber-50 border border-amber-200"}`}>
                   {typeof mistakes_made === "string" ? (
                     <MarkdownWithMath content={mistakes_made} />
                   ) : Array.isArray(mistakes_made) ? (
-                    <ul className="mistakes-list">
+                    <ul className="list-disc pl-5 space-y-1">
                       {mistakes_made.map((mistake, idx) => (
                         <li key={idx}>{mistake}</li>
                       ))}
@@ -429,12 +376,12 @@ function LearningPathResult() {
 
             {/* Time Analysis */}
             {time_analysis && (
-              <div className="result-section time-section">
-                <h5 className="section-title">
-                  <FontAwesomeIcon icon={faClock} className="me-2" />
+              <div className="mb-4">
+                <h5 className="flex items-center gap-2 font-semibold mb-2">
+                  <Clock size={18} className="text-[#00A0E3]" />
                   Time Management
                 </h5>
-                <div className="time-content">
+                <div className={`p-4 rounded-lg text-sm ${isDarkMode ? "bg-slate-700/50 border border-slate-600" : "bg-[#F8FAFC] border border-slate-200"}`}>
                   <MarkdownWithMath content={time_analysis} />
                 </div>
               </div>
@@ -442,12 +389,12 @@ function LearningPathResult() {
 
             {/* Concepts Used */}
             {formattedConceptsUsed && (
-              <div className="result-section concepts-section">
-                <h5 className="section-title text-primary">
-                  <FontAwesomeIcon icon={faGraduationCap} className="me-2" />
+              <div className="mb-4">
+                <h5 className="flex items-center gap-2 font-semibold text-[#00A0E3] mb-2">
+                  <GraduationCap size={18} />
                   Concepts Required
                 </h5>
-                <div className="concepts-content">
+                <div className={`p-4 rounded-lg text-sm ${isDarkMode ? "bg-blue-900/20 border border-blue-800" : "bg-blue-50 border border-blue-200"}`}>
                   <MarkdownWithMath content={formattedConceptsUsed} />
                 </div>
               </div>
@@ -456,155 +403,153 @@ function LearningPathResult() {
         );
 
       default:
-        return <p>No result data available.</p>;
+        return <p className="text-slate-500">No result data available.</p>;
     }
   };
 
   // Get action type label
   const getActionTypeLabel = () => {
     switch (actionType) {
-      case "explain":
-        return "Concepts";
-      case "solve":
-        return "AI Solution";
-      case "correct":
-        return "AI Correction";
-      default:
-        return "Result";
+      case "explain": return "Concepts";
+      case "solve": return "AI Solution";
+      case "correct": return "AI Correction";
+      default: return "Result";
     }
   };
 
-  return (
-    <div className={`lp-result-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
-      {/* Fixed Header */}
-      <div className="fixed-header">
-        <Button variant="outline-secondary" onClick={handleBackToQuestion} className="back-btn">
-          <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-          Back to Question
-        </Button>
+  const getActionIcon = () => {
+    switch (actionType) {
+      case "correct": return Trophy;
+      case "solve": return BookOpen;
+      default: return Lightbulb;
+    }
+  };
 
-        <div className="header-info">
-          <Badge className="day-badge">
-            <FontAwesomeIcon icon={faRoad} className="me-1" />
+  const ActionIcon = getActionIcon();
+
+  return (
+    <div className={`min-h-screen flex flex-col ${isDarkMode ? "bg-[#0B1120] text-white" : "bg-[#F8FAFC] text-[#0B1120]"}`}>
+      {/* Fixed Header */}
+      <div className={`sticky top-0 z-20 flex items-center justify-between px-4 py-3 border-b ${isDarkMode ? "bg-[#0B1120]/95 border-slate-700 backdrop-blur" : "bg-white/95 border-slate-200 backdrop-blur"}`}>
+        <button
+          onClick={handleBackToQuestion}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+            isDarkMode ? "border-slate-600 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <ArrowLeft size={16} />
+          Back to Question
+        </button>
+
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#00A0E3] text-white">
+            <Route size={12} />
             Day {dayNumber}
-          </Badge>
-          <span className="question-indicator">
+          </span>
+          <span className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
             Q{currentQuestionIndex + 1} of {totalQuestionsInDay}
           </span>
         </div>
       </div>
 
-      <Container fluid className="lp-result-container">
-        <Row>
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+        <div className={`grid gap-6 ${studentImages.length > 0 && actionType === "correct" ? "lg:grid-cols-[1fr_2fr]" : ""}`}>
           {/* Left Column - Student Images (if any) */}
           {studentImages.length > 0 && actionType === "correct" && (
-            <Col lg={4} className="image-column">
-              <Card className="student-images-card">
-                <Card.Header>
-                  <h5>Your Solution</h5>
-                </Card.Header>
-                <Card.Body>
-                  <div className="student-images">
-                    {studentImages.map((imageUrl, index) => (
-                      <div key={index} className="student-image-wrapper">
-                        <img
-                          src={imageUrl}
-                          alt={`Solution ${index + 1}`}
-                          className="student-solution-image"
-                          onError={(e) => {
-                            e.target.style.display = "none";
-                          }}
-                        />
-                      </div>
-                    ))}
+            <div className={`rounded-xl border overflow-hidden ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
+              <div className={`px-4 py-3 font-semibold border-b ${isDarkMode ? "border-slate-700" : "border-slate-200"}`}>
+                Your Solution
+              </div>
+              <div className="p-4 space-y-3">
+                {studentImages.map((imageUrl, index) => (
+                  <div key={index} className="rounded-lg overflow-hidden">
+                    <img
+                      src={imageUrl}
+                      alt={`Solution ${index + 1}`}
+                      className="w-full object-contain"
+                      onError={(e) => { e.target.style.display = "none"; }}
+                    />
                   </div>
-                </Card.Body>
-              </Card>
-            </Col>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Main Content Column */}
-          <Col lg={studentImages.length > 0 && actionType === "correct" ? 8 : 12} className="content-column">
-            <Card className="result-card">
-              <Card.Header className="result-header">
-                <div className="result-header-content">
-                  <h2 className="result-title">
-                    <FontAwesomeIcon
-                      icon={
-                        actionType === "correct"
-                          ? faTrophy
-                          : actionType === "solve"
-                          ? faBookOpen
-                          : faLightbulb
-                      }
-                      className="me-2"
-                    />
-                    {getActionTypeLabel()}
-                  </h2>
-                  {/* {points !== undefined && actionType === "correct" && (
-                    <Badge bg="success" className="points-badge-header">
-                      <FontAwesomeIcon icon={faStar} className="me-1" />
-                      +{points} Points
-                    </Badge>
-                  )} */}
-                </div>
-              </Card.Header>
+          <div className={`rounded-xl border overflow-hidden ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
+            <div className={`flex items-center justify-between px-6 py-4 border-b ${isDarkMode ? "border-slate-700 bg-slate-800" : "border-slate-200 bg-white"}`}>
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <ActionIcon size={22} className="text-[#00A0E3]" />
+                {getActionTypeLabel()}
+              </h2>
+            </div>
 
-              <Card.Body>
-                {/* Question Display */}
-                <div className="question-display">
-                  <h6 className="section-label">Question:</h6>
-                  {questionImage && (
-                    <img
-                      src={getImageSrc(questionImage)}
-                      alt="Question"
-                      className="question-image"
-                    />
-                  )}
-                  <div className="question-text">
-                    <MarkdownWithMath content={question} />
-                  </div>
+            <div className="p-6">
+              {/* Question Display */}
+              <div className={`mb-6 p-4 rounded-lg ${isDarkMode ? "bg-slate-700/50 border border-slate-600" : "bg-[#F8FAFC] border border-slate-200"}`}>
+                <h6 className="text-xs font-semibold uppercase text-slate-500 mb-2">Question:</h6>
+                {questionImage && (
+                  <img
+                    src={getImageSrc(questionImage)}
+                    alt="Question"
+                    className="max-w-full max-h-64 rounded-lg mb-3 object-contain"
+                  />
+                )}
+                <div className="text-sm">
+                  <MarkdownWithMath content={question} />
                 </div>
+              </div>
 
-                {/* Result Content */}
-                <div className="result-content">{renderContentBasedOnAction()}</div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
+              {/* Result Content */}
+              <div>{renderContentBasedOnAction()}</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Fixed Bottom Navigation */}
-      <div className="fixed-bottom-nav">
-        <Button
-          variant="outline-secondary"
+      <div className={`sticky bottom-0 z-20 flex items-center justify-between px-4 py-3 border-t ${isDarkMode ? "bg-[#0B1120]/95 border-slate-700 backdrop-blur" : "bg-white/95 border-slate-200 backdrop-blur"}`}>
+        <button
           onClick={handlePrevQuestion}
           disabled={currentQuestionIndex === 0}
-          className="nav-btn"
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+            isDarkMode ? "border-slate-600 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-100"
+          }`}
         >
-          <FontAwesomeIcon icon={faChevronLeft} className="me-2" />
+          <ChevronLeft size={16} />
           Previous
-        </Button>
+        </button>
 
-        <Button variant="outline-primary" onClick={handleBackToSession} className="nav-btn session-btn">
-          <FontAwesomeIcon icon={faRoad} className="me-2" />
-          Day Overview
-        </Button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleBackToSession}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              isDarkMode ? "border-[#00A0E3]/30 text-[#00A0E3] hover:bg-[#00A0E3]/10" : "border-[#00A0E3]/30 text-[#00A0E3] hover:bg-[#00A0E3]/5"
+            }`}
+          >
+            <Route size={16} />
+            Day Overview
+          </button>
 
-        <Button variant="outline-primary" onClick={handleBackToDashboard} className="nav-btn">
-          <FontAwesomeIcon icon={faHome} className="me-2" />
-          Dashboard
-        </Button>
+          <button
+            onClick={handleBackToDashboard}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              isDarkMode ? "border-[#00A0E3]/30 text-[#00A0E3] hover:bg-[#00A0E3]/10" : "border-[#00A0E3]/30 text-[#00A0E3] hover:bg-[#00A0E3]/5"
+            }`}
+          >
+            <Home size={16} />
+            Dashboard
+          </button>
+        </div>
 
-        <Button
-          variant="primary"
+        <button
           onClick={handleNextQuestion}
           disabled={currentQuestionIndex >= allDayQuestions.length - 1}
-          className="nav-btn next-btn"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#00A0E3] hover:bg-[#0080B8] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Next Question
-          <FontAwesomeIcon icon={faChevronRight} className="ms-2" />
-        </Button>
+          <ChevronRight size={16} />
+        </button>
       </div>
     </div>
   );

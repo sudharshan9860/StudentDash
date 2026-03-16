@@ -1,34 +1,32 @@
 // LearningPathQuestion.jsx - Component for solving learning path questions
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Form, Button, Spinner, Alert, Row, Col, Badge, Card } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faCamera,
-  faArrowLeft,
-  faArrowRight,
-  faBookOpen,
-  faLightbulb,
-  faCheck,
-  faClock,
-  faRoad,
-  faChevronLeft,
-  faChevronRight,
-  faHome,
-  faCaretDown,
-  faBookOpenReader,
-  faStar,
-  faUpload,
-  faImage,
-  faTrash,
-} from "@fortawesome/free-solid-svg-icons";
+  Camera,
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Lightbulb,
+  Check,
+  Clock,
+  Route,
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  ChevronDown,
+  BookOpenCheck,
+  Star,
+  Upload,
+  ImageIcon,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import axiosInstance from "../api/axiosInstance";
 import MarkdownWithMath from "./MarkdownWithMath";
 import CameraCapture from "./CameraCapture";
 import { useTimer } from "../contexts/TimerContext";
 import StudyTimer from "./StudyTimer";
 import { getImageSrc } from "../utils/imageUtils";
-import "./LearningPathQuestion.css";
 
 function LearningPathQuestion() {
   const location = useLocation();
@@ -233,10 +231,10 @@ function LearningPathQuestion() {
   // Get difficulty color
   const getDifficultyColor = (level) => {
     const normalizedLevel = level?.toLowerCase() || "";
-    if (normalizedLevel === "easy") return "success";
-    if (normalizedLevel === "medium") return "warning";
-    if (normalizedLevel === "hard") return "danger";
-    return "secondary";
+    if (normalizedLevel === "easy") return "bg-green-100 text-green-800";
+    if (normalizedLevel === "medium") return "bg-yellow-100 text-yellow-800";
+    if (normalizedLevel === "hard") return "bg-red-100 text-red-800";
+    return "bg-gray-100 text-gray-800";
   };
 
   // Is question completed
@@ -499,50 +497,39 @@ function LearningPathQuestion() {
     };
   }, []);
 
-  // if (!question || !questionId) {
-  //   return (
-  //     <div className={`lp-question-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
-  //       <div className="loading-container">
-  //         <Spinner animation="border" />
-  //         <p>Loading question...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   return (
-    <div className={`lp-question-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
-      <div className="lp-question-container">
+    <div className="min-h-screen bg-[#F8FAFC] pb-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="lp-question-header">
-          <div className="header-top">
-            <Button variant="outline-secondary" onClick={handleBackToSession} className="back-btn">
-              <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+        <div className="py-4">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={handleBackToSession}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
               Back to Day {dayNumber}
-            </Button>
+            </button>
 
-            <div className="day-info">
-              <Badge className="day-badge">
-                <FontAwesomeIcon icon={faRoad} className="me-1" />
-                Day {dayNumber}: {dayTopic}
-              </Badge>
-            </div>
+            <span className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#00A0E3] text-white rounded-full">
+              <Route className="w-3.5 h-3.5" />
+              Day {dayNumber}: {dayTopic}
+            </span>
 
             <StudyTimer className={processingButton ? "stopped" : ""} />
           </div>
 
           {/* Question Navigation */}
-          <div className="question-nav">
-            <Button
-              variant="outline-primary"
-              size="sm"
+          <div className="flex items-center justify-center gap-2">
+            <button
               onClick={() => navigateToQuestion(currentIndex - 1)}
               disabled={currentIndex === 0 || isAnyButtonProcessing()}
+              className="p-1.5 border border-[#00A0E3] text-[#00A0E3] rounded-lg hover:bg-[#00A0E3]/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <FontAwesomeIcon icon={faChevronLeft} />
-            </Button>
+              <ChevronLeft className="w-4 h-4" />
+            </button>
 
-            <div className="question-pills">
+            <div className="flex gap-1.5 overflow-x-auto py-1">
               {allDayQuestions.map((q, idx) => {
                 const isCompleted = isQuestionCompleted(q.question_id);
                 const isCurrent = idx === currentIndex;
@@ -550,45 +537,50 @@ function LearningPathQuestion() {
                 return (
                   <button
                     key={q.question_id}
-                    className={`question-pill ${isCurrent ? "active" : ""} ${isCompleted ? "completed" : ""}`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all flex-shrink-0 ${
+                      isCurrent
+                        ? 'bg-[#00A0E3] text-white shadow-md'
+                        : isCompleted
+                        ? 'bg-green-500 text-white'
+                        : 'bg-white border border-gray-200 text-gray-500 hover:border-[#00A0E3]'
+                    }`}
                     onClick={() => navigateToQuestion(idx)}
                     disabled={isAnyButtonProcessing()}
                   >
-                    {isCompleted ? <FontAwesomeIcon icon={faCheck} /> : idx + 1}
+                    {isCompleted ? <Check className="w-3.5 h-3.5" /> : idx + 1}
                   </button>
                 );
               })}
             </div>
 
-            <Button
-              variant="outline-primary"
-              size="sm"
+            <button
               onClick={() => navigateToQuestion(currentIndex + 1)}
               disabled={currentIndex === allDayQuestions.length - 1 || isAnyButtonProcessing()}
+              className="p-1.5 border border-[#00A0E3] text-[#00A0E3] rounded-lg hover:bg-[#00A0E3]/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <FontAwesomeIcon icon={faChevronRight} />
-            </Button>
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
         {/* Question Display */}
-        <div className="question-text-container">
-          <div className="question-header-info">
-            <span className="question-title">Question {currentIndex + 1}</span>
-            <div className="question-badges">
-              <Badge bg={getDifficultyColor(currentQuestion.level)} className="difficulty-badge">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-base font-bold text-[#0B1120]">Question {currentIndex + 1}</span>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${getDifficultyColor(currentQuestion.level)}`}>
                 {currentQuestion.level || "Medium"}
-              </Badge>
+              </span>
               {currentQuestion.topic && (
-                <Badge bg="secondary" className="topic-badge">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
                   {currentQuestion.topic}
-                </Badge>
+                </span>
               )}
               {isQuestionCompleted(currentQuestion.questionId) && (
-                <Badge bg="success" className="completed-badge">
-                  <FontAwesomeIcon icon={faCheck} className="me-1" />
+                <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                  <Check className="w-3 h-3" />
                   Completed
-                </Badge>
+                </span>
               )}
             </div>
           </div>
@@ -597,248 +589,245 @@ function LearningPathQuestion() {
             <img
               src={getImageSrc(currentQuestion.image)}
               alt="Question"
-              className="question-image"
+              className="max-w-full rounded-lg border border-gray-100 mb-4"
             />
           )}
 
-          <div className="question-text">
+          <div className="text-sm text-gray-800 leading-relaxed">
             <MarkdownWithMath content={currentQuestion.question} />
           </div>
         </div>
 
         {/* Error Message */}
         {error && (
-          <Alert variant="danger" className="my-3" onClose={() => setError(null)} dismissible>
-            {error}
-          </Alert>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-start justify-between">
+            <p className="text-sm text-red-700">{error}</p>
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 ml-2 flex-shrink-0">
+              &times;
+            </button>
+          </div>
         )}
 
         {/* Image Upload Section */}
-        <div className="image-upload-section">
-          <Card className="upload-card">
-            <Card.Body>
-              <h6 className="upload-title">
-                <FontAwesomeIcon icon={faImage} className="me-2" />
-                Upload Your Solution
-              </h6>
-              <p className="upload-description text-muted">
-                Upload images of your handwritten solution to get AI feedback. You can upload multiple images.
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+          <h6 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2 mb-2">
+            <ImageIcon className="w-4 h-4 text-[#00A0E3]" />
+            Upload Your Solution
+          </h6>
+          <p className="text-xs text-gray-400 mb-4">
+            Upload images of your handwritten solution to get AI feedback. You can upload multiple images.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* File Upload */}
+            <div className="flex-1">
+              <input
+                type="file"
+                id="image-upload"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+                disabled={isAnyButtonProcessing()}
+                className="hidden"
+              />
+              <label
+                htmlFor="image-upload"
+                className={`flex flex-col items-center justify-center gap-2 py-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-[#00A0E3] hover:bg-[#00A0E3]/5 transition-all ${
+                  isAnyButtonProcessing() ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <Upload className="w-6 h-6 text-gray-400" />
+                <span className="text-sm font-medium text-gray-500">Choose Files</span>
+                <span className="text-xs text-gray-400">or drag and drop</span>
+              </label>
+            </div>
+
+            {/* Camera Capture Option */}
+            <div className="flex-shrink-0">
+              <button
+                onClick={() => setImageSourceType(imageSourceType === "camera" ? "file" : "camera")}
+                disabled={isAnyButtonProcessing()}
+                className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto justify-center ${
+                  imageSourceType === "camera"
+                    ? 'bg-[#00A0E3] text-white'
+                    : 'border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3]/10'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <Camera className="w-4 h-4" />
+                {imageSourceType === "camera" ? "Hide Camera" : "Use Camera"}
+              </button>
+            </div>
+          </div>
+
+          {/* Camera Capture */}
+          {imageSourceType === "camera" && (
+            <div className="mt-4">
+              <CameraCapture
+                onImageCapture={handleCapturedImage}
+                videoConstraints={{
+                  facingMode: { ideal: "environment" },
+                  width: { ideal: 4096 },
+                  height: { ideal: 3072 },
+                  focusMode: { ideal: "continuous" },
+                  exposureMode: { ideal: "continuous" },
+                }}
+              />
+              <p className="text-xs text-gray-400 mt-2 text-center">
+                Click "Capture" to take a photo of your solution
               </p>
-
-              <div className="upload-methods">
-                {/* File Upload */}
-                <div className="file-upload-container">
-                  <input
-                    type="file"
-                    id="image-upload"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageChange}
-                    disabled={isAnyButtonProcessing()}
-                    className="file-input-hidden"
-                  />
-                  <label htmlFor="image-upload" className={`file-upload-label ${isAnyButtonProcessing() ? 'disabled' : ''}`}>
-                    <FontAwesomeIcon icon={faUpload} className="upload-icon" />
-                    <span>Choose Files</span>
-                    <small>or drag and drop</small>
-                  </label>
-                </div>
-
-                {/* Camera Capture Option */}
-                <div className="camera-option">
-                  <Button
-                    variant={imageSourceType === "camera" ? "primary" : "outline-primary"}
-                    onClick={() => setImageSourceType(imageSourceType === "camera" ? "file" : "camera")}
-                    disabled={isAnyButtonProcessing()}
-                    className="camera-toggle-btn"
-                  >
-                    <FontAwesomeIcon icon={faCamera} className="me-2" />
-                    {imageSourceType === "camera" ? "Hide Camera" : "Use Camera"}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Camera Capture */}
-              {imageSourceType === "camera" && (
-                <div className="camera-container mt-3">
-                  <CameraCapture
-                    onImageCapture={handleCapturedImage}
-                    videoConstraints={{
-                      facingMode: { ideal: "environment" },
-                      width: { ideal: 4096 },
-                      height: { ideal: 3072 },
-                      focusMode: { ideal: "continuous" },
-                      exposureMode: { ideal: "continuous" },
-                    }}
-                  />
-                  <p className="text-muted mt-2 text-center">
-                    Click "Capture" to take a photo of your solution
-                  </p>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
+            </div>
+          )}
         </div>
 
         {/* Upload Progress */}
         {isAnyButtonProcessing() && uploadProgress > 0 && (
-          <div className="upload-progress mt-3">
-            <div className="progress">
+          <div className="mb-4">
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
               <div
-                className="progress-bar progress-bar-striped progress-bar-animated"
-                role="progressbar"
+                className="h-full bg-[#00A0E3] rounded-full transition-all duration-300 animate-pulse"
                 style={{ width: `${uploadProgress}%` }}
-                aria-valuenow={uploadProgress}
-                aria-valuemin="0"
-                aria-valuemax="100"
-              >
-                {uploadProgress}%
-              </div>
+              />
             </div>
-            <p className="text-center mt-1">Uploading... Please don't close this page.</p>
+            <p className="text-xs text-gray-500 text-center mt-1.5">Uploading... Please don't close this page.</p>
           </div>
         )}
 
         {/* Image Previews */}
         {images.length > 0 && (
-          <div className="uploaded-images mt-3">
-            <Card className="preview-card">
-              <Card.Body>
-                <div className="preview-header">
-                  <h6>
-                    <FontAwesomeIcon icon={faImage} className="me-2" />
-                    Solution Images ({images.length})
-                  </h6>
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={() => {
-                      revokeImageUrls(imagePreviewUrls);
-                      setImages([]);
-                      setImagePreviewUrls([]);
-                    }}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <h6 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-[#00A0E3]" />
+                Solution Images ({images.length})
+              </h6>
+              <button
+                onClick={() => {
+                  revokeImageUrls(imagePreviewUrls);
+                  setImages([]);
+                  setImagePreviewUrls([]);
+                }}
+                disabled={isAnyButtonProcessing()}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-500 border border-red-200 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Clear All
+              </button>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {images.map((image, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={imagePreviewUrls[index]}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-lg border border-gray-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCancelImage(index)}
                     disabled={isAnyButtonProcessing()}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition-colors"
+                    aria-label="Remove image"
                   >
-                    <FontAwesomeIcon icon={faTrash} className="me-1" />
-                    Clear All
-                  </Button>
+                    &times;
+                  </button>
+                  <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">
+                    {index + 1}
+                  </span>
                 </div>
-                <div className="image-grid">
-                  {images.map((image, index) => (
-                    <div key={index} className="image-preview-container">
-                      <img
-                        src={imagePreviewUrls[index]}
-                        alt={`Preview ${index + 1}`}
-                        className="image-preview"
-                      />
-                      <button
-                        type="button"
-                        className="image-remove-btn"
-                        onClick={() => handleCancelImage(index)}
-                        disabled={isAnyButtonProcessing()}
-                        aria-label="Remove image"
-                      >
-                        ×
-                      </button>
-                      <span className="image-number">{index + 1}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card.Body>
-            </Card>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="action-buttons mt-4">
-          <Row>
-            <Col xs={12} md={4} className="mb-2">
-              <Button
-                variant="info"
-                onClick={handleExplain}
-                className="w-100 action-btn explain-btn"
-                disabled={isAnyButtonProcessing()}
-              >
-                {isButtonProcessing("explain") ? (
-                  <>
-                    <Spinner as="span" animation="border" size="sm" className="me-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faLightbulb} className="me-2" />
-                    Concepts Required
-                  </>
-                )}
-              </Button>
-            </Col>
+        <div className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <button
+              onClick={handleExplain}
+              disabled={isAnyButtonProcessing()}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isButtonProcessing("explain") ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Lightbulb className="w-4 h-4" />
+                  Concepts Required
+                </>
+              )}
+            </button>
 
-            <Col xs={12} md={4} className="mb-2">
-              <Button
-                variant="primary"
-                onClick={handleSolve}
-                className={`w-100 action-btn solve-btn ${images.length > 0 ? 'btn-disabled-with-images' : ''}`}
-                disabled={images.length > 0 || isAnyButtonProcessing()}
-                title={images.length > 0 ? "Remove uploaded images to use AI Solution" : "Get AI-generated solution"}
-              >
-                {isButtonProcessing("solve") ? (
-                  <>
-                    <Spinner as="span" animation="border" size="sm" className="me-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faBookOpen} className="me-2" />
-                    AI Solution
-                    {images.length > 0 && <small className="d-block mt-1">(Clear images first)</small>}
-                  </>
-                )}
-              </Button>
-            </Col>
+            <button
+              onClick={handleSolve}
+              disabled={images.length > 0 || isAnyButtonProcessing()}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                images.length > 0 ? 'relative' : ''
+              }`}
+              title={images.length > 0 ? "Remove uploaded images to use AI Solution" : "Get AI-generated solution"}
+            >
+              {isButtonProcessing("solve") ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <BookOpen className="w-4 h-4" />
+                  AI Solution
+                  {images.length > 0 && <span className="block text-[10px] mt-0.5">(Clear images first)</span>}
+                </>
+              )}
+            </button>
 
-            <Col xs={12} md={4} className="mb-2">
-              <Button
-                variant="success"
-                onClick={handleCorrect}
-                className={`w-100 action-btn correct-btn ${images.length > 0 ? 'btn-ready' : ''}`}
-                disabled={images.length === 0 || isAnyButtonProcessing()}
-                title={images.length === 0 ? "Upload images of your solution first" : "Submit your solution for AI correction"}
-              >
-                {isButtonProcessing("correct") ? (
-                  <>
-                    <Spinner as="span" animation="border" size="sm" className="me-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faCheck} className="me-2" />
-                    AI Correct
-                    {images.length > 0 && <Badge bg="light" text="dark" className="ms-2">{images.length}</Badge>}
-                  </>
-                )}
-              </Button>
-            </Col>
-          </Row>
+            <button
+              onClick={handleCorrect}
+              disabled={images.length === 0 || isAnyButtonProcessing()}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                images.length > 0
+                  ? 'bg-green-500 hover:bg-green-600 text-white'
+                  : 'bg-green-500 text-white'
+              }`}
+              title={images.length === 0 ? "Upload images of your solution first" : "Submit your solution for AI correction"}
+            >
+              {isButtonProcessing("correct") ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  AI Correct
+                  {images.length > 0 && (
+                    <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-white/20 rounded-full">{images.length}</span>
+                  )}
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Helper text based on state */}
-          <div className="action-helper-text mt-2 text-center">
+          <div className="mt-3 text-center">
             {images.length === 0 ? (
-              <small className="text-muted">
-                <FontAwesomeIcon icon={faUpload} className="me-1" />
+              <span className="text-xs text-gray-400 flex items-center justify-center gap-1">
+                <Upload className="w-3 h-3" />
                 Upload your solution images above to enable AI Correct
-              </small>
+              </span>
             ) : (
-              <small className="text-success">
-                <FontAwesomeIcon icon={faCheck} className="me-1" />
+              <span className="text-xs text-green-600 flex items-center justify-center gap-1">
+                <Check className="w-3 h-3" />
                 {images.length} image{images.length > 1 ? 's' : ''} ready for AI Correct
-              </small>
+              </span>
             )}
           </div>
         </div>
 
         {/* Points Info */}
-        <div className="points-info">
-          <FontAwesomeIcon icon={faStar} className="me-2" />
+        <div className="flex items-center justify-center gap-2 mt-6 text-xs text-gray-400">
+          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
           <span>Earn points by completing questions! AI Correct gives you the most points.</span>
         </div>
       </div>

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Spinner } from 'react-bootstrap';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import axiosInstance from '../api/axiosInstance';
-import './Analytics.css';
+import { Loader2 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -28,11 +27,11 @@ const Analytics = () => {
             {
               label: 'Average Score (%)',
               data: scores,
-              backgroundColor: '#00C1D4',
-              borderColor: '#001B6C',
+              backgroundColor: '#00A0E3',
+              borderColor: '#0B1120',
               borderWidth: 1,
               borderRadius: 6,
-              hoverBackgroundColor: '#001B6C'
+              hoverBackgroundColor: '#0080B8'
             }
           ]
         });
@@ -56,14 +55,14 @@ const Analytics = () => {
       legend: {
         position: 'top',
         labels: {
-          color: '#001B6C',
+          color: '#0B1120',
           font: { weight: 'bold' }
         }
       },
       title: {
         display: true,
         text: 'Student Progress by Chapter',
-        color: '#001B6C',
+        color: '#0B1120',
         font: { size: 20, weight: 'bold' },
         padding: 20
       }
@@ -71,14 +70,14 @@ const Analytics = () => {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#001B6C' }
+        ticks: { color: '#0B1120' }
       },
       y: {
         beginAtZero: true,
         max: 10,
-        grid: { color: 'rgba(0, 193, 212, 0.1)' },
+        grid: { color: 'rgba(0, 160, 227, 0.1)' },
         ticks: {
-          color: '#001B6C',
+          color: '#0B1120',
           callback: value => `${value}%`
         }
       }
@@ -90,19 +89,19 @@ const Analytics = () => {
   };
 
   return (
-    <div className="analytics-container">
-      <Container className="analytics-content">
-        <h2 className="analytics-title">Analytics Dashboard</h2>
-        <div className="chart-wrapper" style={{ minHeight: 400 }}>
+    <div className="min-h-screen bg-[#F8FAFC] py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-2xl font-bold text-[#0B1120] text-center mb-6">Analytics Dashboard</h2>
+        <div className="bg-white rounded-xl shadow-md p-6" style={{ minHeight: 400 }}>
           {loading ? (
-            <div className="d-flex justify-content-center align-items-center" style={{ height: 300 }}>
-              <Spinner animation="border" variant="info" />
+            <div className="flex justify-center items-center" style={{ height: 300 }}>
+              <Loader2 className="w-8 h-8 text-[#00A0E3] animate-spin" />
             </div>
           ) : (
             <Bar data={chartData} options={options} />
           )}
         </div>
-      </Container>
+      </div>
     </div>
   );
 };

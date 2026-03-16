@@ -1639,7 +1639,8 @@ const QuizResult = () => {
                                   <span className="qr-detail-label">
                                     Self Check
                                   </span>
-                                  <p>{item.self_check}</p>
+                                  <MarkdownWithMath content=
+                                    {item.self_check} />
                                 </div>
                               )}
                             </div>

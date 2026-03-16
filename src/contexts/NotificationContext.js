@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useEffect,
-  useState,
-  useContext,
-  useRef,
-} from "react";
+import React, { createContext, useEffect, useState, useContext, useRef } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { AuthContext } from "../components/AuthContext";
 import { sanitizeNotificationMessage } from "../utils/errorHandling"; // ✅ NEW IMPORT
@@ -16,35 +10,59 @@ export const NotificationProvider = ({ children }) => {
   const { username } = useContext(AuthContext);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const shouldReconnectRef = useRef(false);
+
+  // Clear notifications when user changes (logout or different user login)
+  useEffect(() => {
+    setNotifications([]);
+  }, [username]);
 
   useEffect(() => {
-    if (!username) return;
+    if (!username) {
+      // No user — make sure everything is cleaned up
+      shouldReconnectRef.current = false;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      if (wsRef.current) {
+        wsRef.current.onclose = null; // prevent onclose from triggering reconnect
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      return;
+    }
+
+    shouldReconnectRef.current = true;
 
     const connectWebSocket = () => {
-      // ✅ Avoid duplicate connections
+      // Don't reconnect if flag is off (logout happened)
+      if (!shouldReconnectRef.current) return;
+
+      // Avoid duplicate connections
       if (
         wsRef.current &&
         (wsRef.current.readyState === WebSocket.OPEN ||
           wsRef.current.readyState === WebSocket.CONNECTING)
       ) {
-        console.log("⚠ WebSocket already connected/connecting");
+        console.log("WebSocket already connected/connecting");
         return;
       }
 
       wsRef.current = new WebSocket(
-        `wss://autogen.aieducator.com/ws/notifications/${username}/`,
+        `wss://autogen.aieducator.com/ws/notifications/${username}/`
       );
 
       wsRef.current.onopen = () => {
-        console.log("✅ Connected to WebSocket");
+        console.log("WebSocket connected for", username);
       };
 
       wsRef.current.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data);
-          console.log("📩 WS message received:", msg);
+          console.log("WS message received:", msg);
 
-          // 🎯 Student homework notification
+          // Student homework notification
           if (msg.type === "homework_notification" && msg.role === "student") {
             const { notification, homework } = msg;
             const newNotification = {
@@ -72,7 +90,7 @@ export const NotificationProvider = ({ children }) => {
             });
           }
 
-          // 🎯 Teacher acknowledgment
+          // Teacher acknowledgment
           else if (msg.type === "teacher_ack") {
             const uniqueId = `${msg.class_work_id || msg.homework_id || msg.submission_id || Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -93,7 +111,7 @@ export const NotificationProvider = ({ children }) => {
             setNotifications((prev) => [newNotification, ...prev]);
           }
 
-          // 🎯 Classwork completion
+          // Classwork completion
           else if (msg.type === "classwork_completion_notification") {
             const newNotification = {
               id: msg.submission_id ?? Date.now().toString(),
@@ -117,7 +135,7 @@ export const NotificationProvider = ({ children }) => {
             });
           }
 
-          // 🎯 Homework completion
+          // Homework completion
           else if (msg.type === "homework_completion_notification") {
             const newNotification = {
               id: msg.submission_id ?? Date.now().toString(),
@@ -139,16 +157,18 @@ export const NotificationProvider = ({ children }) => {
               const exists = prev.some((n) => n.id === newNotification.id);
               return exists ? prev : [newNotification, ...prev];
             });
-          } else {
-            console.log("📩 Unhandled WS message:", msg);
+          }
+
+          else {
+            console.log("Unhandled WS message:", msg);
           }
         } catch (err) {
-          console.error("❌ Error parsing WS message", err);
+          console.error("Error parsing WS message", err);
         }
       };
 
       wsRef.current.onerror = (err) => {
-        console.error("❌ WebSocket error", err);
+        console.error("WebSocket error", err);
       };
 
       wsRef.current.onclose = () => {
@@ -160,9 +180,13 @@ export const NotificationProvider = ({ children }) => {
     connectWebSocket();
 
     return () => {
-      if (reconnectTimeoutRef.current)
+      shouldReconnectRef.current = false;
+      if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       if (wsRef.current) {
+        wsRef.current.onclose = null; // detach onclose to prevent reconnect during cleanup
         wsRef.current.close();
         wsRef.current = null;
       }
@@ -171,13 +195,15 @@ export const NotificationProvider = ({ children }) => {
 
   const markNotificationAsRead = async (id) => {
     setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif)),
+      prev.map((notif) =>
+        notif.id === id ? { ...notif, read: true } : notif
+      )
     );
 
     try {
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
         wsRef.current.send(
-          JSON.stringify({ action: "mark_read", notification_id: id }),
+          JSON.stringify({ action: "mark_read", notification_id: id })
         );
       }
     } catch (_) {}
@@ -188,8 +214,8 @@ export const NotificationProvider = ({ children }) => {
       console.warn("⚠ Could not mark as read on server", error);
       setNotifications((prev) =>
         prev.map((notif) =>
-          notif.id === id ? { ...notif, read: false } : notif,
-        ),
+          notif.id === id ? { ...notif, read: false } : notif
+        )
       );
     }
   };
@@ -201,8 +227,8 @@ export const NotificationProvider = ({ children }) => {
     try {
       await Promise.all(
         unread.map((n) =>
-          axiosInstance.post(`/notifications/${n.id}/read/`).catch(() => null),
-        ),
+          axiosInstance.post(`/notifications/${n.id}/read/`).catch(() => null)
+        )
       );
     } catch (error) {
       console.warn("⚠ Could not clear notifications on server:", error);

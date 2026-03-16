@@ -1,7 +1,7 @@
 // ProgressTab.jsx - 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import './ProgressTab.css';
 import axiosInstance from '../api/axiosInstance';
+import { BarChart3, TrendingUp, TrendingDown, User, Clock, Eye } from 'lucide-react';
 
 const ProgressTab = ({ teacherData }) => {
   const [students, setStudents] = useState([]);
@@ -1036,9 +1036,9 @@ const fetchStudentDetails = (studentId) => {
 
   if (dataLoading) {
     return (
-      <div className="progress-tab-container">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
+      <div className="p-5 bg-gradient-to-br from-[#f0f4f8] to-[#d9e2ec] min-h-[calc(100vh-140px)]">
+        <div className="flex flex-col items-center justify-center h-[400px]">
+          <div className="w-[60px] h-[60px] border-4 border-gray-200 border-t-[#00A0E3] rounded-full animate-spin"></div>
           <p>Loading student data...</p>
         </div>
       </div>
@@ -1046,15 +1046,15 @@ const fetchStudentDetails = (studentId) => {
   }
 
   return (
-    <div className="progress-tab-container">
+    <div className="p-5 bg-gradient-to-br from-[#f0f4f8] to-[#d9e2ec] min-h-[calc(100vh-140px)]">
       {/* Header - MODIFIED: Shows current class */}
-      <div className="progress-header">
-        <h2>📊 Student Progress Analysis - Class {selectedClassFilter}</h2>
-        <div className="header-controls">
+      <div className="flex justify-between items-center p-5 bg-white rounded-xl mb-5 shadow-sm max-md:flex-col max-md:gap-4">
+        <h2><BarChart3 className="w-5 h-5 inline text-[#00A0E3]" /> Student Progress Analysis - Class {selectedClassFilter}</h2>
+        <div className="flex gap-3">
           {/* Class selector - Only if multiple classes */}
           {detectedClasses.length > 1 && (
             <select 
-              className="class-selector"
+              className="px-5 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-semibold bg-white cursor-pointer transition-all min-w-[160px] hover:border-[#00A0E3] focus:outline-none focus:border-[#00A0E3]"
               value={selectedClassFilter}
               onChange={(e) => setSelectedClassFilter(e.target.value)}
             >
@@ -1069,33 +1069,33 @@ const fetchStudentDetails = (studentId) => {
       </div>
 
       {/* Stats Bar */}
-      <div className="class-stats-bar">
-        <div className="stat-item">
-          <span className="stat-label">Total Students:</span>
-          <span className="stat-value">{stats.totalStudents}</span>
+      <div className="flex gap-5 px-6 py-4 bg-white rounded-xl mb-5 shadow-sm max-md:flex-col max-md:gap-2.5">
+        <div className="flex items-center gap-2.5">
+          <span className="text-sm text-gray-500 font-medium">Total Students:</span>
+          <span className="text-xl font-bold px-3 py-1 rounded-lg bg-gray-100">{stats.totalStudents}</span>
         </div>
-        <div className="stat-item">
-          <span className="stat-label">Declining:</span>
-          <span className="stat-value declining">{stats.decliningCount}</span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-sm text-gray-500 font-medium">Declining:</span>
+          <span className="text-xl font-bold px-3 py-1 rounded-lg bg-red-100 text-red-600">{stats.decliningCount}</span>
         </div>
-        <div className="stat-item">
-          <span className="stat-label">Improving:</span>
-          <span className="stat-value improving">{stats.improvingCount}</span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-sm text-gray-500 font-medium">Improving:</span>
+          <span className="text-xl font-bold px-3 py-1 rounded-lg bg-green-100 text-green-600">{stats.improvingCount}</span>
         </div>
-        <div className="stat-item">
-          <span className="stat-label">Critical (&lt;40%):</span>
-          <span className="stat-value critical">{stats.needsAttention}</span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-sm text-gray-500 font-medium">Critical (&lt;40%):</span>
+          <span className="text-xl font-bold px-3 py-1 rounded-lg bg-orange-100 text-orange-500">{stats.needsAttention}</span>
         </div>
       </div>
 
       {/* Rest of the component remains the same... */}
       {/* Filters Section */}
-      <div className="filters-container">
-        <div className="filter-card">
-          <label className="filter-label">PERFORMANCE TREND</label>
-          <div className="multi-select-dropdown">
+      <div className="flex gap-5 mb-5 max-lg:flex-col">
+        <div className="flex-1 bg-white p-5 rounded-xl shadow-sm border-2 border-[#00A0E3]">
+          <label className="block text-[11px] font-bold text-gray-500 mb-2.5 uppercase tracking-wide">PERFORMANCE TREND</label>
+          <div className="relative">
             <div 
-              className="select-display"
+              className="px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer flex justify-between items-center transition-all text-sm font-medium hover:border-[#00A0E3] hover:bg-white"
               onClick={(e) => {
                 e.currentTarget.nextElementSibling.classList.toggle('show');
               }}
@@ -1103,11 +1103,11 @@ const fetchStudentDetails = (studentId) => {
               {performanceTrend.length === 0 ? 'Select trends...' : 
               performanceTrend.length === 1 ? performanceTrend[0] :
               `${performanceTrend.length} selected`}
-              <span className="dropdown-arrow">▼</span>
+              <span className="text-gray-500 transition-transform">▼</span>
             </div>
-            <div className="dropdown-options">
+            <div className="absolute top-full mt-1 left-0 right-0 bg-white border-2 border-gray-200 rounded-lg max-h-[200px] overflow-y-auto z-[1000] hidden shadow-lg">
               {['declining', 'stagnant', 'improving', 'No Data'].map(trend => (
-                <label key={trend} className="option-item">
+                <label key={trend} className="flex items-center px-4 py-2.5 cursor-pointer transition-colors text-sm hover:bg-gray-50">
                   <input
                     type="checkbox"
                     checked={performanceTrend.includes(trend)}
@@ -1126,11 +1126,11 @@ const fetchStudentDetails = (studentId) => {
           </div>
         </div>
 
-        <div className="filter-card">
-          <label className="filter-label">TOPICS</label>
-          <div className="multi-select-dropdown">
+        <div className="flex-1 bg-white p-5 rounded-xl shadow-sm border-2 border-[#00A0E3]">
+          <label className="block text-[11px] font-bold text-gray-500 mb-2.5 uppercase tracking-wide">TOPICS</label>
+          <div className="relative">
             <div 
-              className="select-display"
+              className="px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer flex justify-between items-center transition-all text-sm font-medium hover:border-[#00A0E3] hover:bg-white"
               onClick={(e) => {
                 e.currentTarget.nextElementSibling.classList.toggle('show');
               }}
@@ -1139,11 +1139,11 @@ const fetchStudentDetails = (studentId) => {
               'All Topics Selected' : 
               selectedTopics.length === 1 ? selectedTopics[0] :
               `${selectedTopics.length} selected`}
-              <span className="dropdown-arrow">▼</span>
+              <span className="text-gray-500 transition-transform">▼</span>
             </div>
-            <div className="dropdown-options topics-dropdown">
+            <div className="absolute top-full mt-1 left-0 right-0 bg-white border-2 border-gray-200 rounded-lg max-h-[250px] overflow-y-auto z-[1000] hidden shadow-lg">
               {availableTopics.map(topic => (
-                <label key={topic} className="option-item">
+                <label key={topic} className="flex items-center px-4 py-2.5 cursor-pointer transition-colors text-sm hover:bg-gray-50">
                   <input
                     type="checkbox"
                     checked={selectedTopics.length === 0 || selectedTopics.includes(topic)}
@@ -1162,7 +1162,7 @@ const fetchStudentDetails = (studentId) => {
                       }
                     }}
                   />
-                  <span className="topic-text">{topic}</span>
+                  <span className="text-[13px] overflow-hidden text-ellipsis whitespace-nowrap">{topic}</span>
                 </label>
               ))}
             </div>
@@ -1171,27 +1171,27 @@ const fetchStudentDetails = (studentId) => {
       </div>
 
       {/* Secondary Filters */}
-      <div className="secondary-filters">
-        <div className="filter-group">
-          <label className="filter-label">MAX PERFORMANCE</label>
-          <div className="slider-container">
+      <div className="flex gap-5 mb-5 max-lg:flex-col">
+        <div className="flex-1 bg-white px-5 py-4 rounded-xl shadow-sm">
+          <label className="block text-[11px] font-bold text-gray-500 mb-2.5 uppercase tracking-wide">MAX PERFORMANCE</label>
+          <div className="flex items-center gap-4">
             <input
               type="range"
               min="0"
               max="100"
               value={maxPerformance}
               onChange={(e) => setMaxPerformance(Number(e.target.value))}
-              className="performance-slider"
+              className="flex-1 appearance-none h-1.5 bg-gray-200 rounded-full outline-none accent-[#00A0E3]"
             />
-            <span className="slider-value">{maxPerformance}</span>
-            <span className="slider-unit">%</span>
+            <span className="text-2xl font-bold text-[#00A0E3] min-w-[50px] text-center">{maxPerformance}</span>
+            <span className="text-base text-gray-500 font-semibold">%</span>
           </div>
         </div>
 
-        <div className="filter-group">
-          <label className="filter-label">SORT BY</label>
+        <div className="flex-1 bg-white px-5 py-4 rounded-xl shadow-sm">
+          <label className="block text-[11px] font-bold text-gray-500 mb-2.5 uppercase tracking-wide">SORT BY</label>
           <select 
-            className="filter-select"
+            className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-medium bg-white cursor-pointer transition-all hover:border-[#00A0E3] focus:outline-none focus:border-[#00A0E3]"
             value={sortBy} 
             onChange={(e) => setSortBy(e.target.value)}
           >
@@ -1202,10 +1202,10 @@ const fetchStudentDetails = (studentId) => {
           </select>
         </div>
 
-        <div className="filter-group">
-          <label className="filter-label">ORDER</label>
+        <div className="flex-1 bg-white px-5 py-4 rounded-xl shadow-sm">
+          <label className="block text-[11px] font-bold text-gray-500 mb-2.5 uppercase tracking-wide">ORDER</label>
           <select 
-            className="filter-select"
+            className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-medium bg-white cursor-pointer transition-all hover:border-[#00A0E3] focus:outline-none focus:border-[#00A0E3]"
             value={sortOrder} 
             onChange={(e) => setSortOrder(e.target.value)}
           >
@@ -1214,10 +1214,10 @@ const fetchStudentDetails = (studentId) => {
           </select>
         </div>
 
-        <div className="filter-group">
-          <label className="filter-label">PATTERN</label>
+        <div className="flex-1 bg-white px-5 py-4 rounded-xl shadow-sm">
+          <label className="block text-[11px] font-bold text-gray-500 mb-2.5 uppercase tracking-wide">PATTERN</label>
           <select 
-            className="filter-select"
+            className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-medium bg-white cursor-pointer transition-all hover:border-[#00A0E3] focus:outline-none focus:border-[#00A0E3]"
             value={patternFilter} 
             onChange={(e) => setPatternFilter(e.target.value)}
           >
@@ -1230,10 +1230,10 @@ const fetchStudentDetails = (studentId) => {
       </div>
 
       {/* Student Selection Section */}
-      <div className="student-selection-container">
-        <label className="section-label">SELECT STUDENT:</label>
+      <div className="bg-white p-5 rounded-xl mb-5 shadow-sm">
+        <label className="block text-xs font-bold text-gray-500 mb-3 uppercase tracking-wide">SELECT STUDENT:</label>
         <select 
-          className="student-dropdown"
+          className="w-full px-4 py-3 border-2 border-[#00A0E3] rounded-lg text-sm font-medium bg-white cursor-pointer transition-all mb-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/20"
           value={selectedStudent || ''}
           onChange={(e) => {
             setSelectedStudent(e.target.value);
@@ -1244,26 +1244,26 @@ const fetchStudentDetails = (studentId) => {
           {filteredStudents.map(student => (
             <option key={student.id} value={student.id}>
               {student.id} - {student.overallPerformance?.toFixed(1)}% 
-              {student.performanceTrend === 'declining' ? '📉' : 
-              student.performanceTrend === 'improving' ? '📈' : '📊'}
+              {student.performanceTrend === 'declining' ? ' [↓]' :
+              student.performanceTrend === 'improving' ? ' [↑]' : ' [—]'}
             </option>
           ))}
         </select>
         
         {/* Quick Student Cards */}
-        <div className="student-cards">
+        <div className="flex gap-3 flex-wrap max-md:flex-col">
           {filteredStudents.slice(0, 5).map(student => (
             <div
               key={student.id}
-              className={`student-card ${selectedStudent === student.id ? 'active' : ''} ${student.performanceTrend}`}
+              className={`flex-1 min-w-[140px] max-w-[180px] p-4 border-2 rounded-xl cursor-pointer transition-all relative overflow-hidden hover:-translate-y-0.5 hover:shadow-md hover:border-[#00A0E3] max-md:max-w-full ${selectedStudent === student.id ? 'bg-gradient-to-br from-[#00A0E3] to-[#0080B8] text-white border-transparent' : 'bg-white border-gray-200'} ${student.performanceTrend === 'declining' ? 'border-l-4 border-l-red-500' : student.performanceTrend === 'improving' ? 'border-l-4 border-l-green-500' : student.performanceTrend === 'stagnant' ? 'border-l-4 border-l-orange-400' : ''}`}
               onClick={() => {
                 setSelectedStudent(student.id);
                 fetchStudentDetails(student.id);
               }}
             >
-              <div className="card-header">
-                <span className="student-id">{student.id}</span>
-                <span className="performance-badge">{student.overallPerformance?.toFixed(0)}%</span>
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-sm">{student.id}</span>
+                <span className="bg-black/10 px-2 py-1 rounded-md font-bold text-xs">{student.overallPerformance?.toFixed(0)}%</span>
               </div>
             </div>
           ))}
@@ -1272,66 +1272,66 @@ const fetchStudentDetails = (studentId) => {
 
       {/* Student Details Section - Shows only topics with attempts */}
       {studentDetails && (
-        <div className="student-details-container">
-          <div className="student-header">
-            <h3>👤 STUDENT: {studentDetails.id}</h3>
-            <div className="student-stats">
-              <span>Total Active ⏱ <strong>{studentDetails.activity?.total_active_time || 'N/A'}</strong></span>
-              <span>📊 <strong>{studentDetails.activity?.total_sessions || 0}</strong> sessions</span>
-              <span>Last-Active 👁 <strong>{studentDetails.activity?.last_seen || 'No data'}</strong></span>
+        <div className="animate-[fadeInUp_0.4s_ease]">
+          <div className="bg-white px-6 py-5 rounded-xl mb-5 shadow-sm">
+            <h3><User className="w-5 h-5 inline text-[#00A0E3]" /> STUDENT: {studentDetails.id}</h3>
+            <div className="flex gap-8 text-sm text-gray-500">
+              <span>Total Active <Clock className="w-4 h-4 inline text-[#00A0E3]" /> <strong>{studentDetails.activity?.total_active_time || 'N/A'}</strong></span>
+              <span><BarChart3 className="w-4 h-4 inline text-[#00A0E3]" /> <strong>{studentDetails.activity?.total_sessions || 0}</strong> sessions</span>
+              <span>Last-Active <Eye className="w-4 h-4 inline text-[#00A0E3]" /> <strong>{studentDetails.activity?.last_seen || 'No data'}</strong></span>
             </div>
           </div>
 
           {Object.keys(studentDetails.analysis).length > 0 ? (
             Object.entries(studentDetails.analysis).map(([topic, data]) => (
-              <div key={topic} className="chapter-card">
-                <div className="chapter-header">
+              <div key={topic} className="bg-white rounded-xl p-6 mb-5 shadow-sm border-2 border-transparent transition-all relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-gradient-to-r before:from-[#00A0E3] before:to-[#0080B8] hover:border-[#00A0E3] hover:-translate-y-0.5">
+                <div className="flex justify-between items-center mb-4">
                   <h4>CHAPTER {topic.replace('Mathematics - ', '')}</h4>
-                  <span className={`status-badge ${data.trend}`}>
+                  <span className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${data.trend === 'declining' ? 'bg-red-100 text-red-700' : data.trend === 'improving' ? 'bg-green-100 text-green-800' : data.trend === 'stagnant' ? 'bg-orange-100 text-yellow-800' : 'bg-purple-100 text-purple-700'}`}>
                     {data.trend.toUpperCase().replace('-', ' ')}
                   </span>
                 </div>
                 
                 {data.pattern_details?.pattern && (
-                  <div className="pattern-info">
+                  <div className="italic text-gray-500 text-[13px] mb-5 px-3 py-2 bg-gray-50 rounded-md">
                     Pattern: {data.pattern_details.pattern}
                   </div>
                 )}
 
-                <div className="metrics-grid">
-                  <div className="metric-card">
+                <div className="grid grid-cols-3 gap-4 mb-6 max-lg:grid-cols-1">
+                  <div className="text-center p-5 bg-gray-50 rounded-xl border border-gray-200 transition-all hover:-translate-y-0.5 hover:shadow-md">
                     <label>OVERALL PERFORMANCE</label>
-                    <div className="metric-value">{data.overall_performance}%</div>
+                    <div className="text-3xl font-extrabold text-gray-800">{data.overall_performance}%</div>
                   </div>
-                  <div className="metric-card">
+                  <div className="text-center p-5 bg-gray-50 rounded-xl border border-gray-200 transition-all hover:-translate-y-0.5 hover:shadow-md">
                     <label>BEST SCORE</label>
-                    <div className="metric-value golden">{data.best_performance.score}%</div>
-                    <span className="metric-note">{data.best_performance.indicator}</span>
+                    <div className="text-3xl font-extrabold bg-gradient-to-br from-yellow-400 to-orange-400 bg-clip-text text-transparent">{data.best_performance.score}%</div>
+                    <span className="block text-[11px] text-gray-500 mt-1 font-semibold">{data.best_performance.indicator}</span>
                   </div>
-                  <div className="metric-card">
+                  <div className="text-center p-5 bg-gray-50 rounded-xl border border-gray-200 transition-all hover:-translate-y-0.5 hover:shadow-md">
                     <label>TEST ATTENDANCE</label>
-                    <div className="metric-value">{data.test_attendance_pct}%</div>
+                    <div className="text-3xl font-extrabold text-gray-800">{data.test_attendance_pct}%</div>
                   </div>
                 </div>
 
-                <div className="details-grid">
-                  <div className="detail-panel">
+                <div className="grid grid-cols-2 gap-5 max-lg:grid-cols-1">
+                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 [&_h5]:m-0 [&_h5]:mb-4 [&_h5]:text-xs [&_h5]:font-bold [&_h5]:text-[#00A0E3] [&_h5]:uppercase [&_h5]:tracking-wide">
                     <h5>PERFORMANCE METRICS:</h5>
-                    <ul className="metrics-list">
+                    <ul className="list-none p-0 m-0 [&_li]:py-1.5 [&_li]:text-[13px] [&_li]:text-gray-600">
                       <li>Current vs Average: {data.pattern_details?.current_vs_avg}%</li>
                       <li>Lowest Score: {data.pattern_details?.lowest_score}%</li>
-                      <li className="success">✓ Perfect-Score: {data.correct}%</li>
-                      <li className="danger">• Q.Not Attempt: {data.not_attempted}%</li>
+                      <li className="!text-green-800 !font-semibold">✓ Perfect-Score: {data.correct}%</li>
+                      <li className="!text-red-700 !font-semibold">• Q.Not Attempt: {data.not_attempted}%</li>
                     </ul>
                     
                     {Object.keys(data.errors).length > 0 && (
                       <>
                         <h5>ERROR DISTRIBUTION:</h5>
                         {Object.entries(data.errors).map(([errorType, percentage]) => (
-                          <div key={errorType} className="error-item">
-                            <span className="error-label">{errorType}: {percentage}%</span>
-                            <div className="error-bar">
-                              <div className="error-fill" style={{width: `${percentage}%`}}></div>
+                          <div key={errorType} className="mb-3">
+                            <span className="block text-xs text-gray-600 mb-1 font-semibold">{errorType}: {percentage}%</span>
+                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-pink-400 to-[#00A0E3] rounded-full transition-all duration-500" style={{width: `${percentage}%`}}></div>
                             </div>
                           </div>
                         ))}
@@ -1339,9 +1339,9 @@ const fetchStudentDetails = (studentId) => {
                     )}
                   </div>
 
-                  <div className="detail-panel">
+                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 [&_h5]:m-0 [&_h5]:mb-4 [&_h5]:text-xs [&_h5]:font-bold [&_h5]:text-[#00A0E3] [&_h5]:uppercase [&_h5]:tracking-wide">
                     <h5>HOMEWORK SCORES TIMELINE:</h5>
-                    <table className="scores-table">
+                    <table className="w-full border-separate border-spacing-y-2 [&_th]:p-2.5 [&_th]:text-[10px] [&_th]:font-bold [&_th]:text-gray-500 [&_th]:uppercase [&_th]:tracking-wide [&_th]:text-left [&_td]:p-2.5 [&_td]:text-[13px] [&_td]:text-gray-600 [&_td]:bg-white [&_td]:border [&_td]:border-gray-200">
                       <thead>
                         <tr>
                           <th>DATE</th>
@@ -1355,7 +1355,7 @@ const fetchStudentDetails = (studentId) => {
                             <td>{hw.date}</td>
                             <td>{hw.hw_id}</td>
                             <td>
-                              <span className={`score-badge ${hw.score >= 80 ? 'excellent' : hw.score >= 60 ? 'good' : 'poor'}`}>
+                              <span className={`px-2.5 py-1 rounded-full font-bold text-xs ${hw.score >= 80 ? 'bg-green-100 text-green-800' : hw.score >= 60 ? 'bg-orange-100 text-yellow-800' : 'bg-red-100 text-red-700'}`}>
                                 {hw.score.toFixed(1)}%
                               </span>
                             </td>
@@ -1368,7 +1368,7 @@ const fetchStudentDetails = (studentId) => {
               </div>
             ))
           ) : (
-            <div className="no-data-message">
+            <div className="text-center py-8 text-gray-500">
               <p>No homework submissions found for this student.</p>
             </div>
           )}
@@ -1377,8 +1377,8 @@ const fetchStudentDetails = (studentId) => {
 
       {/* Empty State */}
       {!studentDetails && (
-        <div className="empty-state">
-          <div className="empty-icon">📊</div>
+        <div className="text-center px-10 py-20 bg-white rounded-xl shadow-sm [&_h3]:m-0 [&_h3]:mb-2.5 [&_h3]:text-2xl [&_h3]:font-bold [&_h3]:text-gray-800 [&_p]:m-0 [&_p]:text-base [&_p]:text-gray-500">
+          <div className="text-7xl mb-5 opacity-30"><BarChart3 className="w-16 h-16 inline text-[#00A0E3]" /></div>
           <h3>No Student Selected</h3>
           <p>Select a student from the dropdown above to view their detailed progress analysis</p>
         </div>

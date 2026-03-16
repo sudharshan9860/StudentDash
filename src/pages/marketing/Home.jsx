@@ -510,7 +510,7 @@ export default function Home() {
                       Download a free demo and see how it works for your school
                     </p>
                     <div className="flex flex-wrap justify-center gap-4 mb-6">
-                      <button onClick={() => setShowVideoModal(true)} className="button button--mimas text-lg px-8 py-4 flex items-center gap-2" style={{ background: 'linear-gradient(135deg, #9334e9, #ec4899)' }}><span className="flex items-center gap-2"><FaPlay className="text-sm" /> Watch Demo</span></button>
+                      <button onClick={() => setShowVideoModal(true)} className="button button--mimas text-lg px-8 py-4 flex items-center gap-2" style={{ background: 'linear-gradient(135deg, #00A0E3, #0080B8)' }}><span className="flex items-center gap-2"><FaPlay className="text-sm" /> Watch Demo</span></button>
                       <Link to="/schools" className="btn-secondary text-lg px-8 py-4">See Pricing</Link>
                     </div>
                     <p className="text-sm text-gray-500">
@@ -620,7 +620,7 @@ export default function Home() {
                       </>
                     ) : (
                       <>
-                        <button onClick={() => setShowVideoModal(true)} className="button button--mimas text-lg px-8 py-4 flex items-center gap-2" style={{ background: 'linear-gradient(135deg, #9334e9, #ec4899)' }}><span className="flex items-center gap-2"><FaPlay className="text-sm" /> Watch Demo</span></button>
+                        <button onClick={() => setShowVideoModal(true)} className="button button--mimas text-lg px-8 py-4 flex items-center gap-2" style={{ background: 'linear-gradient(135deg, #00A0E3, #0080B8)' }}><span className="flex items-center gap-2"><FaPlay className="text-sm" /> Watch Demo</span></button>
                         <Link to="/schools" className="btn-secondary text-lg px-8 py-4">Learn More</Link>
                       </>
                     )}
@@ -662,7 +662,7 @@ export default function Home() {
             style={{
               padding: '10px 20px', borderRadius: '50px', border: 'none', cursor: 'pointer',
               fontSize: '13px', fontWeight: 600, transition: 'all 0.3s ease',
-              background: userType === 'school' ? 'linear-gradient(135deg, #9334e9, #7c3aed)' : 'transparent',
+              background: userType === 'school' ? 'linear-gradient(135deg, #00A0E3, #0080B8)' : 'transparent',
               color: userType === 'school' ? '#fff' : '#6b7280',
             }}
           >
@@ -671,42 +671,53 @@ export default function Home() {
         </motion.div>
       )}
 
-      {/* ========== VIDEO DEMO MODAL ========== */}
+      {/* ========== CINEMATIC VIDEO MODAL ========== */}
       <AnimatePresence>
         {showVideoModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-            style={{ zIndex: 9999 }}
+            transition={{ duration: 0.35, ease: 'easeInOut' }}
+            className="cinema-overlay"
             onClick={() => setShowVideoModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-4xl bg-white rounded-2xl overflow-hidden shadow-2xl"
+              initial={{ opacity: 0, scale: 0.94, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 16 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="cinema-shell"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button */}
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowVideoModal(false); }}
-                className="absolute -top-12 right-0 z-20 w-10 h-10 flex items-center justify-center bg-red-500 hover:bg-red-600 rounded-full text-white transition-colors shadow-lg"
-              >
-                <FaTimes className="w-5 h-5" />
-              </button>
+              {/* Ambient glow */}
+              <div className="cinema-glow" />
 
-              {/* Video Header */}
-              <div className="bg-blue-600 px-6 py-4">
-                <h3 className="text-xl font-bold text-white">SmartLearners.ai Demo</h3>
-                <p className="text-blue-100 text-sm">See how our AI-powered platform works</p>
+              {/* Top bar */}
+              <div className="cinema-topbar">
+                <div className="cinema-title">
+                  <span className="cinema-title__main">SmartLearners.ai</span>
+                  <span className="cinema-title__sub">Platform Demo</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div className="cinema-dots">
+                    <div className="cinema-dot cinema-dot--red" />
+                    <div className="cinema-dot cinema-dot--yellow" />
+                    <div className="cinema-dot cinema-dot--green" />
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowVideoModal(false); }}
+                    className="cinema-close"
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
               </div>
 
-              {/* Video Player */}
-              <div className="relative aspect-video bg-gray-900">
+              {/* Cinematic frame */}
+              <div className="cinema-frame">
                 <video
-                  className="w-full h-full"
+                  className="cinema-video"
                   controls
                   autoPlay
                   playsInline
@@ -716,17 +727,16 @@ export default function Home() {
                 </video>
               </div>
 
-              {/* Video Footer */}
-              <div className="px-6 py-4 bg-gray-50 flex flex-wrap items-center justify-between gap-4">
-                <p className="text-gray-600 text-sm">
-                  Ready to get started? Try our platform free for 1 month!
-                </p>
+              {/* Bottom bar */}
+              <div className="cinema-bottombar">
+                <span className="cinema-caption">No credit card · Cancel anytime · 15-day guarantee</span>
                 <Link
                   to="/free-trial"
-                  className="button button--mimas px-6 py-2 text-sm"
+                  className="cinema-cta"
                   onClick={() => setShowVideoModal(false)}
                 >
-                  <span>Start Free Trial</span>
+                  <FaPlay style={{ fontSize: 10 }} />
+                  Start Free Trial
                 </Link>
               </div>
             </motion.div>

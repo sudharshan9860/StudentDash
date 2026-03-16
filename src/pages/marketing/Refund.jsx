@@ -17,7 +17,7 @@ const policies = [
     icon: '&#x1F4DC;',
     title: 'Legally Binding',
     description: 'Payments confirm acceptance of terms',
-    color: '#3b82f6'
+    color: '#00A0E3'
   },
   {
     icon: '&#x2139;',

@@ -1,29 +1,27 @@
 // ExamMode.jsx - Exam creation and setup component
 import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
-import { Form, Button, Row, Col, Container, Card, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faSchool,
-  faBookOpen,
-  faListAlt,
-  faClipboardList,
-  faRocket,
-  faClock,
-  faFileAlt,
-  faExclamationTriangle,
-  faHistory,
-  faCheckCircle,
-  faTimesCircle,
-  faTrophy,
-  faArrowRight,
-  faPlay,
-} from "@fortawesome/free-solid-svg-icons";
+  ClipboardList,
+  School,
+  BookOpen,
+  List,
+  Rocket,
+  Clock,
+  FileText,
+  AlertTriangle,
+  History,
+  CheckCircle,
+  XCircle,
+  Trophy,
+  ArrowRight,
+  Play,
+  Loader2,
+} from "lucide-react";
 import { AuthContext } from "./AuthContext";
 import { useAlert } from "./AlertBox";
 import axiosInstance from "../api/axiosInstance";
-import "./ExamMode.css";
 
 // API endpoints
 const API_ENDPOINTS = {
@@ -232,7 +230,6 @@ function ExamMode() {
 
   // Handle journey item click - fetch next day and navigate to learning path session
   const handleJourneyClick = useCallback(async (exam) => {
-    // Only allow click if plan is created
     if (!exam.plan_created || !exam.plan_id) {
       showAlert("No learning plan exists for this exam. Complete an exam and generate a learning path first.", "warning");
       return;
@@ -247,7 +244,6 @@ function ExamMode() {
       const response = await axiosInstance.post(API_ENDPOINTS.LEARNING_PATH_NEXT_DAY, formData);
 
       if (response.data) {
-        // Navigate to learning path session with the response data
         navigate("/learning-path-session", {
           state: {
             learningPathData: {
@@ -299,11 +295,11 @@ function ExamMode() {
       question_level: q.question_level || "Medium",
       question_image: q.question_image || null,
       context: null,
-      options: [], // API returns subjective questions without options
-      correct_answer: null, // No predefined answer for subjective questions
+      options: [],
+      correct_answer: null,
       marks: q.question_level === "Hard" ? 3 : q.question_level === "Medium" ? 2 : 1,
       topic: q.topic,
-      isSubjective: true, // Flag to indicate this is a subjective question
+      isSubjective: true,
     }));
   }, []);
 
@@ -312,15 +308,11 @@ function ExamMode() {
     const formData = new FormData();
     formData.append("class_id", selectedClass);
     formData.append("subject_id", selectedSubject);
-    
-    // chapters → append each value separately
+
     selectedChapters.forEach((ch) => {
       formData.append("chapters", ch);
     });
-    
-    // If you want exactly 5 questions per chapter – add if required
-    // formData.append("questions_per_chapter", 5);
-    
+
     try {
       const response = await axiosInstance.post(
         API_ENDPOINTS.GENERATE_EXAM,
@@ -331,7 +323,6 @@ function ExamMode() {
           },
         }
       );
-    
 
       if (response.data?.exam_questions) {
         return {
@@ -355,17 +346,14 @@ function ExamMode() {
 
   // Get metadata for exam
   const getExamMetadata = useCallback(() => {
-    // Map chapter IDs to names (API returns topic_code and name fields)
     const chapterNames = selectedChapters.map((chapterId) => {
       const chapter = chapters.find((ch) => ch.topic_code === chapterId);
       return chapter ? chapter.name : "Unknown Chapter";
     });
 
-    // Get subject name from subjects list
     const subjectName =
       subjects.find((s) => s.subject_code === selectedSubject)?.subject_name || "Unknown Subject";
 
-    // Get class name from classes list
     const className =
       classes.find((c) => c.class_code === selectedClass)?.class_name || "Unknown Class";
 
@@ -376,7 +364,6 @@ function ExamMode() {
       subjectName,
       chapterIds: selectedChapters,
       chapterNames,
-      // Include IDs for exam-process API
       class_id: selectedClass,
       subject_id: selectedSubject,
       chapters: selectedChapters,
@@ -385,18 +372,15 @@ function ExamMode() {
 
   // Handle exam start
   const handleStartExam = async () => {
-    // Validate form
     if (!isFormValid()) {
       showAlert("Please fill in all required fields", "error");
       return;
     }
 
-    // Reset error state and set loading
     setApiError(null);
     setIsLoading(true);
 
     try {
-      // Call API to generate questions
       const result = await generateExamQuestionsAPI();
 
       if (!result.success) {
@@ -405,7 +389,6 @@ function ExamMode() {
         return;
       }
 
-      // Validate we have questions
       if (!result.questions || result.questions.length === 0) {
         const errorMsg = "No questions available for the selected chapters. Please try different chapters.";
         setApiError(errorMsg);
@@ -413,10 +396,8 @@ function ExamMode() {
         return;
       }
 
-      // Get metadata
       const metadata = getExamMetadata();
 
-      // Navigate to exam question page
       navigate("/exam-question", {
         state: {
           questions: result.questions,
@@ -445,65 +426,44 @@ function ExamMode() {
         ...provided,
         backgroundColor: isDarkMode ? "#1e293b" : "#ffffff",
         borderColor: state.isFocused
-          ? isDarkMode
-            ? "#7c3aed"
-            : "#667eea"
-          : isDarkMode
-          ? "#475569"
-          : "#e2e8f0",
-        color: isDarkMode ? "#f1f5f9" : "#2d3748",
+          ? isDarkMode ? "#7c3aed" : "#00A0E3"
+          : isDarkMode ? "#475569" : "#e2e8f0",
+        color: isDarkMode ? "#f1f5f9" : "#0B1120",
         minHeight: "56px",
         border: `2px solid ${
           state.isFocused
-            ? isDarkMode
-              ? "#7c3aed"
-              : "#667eea"
-            : isDarkMode
-            ? "#475569"
-            : "#e2e8f0"
+            ? isDarkMode ? "#7c3aed" : "#00A0E3"
+            : isDarkMode ? "#475569" : "#e2e8f0"
         }`,
         borderRadius: "12px",
         boxShadow: state.isFocused
-          ? `0 0 0 4px ${isDarkMode ? "rgba(124, 58, 237, 0.1)" : "rgba(102, 126, 234, 0.1)"}`
+          ? `0 0 0 4px ${isDarkMode ? "rgba(124, 58, 237, 0.1)" : "rgba(0, 160, 227, 0.1)"}`
           : "none",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         "&:hover": {
-          borderColor: isDarkMode ? "#6366f1" : "#5a67d8",
+          borderColor: isDarkMode ? "#6366f1" : "#0080B8",
         },
       }),
-      menuPortal: (provided) => ({
-        ...provided,
-        zIndex: 10000,
-      }),
+      menuPortal: (provided) => ({ ...provided, zIndex: 10000 }),
       menu: (provided) => ({
         ...provided,
         backgroundColor: isDarkMode ? "#1e293b" : "#ffffff",
         zIndex: 10000,
         borderRadius: "12px",
-        border: `2px solid ${isDarkMode ? "#7c3aed" : "#667eea"}`,
+        border: `2px solid ${isDarkMode ? "#7c3aed" : "#00A0E3"}`,
         boxShadow: isDarkMode
           ? "0 25px 50px -12px rgba(0, 0, 0, 0.9)"
           : "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
       }),
-      menuList: (provided) => ({
-        ...provided,
-        maxHeight: "300px",
-        padding: "8px",
-      }),
+      menuList: (provided) => ({ ...provided, maxHeight: "300px", padding: "8px" }),
       option: (provided, state) => ({
         ...provided,
         backgroundColor: state.isFocused
-          ? isDarkMode
-            ? "#7c3aed"
-            : "#667eea"
+          ? isDarkMode ? "#7c3aed" : "#00A0E3"
           : state.isSelected
-          ? isDarkMode
-            ? "#6366f1"
-            : "#5a67d8"
-          : isDarkMode
-          ? "#1e293b"
-          : "#ffffff",
-        color: state.isFocused || state.isSelected ? "#ffffff" : isDarkMode ? "#f1f5f9" : "#2d3748",
+          ? isDarkMode ? "#6366f1" : "#0080B8"
+          : isDarkMode ? "#1e293b" : "#ffffff",
+        color: state.isFocused || state.isSelected ? "#ffffff" : isDarkMode ? "#f1f5f9" : "#0B1120",
         padding: "12px 16px",
         cursor: "pointer",
         borderRadius: "8px",
@@ -511,30 +471,21 @@ function ExamMode() {
       }),
       multiValue: (provided) => ({
         ...provided,
-        backgroundColor: isDarkMode ? "#6366f1" : "#667eea",
+        backgroundColor: isDarkMode ? "#6366f1" : "#00A0E3",
         borderRadius: "8px",
       }),
       multiValueLabel: (provided) => ({
-        ...provided,
-        color: "#ffffff",
-        fontWeight: "600",
-        padding: "4px 8px",
+        ...provided, color: "#ffffff", fontWeight: "600", padding: "4px 8px",
       }),
       multiValueRemove: (provided) => ({
-        ...provided,
-        color: "#ffffff",
-        "&:hover": {
-          backgroundColor: "#ef4444",
-          color: "#ffffff",
-        },
+        ...provided, color: "#ffffff",
+        "&:hover": { backgroundColor: "#ef4444", color: "#ffffff" },
       }),
       placeholder: (provided) => ({
-        ...provided,
-        color: isDarkMode ? "#94a3b8" : "#6b7280",
+        ...provided, color: isDarkMode ? "#94a3b8" : "#6b7280",
       }),
       singleValue: (provided) => ({
-        ...provided,
-        color: isDarkMode ? "#f1f5f9" : "#2d3748",
+        ...provided, color: isDarkMode ? "#f1f5f9" : "#0B1120",
       }),
     }),
     [isDarkMode]
@@ -543,364 +494,320 @@ function ExamMode() {
   return (
     <>
       <AlertContainer />
-      <div className={`exam-mode-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
-        <Container className="py-4">
+      <div className={`min-h-screen ${isDarkMode ? "bg-[#0B1120] text-white" : "bg-[#F8FAFC] text-[#0B1120]"}`}>
+        <div className="max-w-4xl mx-auto px-4 py-8">
           {/* Header */}
-          <div className="exam-mode-header">
-            <h1>
-              <FontAwesomeIcon icon={faClipboardList} className="me-3" />
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold flex items-center justify-center gap-3">
+              <ClipboardList size={32} className="text-[#00A0E3]" />
               Create Exam
             </h1>
-            <p>Select your class, subject, and chapters to generate an exam</p>
+            <p className={`mt-2 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+              Select your class, subject, and chapters to generate an exam
+            </p>
           </div>
 
           {/* Exam Setup Card */}
-          <Card className="exam-setup-card">
-            <Card.Body>
-              <Form>
-                <Row className="form-row">
-                  {/* Class Selection */}
-                  <Col md={6}>
-                    <Form.Group controlId="formClass">
-                      <Form.Label>
-                        <FontAwesomeIcon icon={faSchool} className="me-2" />
-                        Class
-                      </Form.Label>
-                      <Form.Control
-                        as="select"
-                        value={selectedClass}
-                        onChange={(e) => setSelectedClass(e.target.value)}
-                        className="form-control-enhanced"
-                        disabled={isLoadingData && classes.length === 0}
-                      >
-                        <option value="">{isLoadingData && classes.length === 0 ? "Loading..." : "Select Class"}</option>
-                        {classes.map((cls) => (
-                          <option key={cls.class_code} value={cls.class_code}>
-                            {cls.class_name}
-                          </option>
-                        ))}
-                      </Form.Control>
-                    </Form.Group>
-                  </Col>
-
-                  {/* Subject Selection */}
-                  <Col md={6}>
-                    <Form.Group controlId="formSubject">
-                      <Form.Label>
-                        <FontAwesomeIcon icon={faBookOpen} className="me-2" />
-                        Subject
-                      </Form.Label>
-                      <Form.Control
-                        as="select"
-                        value={selectedSubject}
-                        onChange={(e) => setSelectedSubject(e.target.value)}
-                        className="form-control-enhanced"
-                        disabled={!selectedClass || (isLoadingData && subjects.length === 0)}
-                      >
-                        <option value="">{isLoadingData && subjects.length === 0 && selectedClass ? "Loading..." : "Select Subject"}</option>
-                        {subjects.map((subject) => (
-                          <option key={subject.subject_code} value={subject.subject_code}>
-                            {subject.subject_name}
-                          </option>
-                        ))}
-                      </Form.Control>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Row className="form-row">
-                  {/* Chapter Selection */}
-                  <Col className="mx-2">
-                    <Form.Group controlId="formChapters">
-                      <Form.Label>
-                        <FontAwesomeIcon icon={faListAlt} className="me-2" />
-                        Chapters (Select Multiple) {chapters.length > 0 && `- ${chapters.length} Available`}
-                      </Form.Label>
-                      <Select
-                        isMulti
-                        value={selectedChapters.map((chapterCode) => {
-                          const chapter = chapters.find((ch) => ch.topic_code === chapterCode);
-                          return chapter
-                            ? { value: chapter.topic_code, label: chapter.name }
-                            : null;
-                        }).filter(Boolean)}
-                        onChange={(selectedOptions) => {
-                          const values = selectedOptions
-                            ? selectedOptions.map((option) => option.value)
-                            : [];
-                          setSelectedChapters(values);
-                        }}
-                        options={chapters.map((chapter) => ({
-                          value: chapter.topic_code,
-                          label: chapter.name,
-                        }))}
-                        placeholder={isLoadingData && chapters.length === 0 && selectedSubject ? "Loading chapters..." : "Select chapters..."}
-                        isDisabled={!selectedSubject || (isLoadingData && chapters.length === 0)}
-                        isLoading={isLoadingData && chapters.length === 0 && selectedSubject}
-                        className="chapters-select"
-                        classNamePrefix="select"
-                        closeMenuOnSelect={false}
-                        isSearchable={true}
-                        isClearable={true}
-                        menuPortalTarget={document.body}
-                        styles={selectStyles}
-                      />
-                      {/* Clear selection button */}
-                      {selectedChapters.length > 0 && (
-                        <div className="mt-2">
-                          <Button
-                            variant="outline-secondary"
-                            size="sm"
-                            onClick={() => setSelectedChapters([])}
-                            style={{ fontSize: "11px", padding: "4px 8px", borderRadius: "6px" }}
-                          >
-                            Clear ({selectedChapters.length})
-                          </Button>
-                        </div>
-                      )}
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                {/* Exam Duration Slider */}
-                <Row className="form-row mt-4">
-                  <Col md={12} className="px-3">
-                    <Form.Group controlId="formDuration">
-                      <Form.Label>
-                        <FontAwesomeIcon icon={faClock} className="me-2" />
-                        Exam Duration: <strong>{examDurationMinutes} minutes</strong>
-                      </Form.Label>
-                      <div className="duration-slider-container">
-                        <Form.Range
-                          value={examDurationMinutes}
-                          onChange={(e) => setExamDurationMinutes(parseInt(e.target.value))}
-                          min={30}
-                          max={60}
-                          step={5}
-                          className="duration-slider"
-                        />
-                        <div className="duration-labels">
-                          <span>30 min</span>
-                          <span>35 min</span>
-                          <span>40 min</span>
-                          <span>45 min</span>
-                          <span>50 min</span>
-                          <span>55 min</span>
-                          <span>60 min</span>
-                        </div>
-                      </div>
-                      <Form.Text className="text-muted">
-                        Slide to select exam duration (30 - 60 minutes)
-                      </Form.Text>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                {/* Exam Info Summary */}
-                {isFormValid() && (
-                  <div className="exam-summary mt-4">
-                    <h5>
-                      <FontAwesomeIcon icon={faFileAlt} className="me-2" />
-                      Exam Summary
-                    </h5>
-                    <Row>
-                      <Col md={6}>
-                        <div className="summary-item">
-                          <span className="summary-label">Total Duration</span>
-                          <span className="summary-value">{examDurationMinutes} min</span>
-                        </div>
-                      </Col>
-                      <Col md={6}>
-                        <div className="summary-item">
-                          <span className="summary-label">Chapters Selected</span>
-                          <span className="summary-value">{selectedChapters.length}</span>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                )}
-
-                {/* Error Display */}
-                {apiError && (
-                  <div className="api-error-message mt-3">
-                    <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
-                    {apiError}
-                  </div>
-                )}
-
-                {/* Start Exam Button */}
-                <div className="exam-actions mt-4">
-                  <Button
-                    className="btn-start-exam"
-                    onClick={handleStartExam}
-                    disabled={!isFormValid() || isLoading}
+          <div className={`rounded-2xl shadow-lg p-6 mb-6 ${isDarkMode ? "bg-slate-800 border border-slate-700" : "bg-white border border-slate-200"}`}>
+            <form>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Class Selection */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-semibold mb-2">
+                    <School size={16} className="text-[#00A0E3]" />
+                    Class
+                  </label>
+                  <select
+                    value={selectedClass}
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                    disabled={isLoadingData && classes.length === 0}
+                    className={`w-full h-14 px-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/20 focus:border-[#00A0E3] ${
+                      isDarkMode
+                        ? "bg-slate-700 border-slate-600 text-white"
+                        : "bg-white border-slate-200 text-[#0B1120]"
+                    }`}
                   >
-                    {isLoading ? (
-                      <>
-                        <Spinner
-                          as="span"
-                          animation="border"
-                          size="sm"
-                          role="status"
-                          aria-hidden="true"
-                          className="me-2"
-                        />
-                        Generating Questions...
-                      </>
-                    ) : (
-                      <>
-                        <FontAwesomeIcon icon={faRocket} className="me-2" />
-                        Start Exam
-                      </>
-                    )}
-                  </Button>
+                    <option value="">{isLoadingData && classes.length === 0 ? "Loading..." : "Select Class"}</option>
+                    {classes.map((cls) => (
+                      <option key={cls.class_code} value={cls.class_code}>{cls.class_name}</option>
+                    ))}
+                  </select>
                 </div>
-              </Form>
-            </Card.Body>
-          </Card>
 
-          {/* Previous Learning Journeys Section */}
-          <Card className="learning-journey-card mt-4">
-            <Card.Body>
-              <h4 className="learning-journey-title">
-                <FontAwesomeIcon icon={faHistory} className="me-2" />
-                Previous Learning Journeys
-              </h4>
-
-              {isLoadingLearningPath ? (
-                <div className="text-center py-4">
-                  <Spinner animation="border" variant="primary" />
-                  <p className="mt-2 text-muted">Loading your learning history...</p>
+                {/* Subject Selection */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-semibold mb-2">
+                    <BookOpen size={16} className="text-[#00A0E3]" />
+                    Subject
+                  </label>
+                  <select
+                    value={selectedSubject}
+                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    disabled={!selectedClass || (isLoadingData && subjects.length === 0)}
+                    className={`w-full h-14 px-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/20 focus:border-[#00A0E3] ${
+                      isDarkMode
+                        ? "bg-slate-700 border-slate-600 text-white"
+                        : "bg-white border-slate-200 text-[#0B1120]"
+                    }`}
+                  >
+                    <option value="">{isLoadingData && subjects.length === 0 && selectedClass ? "Loading..." : "Select Subject"}</option>
+                    {subjects.map((subject) => (
+                      <option key={subject.subject_code} value={subject.subject_code}>{subject.subject_name}</option>
+                    ))}
+                  </select>
                 </div>
-              ) : learningPathList.length === 0 ? (
-                <div className="no-journeys-message">
-                  <FontAwesomeIcon icon={faClipboardList} className="no-journeys-icon" />
-                  <p>No previous exams found. Start your first exam above!</p>
+              </div>
+
+              {/* Chapter Selection */}
+              <div className="mt-6 mx-2">
+                <label className="flex items-center gap-2 text-sm font-semibold mb-2">
+                  <List size={16} className="text-[#00A0E3]" />
+                  Chapters (Select Multiple) {chapters.length > 0 && `- ${chapters.length} Available`}
+                </label>
+                <Select
+                  isMulti
+                  value={selectedChapters.map((chapterCode) => {
+                    const chapter = chapters.find((ch) => ch.topic_code === chapterCode);
+                    return chapter ? { value: chapter.topic_code, label: chapter.name } : null;
+                  }).filter(Boolean)}
+                  onChange={(selectedOptions) => {
+                    const values = selectedOptions ? selectedOptions.map((option) => option.value) : [];
+                    setSelectedChapters(values);
+                  }}
+                  options={chapters.map((chapter) => ({ value: chapter.topic_code, label: chapter.name }))}
+                  placeholder={isLoadingData && chapters.length === 0 && selectedSubject ? "Loading chapters..." : "Select chapters..."}
+                  isDisabled={!selectedSubject || (isLoadingData && chapters.length === 0)}
+                  isLoading={isLoadingData && chapters.length === 0 && selectedSubject}
+                  closeMenuOnSelect={false}
+                  isSearchable={true}
+                  isClearable={true}
+                  menuPortalTarget={document.body}
+                  styles={selectStyles}
+                />
+                {selectedChapters.length > 0 && (
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedChapters([])}
+                      className={`text-xs px-3 py-1 rounded-md border transition-colors ${
+                        isDarkMode ? "border-slate-600 text-slate-300 hover:bg-slate-700" : "border-slate-300 text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      Clear ({selectedChapters.length})
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Exam Duration Slider */}
+              <div className="mt-6 px-3">
+                <label className="flex items-center gap-2 text-sm font-semibold mb-2">
+                  <Clock size={16} className="text-[#00A0E3]" />
+                  Exam Duration: <strong>{examDurationMinutes} minutes</strong>
+                </label>
+                <div className="mt-2">
+                  <input
+                    type="range"
+                    value={examDurationMinutes}
+                    onChange={(e) => setExamDurationMinutes(parseInt(e.target.value))}
+                    min={30}
+                    max={60}
+                    step={5}
+                    className="w-full accent-[#00A0E3]"
+                  />
+                  <div className="flex justify-between text-xs mt-1 text-slate-400">
+                    <span>30 min</span><span>35 min</span><span>40 min</span><span>45 min</span><span>50 min</span><span>55 min</span><span>60 min</span>
+                  </div>
                 </div>
-              ) : (
-                <div className="learning-journey-list">
-                  {learningPathList.map((exam) => {
-                    const scorePercentage = calculateScorePercentage(exam.obtained_marks, exam.total_marks);
-                    const isLoading = loadingJourneyId === exam.exam_id;
-                    const hasLearningPath = exam.plan_created && exam.plan_id;
-                    return (
-                      <div
-                        key={exam.exam_id}
-                        className={`journey-item ${hasLearningPath ? 'clickable' : 'disabled'} ${isLoading ? 'loading' : ''}`}
-                        onClick={() => !isLoading && handleJourneyClick(exam)}
-                        role={hasLearningPath ? "button" : undefined}
-                        tabIndex={hasLearningPath ? 0 : undefined}
-                        onKeyDown={(e) => {
-                          if (hasLearningPath && (e.key === 'Enter' || e.key === ' ')) {
-                            e.preventDefault();
-                            handleJourneyClick(exam);
-                          }
-                        }}
-                      >
-                        {isLoading && (
-                          <div className="journey-loading-overlay">
-                            <Spinner animation="border" variant="primary" />
-                            <span>Loading learning path...</span>
-                          </div>
-                        )}
-                        <div className="journey-item-header">
-                          <div className="journey-info">
-                            <span className="journey-exam-id">Exam #{exam.exam_id}</span>
-                            <span className="journey-date">
-                              <FontAwesomeIcon icon={faClock} className="me-1" />
-                              {formatDate(exam.submitted_at)}
-                            </span>
-                          </div>
-                          <div className="journey-status">
-                            {exam.plan_created ? (
-                              <span className="status-badge plan-created">
-                                <FontAwesomeIcon icon={faCheckCircle} className="me-1" />
-                                Plan Created
-                              </span>
-                            ) : (
-                              <span className="status-badge no-plan">
-                                <FontAwesomeIcon icon={faTimesCircle} className="me-1" />
-                                No Plan
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                <p className={`text-xs mt-1 ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
+                  Slide to select exam duration (30 - 60 minutes)
+                </p>
+              </div>
 
-                        <div className="journey-item-body">
-                          <Row>
-                            <Col xs={6} md={3}>
-                              <div className="journey-stat">
-                                <span className="stat-label">Class</span>
-                                <span className="stat-value">{exam.class_code}</span>
-                              </div>
-                            </Col>
-                            <Col xs={6} md={3}>
-                              <div className="journey-stat">
-                                <span className="stat-label">Subject</span>
-                                <span className="stat-value">{exam.subject_code}</span>
-                              </div>
-                            </Col>
-                            <Col xs={6} md={3}>
-                              <div className="journey-stat">
-                                <span className="stat-label">Questions</span>
-                                <span className="stat-value">{exam.total_questions}</span>
-                              </div>
-                            </Col>
-                            <Col xs={6} md={3}>
-                              <div className="journey-stat">
-                                <span className="stat-label">Score</span>
-                                <span className={`stat-value score ${scorePercentage >= 70 ? 'high' : scorePercentage >= 40 ? 'medium' : 'low'}`}>
-                                  <FontAwesomeIcon icon={faTrophy} className="me-1" />
-                                  {exam.obtained_marks}/{exam.total_marks} ({scorePercentage}%)
-                                </span>
-                              </div>
-                            </Col>
-                          </Row>
-
-                          <div className="journey-topics mt-2">
-                            <span className="topics-label">Topics:</span>
-                            <span className="topics-value">
-                              {exam.topic_ids.join(", ")}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Continue Learning Button for items with learning path */}
-                        {hasLearningPath && (
-                          <div className="journey-action">
-                            <Button
-                              variant="success"
-                              size="sm"
-                              className="continue-learning-btn"
-                              disabled={isLoading}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleJourneyClick(exam);
-                              }}
-                            >
-                              {isLoading ? (
-                                <>
-                                  <Spinner animation="border" size="sm" className="me-1" />
-                                  Loading...
-                                </>
-                              ) : (
-                                <>
-                                  <FontAwesomeIcon icon={faPlay} className="me-1" />
-                                  Continue Learning
-                                  <FontAwesomeIcon icon={faArrowRight} className="ms-2" />
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+              {/* Exam Info Summary */}
+              {isFormValid() && (
+                <div className={`mt-6 p-4 rounded-xl ${isDarkMode ? "bg-slate-700/50 border border-slate-600" : "bg-[#F8FAFC] border border-slate-200"}`}>
+                  <h5 className="flex items-center gap-2 font-semibold mb-3">
+                    <FileText size={18} className="text-[#00A0E3]" />
+                    Exam Summary
+                  </h5>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className={`text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Total Duration</span>
+                      <span className="block font-bold text-lg">{examDurationMinutes} min</span>
+                    </div>
+                    <div>
+                      <span className={`text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Chapters Selected</span>
+                      <span className="block font-bold text-lg">{selectedChapters.length}</span>
+                    </div>
+                  </div>
                 </div>
               )}
-            </Card.Body>
-          </Card>
-        </Container>
+
+              {/* Error Display */}
+              {apiError && (
+                <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-red-50 text-red-700 border border-red-200">
+                  <AlertTriangle size={16} />
+                  {apiError}
+                </div>
+              )}
+
+              {/* Start Exam Button */}
+              <div className="mt-6 flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleStartExam}
+                  disabled={!isFormValid() || isLoading}
+                  className="flex items-center gap-2 px-8 py-3 rounded-xl font-semibold text-white bg-[#00A0E3] hover:bg-[#0080B8] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Generating Questions...
+                    </>
+                  ) : (
+                    <>
+                      <Rocket size={18} />
+                      Start Exam
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Previous Learning Journeys Section */}
+          <div className={`rounded-2xl shadow-lg p-6 ${isDarkMode ? "bg-slate-800 border border-slate-700" : "bg-white border border-slate-200"}`}>
+            <h4 className="flex items-center gap-2 font-bold text-lg mb-4">
+              <History size={20} className="text-[#00A0E3]" />
+              Previous Learning Journeys
+            </h4>
+
+            {isLoadingLearningPath ? (
+              <div className="text-center py-8">
+                <Loader2 size={32} className="animate-spin text-[#00A0E3] mx-auto" />
+                <p className={`mt-3 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Loading your learning history...</p>
+              </div>
+            ) : learningPathList.length === 0 ? (
+              <div className="text-center py-8">
+                <ClipboardList size={48} className={`mx-auto mb-3 ${isDarkMode ? "text-slate-600" : "text-slate-300"}`} />
+                <p className={isDarkMode ? "text-slate-400" : "text-slate-500"}>No previous exams found. Start your first exam above!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {learningPathList.map((exam) => {
+                  const scorePercentage = calculateScorePercentage(exam.obtained_marks, exam.total_marks);
+                  const isItemLoading = loadingJourneyId === exam.exam_id;
+                  const hasLearningPath = exam.plan_created && exam.plan_id;
+                  return (
+                    <div
+                      key={exam.exam_id}
+                      className={`relative rounded-xl p-4 border-2 transition-all ${
+                        hasLearningPath
+                          ? `cursor-pointer hover:shadow-md ${isDarkMode ? "border-slate-600 hover:border-[#00A0E3]" : "border-slate-200 hover:border-[#00A0E3]"}`
+                          : `opacity-60 ${isDarkMode ? "border-slate-700" : "border-slate-200"}`
+                      } ${isDarkMode ? "bg-slate-700/50" : "bg-[#F8FAFC]"} ${isItemLoading ? "opacity-50" : ""}`}
+                      onClick={() => !isItemLoading && handleJourneyClick(exam)}
+                      role={hasLearningPath ? "button" : undefined}
+                      tabIndex={hasLearningPath ? 0 : undefined}
+                      onKeyDown={(e) => {
+                        if (hasLearningPath && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          handleJourneyClick(exam);
+                        }
+                      }}
+                    >
+                      {isItemLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-xl z-10">
+                          <Loader2 size={24} className="animate-spin text-[#00A0E3]" />
+                          <span className="ml-2 font-medium">Loading learning path...</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold">Exam #{exam.exam_id}</span>
+                          <span className={`flex items-center gap-1 text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+                            <Clock size={12} />
+                            {formatDate(exam.submitted_at)}
+                          </span>
+                        </div>
+                        <div>
+                          {exam.plan_created ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                              <CheckCircle size={12} />
+                              Plan Created
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                              <XCircle size={12} />
+                              No Plan
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div>
+                          <span className={`block text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Class</span>
+                          <span className="font-semibold">{exam.class_code}</span>
+                        </div>
+                        <div>
+                          <span className={`block text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Subject</span>
+                          <span className="font-semibold">{exam.subject_code}</span>
+                        </div>
+                        <div>
+                          <span className={`block text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Questions</span>
+                          <span className="font-semibold">{exam.total_questions}</span>
+                        </div>
+                        <div>
+                          <span className={`block text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Score</span>
+                          <span className={`font-semibold flex items-center gap-1 ${
+                            scorePercentage >= 70 ? "text-green-500" : scorePercentage >= 40 ? "text-amber-500" : "text-red-500"
+                          }`}>
+                            <Trophy size={14} />
+                            {exam.obtained_marks}/{exam.total_marks} ({scorePercentage}%)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={`mt-2 text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+                        <span className="font-medium">Topics: </span>
+                        {exam.topic_ids.join(", ")}
+                      </div>
+
+                      {hasLearningPath && (
+                        <div className="mt-3 flex justify-end">
+                          <button
+                            type="button"
+                            disabled={isItemLoading}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleJourneyClick(exam);
+                            }}
+                          >
+                            {isItemLoading ? (
+                              <>
+                                <Loader2 size={14} className="animate-spin" />
+                                Loading...
+                              </>
+                            ) : (
+                              <>
+                                <Play size={14} />
+                                Continue Learning
+                                <ArrowRight size={14} />
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </>
   );

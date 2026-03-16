@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import { AuthContext } from './AuthContext';
 import CameraCapture from './CameraCapture';
-import './HomeworkSubmissionForm.css';
 import MarkdownWithMath from './MarkdownWithMath';
 import { getImageSrc } from '../utils/imageUtils';
 
@@ -25,11 +24,7 @@ const HomeworkSubmissionForm = () => {
       try {
         // Get homework details from location state (passed from notification)
         const notificationId = location.state?.notificationId;
-      
-        // Get homework code from either state or URL query parameters
-        // const homeworkCode = location.state?.homeworkCode || new URLSearchParams(location.search).get('code');
 
-        
         const response = await axiosInstance.get(`/notification-data/?notification_id=${notificationId}`);
         console.log("homework-details",response.data)
 
@@ -41,21 +36,7 @@ const HomeworkSubmissionForm = () => {
 
         const homeworkCode = response.data.homework.homework_code;
         console.log("Homework_Code", homeworkCode)
-       
-
-        // If homework details are passed directly, use them
-        // if (homeworkDetails) {
-        //   console.log("Using homework details from navigation state:", homeworkDetails);
-        //   setAssignment(homeworkDetails);
-        //  }
-        //  else {
-        //   // Otherwise fetch the details using the homework code
-        //   console.log("Fetching homework details for code:", homeworkCode);
-        //   const response = await axiosInstance.get(`/homework/${homeworkCode}/`);
-        //   setAssignment(response.data);
-        // }
       } catch (error) {
-        // setError(error.response?.data?.message || "Failed to fetch assignment details");
         console.error("Error fetching assignment:", error);
       }
     };
@@ -108,9 +89,9 @@ const HomeworkSubmissionForm = () => {
   // Check if user is loaded
   if (!username) {
     return (
-      <div className="submission-form-container">
-        <div className="submission-card">
-          <div className="loading-state">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="text-center text-gray-500">
             <div>Please log in to submit homework</div>
           </div>
         </div>
@@ -121,13 +102,13 @@ const HomeworkSubmissionForm = () => {
   // Check if assignment is loaded
   if (!assignment) {
     return (
-      <div className="submission-form-container">
-        <div className="submission-card">
-          <div className="loading-state">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="text-center">
             {error ? (
-              <div className="error-message">{error}</div>
+              <div className="text-red-600">{error}</div>
             ) : (
-              <div>Loading assignment details...</div>
+              <div className="text-gray-500">Loading assignment details...</div>
             )}
           </div>
         </div>
@@ -200,10 +181,10 @@ const HomeworkSubmissionForm = () => {
   const isOverdue = assignment.due_date ? (new Date() > new Date(assignment.due_date)) : false;
 
   return (
-    <div className="submission-form-container">
-      <div className="submission-card1">
-        <div className="card-header">
-          <div className="header-icon">
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="flex items-center gap-3 p-6 border-b border-gray-100">
+          <div className="text-[#00A0E3]">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14,2 14,8 20,8" />
@@ -212,34 +193,34 @@ const HomeworkSubmissionForm = () => {
             </svg>
           </div>
           <div>
-            <h2 className="card-title">Submit Homework</h2>
-            <p className="card-description">Submit your response for the assignment</p>
+            <h2 className="text-xl font-bold text-[#0B1120]">Submit Homework</h2>
+            <p className="text-sm text-gray-500">Submit your response for the assignment</p>
           </div>
         </div>
 
-        <div className="card-content">
+        <div className="p-6 space-y-6">
           {/* Assignment Details */}
-          <div className="assignment-details">
-            <h3 className="assignment-title">{assignment.title || 'Untitled Homework'}</h3>
+          <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+            <h3 className="text-lg font-semibold text-[#0B1120]">{assignment.title || 'Untitled Homework'}</h3>
 
             {assignment.questions && assignment.questions.map((question, index) => {
               return (
-                <div key={index} className="assignment-question">
-                  <h4 className="question-title">Question {index + 1}</h4>
-                  <div className="question-text"><MarkdownWithMath content={question.question} /></div>
+                <div key={index} className="bg-white rounded-lg p-3 border border-gray-200">
+                  <h4 className="text-sm font-semibold text-[#00A0E3] mb-1">Question {index + 1}</h4>
+                  <div className="text-sm text-gray-700"><MarkdownWithMath content={question.question} /></div>
 
                   {question.image && (
                     <img
                       src={getImageSrc(question.image)}
                       alt={`Question ${index + 1}`}
-                      className="question-image"
+                      className="mt-2 max-w-full rounded-lg max-h-48 object-contain"
                     />
                   )}
                 </div>
               );
             })}
-            <div className="assignment-meta">
-              <div className="meta-item">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                   <line x1="16" y1="2" x2="16" y2="6" />
@@ -251,7 +232,7 @@ const HomeworkSubmissionForm = () => {
                   <> at {new Date(assignment.due_date).toLocaleTimeString()}</>
                 )}
               </div>
-              <div className="meta-item">
+              <div className="flex items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
@@ -260,7 +241,7 @@ const HomeworkSubmissionForm = () => {
               </div>
             </div>
             {isOverdue && (
-              <div className="overdue-warning">
+              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-sm">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
@@ -272,24 +253,24 @@ const HomeworkSubmissionForm = () => {
           </div>
 
           {/* Submission Form */}
-          <form onSubmit={handleSubmit} className="submission-form">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="error-message">
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                 {error}
               </div>
             )}
             {success && (
-              <div className="success-message">
+              <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
                 {success}
               </div>
             )}
 
-            <div className="form-group">
-              <label className="form-label">Image Source</label>
-              <div className="type-buttons">
+            <div>
+              <label className="block text-sm font-medium text-[#0B1120] mb-2">Image Source</label>
+              <div className="flex gap-2">
                 <button
                   type="button"
-                  className={`type-btn ${imageSourceType === "upload" ? 'active' : ''}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${imageSourceType === "upload" ? 'bg-[#00A0E3] text-white border-[#00A0E3]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#00A0E3]'}`}
                   onClick={() => setImageSourceType("upload")}
                   disabled={isSubmitting}
                 >
@@ -302,7 +283,7 @@ const HomeworkSubmissionForm = () => {
                 </button>
                 <button
                   type="button"
-                  className={`type-btn ${imageSourceType === "camera" ? 'active' : ''}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${imageSourceType === "camera" ? 'bg-[#00A0E3] text-white border-[#00A0E3]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#00A0E3]'}`}
                   onClick={() => setImageSourceType("camera")}
                   disabled={isSubmitting}
                 >
@@ -316,38 +297,36 @@ const HomeworkSubmissionForm = () => {
             </div>
 
             {imageSourceType === "upload" ? (
-              <div className="form-group">
-                <label htmlFor="image-response1" className="form-label">Upload Your Response Images</label>
+              <div>
+                <label htmlFor="image-response1" className="block text-sm font-medium text-[#0B1120] mb-2">Upload Your Response Images</label>
                 <input
                   id="image-response1"
                   type="file"
-                  className="form-input file-input1"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-[#00A0E3] file:text-white file:text-sm file:cursor-pointer"
                   accept="image/*"
-                  multiple // Enable multiple file selection
+                  multiple
                   onChange={handleImageChange}
                   disabled={isSubmitting}
                 />
-                <p className="form-text-muted">
+                <p className="mt-1 text-xs text-gray-400">
                   Maximum file size: 5MB per image. You can select multiple images.
                 </p>
               </div>
             ) : (
-              <div className="form-group">
-                <label className="form-label">Capture Your Response Images</label>
-                <div className="camera-capture-container">
+              <div>
+                <label className="block text-sm font-medium text-[#0B1120] mb-2">Capture Your Response Images</label>
+                <div>
                   <CameraCapture
                     onImageCapture={handleCapturedImage}
                     videoConstraints={{
                       facingMode: { ideal: "environment" },
-                      // For text documents, use higher resolution
                       width: { ideal: 4096 },
                       height: { ideal: 3072 },
-                      // Additional constraints for clarity
                       focusMode: { ideal: "continuous" },
                       exposureMode: { ideal: "continuous" }
                     }}
                   />
-                  <p className="form-text-muted">
+                  <p className="mt-2 text-xs text-gray-400">
                     Click "Capture" to take photos of your homework response. You can capture multiple images.
                   </p>
                 </div>
@@ -356,16 +335,16 @@ const HomeworkSubmissionForm = () => {
 
             {/* Upload Progress Bar */}
             {isSubmitting && uploadProgress > 0 && (
-              <div className="upload-progress">
-                <div className="progress-bar-container">
+              <div className="space-y-2">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                   <div
-                    className="progress-bar"
+                    className="bg-[#00A0E3] h-full rounded-full transition-all text-[10px] text-white text-center leading-3"
                     style={{ width: `${uploadProgress}%` }}
                   >
                     {uploadProgress}%
                   </div>
                 </div>
-                <p className="progress-text">
+                <p className="text-xs text-gray-500">
                   Uploading images... Please don't close this page.
                 </p>
               </div>
@@ -373,38 +352,38 @@ const HomeworkSubmissionForm = () => {
 
             {/* Image Previews */}
             {imageFiles.length > 0 && (
-              <div className="uploaded-images">
-                <div className="images-header">
-                  <h6>Uploaded Images ({imageFiles.length})</h6>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h6 className="text-sm font-semibold text-[#0B1120]">Uploaded Images ({imageFiles.length})</h6>
                   <button
                     type="button"
-                    className="clear-all-btn"
+                    className="text-xs text-red-500 hover:text-red-700 font-medium"
                     onClick={handleClearAllImages}
                     disabled={isSubmitting}
                   >
                     Clear All
                   </button>
                 </div>
-                <div className="images-grid">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {imageFiles.map((image, index) => (
-                    <div key={index} className="image-preview-container">
+                    <div key={index} className="relative group">
                       <img
                         src={URL.createObjectURL(image)}
                         alt={`Preview ${index + 1}`}
-                        className="preview-image"
+                        className="w-full h-28 object-cover rounded-lg border border-gray-200"
                       />
                       <button
                         type="button"
-                        className="remove-image-btn"
+                        className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleCancelImage(index)}
                         disabled={isSubmitting}
                         aria-label="Remove image"
                       >
-                        ×
+                        &times;
                       </button>
-                      <div className="image-info">
-                        <span className="image-name">{image.name}</span>
-                        <span className="image-size">
+                      <div className="mt-1 text-[10px] text-gray-400 truncate">
+                        <span>{image.name}</span>
+                        <span className="ml-1">
                           {(image.size / 1024 / 1024).toFixed(2)} MB
                         </span>
                       </div>
@@ -414,10 +393,10 @@ const HomeworkSubmissionForm = () => {
               </div>
             )}
 
-            <div className="form-actions">
+            <div>
               <button
                 type="submit"
-                className="submit-btn"
+                className="w-full bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg px-4 py-3 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmitting || imageFiles.length === 0}
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Homework'}
@@ -430,4 +409,4 @@ const HomeworkSubmissionForm = () => {
   );
 };
 
-export default HomeworkSubmissionForm; 
+export default HomeworkSubmissionForm;

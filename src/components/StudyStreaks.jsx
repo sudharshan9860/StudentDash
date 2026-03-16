@@ -1,20 +1,19 @@
 // StudyStreaks.jsx - Sidebar Version
 import React, { useState, useEffect } from 'react';
-import './StudyStreaks.css';
+import { Flame } from 'lucide-react';
 
 const StudyStreaks = () => {
   const [streakData, setStreakData] = useState([]);
 
   useEffect(() => {
-    // Generate streak data for the current week
     const generateStreakData = () => {
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
       const today = new Date();
-      const currentDay = today.getDay() === 0 ? 6 : today.getDay() - 1; // Convert Sunday to 6, Monday to 0
+      const currentDay = today.getDay() === 0 ? 6 : today.getDay() - 1;
 
       return days.map((day, index) => ({
         day,
-        hasStudied: index <= currentDay && Math.random() > 0.3, // Simulate study activity
+        hasStudied: index <= currentDay && Math.random() > 0.3,
         isToday: index === currentDay,
         isFuture: index > currentDay
       }));
@@ -36,48 +35,56 @@ const StudyStreaks = () => {
   };
 
   return (
-    <div className="study-streaks-sidebar">
-      <div className="streaks-header">
-        <div className="streak-icon">🔥</div>
-        <div className="streak-info">
-          <div className="streak-number">{getStreakCount()}</div>
-          <div className="streak-label">Day Streak</div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-3">
+        <Flame className="w-6 h-6 text-orange-500" />
+        <div>
+          <div className="text-xl font-bold text-[#0B1120]">{getStreakCount()}</div>
+          <div className="text-xs text-gray-500">Day Streak</div>
         </div>
       </div>
 
-      <div className="streak-calendar-sidebar">
+      {/* Calendar */}
+      <div className="flex items-center justify-between gap-1">
         {streakData.map((dayData, index) => (
-          <div 
-            key={index} 
-            className={`streak-day-sidebar ${dayData.hasStudied ? 'completed' : ''} 
-                       ${dayData.isToday ? 'today' : ''} 
-                       ${dayData.isFuture ? 'future' : ''}`}
-          >
-            <div className="day-label-sidebar">{dayData.day}</div>
-            <div className="day-indicator-sidebar">
+          <div key={index} className="flex flex-col items-center gap-1">
+            <span className="text-[0.65rem] font-medium text-gray-400">{dayData.day}</span>
+            <div
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-sm ${
+                dayData.hasStudied && !dayData.isFuture
+                  ? 'bg-orange-100'
+                  : dayData.isToday
+                  ? 'bg-blue-100'
+                  : dayData.isFuture
+                  ? 'bg-gray-50'
+                  : 'bg-red-50'
+              }`}
+            >
               {dayData.hasStudied && !dayData.isFuture ? (
-                <div className="flame-icon-sidebar">🔥</div>
+                <Flame className="w-3.5 h-3.5 text-orange-500" />
               ) : dayData.isToday ? (
-                <div className="today-icon-sidebar">📅</div>
+                <span className="text-xs text-[#00A0E3] font-bold">T</span>
               ) : dayData.isFuture ? (
-                <div className="future-icon-sidebar">⚪</div>
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
               ) : (
-                <div className="missed-icon-sidebar">⭕</div>
+                <span className="w-1.5 h-1.5 rounded-full bg-red-300" />
               )}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="streak-message-sidebar">
+      {/* Streak message */}
+      <div className="mt-3 text-center">
         {getStreakCount() >= 5 ? (
-          <span className="streak-achievement-sidebar">🎉 Amazing streak!</span>
+          <span className="text-xs font-medium text-green-600">Amazing streak!</span>
         ) : getStreakCount() >= 3 ? (
-          <span className="streak-good-sidebar">💪 Keep it up!</span>
+          <span className="text-xs font-medium text-[#00A0E3]">Keep it up!</span>
         ) : getStreakCount() >= 1 ? (
-          <span className="streak-start-sidebar">🌟 Good start!</span>
+          <span className="text-xs font-medium text-yellow-600">Good start!</span>
         ) : (
-          <span className="streak-encourage-sidebar">🚀 Start today!</span>
+          <span className="text-xs font-medium text-gray-500">Start today!</span>
         )}
       </div>
     </div>

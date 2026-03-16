@@ -1,54 +1,37 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import "katex/dist/katex.min.css";
-import { Form, Button, Row, Col, Container } from "react-bootstrap";
-import "./StudentDash.css";
+import { useNavigate, useLocation } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import QuestionListModal from "./QuestionListModal";
 import Select from "react-select";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AuthContext } from "./AuthContext";
 import { useAlert } from "./AlertBox";
 import StudentWizard from "./StudentWizard";
 import { useJeeMode } from "../contexts/JeeModeContext";
-import { useNavigate, useLocation } from "react-router-dom";
 import {
-  faSchool,
-  faBookOpen,
-  faListAlt,
-  faClipboardQuestion,
-  faQuestionCircle,
-  faRocket,
-  faGraduationCap,
-  faBrain,
-  faLightbulb,
-  faBars,
-  faTimes,
-  faSun,
-  faMoon,
-  faFire,
-  faTrophy,
-  faMagic,
-  faStar,
-  faChartLine,
-  faCalendarAlt,
-  faUsers,
-  faBookmark,
-} from "@fortawesome/free-solid-svg-icons";
+  BookOpen,
+  List,
+  ClipboardList,
+  HelpCircle,
+  Rocket,
+  Sun,
+  Moon,
+  Calendar,
+} from "lucide-react";
 import UnifiedSessions from "./UnifiedSessions";
 import StreakTracker from "./StreakTracker";
 import LiveNotifications from "./LiveNotifications";
 import Tutorial from "./Tutorial";
 import { useTutorial } from "../contexts/TutorialContext";
 import FeedbackBox from "./FeedbackBox";
-
-import ProgressGraph from "./ProgressGraph";
+// import QuizScoreGraph from "./QuizScoreGraph";
 
 function StudentDash({ jeeMode = false }) {
   const navigate = useNavigate();
   const { username, fullName, role } = useContext(AuthContext);
   const { showAlert, AlertContainer } = useAlert();
 
-  const location = useLocation(); // add import if not present
+  const location = useLocation();
   const prefillData = location.state?.prefill || null;
 
   // Tutorial context
@@ -62,8 +45,6 @@ function StudentDash({ jeeMode = false }) {
     completedPages,
   } = useTutorial();
 
-  // Mascot context - removed to prevent multiple WebGL contexts
-
   // Dark mode state with improved persistence
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem("darkMode") === "true";
@@ -75,7 +56,7 @@ function StudentDash({ jeeMode = false }) {
   const [chapters, setChapters] = useState([]);
   const [subTopics, setSubTopics] = useState([]);
   const [worksheets, setWorksheets] = useState([]);
-  const [jeeSubtopics, setJeeSubtopics] = useState([]); // For JEE Mathematics subtopics
+  const [jeeSubtopics, setJeeSubtopics] = useState([]);
 
   // State for selections with smart defaults
   const [selectedClass, setSelectedClass] = useState("");
@@ -105,70 +86,52 @@ function StudentDash({ jeeMode = false }) {
   const [lastSession, setLastSession] = useState(null);
   const [canResume, setCanResume] = useState(false);
 
-  // Trial Modal is now in Layout.jsx
-
   // Feedback Modal state (auto-show after 3 mins of app usage, only once)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   // Extract class from username (e.g., 10HPS24 -> 10, 12ABC24 -> 12)
   const extractClassFromUsername = (username) => {
     if (!username) return "";
-
     const firstTwo = username.substring(0, 2);
-    if (!isNaN(firstTwo)) {
-      return firstTwo; // ✅ both are digits
-    }
-
+    if (!isNaN(firstTwo)) return firstTwo;
     const firstOne = username.charAt(0);
-    if (!isNaN(firstOne)) {
-      return firstOne; // ✅ only first is digit
-    }
-
-    return ""; // ❌ no digits at the start
+    if (!isNaN(firstOne)) return firstOne;
+    return "";
   };
 
-  // Enhanced time-based greeting with more personalization
+  // Enhanced time-based greeting
   const getTimeBasedGreeting = () => {
     const currentHour = new Date().getHours();
-    if (currentHour >= 0 && currentHour < 6) {
-      return "Good Night";
-    } else if (currentHour >= 6 && currentHour < 12) {
-      return "Good Morning";
-    } else if (currentHour >= 12 && currentHour < 17) {
-      return "Good Afternoon";
-    } else if (currentHour >= 17 && currentHour < 21) {
-      return "Good Evening";
-    } else {
-      return "Good Night";
-    }
+    if (currentHour >= 0 && currentHour < 6) return "Good Night";
+    else if (currentHour >= 6 && currentHour < 12) return "Good Morning";
+    else if (currentHour >= 12 && currentHour < 17) return "Good Afternoon";
+    else if (currentHour >= 17 && currentHour < 21) return "Good Evening";
+    else return "Good Night";
   };
 
   // Get motivational message based on time
   const getMotivationalMessage = () => {
     const messages = [
-      "Ready to unlock your mathematical genius today? Let's dive into some exciting problem-solving! 🚀",
-      "Time to explore the fascinating world of mathematics! Every problem is a new adventure waiting to be solved! ✨",
-      "Mathematics is the language of the universe - let's learn to speak it fluently! 🌟",
-      "Today's learning journey begins with a single step. Let's make it count! 💪",
-      "Ready to turn complex problems into simple solutions? Your mathematical journey awaits! 🎯",
+      "Ready to sharpen your skills? Pick a chapter and start solving.",
+      "Every problem solved is a step closer to mastery.",
+      "Consistency beats intensity. Keep the streak going.",
+      "Small progress is still progress. Let's get started.",
+      "Your future self will thank you for today's effort.",
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
 
-  // Toggle dark mode with smooth transition - dispatches custom event
+  // Toggle dark mode - dispatches custom event
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
     localStorage.setItem("darkMode", newMode.toString());
     document.body.classList.toggle("dark-mode", newMode);
-
-    // Dispatch custom event for other components to listen
     window.dispatchEvent(
-      new CustomEvent("darkModeChange", {
-        detail: { isDarkMode: newMode },
-      }),
+      new CustomEvent("darkModeChange", { detail: { isDarkMode: newMode } }),
     );
   };
+
   const tutorialSteps = [
     {
       target: ".greeting-content",
@@ -203,9 +166,7 @@ function StudentDash({ jeeMode = false }) {
     },
   ];
 
-  // Handle tutorial completion for StudentDash
   const handleTutorialComplete = () => {
-    // console.log("StudentDash tutorial completed");
     // Don't mark as complete yet - will continue to next page when user clicks generate
   };
 
@@ -228,35 +189,25 @@ function StudentDash({ jeeMode = false }) {
     if (role === "student" && username) {
       const feedbackShownKey = `feedback_auto_shown_${username}`;
       const alreadyShown = localStorage.getItem(feedbackShownKey);
-
-      // If already shown before, don't set timer
       if (alreadyShown === "true") {
         console.log("📝 Feedback already shown before, skipping auto-show");
         return;
       }
-
       console.log("⏱️ Starting 3-minute timer for feedback modal...");
-
-      // Set 3-minute timer (180000ms)
       const timer = setTimeout(
         () => {
           console.log("✅ 3 minutes passed, showing feedback modal");
           setShowFeedbackModal(true);
-          // Mark as shown in localStorage - will never auto-show again
           localStorage.setItem(feedbackShownKey, "true");
         },
         3 * 60 * 1000,
-      ); // 3 minutes
-
-      // Cleanup timer on unmount
+      );
       return () => {
         clearTimeout(timer);
         console.log("🧹 Feedback timer cleared");
       };
     }
   }, [role, username]);
-
-  // Mascot animation handled in SolveQuestion and ResultPage only
 
   // Load last session on component mount
   useEffect(() => {
@@ -265,11 +216,9 @@ function StudentDash({ jeeMode = false }) {
         const savedSession = localStorage.getItem(`lastSession_${username}`);
         if (savedSession) {
           const sessionData = JSON.parse(savedSession);
-          // Check if session is recent (within last 7 days)
           const sessionDate = new Date(sessionData.timestamp);
           const daysSinceSession =
             (new Date() - sessionDate) / (1000 * 60 * 60 * 24);
-
           if (
             daysSinceSession <= 7 &&
             sessionData.questionList &&
@@ -279,7 +228,6 @@ function StudentDash({ jeeMode = false }) {
             setCanResume(true);
             console.log("✅ Last session loaded:", sessionData);
           } else {
-            // Session too old or invalid, clear it
             localStorage.removeItem(`lastSession_${username}`);
           }
         }
@@ -287,10 +235,7 @@ function StudentDash({ jeeMode = false }) {
         console.error("Error loading last session:", error);
       }
     };
-
-    if (username) {
-      loadLastSession();
-    }
+    if (username) loadLastSession();
   }, [username]);
 
   // Helper function to check if selected subject is Science
@@ -305,8 +250,6 @@ function StudentDash({ jeeMode = false }) {
     if (!selectedSubject) return false;
     const subject = subjects.find((s) => s.subject_code === selectedSubject);
     const subjectName = subject?.subject_name?.toLowerCase() || "";
-
-    // Check if subject name contains JEE indicators
     return (
       subjectName.includes("jee") ||
       subjectName.includes("mathematics_mains") ||
@@ -342,7 +285,6 @@ function StudentDash({ jeeMode = false }) {
   ];
 
   const getQuestionTypeOptions = () => {
-    // For Science subjects - existing logic
     if (isScienceSubject()) {
       if (scienceSubtopics.length > 0) {
         return QUESTION_TYPE_MAPPING.filter((type) =>
@@ -351,16 +293,12 @@ function StudentDash({ jeeMode = false }) {
       }
       return QUESTION_TYPE_MAPPING;
     }
-
-    // For JEE Mains/Advanced subjects - MCQ/NVTQ/Theorem
     if (isJEEMainsAdvancedSubject()) {
       console.log(
         "🎯 JEE Mains/Advanced Subject detected! Showing MCQ/NVTQ/Theorem options",
       );
       return JEE_SUBTOPIC_MAPPING;
     }
-
-    // For JEE Traditional subjects (Physics, Mathematics, Mathematics_1) - Board-like flow
     if (isJEETraditionalSubject()) {
       console.log(
         "📚 JEE Traditional Subject detected! Showing Solved/Exercise/Worksheet options",
@@ -371,8 +309,6 @@ function StudentDash({ jeeMode = false }) {
         { value: "worksheets", label: "Take it to next level with Worksheets" },
       ];
     }
-
-    // For other subjects - existing logic
     return [
       { value: "solved", label: "Solved Examples" },
       { value: "external", label: "Book Exercises" },
@@ -380,13 +316,11 @@ function StudentDash({ jeeMode = false }) {
     ];
   };
 
-  // Helper function to check if selected subject is JEE Mains/Advanced (MCQ/NVTQ/Theorem flow)
+  // Helper function to check if selected subject is JEE Mains/Advanced
   const isJEEMainsAdvancedSubject = () => {
     if (!selectedSubject || !subjects.length) return false;
     const subject = subjects.find((s) => s.subject_code === selectedSubject);
     const subjectName = subject?.subject_name?.toLowerCase() || "";
-
-    // Only JEE Mathematics Mains and Advanced use MCQ/NVTQ/Theorem
     return (
       subjectName.includes("mathematics_mains") ||
       subjectName.includes("mathematics_advanced") ||
@@ -395,13 +329,11 @@ function StudentDash({ jeeMode = false }) {
     );
   };
 
-  // Helper function to check if subject is JEE but uses traditional flow (Solved/Exercise/Worksheet)
+  // Helper function to check if subject is JEE but uses traditional flow
   const isJEETraditionalSubject = () => {
     if (!selectedSubject || !subjects.length) return false;
     const subject = subjects.find((s) => s.subject_code === selectedSubject);
     const subjectName = subject?.subject_name?.toLowerCase() || "";
-
-    // JEE Physics, JEE_Mathematics, JEE_Mathematics_1 use traditional flow
     return (
       (subjectName.includes("jee") &&
         !subjectName.includes("mathematics_mains") &&
@@ -419,14 +351,13 @@ function StudentDash({ jeeMode = false }) {
       setQuestionLevel("");
       setSelectedWorksheet("");
       setScienceSubtopics([]);
-      setJeeSubtopics([]); // Add this line
+      setJeeSubtopics([]);
     }
   }, [selectedSubject]);
 
   // Fetch available subtopics for Science OR JEE subjects when selected with chapters
   useEffect(() => {
     async function fetchSubtopics() {
-      // Handle Science subjects (EXISTING - NO CHANGE)
       if (
         isScienceSubject() &&
         selectedClass &&
@@ -444,7 +375,6 @@ function StudentDash({ jeeMode = false }) {
               external: true,
             },
           );
-
           if (response.data && response.data.subtopics) {
             setScienceSubtopics(response.data.subtopics);
             console.log(
@@ -458,9 +388,7 @@ function StudentDash({ jeeMode = false }) {
           console.error("❌ Error fetching Science subtopics:", error);
           setScienceSubtopics([]);
         }
-      }
-      // Handle JEE Mains/Advanced subjects (NEW - MCQ/NVTQ/Theorem)
-      else if (
+      } else if (
         isJEEMainsAdvancedSubject() &&
         selectedClass &&
         selectedSubject &&
@@ -477,7 +405,6 @@ function StudentDash({ jeeMode = false }) {
               external: true,
             },
           );
-
           if (response.data && response.data.subtopics) {
             setJeeSubtopics(response.data.subtopics);
             console.log("✅ Available JEE subtopics:", response.data.subtopics);
@@ -488,9 +415,7 @@ function StudentDash({ jeeMode = false }) {
           console.error("❌ Error fetching JEE subtopics:", error);
           setJeeSubtopics([]);
         }
-      }
-      // Handle JEE Traditional subjects (NEW - fetch subtopics for external only)
-      else if (
+      } else if (
         isJEETraditionalSubject() &&
         questionType === "external" &&
         selectedClass &&
@@ -513,18 +438,15 @@ function StudentDash({ jeeMode = false }) {
           console.error("❌ Error fetching subtopics:", error);
           setSubTopics([]);
         }
-      }
-      // Clear all if none match
-      else {
+      } else {
         setScienceSubtopics([]);
         setJeeSubtopics([]);
       }
     }
     fetchSubtopics();
-  }, [selectedClass, selectedSubject, selectedChapters, questionType]); // Added questionType dependency
+  }, [selectedClass, selectedSubject, selectedChapters, questionType]);
 
   const isGenerateButtonEnabled = () => {
-    // Base requirements — must always be true
     if (
       !selectedClass ||
       !selectedSubject ||
@@ -533,41 +455,23 @@ function StudentDash({ jeeMode = false }) {
     ) {
       return false;
     }
-
-    // JEE Mains/Advanced: needs a valid subtopic loaded
     if (isJEEMainsAdvancedSubject()) {
       const validTypes = ["mcq", "nvtq", "theorem"];
       return validTypes.includes(questionType) && jeeSubtopics.length > 0;
     }
-
-    // Book Exercises: needs a subtopic/set selected
-    if (questionType === "external") {
-      return !!questionLevel;
-    }
-
-    // Worksheets: needs a worksheet selected
-    if (questionType === "worksheets") {
-      return !!selectedWorksheet;
-    }
-
-    // All other cases (solved, science subtopic, etc.)
+    if (questionType === "external") return !!questionLevel;
+    if (questionType === "worksheets") return !!selectedWorksheet;
     return true;
   };
 
-  // Fetch classes and set defaults with debugging
+  // Fetch classes and set defaults
   useEffect(() => {
     async function fetchData() {
       try {
-        // console.log("🔍 Fetching classes...");
         const classResponse = await axiosInstance.get("/classes/");
-        // console.log("📋 Classes API Response:", classResponse.data);
         const classesData = classResponse.data.data;
-
-        // Filter classes based on mode
         let filteredClasses = classesData;
-
         if (isJeeMode) {
-          // JEE Mode: Only classes 11 and 12
           filteredClasses = classesData.filter((cls) => {
             const className = cls.class_name.toLowerCase();
             return className.includes("11") || className.includes("12");
@@ -577,29 +481,21 @@ function StudentDash({ jeeMode = false }) {
             filteredClasses.map((c) => c.class_name),
           );
         } else {
-          // Board Mode: All classes
           console.log(
             "📚 Board Mode - Classes:",
             filteredClasses.map((c) => c.class_name),
           );
         }
         setClasses(filteredClasses);
-
-        // Set default class based on username
         const defaultClass = extractClassFromUsername(username);
-        // console.log("👤 Username:", username, "Extracted Class:", defaultClass);
-
         if (defaultClass) {
           const matchingClass = classesData.find(
             (cls) =>
               cls.class_name.includes(defaultClass) ||
               cls.class_code === defaultClass,
           );
-          // console.log("🎯 Matching class found:", matchingClass);
-
           if (matchingClass) {
             setSelectedClass(matchingClass.class_code);
-            // console.log("✅ Auto-selected class:", matchingClass.class_code);
           }
         }
       } catch (error) {
@@ -609,31 +505,20 @@ function StudentDash({ jeeMode = false }) {
     fetchData();
   }, [username, isJeeMode]);
 
-  // Fetch subjects and set default with enhanced debugging
+  // Fetch subjects and set default
   useEffect(() => {
     async function fetchSubjects() {
       if (selectedClass) {
         try {
-          // console.log("🔍 Fetching subjects for class:", selectedClass);
-
           const subjectResponse = await axiosInstance.post("/subjects/", {
             class_id: selectedClass,
           });
-
-          // console.log("📚 Subjects API Response:", subjectResponse.data);
-
           const subjectsData = subjectResponse.data.data;
-
-          // Filter subjects based on mode
           let filteredSubjects = subjectsData;
-
-          // Check if selected class is 8, 9, or 10 (for JEE Foundation)
           const isFoundationClass = ["8", "9", "10"].some((cls) =>
             selectedClass.toString().includes(cls),
           );
-
           if (isJeeMode) {
-            // JEE Mode: Only JEE subjects
             filteredSubjects = subjectsData.filter((subject) => {
               const sn = subject.subject_name.toLowerCase();
               return (
@@ -649,19 +534,15 @@ function StudentDash({ jeeMode = false }) {
               filteredSubjects.map((s) => s.subject_name),
             );
           } else {
-            // Board Mode: Exclude JEE subjects BUT include JEE Foundation for classes 8, 9, 10
             filteredSubjects = subjectsData.filter((subject) => {
               const sn = subject.subject_name.toLowerCase();
-
-              // Allow JEE Foundation subjects for classes 8, 9, 10
               if (
                 isFoundationClass &&
-                (sn.includes("jee_foundation") || sn.includes("jee foundation"))
+                (sn.includes("jee_foundation") ||
+                  sn.includes("jee foundation"))
               ) {
                 return true;
               }
-
-              // Exclude other JEE subjects
               return !(
                 sn.includes("jee") ||
                 sn.includes("mathematics_mains") ||
@@ -681,17 +562,13 @@ function StudentDash({ jeeMode = false }) {
               );
             }
           }
-
           setSubjects(filteredSubjects);
-
-          // Set default subject
           if (filteredSubjects.length > 0) {
             const mathSubject = filteredSubjects.find((subject) =>
               subject.subject_name.toLowerCase().includes("math"),
             );
             if (mathSubject) {
               setSelectedSubject(mathSubject.subject_code);
-              // Also reset downstream when auto-selecting
               setSelectedChapters([]);
               setQuestionType("");
               setQuestionLevel("");
@@ -704,8 +581,6 @@ function StudentDash({ jeeMode = false }) {
               setSelectedWorksheet("");
             }
           }
-
-          // Reset dependent fields
           setSelectedChapters([]);
           setQuestionType("");
           setQuestionLevel("");
@@ -720,41 +595,21 @@ function StudentDash({ jeeMode = false }) {
     fetchSubjects();
   }, [selectedClass, isJeeMode]);
 
-  // Fetch chapters with comprehensive debugging - FIXED
+  // Fetch chapters
   useEffect(() => {
     async function fetchChapters() {
       if (selectedSubject && selectedClass) {
         try {
-          // console.log("🔍 Fetching chapters with parameters:");
-          // console.log("   📖 Subject ID:", selectedSubject);
-          // console.log("   🏫 Class ID:", selectedClass);
-
           const chapterResponse = await axiosInstance.post("/chapters/", {
             subject_id: selectedSubject,
             class_id: selectedClass,
           });
-
-          // console.log("📚 Chapters API Response:", chapterResponse.data);
-          // console.log("📊 Response structure:", {
-          //   hasData: !!chapterResponse.data.data,
-          //   dataLength: chapterResponse.data.data?.length,
-          //   firstChapter: chapterResponse.data.data?.[0]
-          // });
-
           if (chapterResponse.data && chapterResponse.data.data) {
             setChapters(chapterResponse.data.data);
-            // console.log("✅ Chapters set successfully:", chapterResponse.data.data.length, "chapters");
-            // console.log("📝 First few chapters:", chapterResponse.data.data.slice(0, 3));
-
-            // Log the structure of chapters to verify field names
-            if (chapterResponse.data.data.length > 0) {
-              // console.log("🔍 Chapter structure:", Object.keys(chapterResponse.data.data[0]));
-            }
           } else {
             console.warn("⚠ No chapters data found in response");
             setChapters([]);
           }
-
           setSelectedChapters([]);
           setQuestionType("");
           setQuestionLevel("");
@@ -764,10 +619,6 @@ function StudentDash({ jeeMode = false }) {
           console.error("📄 Error details:", error.response?.data);
           setChapters([]);
         }
-      } else {
-        // console.log("⚠ Cannot fetch chapters - missing requirements:");
-        // console.log("   📖 Selected Subject:", selectedSubject);
-        // console.log("   🏫 Selected Class:", selectedClass);
       }
     }
     fetchChapters();
@@ -788,11 +639,10 @@ function StudentDash({ jeeMode = false }) {
             {
               classid: selectedClass,
               subjectid: selectedSubject,
-              topicid: selectedChapters[0], // Using first chapter for subtopics
+              topicid: selectedChapters[0],
               external: true,
             },
           );
-          // console.log("Subtopics response:", response);
           setSubTopics(response.data.subtopics || []);
         } catch (error) {
           console.error("Error fetching subtopics:", error);
@@ -818,11 +668,10 @@ function StudentDash({ jeeMode = false }) {
             {
               classid: selectedClass,
               subjectid: selectedSubject,
-              topicid: selectedChapters[0], // Using first chapter for worksheets
+              topicid: selectedChapters[0],
               worksheets: true,
             },
           );
-          // console.log("Worksheets response:", response);
           setWorksheets(response.data.worksheets || []);
         } catch (error) {
           console.error("Error fetching worksheets:", error);
@@ -833,12 +682,13 @@ function StudentDash({ jeeMode = false }) {
     fetchWorksheets();
   }, [questionType, selectedClass, selectedSubject, selectedChapters]);
 
+  // ── FULL handleWizardSubmit from File 1 (includes _useSubtopicApi path) ──
   const handleWizardSubmit = async (requestData, meta) => {
     try {
       setIsLoading(true);
       console.log("🧙 Wizard submit with:", requestData);
 
-      // ── NEW: Class 9 Math subtopics path ──
+      // ── Class 9 Math subtopics path ──
       if (requestData._useSubtopicApi) {
         const { _useSubtopicApi, ...payload } = requestData;
         console.log("📚 Using updated-subtopic-questions API:", payload);
@@ -848,7 +698,6 @@ function StudentDash({ jeeMode = false }) {
           payload,
         );
 
-        // ✅ FIXED: API returns questions under "questions" key, not "results"
         const results = response.data.questions || response.data.results || [];
         const questionsWithImages = results.map((question, index) => ({
           ...question,
@@ -859,18 +708,16 @@ function StudentDash({ jeeMode = false }) {
           image: question.question_image ? `${question.question_image}` : null,
         }));
 
-        // Sync state for downstream handlers (handleQuestionClick, etc.)
         setSelectedClass(requestData.classid);
         setSelectedSubject(requestData.subjectid);
         setSelectedChapters(requestData.topicid);
-        setQuestionType("subtopics"); // custom identifier
+        setQuestionType("subtopics");
         setQuestionLevel("");
         setSelectedWorksheet("");
 
         setQuestionList(questionsWithImages);
         setSelectedQuestions([]);
 
-        // Handle pagination
         setPaginationInfo({
           next: response.data.next || null,
           previous: response.data.previous || null,
@@ -882,7 +729,7 @@ function StudentDash({ jeeMode = false }) {
 
         setShowQuestionList(true);
         setIsLoading(false);
-        return; // ← important: skip the normal flow
+        return;
       }
 
       const response = await axiosInstance.post(
@@ -909,8 +756,6 @@ function StudentDash({ jeeMode = false }) {
           }),
         );
 
-        // Sync state back so handleQuestionClick, handleMultipleSelectSubmit,
-        // saveSessionData, and QuestionListModal all work correctly
         setSelectedClass(meta.selClass.class_code);
         setSelectedSubject(meta.selSub.subject_code);
         setSelectedChapters(meta.selChaps.map((c) => c.topic_code));
@@ -923,7 +768,6 @@ function StudentDash({ jeeMode = false }) {
         setQuestionList(questionsWithImages);
         setSelectedQuestions([]);
 
-        // Handle pagination if present
         if (response.data.next || response.data.previous) {
           const totalCount = response.data.count || questionsWithImages.length;
           setPaginationInfo({
@@ -963,24 +807,19 @@ function StudentDash({ jeeMode = false }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!isGenerateButtonEnabled()) {
       console.error("Please select all required fields");
       return;
     }
-
     const requestData = {
       classid: Number(selectedClass),
       subjectid: Number(selectedSubject),
       topicid: selectedChapters,
     };
-
-    // ✅ For Science subjects
     if (isScienceSubject()) {
       const selectedQuestionType = QUESTION_TYPE_MAPPING.find(
         (type) => type.value === questionType,
       );
-
       if (selectedQuestionType) {
         requestData.subtopic = selectedQuestionType.id;
         console.log(
@@ -988,11 +827,8 @@ function StudentDash({ jeeMode = false }) {
           selectedQuestionType.id,
         );
       }
-    }
-    // ✅ For JEE Mains/Advanced subjects
-    else if (isJEEMainsAdvancedSubject()) {
+    } else if (isJEEMainsAdvancedSubject()) {
       const idMap = { mcq: "1", nvtq: "2", theorem: "3" };
-
       if (questionType && idMap[questionType]) {
         requestData.subtopic = idMap[questionType];
         console.log(
@@ -1000,36 +836,28 @@ function StudentDash({ jeeMode = false }) {
           idMap[questionType],
         );
       }
-    }
-    // ✅ For JEE Traditional subjects
-    else if (isJEETraditionalSubject()) {
+    } else if (isJEETraditionalSubject()) {
       requestData.solved = questionType === "solved";
       requestData.exercise = questionType === "exercise";
       requestData.subtopic = questionType === "external" ? questionLevel : null;
       requestData.worksheet_name =
         questionType === "worksheets" ? selectedWorksheet : null;
       console.log("📚 Sending JEE Traditional request:", requestData);
-    }
-    // ✅ For other subjects
-    else {
+    } else {
       requestData.solved = questionType === "solved";
       requestData.exercise = questionType === "exercise";
       requestData.subtopic = questionType === "external" ? questionLevel : null;
       requestData.worksheet_name =
         questionType === "worksheets" ? selectedWorksheet : null;
     }
-
     try {
       setIsLoading(true);
       console.log("Requesting questions with:", requestData);
-
       const response = await axiosInstance.post(
         "/question-images/",
         requestData,
       );
       console.log("Questions response:", response.data);
-
-      // Process questions if they exist
       if (
         response.data &&
         response.data.questions &&
@@ -1048,16 +876,12 @@ function StudentDash({ jeeMode = false }) {
               : null,
           }),
         );
-
         setQuestionList(questionsWithImages);
         setSelectedQuestions([]);
-
-        // Set pagination info if available
         if (response.data.next || response.data.previous) {
           const pageSize = 15;
           const totalCount = response.data.count || questionsWithImages.length;
           const totalPages = Math.ceil(totalCount / pageSize);
-
           setPaginationInfo({
             next: response.data.next || null,
             previous: response.data.previous || null,
@@ -1076,13 +900,11 @@ function StudentDash({ jeeMode = false }) {
             isLoading: false,
           });
         }
-
         setShowQuestionList(true);
       } else {
         console.error("No questions found in response");
         showAlert("No questions available for this selection", "warning");
       }
-
       setIsLoading(false);
     } catch (error) {
       console.error("Error generating questions:", error);
@@ -1099,16 +921,13 @@ function StudentDash({ jeeMode = false }) {
   const fetchPaginatedQuestions = async (url) => {
     if (!url) return;
     setPaginationInfo((prev) => ({ ...prev, isLoading: true }));
-
     try {
       const urlObj = new URL(url);
       const pageNum = parseInt(urlObj.searchParams.get("page")) || 1;
+      console.log(`📄 Fetching page ${pageNum}...`);
       const response = await axiosInstance.get(url);
-
-      // Handle both response formats
       const rawQuestions =
         response.data.questions || response.data.results || [];
-
       const questionsWithImages = rawQuestions.map((question, index) => ({
         ...question,
         id: index,
@@ -1117,15 +936,11 @@ function StudentDash({ jeeMode = false }) {
         context: question.context || null,
         image: question.question_image ? `${question.question_image}` : null,
       }));
-
       setQuestionList(questionsWithImages);
       setSelectedQuestions([]);
-
-      // Update pagination info
       const pageSize = 15;
       const totalCount = response.data.count || questionsWithImages.length;
       const totalPages = Math.ceil(totalCount / pageSize);
-
       setPaginationInfo({
         next: response.data.next || null,
         previous: response.data.previous || null,
@@ -1134,7 +949,6 @@ function StudentDash({ jeeMode = false }) {
         totalPages: totalPages,
         isLoading: false,
       });
-
       console.log(`✅ Page ${pageNum} loaded successfully`);
     } catch (error) {
       console.error("❌ Error fetching paginated questions:", error);
@@ -1143,14 +957,12 @@ function StudentDash({ jeeMode = false }) {
     }
   };
 
-  // Handle Next Page
   const handleNextPage = () => {
     if (paginationInfo.next && !paginationInfo.isLoading) {
       fetchPaginatedQuestions(paginationInfo.next);
     }
   };
 
-  // Handle Previous Page
   const handlePrevPage = () => {
     if (paginationInfo.previous && !paginationInfo.isLoading) {
       fetchPaginatedQuestions(paginationInfo.previous);
@@ -1178,9 +990,7 @@ function StudentDash({ jeeMode = false }) {
   // Resume learning from last session
   const handleResumeLearning = () => {
     if (!lastSession) return;
-
     console.log("▶️ Resuming learning from:", lastSession);
-
     navigate("/solvequestion", {
       state: {
         question: lastSession.question,
@@ -1195,7 +1005,7 @@ function StudentDash({ jeeMode = false }) {
         image: lastSession.image,
         context: lastSession.context,
         selectedQuestions: lastSession.selectedQuestions || [],
-        isResuming: true, // Flag to indicate this is a resume
+        isResuming: true,
       },
     });
   };
@@ -1208,21 +1018,14 @@ function StudentDash({ jeeMode = false }) {
     question_id,
     context,
   ) => {
-    // console.log("Question clicked:", { question, index, image, question_id, context });
-
     setShowQuestionList(false);
-
-    // Get chapter names for the selected chapters
     const chapterNames = selectedChapters.map((chapterId) => {
       const chapter = chapters.find((ch) => ch.topic_code === chapterId);
       return chapter ? chapter.name : "Unknown Chapter";
     });
-
-    // Get subject name
     const subjectName =
       subjects.find((s) => s.subject_code === selectedSubject)?.subject_name ||
       "Unknown Subject";
-
     const sessionData = {
       question,
       question_id: question_id,
@@ -1238,35 +1041,23 @@ function StudentDash({ jeeMode = false }) {
       image,
       context: context || null,
       selectedQuestions: questionList,
-      // MODIFIED: Only pass jeeQuestionType for Mains/Advanced subjects
       jeeQuestionType: isJEEMainsAdvancedSubject() ? questionType : null,
     };
-
-    // Save session before navigating
     saveSessionData(sessionData);
-
-    navigate("/solvequestion", {
-      state: sessionData,
-    });
+    navigate("/solvequestion", { state: sessionData });
   };
 
   const handleMultipleSelectSubmit = (selectedQuestionsData) => {
     setSelectedQuestions(selectedQuestionsData);
     setShowQuestionList(false);
-
     const firstQuestion = selectedQuestionsData[0];
-
-    // Get chapter names for the selected chapters
     const chapterNames = selectedChapters.map((chapterId) => {
       const chapter = chapters.find((ch) => ch.topic_code === chapterId);
       return chapter ? chapter.name : "Unknown Chapter";
     });
-
-    // Get subject name
     const subjectName =
       subjects.find((s) => s.subject_code === selectedSubject)?.subject_name ||
       "Unknown Subject";
-
     const sessionData = {
       question: firstQuestion.question,
       question_id: firstQuestion.question_id,
@@ -1284,26 +1075,17 @@ function StudentDash({ jeeMode = false }) {
       selectedQuestions: selectedQuestionsData,
       jeeQuestionType: isJEEMainsAdvancedSubject() ? questionType : null,
     };
-
-    // Save session before navigating
     saveSessionData(sessionData);
-
-    navigate("/solvequestion", {
-      state: sessionData,
-    });
+    navigate("/solvequestion", { state: sessionData });
   };
 
   // Reset dependent fields when question type changes
   useEffect(() => {
-    if (questionType !== "external") {
-      setQuestionLevel("");
-    }
-    if (questionType !== "worksheets") {
-      setSelectedWorksheet("");
-    }
+    if (questionType !== "external") setQuestionLevel("");
+    if (questionType !== "worksheets") setSelectedWorksheet("");
   }, [questionType]);
 
-  // Enhanced styles for react-select with portal rendering - MEMOIZED to prevent forced reflow
+  // Enhanced styles for react-select - MEMOIZED to prevent forced reflow
   const selectStyles = useMemo(
     () => ({
       control: (provided, state) => ({
@@ -1365,9 +1147,7 @@ function StudentDash({ jeeMode = false }) {
         overflowX: "hidden",
         scrollbarWidth: "thin",
         scrollbarColor: `${isDarkMode ? "#7c3aed" : "#667eea"} ${isDarkMode ? "#334155" : "#f8fafc"}`,
-        "&::-webkit-scrollbar": {
-          width: "12px",
-        },
+        "&::-webkit-scrollbar": { width: "12px" },
         "&::-webkit-scrollbar-track": {
           background: isDarkMode ? "#334155" : "#f8fafc",
           borderRadius: "6px",
@@ -1419,9 +1199,7 @@ function StudentDash({ jeeMode = false }) {
           color: "#ffffff",
           transform: "translateX(4px)",
         },
-        "&:last-child": {
-          borderBottom: "none",
-        },
+        "&:last-child": { borderBottom: "none" },
       }),
       multiValue: (provided) => ({
         ...provided,
@@ -1495,361 +1273,184 @@ function StudentDash({ jeeMode = false }) {
         onClose={() => setShowFeedbackModal(false)}
       />
 
-      <div className={`student-dash-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
-        {/* Main Content - Sidebar removed (now in Layout.jsx) */}
-        <div className="main-content-fixed ">
-          <Container className="py-4">
-            {/* 3:1 Grid Layout - Main Content and Right Sidebar */}
-            <div className="dashboard-grid-layout">
-              {/* Left Side - Main Content (3 parts) */}
-              <div className="dashboard-main-content">
-                <div className="greeting-content">
-                  <div className="greeting-text">
-                    <h1>
-                      {getTimeBasedGreeting()},{" "}
-                      {localStorage.getItem("fullName") || username}! 👋
-                    </h1>
-                    <p
-                      style={{
-                        fontSize: "14px",
-                        color: isJeeMode ? "#7c3aed" : "#667eea",
-                        fontWeight: "600",
-                        marginTop: "8px",
-                        marginBottom: "0",
-                      }}
-                    >
-                      {isJeeMode ? "JEE Preparation Mode" : "Board Exam Mode"}
-                    </p>
+      <div className={isDarkMode ? "dark" : ""}>
+        <div className="py-4 sm:py-6 px-3 sm:px-6 max-w-[1400px] mx-auto">
+          {/* Grid: Main + Sidebar */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+
+            {/* ── Main Content ── */}
+            <div className="space-y-6">
+
+              {/* Greeting Header */}
+              <div className="greeting-content flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                <div className="greeting-text">
+                  <h1 className="text-xl sm:text-2xl font-bold text-[#0B1120] flex items-center gap-2">
+                    {getTimeBasedGreeting()},{" "}
+                    {localStorage.getItem("fullName") || username}!
+                  </h1>
+                  <p
+                    className={`text-sm font-semibold mt-1.5 ${
+                      isJeeMode ? "text-purple-600" : "text-[#00A0E3]"
+                    }`}
+                  >
+                    {isJeeMode ? "JEE Preparation Mode" : "Board Exam Mode"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex flex-col items-center justify-center px-3 py-2 border border-gray-300 rounded-lg h-10">
+                    <span className="text-xs font-semibold text-[#0B1120]">
+                      {new Date().toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
                   </div>
-                  <div className="current-date-wrapper">
-                    <div className="current-date">
-                      <span className="date-label">Today</span>
-                      <span className="date-value">
-                        {new Date().toLocaleDateString("en-US", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                  <button
+                    className="tutorial-toggle-btn flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600 border border-gray-300 rounded-lg h-10 hover:text-[#00A0E3] hover:border-[#00A0E3] transition-colors"
+                    onClick={() => startTutorialForPage("studentDash")}
+                    title="Start Tutorial"
+                  >
+                    <HelpCircle size={15} />
+                    <span>Tutorial</span>
+                  </button>
+                  <button
+                    className="dark-mode-toggle-btn w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:text-[#00A0E3] hover:bg-[#00A0E3]/5 transition-colors"
+                    onClick={toggleDarkMode}
+                    title={
+                      isDarkMode
+                        ? "Switch to Light Mode"
+                        : "Switch to Dark Mode"
+                    }
+                  >
+                    {isDarkMode ? <Sun size={17} /> : <Moon size={17} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Quiz Score Graph */}
+              {/* <div className="mt-5 mb-6">
+                <QuizScoreGraph />
+              </div> */}
+
+              {/* Student Wizard */}
+              <div className="learning-adventure-section">
+                <StudentWizard
+                  username={username}
+                  isDarkMode={isDarkMode}
+                  isJeeMode={isJeeMode}
+                  onReadyToSubmit={handleWizardSubmit}
+                  prefill={prefillData}
+                />
+              </div>
+
+              {/* Recent Sessions */}
+              {role === "student" && <UnifiedSessions />}
+            </div>
+
+            {/* ── Right Sidebar ── */}
+            <div className="space-y-5">
+              <StreakTracker />
+              <LiveNotifications />
+
+              {/* Resume Learning Card */}
+              {canResume && lastSession && (
+                <div className="resume-learning-section relative overflow-hidden rounded-2xl p-5 border-2 border-[#00A0E3]/30 bg-gradient-to-br from-[#00A0E3] to-[#0070C0] shadow-lg shadow-[#00A0E3]/20 flex flex-col min-h-[280px]">
+                  {/* Glow orb */}
+                  <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
+
+                  <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
+                    <div className="flex items-center gap-3 mb-3 text-white">
+                      <Rocket className="w-5 h-5 animate-pulse" />
+                      <span className="text-lg font-bold">
+                        Continue Learning
                       </span>
                     </div>
-                    {/* Tutorial Toggle Button */}
-                    <button
-                      className="tutorial-toggle-btn"
-                      onClick={() => startTutorialForPage("studentDash")}
-                      title="Start Tutorial"
-                    >
-                      <FontAwesomeIcon icon={faQuestionCircle} />
-                      <span>Tutorial</span>
-                    </button>
-                    {/* Dark Mode Toggle Button */}
-                    <button
-                      className="dark-mode-toggle-btn"
-                      onClick={toggleDarkMode}
-                      title={
-                        isDarkMode
-                          ? "Switch to Light Mode"
-                          : "Switch to Dark Mode"
-                      }
-                    >
-                      <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} />
-                    </button>
-                  </div>
-                </div>
 
-                {/* Enhanced Learning Adventure Section */}
-                {/* Progressive Wizard */}
-                <div className="learning-adventure-section">
-                  <div className="form-container">
-                    <StudentWizard
-                      username={username}
-                      isDarkMode={isDarkMode}
-                      isJeeMode={isJeeMode}
-                      onReadyToSubmit={handleWizardSubmit}
-                      prefill={prefillData}
-                    />
-                  </div>
-                </div>
-
-                {/* Recent Sessions */}
-                {role === "student" && <UnifiedSessions />}
-              </div>
-              {/* Right Side - Sidebar (1 part) */}
-              <div className="dashboard-right-sidebar">
-                {/* Streak Tracker */}
-                <StreakTracker />
-
-                {/* Live Notifications */}
-                <LiveNotifications />
-                {canResume && lastSession && (
-                  <div
-                    className="resume-learning-section"
-                    style={{
-                      background: isDarkMode
-                        ? "linear-gradient(135deg, #1e293b 0%, #334155 100%)"
-                        : "linear-gradient(135deg, rgb(95 123 248) 0%, rgb(97 111 242) 100%)",
-                      borderRadius: "16px",
-                      padding: "24px",
-                      boxShadow: "0 10px 30px rgba(102, 126, 234, 0.3)",
-                      border: `2px solid ${isDarkMode ? "#7c3aed" : "#667eea"}`,
-                      position: "relative",
-                      overflow: "hidden",
-                      height: "40vh",
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    {/* Background decoration */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "-50px",
-                        right: "-50px",
-                        width: "200px",
-                        height: "200px",
-                        background: "rgba(255, 255, 255, 0.1)",
-                        borderRadius: "50%",
-                        filter: "blur(40px)",
-                      }}
-                    />
-
-                    <div
-                      style={{
-                        position: "relative",
-                        zIndex: 1,
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          marginBottom: "12px",
-                          color: "#ffffff",
-                        }}
-                      >
-                        <FontAwesomeIcon
-                          icon={faRocket}
-                          style={{
-                            fontSize: "24px",
-                            marginRight: "12px",
-                            animation: "pulse 2s infinite",
-                          }}
-                        />
-                        <span
-                          style={{
-                            margin: 0,
-                            fontSize: "20px",
-                            fontWeight: "700",
-                            color: "white",
-                          }}
-                        >
-                          Continue Learning
+                    <div className="text-white/90 text-sm space-y-2 flex-1">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 flex-shrink-0" />
+                        <span>
+                          <strong>Subject:</strong>{" "}
+                          {lastSession.subject_name || "Unknown"}
                         </span>
                       </div>
-
-                      <div
-                        style={{
-                          color: "#ffffff",
-                          opacity: 0.95,
-                          fontSize: "14px",
-                          marginBottom: "16px",
-                          flex: 1,
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          <FontAwesomeIcon
-                            icon={faBookOpen}
-                            style={{ marginRight: "8px", width: "16px" }}
-                          />
-                          <span>
-                            <strong>Subject:</strong>{" "}
-                            {lastSession.subject_name || "Unknown"}
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "flex-start",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          <FontAwesomeIcon
-                            icon={faListAlt}
-                            style={{
-                              marginRight: "8px",
-                              width: "16px",
-                              marginTop: "3px",
-                            }}
-                          />
-                          <span>
-                            <strong>Chapter:</strong>{" "}
-                            {lastSession.chapter_names &&
-                            lastSession.chapter_names.length > 0 ? (
-                              <span>
-                                {lastSession.chapter_names[0]}
-                                {lastSession.chapter_names.length > 1 &&
-                                  ` (+${lastSession.chapter_names.length - 1} more)`}
-                              </span>
-                            ) : (
-                              "N/A"
-                            )}
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          <FontAwesomeIcon
-                            icon={faClipboardQuestion}
-                            style={{ marginRight: "8px", width: "16px" }}
-                          />
-                          <span>
-                            <strong>Progress:</strong> Question{" "}
-                            {lastSession.questionNumber} of{" "}
-                            {lastSession.questionList?.length || 0}
-                          </span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                          <FontAwesomeIcon
-                            icon={faCalendarAlt}
-                            style={{ marginRight: "8px", width: "16px" }}
-                          />
-                          <span>
-                            <strong>Last active:</strong>{" "}
-                            {new Date(lastSession.timestamp).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              },
-                            )}
-                          </span>
-                        </div>
+                      <div className="flex items-start gap-2">
+                        <List className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>
+                          <strong>Chapter:</strong>{" "}
+                          {lastSession.chapter_names?.length > 0 ? (
+                            <>
+                              {lastSession.chapter_names[0]}
+                              {lastSession.chapter_names.length > 1 &&
+                                ` (+${lastSession.chapter_names.length - 1} more)`}
+                            </>
+                          ) : (
+                            "N/A"
+                          )}
+                        </span>
                       </div>
-
-                      {/* Progress bar */}
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "8px",
-                          backgroundColor: "rgba(255, 255, 255, 0.2)",
-                          borderRadius: "4px",
-                          overflow: "hidden",
-                          marginBottom: "16px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: `${(lastSession.questionNumber / (lastSession.questionList?.length || 1)) * 100}%`,
-                            height: "100%",
-                            background:
-                              "linear-gradient(90deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)",
-                            borderRadius: "4px",
-                            transition: "width 0.3s ease",
-                          }}
-                        />
+                      <div className="flex items-center gap-2">
+                        <ClipboardList className="w-4 h-4 flex-shrink-0" />
+                        <span>
+                          <strong>Progress:</strong> Question{" "}
+                          {lastSession.questionNumber} of{" "}
+                          {lastSession.questionList?.length || 0}
+                        </span>
                       </div>
-
-                      {/* Buttons */}
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "12px",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <button
-                          onClick={handleResumeLearning}
-                          style={{
-                            background:
-                              "linear-gradient(135deg, rgb(84 250 195) 0%, rgb(21 188 136) 100%)",
-                            color: "#ffffff",
-                            border: "none",
-                            borderRadius: "12px",
-                            padding: "14px 28px",
-                            fontSize: "15px",
-                            fontWeight: "700",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px",
-                            boxShadow: "0 8px 20px rgba(16, 185, 129, 0.4)",
-                            transition: "all 0.3s ease",
-                            whiteSpace: "nowrap",
-                            flex: 1,
-                            justifyContent: "center",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.transform = "translateY(-2px)";
-                            e.target.style.boxShadow =
-                              "0 12px 28px rgba(16, 185, 129, 0.5)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.transform = "translateY(0)";
-                            e.target.style.boxShadow =
-                              "0 8px 20px rgba(16, 185, 129, 0.4)";
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faRocket} />
-                          Resume
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            localStorage.removeItem(`lastSession_${username}`);
-                            setCanResume(false);
-                            setLastSession(null);
-                            showAlert(
-                              "Session cleared successfully",
-                              "success",
-                            );
-                          }}
-                          style={{
-                            background: "transparent",
-                            color: "#ffffff",
-                            border: "2px solid rgba(255, 255, 255, 0.3)",
-                            borderRadius: "12px",
-                            padding: "14px 20px",
-                            fontSize: "14px",
-                            fontWeight: "600",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                            whiteSpace: "nowrap",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background =
-                              "rgba(255, 255, 255, 0.1)";
-                            e.target.style.borderColor =
-                              "rgba(255, 255, 255, 0.5)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = "transparent";
-                            e.target.style.borderColor =
-                              "rgba(255, 255, 255, 0.3)";
-                          }}
-                        >
-                          Start Fresh
-                        </button>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 flex-shrink-0" />
+                        <span>
+                          <strong>Last active:</strong>{" "}
+                          {new Date(lastSession.timestamp).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
+                        </span>
                       </div>
                     </div>
+
+                    {/* Progress bar */}
+                    <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden mt-4 mb-4">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-300 to-emerald-500 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${(lastSession.questionNumber / (lastSession.questionList?.length || 1)) * 100}%`,
+                        }}
+                      />
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex gap-2.5">
+                      <button
+                        onClick={handleResumeLearning}
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white text-[#00A0E3] font-bold text-sm rounded-xl shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                      >
+                        <Rocket className="w-4 h-4" />
+                        Resume
+                      </button>
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem(`lastSession_${username}`);
+                          setCanResume(false);
+                          setLastSession(null);
+                          showAlert("Session cleared successfully", "success");
+                        }}
+                        className="py-2.5 px-4 text-sm font-semibold text-white border-2 border-white/30 rounded-xl hover:bg-white/10 hover:border-white/50 transition-all duration-200"
+                      >
+                        Start Fresh
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          </Container>
+          </div>
         </div>
 
         {/* Enhanced Question List Modal */}
@@ -1870,8 +1471,6 @@ function StudentDash({ jeeMode = false }) {
         {shouldShowTutorialForPage("studentDash") && (
           <Tutorial steps={tutorialSteps} onComplete={handleTutorialComplete} />
         )}
-
-        {/* Mascot is shown on SolveQuestion and ResultPage only to prevent WebGL context issues */}
       </div>
     </>
   );

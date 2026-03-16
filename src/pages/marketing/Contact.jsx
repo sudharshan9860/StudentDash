@@ -12,7 +12,7 @@ const contactInfo = [
     desc: 'Send us an email anytime',
     value: 'hello@smartlearners.ai',
     href: 'mailto:hello@smartlearners.ai',
-    color: '#3b82f6'
+    color: '#00A0E3'
   },
   {
     icon: '&#x1F4DE;',

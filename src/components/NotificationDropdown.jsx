@@ -1,7 +1,6 @@
-import React, { useContext, useState } from 'react';
-import { Dropdown, Badge, Modal, Button } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell } from '@fortawesome/free-solid-svg-icons';
+import React, { useContext, useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { Bell, X, Loader2, Trophy, TrendingUp, Lightbulb, Clock, BookOpen } from 'lucide-react';
 import { NotificationContext } from '../contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
@@ -16,34 +15,33 @@ const NotificationDropdown = () => {
   } = useContext(NotificationContext);
 
   const { username, fullName, role } = useContext(AuthContext);
-  
 
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [oldNotifications, setOldNotifications] = useState([]);
   const [loadingOldNotifications, setLoadingOldNotifications] = useState(false);
   const [oldNotificationsLoaded, setOldNotificationsLoaded] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const dropdownRef = useRef(null);
+  const bellRef = useRef(null);
   const navigate = useNavigate();
 
   const unreadCount = getUnreadCount();
 
-  // Show only old notifications when loaded, otherwise show current notifications
   const allNotifications = oldNotificationsLoaded
     ? oldNotifications
     : notifications;
 
-  const getNotificationIcon = (type) => {
-    const iconMap = {
-      achievement: '🏆',
-      progress: '📈',
-      recommendation: '💡',
-      reminder: '⏰',
-      homework: '📖'
-    };
-    return iconMap[type] || '🔔';
+  const notificationIconMap = {
+    achievement: { Icon: Trophy, color: 'text-amber-500 bg-amber-50' },
+    progress: { Icon: TrendingUp, color: 'text-green-500 bg-green-50' },
+    recommendation: { Icon: Lightbulb, color: 'text-[#00A0E3] bg-blue-50' },
+    reminder: { Icon: Clock, color: 'text-orange-500 bg-orange-50' },
+    homework: { Icon: BookOpen, color: 'text-purple-500 bg-purple-50' },
   };
+  const defaultNotifIcon = { Icon: Bell, color: 'text-gray-500 bg-gray-50' };
 
-  // Fetch old notifications
   const fetchOldNotifications = async () => {
     setLoadingOldNotifications(true);
     try {
@@ -57,40 +55,53 @@ const NotificationDropdown = () => {
     }
   };
 
-  // Handle dropdown toggle (clear old notifications when closed)
-  const handleDropdownToggle = (isOpen) => {
-    if (!isOpen) {
-      // Dropdown is closing, clear old notifications
-      setOldNotifications([]);
-      setOldNotificationsLoaded(false);
+  // Calculate dropdown position when opening
+  const toggleDropdown = () => {
+    if (!isOpen && bellRef.current) {
+      const rect = bellRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 8,
+        left: Math.max(8, rect.left - 280 + rect.width),
+      });
     }
+    setIsOpen(!isOpen);
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(event.target) &&
+        bellRef.current && !bellRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+        setOldNotifications([]);
+        setOldNotificationsLoaded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleNotificationClick = (notification) => {
-    // console.log("Notification clicked:", notification);
-    // Mark notification as read
     markNotificationAsRead(notification.id);
 
-    // Determine if this is a homework notification and get the notification ID
     const isHomeworkNotification =
-      (notification.type === 'homework' && notification._notification?.id) || // New format
-      notification.homework; // Old format
+      (notification.type === 'homework' && notification._notification?.id) ||
+      notification.homework;
 
     if (isHomeworkNotification) {
-      // Get notification ID based on format
       const notificationId = notification._notification?.id || notification.id;
-
-      // console.log("Navigating to homework submission with notification ID:", notificationId);
-
       navigate('/homework', {
         state: {
           notificationId: notificationId,
         }
       });
+      setIsOpen(false);
     } else {
-      // For other notifications, show the modal
       setSelectedNotification(notification);
       setShowModal(true);
+      setIsOpen(false);
     }
   };
 
@@ -101,108 +112,149 @@ const NotificationDropdown = () => {
 
   return (
     <>
-      <Dropdown align="end" className="position-relative" onToggle={handleDropdownToggle}>
-        <Dropdown.Toggle
-          variant="link"
-          id="notifications-dropdown"
-          className="nav-link position-relative"
-        >
-          <FontAwesomeIcon icon={faBell} size="lg" /> Notifications
-          {unreadCount > 0 && (
-            <Badge
+      <div className="relative">
+{/* Bell trigger */}
+<button
+  ref={bellRef}
+  onClick={toggleDropdown}
+  className={`
+    relative p-2 rounded-full transition-all duration-300 border-none cursor-pointer
+    ${isOpen
+      ? 'bg-[#00A0E3] text-white shadow-lg shadow-[#00A0E3]/40 scale-110'
+      : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white hover:scale-105'
+    }
+  `}
+>
+  <Bell size={18} strokeWidth={2.5} />
 
-              bg="danger"
-              className="position-absolute top-10 start-1 translate-down p-1"
-              style={{ fontSize: '0.7rem' }}
-            >
-              {unreadCount}
-            </Badge>
-          )}
-        </Dropdown.Toggle>
+  {unreadCount > 0 && (
+    <span className="absolute -top-1 -right-1 flex h-4 w-4">
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+      <span className="relative inline-flex items-center justify-center rounded-full h-4 w-4 bg-red-500 text-[8px] font-bold text-white border border-[#0B1120]">
+        {unreadCount}
+      </span>
+    </span>
+  )}
+</button>
 
-        <Dropdown.Menu className="notification-menu" style={{ minWidth: '300px', maxHeight: '400px', overflow: 'auto' }}>
-          <Dropdown.Header className="d-flex justify-content-between align-items-center">
-            <span>Notifications</span>
-            {notifications.length > 0 && (
-              <button
-                type="button"
-                className="btn btn-link p-0 text-primary"
-                onClick={clearAllNotifications}
-                style={{ fontSize: '0.85rem' }}
-              >
-                Clear All
-              </button>
-            )}
-          </Dropdown.Header>
-
-          {/* Old Notifications Button */}
-          {!oldNotificationsLoaded && role==="student" && (
-            <div className="px-3 py-2">
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-primary w-100"
-                onClick={fetchOldNotifications}
-                disabled={loadingOldNotifications}
-              >
-                {loadingOldNotifications ? 'Loading...' : 'Load Old Notifications'}
-              </button>
+        {/* Dropdown - rendered via portal to escape sidebar stacking context */}
+        {isOpen && ReactDOM.createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed w-80 bg-white rounded-xl shadow-2xl border border-gray-100"
+            style={{ top: dropdownPos.top, left: '15vw', zIndex: 999999 }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <span className="text-sm font-semibold text-[#0B1120]">Notifications</span>
+              {notifications.length > 0 && (
+                <button
+                  onClick={clearAllNotifications}
+                  className="text-xs text-[#00A0E3] hover:text-[#0080B8] font-medium"
+                >
+                  Clear All
+                </button>
+              )}
             </div>
-          )}
 
-          {allNotifications.length === 0 ? (
-            <Dropdown.Item disabled>No notifications</Dropdown.Item>
-          ) : (
-            allNotifications.map((notification) => (
-              <Dropdown.Item
-                key={notification.id}
-                onClick={() => handleNotificationClick(notification)}
-                className={!notification.read ? 'unread-notification' : ''}
-              >
-                <div className="d-flex align-items-start">
-                  <span className="me-2" style={{ fontSize: '1.2rem' }}>
-                    {getNotificationIcon(notification.type)}
-                  </span>
-                  <div>
-                    {/* <div className="fw-bold">{notification.title}</div> */}
-                    <div className="text-muted" style={{ fontSize: '0.85rem' }}>
-                      {notification.message}
-                      
-                    </div>
+            {/* Load old notifications button */}
+            {!oldNotificationsLoaded && role === "student" && (
+              <div className="px-3 py-2 border-b border-gray-50">
+                <button
+                  onClick={fetchOldNotifications}
+                  disabled={loadingOldNotifications}
+                  className="w-full px-3 py-1.5 text-xs font-medium text-[#00A0E3] border border-[#00A0E3] rounded-lg hover:bg-blue-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  {loadingOldNotifications ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Load Old Notifications'
+                  )}
+                </button>
+              </div>
+            )}
 
-                    
-                    <small className="text-muted">
-                      {new Date(notification.timestamp).toLocaleString()}
-                    </small>
-                  </div>
+            {/* Notification list */}
+            <div className="max-h-80 overflow-y-auto">
+              {allNotifications.length === 0 ? (
+                <div className="px-4 py-6 text-center text-sm text-gray-400">
+                  No notifications
                 </div>
-              </Dropdown.Item>
-            ))
-          )}
-        </Dropdown.Menu>
-      </Dropdown>
+              ) : (
+                allNotifications.map((notification) => (
+                  <button
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${!notification.read ? 'bg-blue-50/30' : ''
+                      }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      {(() => {
+                        const { Icon, color } = notificationIconMap[notification.type] || defaultNotifIcon;
+                        return (
+                          <span className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
+                            <Icon size={16} />
+                          </span>
+                        );
+                      })()}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-600 line-clamp-2">
+                          {notification.message}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {new Date(notification.timestamp).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
+      </div>
 
       {/* Modal for showing non-homework notification details */}
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {selectedNotification?.title || 'Notification Details'}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p><strong>Message:</strong> {selectedNotification?.message}</p>
-          <p>
-            <strong>Date:</strong>{' '}
-            {selectedNotification?.timestamp
-              ? new Date(selectedNotification.timestamp).toLocaleString()
-              : 'N/A'}
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {showModal && selectedNotification && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h3 className="text-base font-semibold text-[#0B1120]">
+                {selectedNotification?.title || 'Notification Details'}
+              </h3>
+              <button
+                onClick={handleCloseModal}
+                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-2">
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold">Message:</span> {selectedNotification?.message}
+              </p>
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold">Date:</span>{' '}
+                {selectedNotification?.timestamp
+                  ? new Date(selectedNotification.timestamp).toLocaleString()
+                  : 'N/A'}
+              </p>
+            </div>
+            <div className="flex justify-end px-5 py-3 border-t border-gray-100">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

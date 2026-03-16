@@ -2,27 +2,25 @@ import React, { useContext, useEffect, useState, useRef } from "react";
 import { NotificationContext } from "../contexts/NotificationContext"; // adjust path
 import { AuthContext } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
-import "./ChatRoom.css"; // create minimal styles if you want
 import {
-  faPaperPlane,
-  faShareSquare,
-  faCheckCircle,
-  faTimesCircle,
-  faListAlt,
-  faQuestionCircle,
-  faSearch,
-  faChevronDown,
-  faChevronUp,
-  faUsers,
-  faUserPlus,
-  faBookOpen,
-  faSun,
-  faMoon,
-  faFilter,
-  faTimes,
-  faInfoCircle
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+  Send,
+  Share2,
+  CheckCircle,
+  XCircle,
+  List,
+  HelpCircle,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Users,
+  UserPlus,
+  BookOpen,
+  Sun,
+  Moon,
+  Filter,
+  X,
+  Info,
+} from "lucide-react";
 import MarkdownWithMath from "./MarkdownWithMath";
 import { Modal, Button, Form, Badge, Tooltip, OverlayTrigger } from "react-bootstrap";
 
@@ -37,7 +35,7 @@ const ChatRoom = () => {
     sendGroupMessage,
   } = useContext(NotificationContext);
 
-  const { username,fullName } = useContext(AuthContext);
+  const { username, fullName } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [selectedGroup, setSelectedGroup] = useState(groups && groups[0] ? groups[0] : null);
@@ -81,7 +79,7 @@ const ChatRoom = () => {
           if (daysSinceSession <= 7 && sessionData.questionList && sessionData.questionList.length > 0) {
             setLastSession(sessionData);
             setAvailableQuestions(sessionData.questionList);
-            console.log("✅ Last session loaded for chat sharing:", sessionData);
+            console.log("Last session loaded for chat sharing:", sessionData);
           }
         }
       } catch (error) {
@@ -275,18 +273,22 @@ const ChatRoom = () => {
   const messagesForSelected = selectedGroup ? (groupMessages[selectedGroup.id] || []) : [];
 
   return (
-    <div className={`chatroot ${isDarkMode ? 'dark-mode' : ''}`}>
-      <div className="chat-sidebar">
-        <div className="chat-sidebar-header">
+    <div className={`flex h-screen ${isDarkMode ? 'bg-[#0B1120] text-white' : 'bg-[#F8FAFC]'}`}>
+      {/* Sidebar */}
+      <div className={`w-80 flex-shrink-0 border-r overflow-y-auto flex flex-col ${
+        isDarkMode ? 'bg-[#0B1120] border-gray-700' : 'bg-white border-gray-200'
+      }`}>
+        {/* Sidebar Header */}
+        <div className="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
           <div>
-            <h3>
-              <FontAwesomeIcon icon={faUsers} style={{ marginRight: '10px', color: '#667eea' }} />
+            <h3 className="text-lg font-bold text-[#0B1120] flex items-center gap-2">
+              <Users size={20} className="text-[#00A0E3]" />
               Study Rooms
             </h3>
-            <div className="chat-user-small">
-              <Badge bg="primary" style={{ fontSize: '11px' }}>
+            <div className="mt-1">
+              <span className="inline-block px-2 py-0.5 bg-[#00A0E3] text-white text-[11px] rounded-full">
                 {fullName}
-              </Badge>
+              </span>
             </div>
           </div>
           <OverlayTrigger
@@ -294,63 +296,66 @@ const ChatRoom = () => {
             overlay={<Tooltip>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</Tooltip>}
           >
             <button
-              className="dark-mode-toggle"
+              className={`p-2 rounded-lg transition-colors ${
+                isDarkMode ? 'text-amber-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'
+              }`}
               onClick={toggleDarkMode}
               title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
-              <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} />
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
           </OverlayTrigger>
         </div>
 
         {/* Groups Section - Collapsible */}
-        <div className="chat-section">
+        <div className="border-b border-gray-100">
           <div
-            className="section-header-collapsible"
+            className="flex justify-between items-center px-5 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
             onClick={() => toggleSection('groups')}
           >
-            <h4>
-              <FontAwesomeIcon icon={faUsers} className="section-icon" />
+            <h4 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2">
+              <Users size={14} className="text-[#00A0E3]" />
               Your Groups
-              <Badge bg="info" className="ms-2" style={{ fontSize: '10px' }}>
+              <span className="inline-block px-1.5 py-0.5 bg-cyan-100 text-cyan-700 text-[10px] rounded-full ml-1">
                 {groups?.length || 0}
-              </Badge>
+              </span>
             </h4>
-            <FontAwesomeIcon
-              icon={collapsedSections.groups ? faChevronDown : faChevronUp}
-              className="collapse-icon"
-            />
+            {collapsedSections.groups ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronUp size={14} className="text-gray-400" />}
           </div>
           {!collapsedSections.groups && (
-            <div className="section-content">
-              <ul className="group-list">
+            <div className="px-3 pb-3">
+              <ul className="space-y-1">
                 {groups && groups.length ? (
                   groups.map((g) => (
                     <li
                       key={g.id}
-                      className={`group-item ${selectedGroup && selectedGroup.id === g.id ? "active" : ""}`}
+                      className={`rounded-lg px-3 py-2.5 cursor-pointer transition-colors ${
+                        selectedGroup && selectedGroup.id === g.id
+                          ? 'bg-[#00A0E3]/10 border border-[#00A0E3]/30'
+                          : 'hover:bg-gray-50'
+                      }`}
                       onClick={() => setSelectedGroup(g)}
                     >
-                      <div className="group-item-content">
-                        <FontAwesomeIcon icon={faUsers} className="group-icon" />
-                        <div className="group-info">
-                          <div className="group-name">{g.name}</div>
-                          <div className="group-code">
-                            <FontAwesomeIcon icon={faInfoCircle} style={{ marginRight: '4px', fontSize: '10px' }} />
+                      <div className="flex items-center gap-3">
+                        <Users size={16} className="text-[#00A0E3] flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-[#0B1120] truncate">{g.name}</div>
+                          <div className="text-[10px] text-gray-400 flex items-center gap-1">
+                            <Info size={10} />
                             {g.code}
                           </div>
                         </div>
                         {selectedGroup && selectedGroup.id === g.id && (
-                          <FontAwesomeIcon icon={faCheckCircle} className="selected-icon" />
+                          <CheckCircle size={14} className="text-[#00A0E3] flex-shrink-0" />
                         )}
                       </div>
                     </li>
                   ))
                 ) : (
-                  <li className="empty-state">
-                    <FontAwesomeIcon icon={faUsers} style={{ fontSize: '32px', color: '#ccc', marginBottom: '8px' }} />
-                    <p>No groups yet</p>
-                    <small>Create your first group below!</small>
+                  <li className="text-center py-6">
+                    <Users size={32} className="text-gray-200 mx-auto mb-2" />
+                    <p className="text-sm text-gray-400">No groups yet</p>
+                    <small className="text-gray-300">Create your first group below!</small>
                   </li>
                 )}
               </ul>
@@ -358,74 +363,68 @@ const ChatRoom = () => {
           )}
         </div>
 
-        {/* Create Group Section */}
-        <div className="chat-section">
-          <Button
-            variant="primary"
-            className="w-100 create-group-btn"
+        {/* Create Group Button */}
+        <div className="px-4 py-3 border-b border-gray-100">
+          <button
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#00A0E3] text-white text-sm font-medium rounded-lg hover:bg-[#0080B8] transition-colors"
             onClick={() => setShowCreateGroupModal(true)}
           >
-            <FontAwesomeIcon icon={faUserPlus} className="me-2" />
+            <UserPlus size={16} />
             Create New Group
-          </Button>
+          </button>
         </div>
 
         {/* Pending Invites Section - Collapsible */}
-        <div className="chat-section">
+        <div className="border-b border-gray-100">
           <div
-            className="section-header-collapsible"
+            className="flex justify-between items-center px-5 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
             onClick={() => toggleSection('invites')}
           >
-            <h4>
-              <FontAwesomeIcon icon={faUserPlus} className="section-icon" />
+            <h4 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2">
+              <UserPlus size={14} className="text-[#00A0E3]" />
               Pending Invites
               {groupInvitations && groupInvitations.length > 0 && (
-                <Badge bg="warning" className="ms-2" style={{ fontSize: '10px' }}>
+                <span className="inline-block px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded-full ml-1">
                   {groupInvitations.length}
-                </Badge>
+                </span>
               )}
             </h4>
-            <FontAwesomeIcon
-              icon={collapsedSections.invites ? faChevronDown : faChevronUp}
-              className="collapse-icon"
-            />
+            {collapsedSections.invites ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronUp size={14} className="text-gray-400" />}
           </div>
           {!collapsedSections.invites && (
-            <div className="section-content">
+            <div className="px-4 pb-3">
               {groupInvitations && groupInvitations.length ? (
                 groupInvitations.map((inv, idx) => (
-                  <div key={idx} className="invite-item-enhanced">
-                    <div className="invite-header">
-                      <FontAwesomeIcon icon={faUsers} style={{ color: '#f59e0b' }} />
-                      <div className="invite-details">
-                        <strong>{inv.group.name}</strong>
-                        <small>by {inv.inviter?.fullname || inv.inviter?.username || "Unknown"}</small>
+                  <div key={idx} className="bg-[#F8FAFC] rounded-lg p-3 mb-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users size={14} className="text-amber-500" />
+                      <div>
+                        <div className="text-sm font-medium text-[#0B1120]">{inv.group.name}</div>
+                        <div className="text-[11px] text-gray-400">by {inv.inviter?.fullname || inv.inviter?.username || "Unknown"}</div>
                       </div>
                     </div>
-                    <div className="invite-actions">
-                      <Button
-                        size="sm"
-                        variant="success"
+                    <div className="flex gap-2">
+                      <button
+                        className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 transition-colors"
                         onClick={() => handleAcceptInvite(inv.group)}
                       >
-                        <FontAwesomeIcon icon={faCheckCircle} className="me-1" />
+                        <CheckCircle size={12} />
                         Accept
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline-danger"
+                      </button>
+                      <button
+                        className="flex items-center gap-1 px-3 py-1.5 border border-red-300 text-red-500 text-xs rounded-lg hover:bg-red-50 transition-colors"
                         onClick={() => handleIgnoreInvite(inv.group)}
                       >
-                        <FontAwesomeIcon icon={faTimes} className="me-1" />
+                        <X size={12} />
                         Ignore
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="empty-state">
-                  <FontAwesomeIcon icon={faUserPlus} style={{ fontSize: '32px', color: '#ccc', marginBottom: '8px' }} />
-                  <p>No pending invites</p>
+                <div className="text-center py-6">
+                  <UserPlus size={32} className="text-gray-200 mx-auto mb-2" />
+                  <p className="text-sm text-gray-400">No pending invites</p>
                 </div>
               )}
             </div>
@@ -433,70 +432,49 @@ const ChatRoom = () => {
         </div>
 
         {/* Question Sharing Section - Enhanced */}
-        <div className="chat-section">
+        <div className="border-b border-gray-100">
           <div
-            className="section-header-collapsible"
+            className="flex justify-between items-center px-5 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
             onClick={() => toggleSection('questions')}
           >
-            <h4>
-              <FontAwesomeIcon icon={faBookOpen} className="section-icon" />
+            <h4 className="text-sm font-semibold text-[#0B1120] flex items-center gap-2">
+              <BookOpen size={14} className="text-[#00A0E3]" />
               Share Questions
               {selectedQuestionsToShare.length > 0 && (
-                <Badge bg="success" className="ms-2" style={{ fontSize: '10px' }}>
+                <span className="inline-block px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] rounded-full ml-1">
                   {selectedQuestionsToShare.length} selected
-                </Badge>
+                </span>
               )}
             </h4>
-            <FontAwesomeIcon
-              icon={collapsedSections.questions ? faChevronDown : faChevronUp}
-              className="collapse-icon"
-            />
+            {collapsedSections.questions ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronUp size={14} className="text-gray-400" />}
           </div>
           {!collapsedSections.questions && (
-            <div className="section-content">
+            <div className="px-4 pb-3">
               {lastSession && availableQuestions.length > 0 ? (
                 <>
-                  <div className="session-info-enhanced">
-                    <div className="info-row">
-                      <FontAwesomeIcon icon={faBookOpen} />
+                  <div className="bg-[#F8FAFC] rounded-lg p-3 mb-3 space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs text-[#0B1120]">
+                      <BookOpen size={12} className="text-[#00A0E3]" />
                       <span><strong>Subject:</strong> {lastSession.subject_name || 'N/A'}</span>
                     </div>
-                    <div className="info-row">
-                      <FontAwesomeIcon icon={faQuestionCircle} />
+                    <div className="flex items-center gap-2 text-xs text-[#0B1120]">
+                      <HelpCircle size={12} className="text-[#00A0E3]" />
                       <span><strong>Total:</strong> {availableQuestions.length} questions</span>
                     </div>
                   </div>
 
-                  {/* Search Bar */}
-                  {/* <div className="search-container">
-                    <FontAwesomeIcon icon={faSearch} className="search-icon" />
-                    <input
-                      type="text"
-                      className="search-input"
-                      placeholder="Search questions..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    {searchQuery && (
-                      <button
-                        className="clear-search-btn"
-                        onClick={() => setSearchQuery("")}
-                      >
-                        <FontAwesomeIcon icon={faTimes} />
-                      </button>
-                    )}
-                  </div> */}
-
                   {/* Question List */}
-                  <div className="question-list-container-enhanced">
+                  <div className="max-h-60 overflow-y-auto space-y-1.5">
                     {filteredQuestions.length > 0 ? (
                       filteredQuestions.map((q, index) => {
                         const originalIndex = availableQuestions.indexOf(q);
                         return (
                           <div
                             key={originalIndex}
-                            className={`question-item-enhanced ${
-                              selectedQuestionsToShare.includes(originalIndex) ? 'selected' : ''
+                            className={`flex items-start gap-2.5 p-2.5 rounded-lg cursor-pointer transition-colors ${
+                              selectedQuestionsToShare.includes(originalIndex)
+                                ? 'bg-[#00A0E3]/10 border border-[#00A0E3]/30'
+                                : 'hover:bg-gray-50 border border-transparent'
                             }`}
                             onClick={() => handleQuestionToggle(originalIndex)}
                           >
@@ -505,12 +483,12 @@ const ChatRoom = () => {
                               checked={selectedQuestionsToShare.includes(originalIndex)}
                               onChange={() => handleQuestionToggle(originalIndex)}
                               onClick={(e) => e.stopPropagation()}
+                              className="mt-0.5 accent-[#00A0E3]"
                             />
-                            <div className="question-content">
-                              <div className="question-number-badge">Q{originalIndex + 1}</div>
-                              <div className="question-preview">
+                            <div className="flex items-start gap-2 min-w-0">
+                              <span className="inline-block px-1.5 py-0.5 bg-[#00A0E3] text-white text-[10px] rounded font-medium flex-shrink-0">Q{originalIndex + 1}</span>
+                              <div className="text-xs text-[#0B1120] min-w-0">
                                 <MarkdownWithMath content={q.question?.substring(0, 100) || 'Question'}/>
-                                {/* {q.question?.substring(0, 100) || 'Question'} */}
                                 {q.question?.length > 100 && '...'}
                               </div>
                             </div>
@@ -518,45 +496,43 @@ const ChatRoom = () => {
                         );
                       })
                     ) : (
-                      <div className="empty-state">
-                        <FontAwesomeIcon icon={faSearch} style={{ fontSize: '24px', color: '#ccc' }} />
-                        <p>No questions match your search</p>
+                      <div className="text-center py-4">
+                        <Search size={24} className="text-gray-200 mx-auto mb-1" />
+                        <p className="text-xs text-gray-400">No questions match your search</p>
                       </div>
                     )}
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="question-actions">
-                    {selectedQuestionsToShare.length > 0 && (
-                      <>
-                        <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          onClick={() => setSelectedQuestionsToShare([])}
-                          className="me-2"
-                        >
-                          <FontAwesomeIcon icon={faTimes} className="me-1" />
-                          Clear
-                        </Button>
-                        <Button
-                          variant="success"
-                          size="sm"
-                          onClick={initiateShareQuestions}
-                          disabled={!selectedGroup}
-                          className="flex-grow-1"
-                        >
-                          <FontAwesomeIcon icon={faShareSquare} className="me-1" />
-                          Share {selectedQuestionsToShare.length}
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  {selectedQuestionsToShare.length > 0 && (
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 text-gray-500 text-xs rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={() => setSelectedQuestionsToShare([])}
+                      >
+                        <X size={12} />
+                        Clear
+                      </button>
+                      <button
+                        className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                          selectedGroup
+                            ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
+                        onClick={initiateShareQuestions}
+                        disabled={!selectedGroup}
+                      >
+                        <Share2 size={12} />
+                        Share {selectedQuestionsToShare.length}
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
-                <div className="empty-state">
-                  <FontAwesomeIcon icon={faBookOpen} style={{ fontSize: '32px', color: '#ccc', marginBottom: '8px' }} />
-                  <p>No recent questions</p>
-                  <small>Solve some questions first to share with your group!</small>
+                <div className="text-center py-6">
+                  <BookOpen size={32} className="text-gray-200 mx-auto mb-2" />
+                  <p className="text-sm text-gray-400">No recent questions</p>
+                  <small className="text-gray-300">Solve some questions first to share with your group!</small>
                 </div>
               )}
             </div>
@@ -564,17 +540,25 @@ const ChatRoom = () => {
         </div>
       </div>
 
-      <div className="chat-main">
-        <div className="chat-header">
-          <h3>{selectedGroup ? selectedGroup.name : "Select a group"}</h3>
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Chat Header */}
+        <div className={`px-6 py-4 border-b flex justify-between items-center ${
+          isDarkMode ? 'bg-[#0B1120] border-gray-700' : 'bg-white border-gray-200'
+        }`}>
+          <h3 className="text-lg font-bold text-[#0B1120]">{selectedGroup ? selectedGroup.name : "Select a group"}</h3>
           {selectedGroup && (
-            <div className="chat-header-actions">
-              <button onClick={() => handleInviteMore(selectedGroup)}>Invite</button>
-            </div>
+            <button
+              className="px-4 py-1.5 border border-[#00A0E3] text-[#00A0E3] text-sm rounded-lg hover:bg-[#00A0E3] hover:text-white transition-colors"
+              onClick={() => handleInviteMore(selectedGroup)}
+            >
+              Invite
+            </button>
           )}
         </div>
 
-        <div className="chat-messages" id="chatMessages">
+        {/* Messages Area */}
+        <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${isDarkMode ? 'bg-gray-900' : 'bg-[#F8FAFC]'}`} id="chatMessages">
           {selectedGroup ? (
             messagesForSelected.length ? (
               messagesForSelected.map((m, i) => {
@@ -595,84 +579,71 @@ const ChatRoom = () => {
                 }
 
                 return (
-                  <div key={i} className={`chat-msg ${isSystem ? "system" : fromMe ? "me" : "other"}`}>
-                    {!isSystem && (
-                      <div className="msg-meta">
-                        <strong>{m.sender?.fullname || m.sender?.username}</strong>
-                        <span className="msg-timestamp">{new Date(m.timestamp).toLocaleString()}</span>
-                      </div>
-                    )}
-
-                    {isSharedQuestion && sharedData ? (
-                      <div
-                        className="shared-questions-card"
-                        onClick={() => handleSharedQuestionClick(m.message)}
-                        style={{
-                          backgroundColor: '#f0f9ff',
-                          border: '2px solid #3b82f6',
-                          borderRadius: '8px',
-                          padding: '12px',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#dbeafe';
-                          e.currentTarget.style.transform = 'scale(1.02)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f0f9ff';
-                          e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                      >
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          marginBottom: '8px',
-                          fontSize: '16px',
-                          fontWeight: 'bold',
-                          color: '#1e40af'
-                        }}>
-                          <FontAwesomeIcon icon={faQuestionCircle} />
-                          <span>Shared Questions</span>
+                  <div key={i} className={`flex ${isSystem ? 'justify-center' : fromMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-md ${
+                      isSystem
+                        ? 'bg-gray-100 text-gray-500 text-xs px-3 py-1.5 rounded-full'
+                        : fromMe
+                          ? 'bg-[#00A0E3] text-white rounded-2xl rounded-br-sm px-4 py-2.5'
+                          : 'bg-white border border-gray-200 text-[#0B1120] rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm'
+                    }`}>
+                      {!isSystem && (
+                        <div className="flex justify-between items-center gap-4 mb-1">
+                          <strong className={`text-xs ${fromMe ? 'text-white/80' : 'text-[#0B1120]'}`}>
+                            {m.sender?.fullname || m.sender?.username}
+                          </strong>
+                          <span className={`text-[10px] ${fromMe ? 'text-white/60' : 'text-gray-400'}`}>
+                            {new Date(m.timestamp).toLocaleString()}
+                          </span>
                         </div>
-                        <div style={{ fontSize: '14px', color: '#374151', marginBottom: '8px' }}>
-                          <div><strong>Subject:</strong> {sharedData.session_metadata.subject_name}</div>
-                          <div><strong>Questions:</strong> {sharedData.questions.length}</div>
-                          <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                            Shared by: {sharedData.shared_by}
+                      )}
+
+                      {isSharedQuestion && sharedData ? (
+                        <div
+                          className="bg-blue-50 border-2 border-[#00A0E3] rounded-lg p-3 cursor-pointer hover:bg-blue-100 hover:scale-[1.02] transition-all"
+                          onClick={() => handleSharedQuestionClick(m.message)}
+                        >
+                          <div className="flex items-center gap-2 mb-2 text-base font-bold text-[#0080B8]">
+                            <HelpCircle size={18} />
+                            <span>Shared Questions</span>
+                          </div>
+                          <div className="text-sm text-gray-700 mb-2 space-y-0.5">
+                            <div><strong>Subject:</strong> {sharedData.session_metadata.subject_name}</div>
+                            <div><strong>Questions:</strong> {sharedData.questions.length}</div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Shared by: {sharedData.shared_by}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[13px] text-[#0080B8] font-medium">
+                            <CheckCircle size={14} />
+                            <span>Click to start solving</span>
                           </div>
                         </div>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontSize: '13px',
-                          color: '#1e40af',
-                          fontWeight: '500'
-                        }}>
-                          <FontAwesomeIcon icon={faCheckCircle} />
-                          <span>Click to start solving →</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="msg1-body">{m.message}</div>
-                    )}
+                      ) : (
+                        <div className="text-sm">{m.message}</div>
+                      )}
+                    </div>
                   </div>
                 );
               })
             ) : (
-              <div className="empty">No messages yet — say hi 👋</div>
+              <div className="flex items-center justify-center h-full text-gray-400">No messages yet -- say hi</div>
             )
           ) : (
-            <div className="empty">Select a group to see messages</div>
+            <div className="flex items-center justify-center h-full text-gray-400">Select a group to see messages</div>
           )}
 
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="chat-input">
+        {/* Chat Input */}
+        <div className={`px-4 py-3 border-t flex gap-2 ${isDarkMode ? 'bg-[#0B1120] border-gray-700' : 'bg-white border-gray-200'}`}>
           <input
+            className={`flex-1 px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#00A0E3]/30 focus:border-[#00A0E3] transition-colors ${
+              isDarkMode
+                ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
+                : 'bg-[#F8FAFC] border-gray-200 text-[#0B1120] placeholder-gray-400'
+            }`}
             placeholder={selectedGroup ? "Type a message..." : "Select a group to send messages"}
             disabled={!selectedGroup}
             value={messageText}
@@ -681,15 +652,25 @@ const ChatRoom = () => {
               if (e.key === "Enter") handleSendMessage();
             }}
           />
-          <button disabled={!selectedGroup || !messageText.trim()} onClick={handleSendMessage}><FontAwesomeIcon icon={faPaperPlane} /></button>
+          <button
+            className={`p-2.5 rounded-xl transition-colors ${
+              !selectedGroup || !messageText.trim()
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-[#00A0E3] text-white hover:bg-[#0080B8]'
+            }`}
+            disabled={!selectedGroup || !messageText.trim()}
+            onClick={handleSendMessage}
+          >
+            <Send size={18} />
+          </button>
         </div>
       </div>
 
       {/* Create Group Modal */}
       <Modal show={showCreateGroupModal} onHide={() => setShowCreateGroupModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>
-            <FontAwesomeIcon icon={faUsers} className="me-2" />
+          <Modal.Title className="flex items-center gap-2">
+            <Users size={20} className="text-[#00A0E3]" />
             Create New Group
           </Modal.Title>
         </Modal.Header>
@@ -713,7 +694,7 @@ const ChatRoom = () => {
                 value={inviteInput}
                 onChange={(e) => setInviteInput(e.target.value)}
               />
-              <Form.Text className="text-muted">
+              <Form.Text className="text-gray-400">
                 Enter usernames separated by commas
               </Form.Text>
             </Form.Group>
@@ -736,21 +717,21 @@ const ChatRoom = () => {
       {/* Share Questions Confirmation Modal */}
       <Modal show={showShareConfirmModal} onHide={() => setShowShareConfirmModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>
-            <FontAwesomeIcon icon={faShareSquare} className="me-2" />
+          <Modal.Title className="flex items-center gap-2">
+            <Share2 size={20} className="text-[#00A0E3]" />
             Confirm Share Questions
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="confirm-share-content">
-            <p><strong>You are about to share:</strong></p>
-            <ul>
+          <div>
+            <p className="font-semibold text-[#0B1120]">You are about to share:</p>
+            <ul className="list-disc pl-5 mt-2 space-y-1 text-sm text-[#0B1120]">
               <li><strong>{selectedQuestionsToShare.length}</strong> question(s)</li>
               <li>Subject: <strong>{lastSession?.subject_name}</strong></li>
               <li>Group: <strong>{selectedGroup?.name}</strong></li>
             </ul>
-            <div className="alert alert-info mt-3">
-              <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+            <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 text-[#0080B8] rounded-lg text-sm">
+              <Info size={16} className="flex-shrink-0" />
               All group members will be able to solve these questions.
             </div>
           </div>

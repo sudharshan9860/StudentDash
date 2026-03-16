@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
-import "./UploadClasswork.css"
 
 const UploadClasswork = () => {
   const [classworkList, setclassworkList] = useState([]);
@@ -76,7 +75,7 @@ const UploadClasswork = () => {
           setUploadProgress(percentCompleted);
         },
       });
-      
+
 
       if (response.status === 200 || response.status === 201) {
         setSuccess(true);
@@ -104,123 +103,6 @@ const UploadClasswork = () => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-    // <div className="upload-classwork-container">
-    //   <div className="upload-classwork-wrapper">
-    //     <h2 className="upload-classwork-title">📑 Upload classwork PDF</h2>
-
-    //     {error && (
-    //       <div className="alert alert-error">
-    //         <span className="alert-icon">❌</span>
-    //         {error}
-    //       </div>
-    //     )}
-
-    //     {success && (
-    //       <div className="alert alert-success">
-    //         <span className="alert-icon">✅</span>
-    //         classwork uploaded successfully!
-    //       </div>
-    //     )}
-
-    //     <form onSubmit={handleSubmit} className="upload-classwork-form">
-    //       {/* classwork Selection Section */}
-    //       <div className="form-section">
-    //         <h3 className="section-title">Select classwork</h3>
-
-    //         {fetchingclasswork ? (
-    //           <div className="loading-spinner">
-    //             <div className="spinner"></div>
-    //             <span>Loading classwork list...</span>
-    //           </div>
-    //         ) : (
-    //           <>
-    //             <div className="classwork-list">
-    //               {classworkList.length === 0 ? (
-    //                 <div className="empty-state">
-    //                   <p>No classwork available</p>
-    //                 </div>
-    //               ) : (
-    //                 classworkList.map((classwork) => (
-    //                   <div className="classwork-item" key={classwork}>
-    //                     <label className="checkbox-label">
-    //                       <input
-    //                         type="radio"                         // <-- radio
-    //                         name="classwork"                      // same name to group
-    //                         checked={selectedclassworkId === classwork}
-    //                         onChange={() => handleclassworkSelect(classwork)}
-    //                         className="checkbox-input"
-    //                       />
-    //                       <div className="classwork-info">
-    //                         <span className="classwork-title">
-    //                           {classwork || `classwork #${classwork}`}
-    //                         </span>
-    //                       </div>
-    //                     </label>
-    //                   </div>
-    //                 ))
-    //               )}
-    //             </div>
-
-    //             <div className="selected-count">
-    //               {selectedclassworkId ? '1 classwork selected' : '0 classwork selected'}
-    //             </div>
-    //           </>
-    //         )}
-    //       </div>
-
-    //       {/* File Upload Section */}
-    //       <div className="form-section">
-    //         <h3 className="section-title">Upload PDF File</h3>
-
-    //         <div className="file-upload-container">
-    //           <label htmlFor="pdf-upload" className="file-upload-label">
-    //             <div className="file-upload-icon">📄</div>
-    //             <span className="file-upload-text">
-    //               {pdfFile ? pdfFile.name : 'Choose PDF file'}
-    //             </span>
-    //             {pdfFile && <span className="file-size">({formatFileSize(pdfFile.size)})</span>}
-    //           </label>
-    //           <input
-    //             id="pdf-upload"
-    //             type="file"
-    //             accept=".pdf"
-    //             onChange={handleFileChange}
-    //             className="file-input"
-    //           />
-    //         </div>
-    //       </div>
-
-    //       {/* Upload Progress */}
-    //       {loading && uploadProgress > 0 && (
-    //         <div className="upload-progress">
-    //           <div className="progress-bar">
-    //             <div className="progress-fill" style={{ width: `${uploadProgress}%` }}></div>
-    //           </div>
-    //           <span className="progress-text">{uploadProgress}%</span>
-    //         </div>
-    //       )}
-
-    //       {/* Submit Button */}
-    //       <button
-    //         type="submit"
-    //         disabled={loading || !selectedclassworkId || !pdfFile}
-    //         className="submit-button"
-    //       >
-    //         {loading ? (
-    //           <>
-    //             <span className="spinner-small"></span>
-    //             Uploading...
-    //           </>
-    //         ) : (
-    //           <>
-    //             <span>📤</span>
-    //             Upload classwork
-    //           </>
-    //         )}
-    //       </button>
-    //     </form>
-    //   </div>
-    // </div>
 
   return (
     <>coming soon...</>

@@ -1,13 +1,13 @@
 import React, { useContext, useState, useMemo } from 'react';
 import { Card, Row, Col, Button, Modal } from 'react-bootstrap';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
   BarChart,
   Bar
@@ -15,28 +15,20 @@ import {
 import { ProgressContext } from '../contexts/ProgressContext';
 import StudyStreak from './StudyStreak';
 import SubjectProgress from './SubjectProgress';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Trophy, TrendingUp, Award, Gift, Clock, HelpCircle } from 'lucide-react';
 import { useAlert } from './AlertBox';
-import { 
-  faTrophy, 
-  faChartLine, 
-  faAward, 
-  faGift,
-  faClock,
-  faQuestionCircle 
-} from '@fortawesome/free-solid-svg-icons';
 
 const ProgressDashboard = () => {
   const { showAlert, AlertContainer } = useAlert();
-  const { 
-    getProgressSummary, 
+  const {
+    getProgressSummary,
     redeemReward,
     getWeeklyStudyData
   } = useContext(ProgressContext);
 
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [activeChartTab, setActiveChartTab] = useState('questions'); // 'questions' or 'time'
-  
+
   // Get progress data with all study time stats
   const progressData = getProgressSummary() || {
     streak: 0,
@@ -57,10 +49,10 @@ const ProgressDashboard = () => {
   const weeklyStudyData = useMemo(() => {
     // Find most recent week data
     const recentWeeks = progressData.weeklyStudyData || [];
-    const mostRecentWeek = recentWeeks.length > 0 
-      ? recentWeeks[recentWeeks.length - 1] 
+    const mostRecentWeek = recentWeeks.length > 0
+      ? recentWeeks[recentWeeks.length - 1]
       : { dailyData: [] };
-      
+
     // Format for chart display
     return mostRecentWeek.dailyData || [];
   }, [progressData.weeklyStudyData]);
@@ -86,23 +78,23 @@ const ProgressDashboard = () => {
 
   // Rewards section
   const availableRewards = [
-    { 
-      name: 'Extra Practice Session', 
-      cost: 100, 
+    {
+      name: 'Extra Practice Session',
+      cost: 100,
       description: 'Unlock additional practice questions',
-      icon: faChartLine
+      Icon: TrendingUp
     },
-    { 
-      name: 'Hint Token', 
-      cost: 50, 
+    {
+      name: 'Hint Token',
+      cost: 50,
       description: 'Get a helpful hint for challenging questions',
-      icon: faAward
+      Icon: Award
     },
-    { 
-      name: 'Bonus Question', 
-      cost: 75, 
+    {
+      name: 'Bonus Question',
+      cost: 75,
       description: 'Earn an extra challenge question',
-      icon: faTrophy
+      Icon: Trophy
     }
   ];
 
@@ -122,189 +114,173 @@ const ProgressDashboard = () => {
   return (
     <>
       <AlertContainer />
-      <div className="progress-page-container">
+      <div className="space-y-6 p-4">
       {/* Study Streak Section */}
-      <div className="streak-card">
+      <div>
         <StudyStreak />
       </div>
 
       {/* Performance Overview */}
-      <div className="performance-card">
-        <Card className="h-100">
-          <Card.Header>
-            <h5 className="mb-0">Performance Overview</h5>
-          </Card.Header>
-          <Card.Body>
-            <Row>
-              <Col md={4}>
-                <div className="text-center mb-3">
-                  <h5>Accuracy</h5>
-                  <h3 className="text-primary">
-                    {progressData.accuracy.toFixed(2)}%
-                  </h3>
-                </div>
-              </Col>
-              <Col md={4}>
-                <div className="text-center mb-3">
-                  <h5>Total Questions</h5>
-                  <h3 className="text-success">
-                    {progressData.totalQuestions}
-                  </h3>
-                </div>
-              </Col>
-              <Col md={4}>
-                <div className="text-center mb-3">
-                  <h5>Study Time</h5>
-                  <h3 className="text-info">
-                    {progressData.totalStudyTime} mins
-                  </h3>
-                </div>
-              </Col>
-            </Row>
-            <div className="progress-details text-muted">
-              <div className="d-flex justify-content-between">
-                <small>
-                  Correct Answers: {progressData.correctQuestions}
-                </small>
-                <small>
-                  Today's Study Time: {progressData.dailyStudyTime} mins
-                </small>
-              </div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h5 className="text-lg font-semibold text-[#0B1120] m-0">Performance Overview</h5>
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center mb-3">
+              <h5 className="text-sm font-medium text-gray-500">Accuracy</h5>
+              <h3 className="text-2xl font-bold text-[#00A0E3]">
+                {progressData.accuracy.toFixed(2)}%
+              </h3>
             </div>
-          </Card.Body>
-        </Card>
+            <div className="text-center mb-3">
+              <h5 className="text-sm font-medium text-gray-500">Total Questions</h5>
+              <h3 className="text-2xl font-bold text-emerald-500">
+                {progressData.totalQuestions}
+              </h3>
+            </div>
+            <div className="text-center mb-3">
+              <h5 className="text-sm font-medium text-gray-500">Study Time</h5>
+              <h3 className="text-2xl font-bold text-cyan-500">
+                {progressData.totalStudyTime} mins
+              </h3>
+            </div>
+          </div>
+          <div className="flex justify-between text-gray-400 text-sm mt-2">
+            <span>
+              Correct Answers: {progressData.correctQuestions}
+            </span>
+            <span>
+              Today's Study Time: {progressData.dailyStudyTime} mins
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Weekly Progress */}
-      <div className="weekly-progress-card">
-        <Card>
-          <Card.Header className="d-flex justify-content-between align-items-center">
-            <h5 className="mb-0">Weekly Study Progress</h5>
-            <div className="btn-group">
-              <Button 
-                variant={activeChartTab === 'questions' ? 'primary' : 'outline-primary'} 
-                size="sm"
-                onClick={() => setActiveChartTab('questions')}
-              >
-                <FontAwesomeIcon icon={faQuestionCircle} className="me-2" />
-                Questions
-              </Button>
-              <Button 
-                variant={activeChartTab === 'time' ? 'primary' : 'outline-primary'} 
-                size="sm"
-                onClick={() => setActiveChartTab('time')}
-              >
-                <FontAwesomeIcon icon={faClock} className="me-2" />
-                Study Time
-              </Button>
-            </div>
-          </Card.Header>
-          <Card.Body>
-            <ResponsiveContainer width="100%" height={300}>
-              {activeChartTab === 'questions' ? (
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="dayName" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar 
-                    dataKey="questionsAttempted" 
-                    name="Questions Attempted" 
-                    fill="#82ca9d" 
-                  />
-                </BarChart>
-              ) : (
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="dayName" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="studyTime" 
-                    stroke="#8884d8" 
-                    name="Study Time (mins)" 
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
-              )}
-            </ResponsiveContainer>
-          </Card.Body>
-        </Card>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+          <h5 className="text-lg font-semibold text-[#0B1120] m-0">Weekly Study Progress</h5>
+          <div className="flex gap-1">
+            <button
+              className={`px-3 py-1.5 text-sm rounded-l-md border transition-colors ${
+                activeChartTab === 'questions'
+                  ? 'bg-[#00A0E3] text-white border-[#00A0E3]'
+                  : 'bg-white text-[#00A0E3] border-[#00A0E3] hover:bg-blue-50'
+              }`}
+              onClick={() => setActiveChartTab('questions')}
+            >
+              <HelpCircle size={14} className="inline mr-1.5" />
+              Questions
+            </button>
+            <button
+              className={`px-3 py-1.5 text-sm rounded-r-md border transition-colors ${
+                activeChartTab === 'time'
+                  ? 'bg-[#00A0E3] text-white border-[#00A0E3]'
+                  : 'bg-white text-[#00A0E3] border-[#00A0E3] hover:bg-blue-50'
+              }`}
+              onClick={() => setActiveChartTab('time')}
+            >
+              <Clock size={14} className="inline mr-1.5" />
+              Study Time
+            </button>
+          </div>
+        </div>
+        <div className="p-6">
+          <ResponsiveContainer width="100%" height={300}>
+            {activeChartTab === 'questions' ? (
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="dayName" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar
+                  dataKey="questionsAttempted"
+                  name="Questions Attempted"
+                  fill="#82ca9d"
+                />
+              </BarChart>
+            ) : (
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="dayName" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="studyTime"
+                  stroke="#8884d8"
+                  name="Study Time (mins)"
+                  activeDot={{ r: 8 }}
+                />
+              </LineChart>
+            )}
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Subject Progress */}
-      <div className="subject-progress-section">
+      <div>
         <SubjectProgress />
       </div>
 
       {/* Badges and Rewards */}
-      <div className="row">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Badges Section */}
-        <div className="col-md-8">
-          <div className="badges-section">
-            <Card>
-              <Card.Header>Earned Badges</Card.Header>
-              <Card.Body>
-                <div className="d-flex flex-wrap justify-content-center">
-                  {progressData.badges.length > 0 ? (
-                    progressData.badges.map((badge, index) => (
-                      <div 
-                        key={index} 
-                        className="badge-item text-center m-2"
-                        style={{ width: '120px' }}
+        <div className="md:col-span-2">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="px-6 py-4 border-b border-gray-100 font-semibold text-[#0B1120]">Earned Badges</div>
+            <div className="p-6">
+              <div className="flex flex-wrap justify-center gap-4">
+                {progressData.badges.length > 0 ? (
+                  progressData.badges.map((badge, index) => (
+                    <div
+                      key={index}
+                      className="text-center w-[120px]"
+                    >
+                      <div
+                        className="text-5xl"
+                        style={{
+                          color: badge.type === 'gold' ? '#FFD700' :
+                                 badge.type === 'silver' ? '#C0C0C0' : '#CD7F32'
+                        }}
                       >
-                        <div 
-                          className="badge-icon" 
-                          style={{ 
-                            fontSize: '3rem', 
-                            color: badge.type === 'gold' ? '#FFD700' : 
-                                   badge.type === 'silver' ? '#C0C0C0' : '#CD7F32'
-                          }}
-                        >
-                          🏆
-                        </div>
-                        <p>{badge.name}</p>
+                        <Trophy size={48} />
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-center w-100">No badges earned yet</p>
-                  )}
-                </div>
-              </Card.Body>
-            </Card>
+                      <p className="mt-2 text-sm text-[#0B1120]">{badge.name}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center w-full text-gray-400">No badges earned yet</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Rewards Section */}
-        <div className="col-md-4">
-          <div className="rewards-section">
-            <Card>
-              <Card.Header>
-                <FontAwesomeIcon icon={faGift} className="me-2" />
-                Rewards
-              </Card.Header>
-              <Card.Body>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div>
-                    <h3 className="rewards-title">
-                      <span role="img" aria-label="gift">🎁</span> Points
-                    </h3>
-                    <div className="points-display">{progressData.points} Points</div>
-                  </div>
-                  <Button 
-                    variant="primary" 
-                    size="sm"
-                    className="redeem-button"
-                    onClick={() => setShowRedeemModal(true)}
-                  >
-                    Redeem Rewards
-                  </Button>
+        <div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="px-6 py-4 border-b border-gray-100 font-semibold text-[#0B1120] flex items-center gap-2">
+              <Gift size={18} className="text-[#00A0E3]" />
+              Rewards
+            </div>
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-[#0B1120]">Points</h3>
+                  <div className="text-2xl font-bold text-[#00A0E3]">{progressData.points} Points</div>
                 </div>
-              </Card.Body>
-            </Card>
+                <button
+                  className="px-4 py-2 bg-[#00A0E3] text-white text-sm rounded-lg hover:bg-[#0080B8] transition-colors"
+                  onClick={() => setShowRedeemModal(true)}
+                >
+                  Redeem Rewards
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -315,32 +291,30 @@ const ProgressDashboard = () => {
           <Modal.Title>Redeem Rewards</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Row>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {availableRewards.map((reward, index) => (
-              <Col key={index} md={4} className="text-center mb-3">
-                <Card className="h-100">
-                  <Card.Body className="d-flex flex-column">
-                    <FontAwesomeIcon 
-                      icon={reward.icon} 
-                      className="mb-3 text-primary" 
-                      size="2x" 
-                    />
-                    <h5>{reward.name}</h5>
-                    <p className="text-muted small">{reward.description}</p>
-                    <p className="font-weight-bold">{reward.cost} Points</p>
-                    <Button 
-                      variant="outline-primary" 
-                      className="mt-auto"
-                      disabled={progressData.points < reward.cost}
-                      onClick={() => handleRedeemReward(reward.name)}
-                    >
-                      Redeem
-                    </Button>
-                  </Card.Body>
-                </Card>
-              </Col>
+              <div key={index} className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col items-center text-center h-full">
+                <reward.Icon
+                  size={32}
+                  className="mb-3 text-[#00A0E3]"
+                />
+                <h5 className="font-semibold text-[#0B1120] mb-1">{reward.name}</h5>
+                <p className="text-gray-400 text-sm mb-2">{reward.description}</p>
+                <p className="font-bold text-[#0B1120]">{reward.cost} Points</p>
+                <button
+                  className={`mt-auto px-4 py-2 rounded-lg border text-sm transition-colors ${
+                    progressData.points < reward.cost
+                      ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                      : 'border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3] hover:text-white'
+                  }`}
+                  disabled={progressData.points < reward.cost}
+                  onClick={() => handleRedeemReward(reward.name)}
+                >
+                  Redeem
+                </button>
+              </div>
             ))}
-          </Row>
+          </div>
         </Modal.Body>
       </Modal>
     </div>

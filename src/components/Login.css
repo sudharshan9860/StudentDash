@@ -15,7 +15,7 @@
    THEME (Auto Switch)
    ========================= */
 :root {
-  --text: #0f172a;
+  --text: #0B1120;
   --muted: rgba(15, 23, 42, 0.65);
   --card-bg: #ffffff;
   --card-border: rgba(0, 0, 0, 0.08);
@@ -23,8 +23,8 @@
   --shadow: rgba(0, 0, 0, 0.18);
   --input-bg: rgba(255, 255, 255, 0.9);
   --input-border: #ddd;
-  --brand1: rgba(0, 174, 255, 0.2);
-  --brand2: rgba(0, 27, 108, 0.2);
+  --brand1: rgba(0, 160, 227, 0.2);
+  --brand2: rgba(11, 17, 32, 0.2);
 }
 
 /* =========================
@@ -39,7 +39,7 @@
   position: relative;
   overflow: hidden;
 
-  background: url("/images/Login.png");
+  background: url("/images/rmbg.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -279,7 +279,7 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(0, 174, 255, 0.18), transparent 70%);
+  background: radial-gradient(circle, rgba(0, 160, 227, 0.18), transparent 70%);
   filter: blur(40px);
   z-index: -1;
 }
@@ -418,7 +418,7 @@
 
 .form-input-new:focus {
   background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 0 0 3px rgba(0, 119, 255, 0.18);
+  box-shadow: 0 0 0 3px rgba(0, 160, 227, 0.18);
   transform: translateY(-1px);
 }
 
@@ -510,8 +510,8 @@
   border-color: rgba(34, 197, 94, 0.6);
 }
 .meter-strong {
-  background: rgba(59, 130, 246, 0.9);
-  border-color: rgba(59, 130, 246, 0.7);
+  background: rgba(0, 160, 227, 0.9);
+  border-color: rgba(0, 160, 227, 0.7);
 }
 
 /* =========================
@@ -519,7 +519,7 @@
    ========================= */
 .login-button-new {
   width: 100%;
-  background: linear-gradient(135deg, #111827, #000000);
+  background: linear-gradient(135deg, #00A0E3, #0080B8);
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
   background-size: 200% 200%;
   color: #fff;
@@ -539,7 +539,7 @@
 }
 
 .login-button-new:hover {
-  background: linear-gradient(135deg, #000000, #111827);
+  background: linear-gradient(135deg, #0080B8, #00A0E3);
   transform: translateY(-2px);
   background-position: right center;
   transform: translateY(-2px);
@@ -571,7 +571,7 @@
 }
 
 .cant-login-link:hover {
-  color: #2563eb;
+  color: #0080B8;
   text-decoration: underline;
 }
 
@@ -647,10 +647,10 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
-  border: 1.5px solid rgba(0, 27, 108, 0.9);
+  border: 1.5px solid rgba(11, 17, 32, 0.9);
   border-radius: 12px;
 
-  color: rgba(0, 27, 108, 0.95);
+  color: rgba(11, 17, 32, 0.95);
   text-decoration: none;
   font-size: 12px;
   font-weight: 700;
@@ -664,10 +664,10 @@
 }
 
 .register-button-new:hover {
-  background: rgba(0, 27, 108, 0.95);
+  background: rgba(11, 17, 32, 0.95);
   color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(0, 27, 108, 0.22);
+  box-shadow: 0 10px 22px rgba(11, 17, 32, 0.22);
 }
 
 /* =========================

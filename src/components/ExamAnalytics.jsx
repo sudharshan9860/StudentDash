@@ -5,7 +5,6 @@ import axiosInstance from '../api/axiosInstance';
 import { AuthContext } from './AuthContext';
 import StudentExamDetails from './StudentExamDetails';
 import PdfModal from './PdfModal';
-import './ExamAnalytics.css';
 
 // FIXED: Correct import for jsPDF with autoTable
 import { jsPDF } from 'jspdf';
@@ -14,7 +13,7 @@ import autoTable from 'jspdf-autotable';
 const ExamAnalytics = () => {
   const navigate = useNavigate();
   const { role } = useContext(AuthContext);
-  
+
   // State management
   const [exams, setExams] = useState([]);
   const [selectedExam, setSelectedExam] = useState(null);
@@ -42,7 +41,7 @@ const ExamAnalytics = () => {
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState('');
   const [selectedPdfTitle, setSelectedPdfTitle] = useState('');
-  
+
   useEffect(() => {
     if (role === 'teacher') {
       fetchTeacherExams();
@@ -59,8 +58,8 @@ const ExamAnalytics = () => {
       setExams(response.data.exams || []);
     } catch (error) {
       console.error('Error fetching exams:', error);
-      setError(error.response?.status === 403 
-        ? 'Access denied. Only teachers can view this page.' 
+      setError(error.response?.status === 403
+        ? 'Access denied. Only teachers can view this page.'
         : 'Failed to fetch exams. Please try again.');
     } finally {
       setLoading(false);
@@ -107,14 +106,14 @@ const ExamAnalytics = () => {
     if (editingRow === studentResult.student_result_id) {
       return;
     }
-    
+
     // Transform the data to match the expected format
     const transformedData = {
       result_id: studentResult.student_result_id,
       exam_name: selectedExam.name,
       exam_type: selectedExam.exam_type,
       class_section: examStats?.classSection || 'N/A',
-      student_fullname: studentResult.student_fullname,  
+      student_fullname: studentResult.student_fullname,
       student_name: studentResult.student_name,
       roll_number: studentResult.roll_number,
       total_marks_obtained: studentResult.total_marks_obtained,
@@ -124,9 +123,9 @@ const ExamAnalytics = () => {
       strengths: studentResult.strengths,
       areas_for_improvement: studentResult.areas_for_improvement,
       detailed_analysis: studentResult.detailed_analysis,
-      remedial_action: studentResult.remedial_action  
+      remedial_action: studentResult.remedial_action
     };
-    
+
     setSelectedStudentResult(transformedData);
     setShowStudentDetailsModal(true);
   };
@@ -213,7 +212,7 @@ const getQuestionPaperUrl = (exam) => {
   setSelectedPdfUrl(encodeURI(url)); // also fixes spaces
   setSelectedPdfTitle(`Question Paper - ${selectedExam.name}`);
   setPdfModalOpen(true);
-  
+
   };
 
   const handleClosePdfModal = () => {
@@ -254,7 +253,7 @@ const getQuestionPaperUrl = (exam) => {
 
   const handleSaveMarks = async (e, studentResultId, maxMarks) => {
     if (e) e.stopPropagation();
-    
+
     const marksValue = Number(editedMarks);
 
     if (isNaN(marksValue)) {
@@ -312,11 +311,11 @@ const getQuestionPaperUrl = (exam) => {
     try {
       setError(null);
       const doc = new jsPDF();
-      
+
       doc.setFontSize(20);
       doc.setFont(undefined, 'bold');
       doc.text('Exam Analytics Report', 105, 20, { align: 'center' });
-      
+
       doc.setFontSize(12);
       doc.setFont(undefined, 'normal');
       doc.text(`Exam: ${selectedExam.name}`, 20, 35);
@@ -325,7 +324,7 @@ const getQuestionPaperUrl = (exam) => {
       doc.text(`Total Students: ${examStats?.totalStudents}`, 20, 56);
       doc.text(`Average: ${selectedExam.average_score.toFixed(2)}%`, 20, 63);
       doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 70);
-      
+
       const tableData = studentResults.map((result, index) => [
         index + 1,
         `${result.student_fullname || 'N/A'}\nRoll: ${result.roll_number || 'N/A'}`,
@@ -336,13 +335,13 @@ const getQuestionPaperUrl = (exam) => {
         result.strengths || 'N/A',
         result.areas_for_improvement || 'N/A'
       ]);
-      
+
       autoTable(doc, {
         startY: 80,
         head: [['#', 'Full Name', 'Marks', 'Max', '%', 'Grade', 'Strengths', 'Improvements']],
         body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
+        headStyles: { fillColor: [0, 160, 227], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
         columnStyles: {
           0: { cellWidth: 10, halign: 'center' },
@@ -355,10 +354,10 @@ const getQuestionPaperUrl = (exam) => {
           7: { cellWidth: 40, fontSize: 7 }
         }
       });
-      
+
       const filename = `${selectedExam.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
-      
+
     } catch (error) {
       console.error('PDF generation error:', error);
       setError(`PDF generation failed: ${error.message}`);
@@ -412,19 +411,19 @@ const getQuestionPaperUrl = (exam) => {
 
   const getGradeColor = (grade) => {
     const colors = {
-      'A+': '#10b981', 'A': '#16a34a', 'B+': '#3b82f6', 
-      'B': '#2563eb', 'C+': '#06b6d4', 'C': '#f59e0b', 
+      'A+': '#10b981', 'A': '#16a34a', 'B+': '#00A0E3',
+      'B': '#0080B8', 'C+': '#06b6d4', 'C': '#f59e0b',
       'D': '#ef4444', 'F': '#dc2626'
     };
     return colors[grade] || '#6b7280';
   };
 
   const getPerformanceClass = (percentage) => {
-    if (percentage >= 90) return 'excellent';
-    if (percentage >= 75) return 'good';
-    if (percentage >= 60) return 'average';
-    if (percentage >= 40) return 'below-average';
-    return 'poor';
+    if (percentage >= 90) return 'text-emerald-600 font-bold';
+    if (percentage >= 75) return 'text-blue-600 font-semibold';
+    if (percentage >= 60) return 'text-cyan-600';
+    if (percentage >= 40) return 'text-amber-600';
+    return 'text-red-600';
   };
 
   const formatDate = (dateString) => {
@@ -478,10 +477,10 @@ const getQuestionPaperUrl = (exam) => {
 
   if (loading && exams.length === 0 && studentOwnResults.length === 0) {
     return (
-      <div className="exam-analytics-fullscreen">
-        <div className="loading-state">
-          <div className="spinner-large"></div>
-          <p>Loading exam data...</p>
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-[#00A0E3] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600 text-lg">Loading exam data...</p>
         </div>
       </div>
     );
@@ -492,11 +491,11 @@ const getQuestionPaperUrl = (exam) => {
   // ========================================
   if (role === 'student') {
     return (
-      <div className="exam-analytics-dashboard">
-        <div className="exam-analytics-header">
-          <div className="header-content">
-            <div className="header-icon student">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-6">
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-[#00A0E3]/10 text-[#00A0E3] rounded-xl flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
                 <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
@@ -504,14 +503,14 @@ const getQuestionPaperUrl = (exam) => {
               </svg>
             </div>
             <div>
-              <h1 className="exam-header-title">📊 My Exam Results</h1>
-              <p className="header-subtitle">View your exam performance and detailed feedback</p>
+              <h1 className="text-xl md:text-2xl font-bold text-[#0B1120]">My Exam Results</h1>
+              <p className="text-gray-500 text-sm">View your exam performance and detailed feedback</p>
             </div>
           </div>
         </div>
 
         {error && (
-          <div className="alert alert-error">
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" y1="8" x2="12" y2="12"/>
@@ -522,50 +521,51 @@ const getQuestionPaperUrl = (exam) => {
         )}
 
         {studentOwnResults.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📝</div>
-            <h3>No Exam Results Yet</h3>
-            <p>Your exam results will appear here once they are graded by your teacher.</p>
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+            <span className="text-5xl mb-4">&#128221;</span>
+            <h3 className="text-lg font-semibold text-[#0B1120] mb-2">No Exam Results Yet</h3>
+            <p className="text-gray-500">Your exam results will appear here once they are graded by your teacher.</p>
           </div>
         ) : (
-          <div className="exams-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {studentOwnResults.map((result) => (
-              <div 
-                key={result.result_id} 
-                className="exam-card"
+              <div
+                key={result.result_id}
+                className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md hover:border-[#00A0E3]/30 transition-all"
                 onClick={() => {
                   setSelectedStudentResult(result);
                   setShowStudentDetailsModal(true);
                 }}
-                style={{ cursor: 'pointer' }}
               >
-                <div className="exam-card-header">
-                  <h3 className="exam-name">{result.exam_name}</h3>
-                  <span className={`exam-type-badge ${result.exam_type?.toLowerCase() || 'mixed'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-[#0B1120] text-lg truncate mr-2">{result.exam_name}</h3>
+                  <span className="px-2 py-1 bg-[#00A0E3]/10 text-[#00A0E3] text-xs font-semibold rounded-full whitespace-nowrap">
                     {result.exam_type || 'EXAM'}
                   </span>
                 </div>
-                <div className="exam-info">
-                  <div className="info-row">
-                    <span className="info-label">Score:</span>
-                    <span className="info-value">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Score:</span>
+                    <span className="font-medium text-[#0B1120]">
                       {Math.round(result.total_marks_obtained || 0)} / {Math.round(result.total_max_marks || 0)}
                     </span>
                   </div>
-                  <div className="info-row">
-                    <span className="info-label">Percentage:</span>
-                    <span className={`info-value ${getPerformanceClass(result.overall_percentage || 0)}`}>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Percentage:</span>
+                    <span className={getPerformanceClass(result.overall_percentage || 0)}>
                       {result.overall_percentage?.toFixed(1) || 0}%
                     </span>
                   </div>
-                  <div className="info-row">
-                    <span className="info-label">Grade:</span>
-                    <span className="info-value" style={{ color: getGradeColor(result.grade) }}>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Grade:</span>
+                    <span className="font-bold" style={{ color: getGradeColor(result.grade) }}>
                       {result.grade || 'N/A'}
                     </span>
                   </div>
                 </div>
-                <button className="view-details-btn">View Detailed Report →</button>
+                <button className="w-full mt-4 text-center text-[#00A0E3] hover:text-[#0080B8] text-sm font-semibold py-2 border border-[#00A0E3]/20 rounded-lg hover:bg-[#00A0E3]/5 transition-colors">
+                  View Detailed Report &rarr;
+                </button>
               </div>
             ))}
           </div>
@@ -573,14 +573,14 @@ const getQuestionPaperUrl = (exam) => {
 
         {/* Student Details Modal */}
         {showStudentDetailsModal && selectedStudentResult && (
-          <div className="modal-overlay" onClick={handleCloseStudentDetails}>
-            <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h2>📋 Exam Details - {selectedStudentResult.exam_name}</h2>
-                <button className="modal-close-btn" onClick={handleCloseStudentDetails}>✕</button>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={handleCloseStudentDetails}>
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-bold text-[#0B1120]">Exam Details - {selectedStudentResult.exam_name}</h2>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 text-xl" onClick={handleCloseStudentDetails}>&times;</button>
               </div>
-              <div className="modal-body">
-                <StudentExamDetails 
+              <div className="flex-1 overflow-y-auto p-6">
+                <StudentExamDetails
                   studentResultId={selectedStudentResult.result_id}
                   studentName="Me"
                   examName={selectedStudentResult.exam_name}
@@ -588,8 +588,8 @@ const getQuestionPaperUrl = (exam) => {
                   summaryData={selectedStudentResult}
                 />
               </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={handleCloseStudentDetails}>Close</button>
+              <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+                <button className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors" onClick={handleCloseStudentDetails}>Close</button>
               </div>
             </div>
           </div>
@@ -603,27 +603,27 @@ const getQuestionPaperUrl = (exam) => {
   // ========================================
   if (role === 'teacher' && viewMode === 'list') {
     return (
-      <div className="exam-analytics-dashboard">
-        <div className="exam-analytics-header">
-          <div className="header-content">
-            <div className="header-icon teacher">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-[#00A0E3]/10 text-[#00A0E3] rounded-xl flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
                 <path d="M6 12v5c3 3 9 3 12 0v-5"/>
               </svg>
             </div>
             <div>
-              <h1 className="exam-header-title">📊 Exam Analytics</h1>
-              <p className="header-subtitle">View and analyze all your exam results</p>
+              <h1 className="text-xl md:text-2xl font-bold text-[#0B1120]">Exam Analytics</h1>
+              <p className="text-gray-500 text-sm">View and analyze all your exam results</p>
             </div>
           </div>
-          <button className="create-exam-btn" onClick={handleCreateExam}>
-            <span>➕</span> Create New Exam
+          <button className="flex items-center gap-2 bg-[#00A0E3] hover:bg-[#0080B8] text-white px-5 py-2.5 rounded-lg font-medium transition-colors" onClick={handleCreateExam}>
+            <span>+</span> Create New Exam
           </button>
         </div>
 
         {error && (
-          <div className="alert alert-error">
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" y1="8" x2="12" y2="12"/>
@@ -634,20 +634,20 @@ const getQuestionPaperUrl = (exam) => {
         )}
 
         {exams.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📝</div>
-            <h3>No Exams Created Yet</h3>
-            <p>Create your first exam to start grading and analyzing student performance.</p>
-            <button className="btn btn-primary" onClick={handleCreateExam}>
-              <span>➕</span> Create First Exam
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+            <span className="text-5xl mb-4">&#128221;</span>
+            <h3 className="text-lg font-semibold text-[#0B1120] mb-2">No Exams Created Yet</h3>
+            <p className="text-gray-500 mb-6">Create your first exam to start grading and analyzing student performance.</p>
+            <button className="flex items-center gap-2 bg-[#00A0E3] hover:bg-[#0080B8] text-white px-6 py-3 rounded-lg font-medium transition-colors" onClick={handleCreateExam}>
+              <span>+</span> Create First Exam
             </button>
           </div>
         ) : (
-          <div className="exams-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {exams.map((exam) => (
-              <div key={exam.id} className="exam-card" onClick={() => handleExamSelect(exam)}>
+              <div key={exam.id} className="relative bg-white rounded-xl shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md hover:border-[#00A0E3]/30 transition-all" onClick={() => handleExamSelect(exam)}>
                 <button
-                  className="exam-delete-btn"
+                  className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
                   onClick={(e) => handleDeleteClick(e, exam)}
                   title="Delete Exam"
                 >
@@ -658,39 +658,41 @@ const getQuestionPaperUrl = (exam) => {
                     <line x1="14" y1="11" x2="14" y2="17"/>
                   </svg>
                 </button>
-                <div className="exam-card-header">
-                  <h3 className="exam-name">{exam.name}</h3>
-                  <span className={`exam-type-badge ${exam.exam_type.toLowerCase()}`}>{exam.exam_type}</span>
+                <div className="flex items-center justify-between mb-3 pr-8">
+                  <h3 className="font-semibold text-[#0B1120] text-lg truncate mr-2">{exam.name}</h3>
+                  <span className="px-2 py-1 bg-[#00A0E3]/10 text-[#00A0E3] text-xs font-semibold rounded-full whitespace-nowrap">{exam.exam_type}</span>
                 </div>
-                <div className="exam-info">
-                  <div className="info-row">
-                    <span className="info-label">Class:</span>
-                    <span className="info-value">{exam.class_section}</span>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Class:</span>
+                    <span className="font-medium text-[#0B1120]">{exam.class_section}</span>
                   </div>
-                  <div className="info-row">
-                    <span className="info-label">Students:</span>
-                    <span className="info-value">{exam.total_students}</span>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Students:</span>
+                    <span className="font-medium text-[#0B1120]">{exam.total_students}</span>
                   </div>
-                  <div className="info-row">
-                    <span className="info-label">Avg Score:</span>
-                    <span className={`info-value ${getPerformanceClass(exam.average_score)}`}>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Avg Score:</span>
+                    <span className={getPerformanceClass(exam.average_score)}>
                       {exam.average_score.toFixed(1)}%
                     </span>
                   </div>
                 </div>
-                <div className="exam-dates">
-                  <div className="date-item">
-                    <span className="date-label">Created:</span>
-                    <span className="date-value">{formatDate(exam.created_at)}</span>
+                <div className="mt-3 pt-3 border-t border-gray-100 space-y-1 text-xs text-gray-500">
+                  <div className="flex justify-between">
+                    <span>Created:</span>
+                    <span>{formatDate(exam.created_at)}</span>
                   </div>
                   {exam.processed_at && (
-                    <div className="date-item">
-                      <span className="date-label">Processed:</span>
-                      <span className="date-value">{formatDate(exam.processed_at)}</span>
+                    <div className="flex justify-between">
+                      <span>Processed:</span>
+                      <span>{formatDate(exam.processed_at)}</span>
                     </div>
                   )}
                 </div>
-                <button className="view-details-btn">View Details →</button>
+                <button className="w-full mt-4 text-center text-[#00A0E3] hover:text-[#0080B8] text-sm font-semibold py-2 border border-[#00A0E3]/20 rounded-lg hover:bg-[#00A0E3]/5 transition-colors">
+                  View Details &rarr;
+                </button>
               </div>
             ))}
           </div>
@@ -698,47 +700,49 @@ const getQuestionPaperUrl = (exam) => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && examToDelete && (
-          <div className="modal-overlay" onClick={handleCancelDelete}>
-            <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="delete-confirm-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-              </div>
-              <h3 className="delete-confirm-title">Delete Exam</h3>
-              <p className="delete-confirm-text">
-                Are you sure you want to delete <strong>"{examToDelete.name}"</strong>? This will permanently remove the exam and all associated student results. This action cannot be undone.
-              </p>
-              <div className="delete-confirm-actions">
-                <button
-                  className="delete-confirm-cancel-btn"
-                  onClick={handleCancelDelete}
-                  disabled={isDeleting}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="delete-confirm-delete-btn"
-                  onClick={handleConfirmDelete}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? (
-                    <>
-                      <span className="spinner-small"></span>
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                      </svg>
-                      Delete Exam
-                    </>
-                  )}
-                </button>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={handleCancelDelete}>
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex flex-col items-center text-center">
+                <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-[#0B1120] mb-2">Delete Exam</h3>
+                <p className="text-gray-500 text-sm mb-6">
+                  Are you sure you want to delete <strong>"{examToDelete.name}"</strong>? This will permanently remove the exam and all associated student results. This action cannot be undone.
+                </p>
+                <div className="flex gap-3 w-full">
+                  <button
+                    className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                    onClick={handleCancelDelete}
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Delete Exam
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -752,25 +756,27 @@ const getQuestionPaperUrl = (exam) => {
   // ========================================
   if (role === 'teacher' && viewMode === 'details' && selectedExam) {
     return (
-      <div className="exam-analytics-dashboard">
-        <div className="exam-analytics-header">
-          <div className="header-content">
-            <button className="back-btn" onClick={handleBackToList}>← Back</button>
+      <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <button className="flex items-center gap-1 text-[#00A0E3] hover:text-[#0080B8] font-medium text-sm transition-colors" onClick={handleBackToList}>
+              &larr; Back
+            </button>
             <div>
-              <h1 className="header-title">{selectedExam.name}</h1>
-              <p className="header-subtitle">
-                {examStats?.classSection} • {examStats?.totalStudents} Students • {selectedExam.exam_type}
+              <h1 className="text-xl md:text-2xl font-bold text-[#0B1120]">{selectedExam.name}</h1>
+              <p className="text-gray-500 text-sm">
+                {examStats?.classSection} &bull; {examStats?.totalStudents} Students &bull; {selectedExam.exam_type}
               </p>
             </div>
           </div>
-          <div className="header-buttons">
+          <div className="flex flex-wrap gap-2">
             {hasQuestionPaper(selectedExam) && (
               <button
-                className="view-qp-btn"
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:border-[#00A0E3] text-gray-700 hover:text-[#00A0E3] rounded-lg text-sm font-medium transition-colors"
                 onClick={handleViewQuestionPaper}
                 title="View Question Paper"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                   <polyline points="14 2 14 8 20 8"/>
                   <line x1="16" y1="13" x2="8" y2="13"/>
@@ -780,12 +786,12 @@ const getQuestionPaperUrl = (exam) => {
               </button>
             )}
             <button
-              className="parent-notes-btn"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:border-[#00A0E3] text-gray-700 hover:text-[#00A0E3] rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
               onClick={handleDownloadParentNotesCSV}
               disabled={studentResults.length === 0}
               title="Download Parent Notes CSV"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
                 <line x1="12" y1="18" x2="12" y2="12"/>
@@ -794,11 +800,11 @@ const getQuestionPaperUrl = (exam) => {
               <span>Parent Note</span>
             </button>
             <button
-              className="download-pdf-btn"
+              className="flex items-center gap-2 px-4 py-2 bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
               onClick={handleDownloadPDF}
               disabled={studentResults.length === 0}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
@@ -809,7 +815,7 @@ const getQuestionPaperUrl = (exam) => {
         </div>
 
         {error && (
-          <div className="alert alert-error">
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" y1="8" x2="12" y2="12"/>
@@ -820,7 +826,7 @@ const getQuestionPaperUrl = (exam) => {
         )}
 
         {updateSuccess && (
-          <div className="alert alert-success">
+          <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg mb-4">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
               <polyline points="22 4 12 14.01 9 11.01"/>
@@ -830,147 +836,150 @@ const getQuestionPaperUrl = (exam) => {
         )}
 
         {studentResults.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📊</div>
-            <h3>No Results Available</h3>
-            <p>Results are still being processed or no submissions were found.</p>
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+            <span className="text-5xl mb-4">&#128202;</span>
+            <h3 className="text-lg font-semibold text-[#0B1120] mb-2">No Results Available</h3>
+            <p className="text-gray-500">Results are still being processed or no submissions were found.</p>
           </div>
         ) : (
-          <div className="results-table-container-fixed">
-            <table className="results-table-fixed">
-              <thead>
-                <tr>
-                  <th className="col-number">#</th>
-                  <th className="col-name">Full Name</th>
-                  <th className="col-marks">Marks</th>
-                  <th className="col-max">Max</th>
-                  <th className="col-percentage">%</th>
-                  <th className="col-grade">Grade</th>
-                  <th className="col-strengths">Strengths</th>
-                  <th className="col-improvements">Areas for Improvement</th>
-                  <th className="col-sheet">Answer Sheet</th>
-                  <th className="col-actions">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {studentResults.map((result, index) => (
-                  <tr 
-                    key={result.student_result_id}
-                    onClick={() => handleStudentRowClick(result)}
-                    className="student-row-hover"
-                    title="Click to view detailed evaluation"
-                  >
-                    <td>{index + 1}</td>
-                    <td>
-                      <div className="student-name-cell">
-                        <span className="student-fullname">{result.roll_number || result.student_name || 'N/A'}</span>
-                        {/* <span className="roll-subtitle">Roll: {result.roll_number || 'N/A'}</span> */}
-                      </div>
-                    </td>
-                    <td className="col-marks">
-                      {editingRow === result.student_result_id ? (
-                        <div className="edit-marks-cell" onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="number"
-                            className="edit-marks-input"
-                            value={editedMarks}
-                            onChange={(e) => setEditedMarks(e.target.value)}
-                            min="0"
-                            max={result.total_max_marks}
-                            step="0.5"
-                            disabled={isUpdating}
-                          />
-                        </div>
-                      ) : (
-                        <span>{result.total_marks_obtained || 0}</span>
-                      )}
-                    </td>
-                    <td className="col-max">{result.total_max_marks || 0}</td>
-                    <td className="col-percentage">
-                      <span className={`percentage-badge ${getPerformanceClass(result.overall_percentage || 0)}`}>
-                        {result.overall_percentage?.toFixed(2) || 0}%
-                      </span>
-                    </td>
-                    <td className="col-grade">
-                      <span className="grade-badge" style={{ backgroundColor: getGradeColor(result.grade) }}>
-                        {result.grade || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="col-strengths">
-                      <div className="insights-text">{result.strengths || 'N/A'}</div>
-                    </td>
-                    <td className="col-improvements">
-                      <div className="insights-text">{result.areas_for_improvement || 'N/A'}</div>
-                    </td>
-                    <td className="col-sheet" onClick={(e) => e.stopPropagation()}>
-                      {hasAnswerSheet(result) ? (
-                        <button
-                          className="view-sheet-btn"
-                          onClick={(e) => handleViewAnswerSheet(e, result)}
-                          title="View Answer Sheet"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                          </svg>
-                          <span>View</span>
-                        </button>
-                      ) : (
-                        <span className="no-sheet-badge">N/A</span>
-                      )}
-                    </td>
-                    <td className="col-actions" onClick={(e) => e.stopPropagation()}>
-                      {editingRow === result.student_result_id ? (
-                        <div className="edit-actions">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Full Name</th>
+                    <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Marks</th>
+                    <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Max</th>
+                    <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">%</th>
+                    <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Grade</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Strengths</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Areas for Improvement</th>
+                    <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Answer Sheet</th>
+                    <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {studentResults.map((result, index) => (
+                    <tr
+                      key={result.student_result_id}
+                      onClick={() => handleStudentRowClick(result)}
+                      className="hover:bg-[#00A0E3]/5 cursor-pointer transition-colors"
+                      title="Click to view detailed evaluation"
+                    >
+                      <td className="px-3 py-3 text-gray-600">{index + 1}</td>
+                      <td className="px-3 py-3">
+                        <span className="font-medium text-[#0B1120]">{result.roll_number || result.student_name || 'N/A'}</span>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        {editingRow === result.student_result_id ? (
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="number"
+                              className="w-20 px-2 py-1 border border-gray-300 rounded-md text-center text-sm focus:outline-none focus:ring-2 focus:ring-[#00A0E3] focus:border-transparent"
+                              value={editedMarks}
+                              onChange={(e) => setEditedMarks(e.target.value)}
+                              min="0"
+                              max={result.total_max_marks}
+                              step="0.5"
+                              disabled={isUpdating}
+                            />
+                          </div>
+                        ) : (
+                          <span>{result.total_marks_obtained || 0}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-center text-gray-600">{result.total_max_marks || 0}</td>
+                      <td className="px-3 py-3 text-center">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          (result.overall_percentage || 0) >= 75 ? 'bg-emerald-100 text-emerald-700' :
+                          (result.overall_percentage || 0) >= 50 ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {result.overall_percentage?.toFixed(2) || 0}%
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold text-white" style={{ backgroundColor: getGradeColor(result.grade) }}>
+                          {result.grade || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="max-w-[200px] text-xs text-gray-600 line-clamp-2">{result.strengths || 'N/A'}</div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="max-w-[200px] text-xs text-gray-600 line-clamp-2">{result.areas_for_improvement || 'N/A'}</div>
+                      </td>
+                      <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        {hasAnswerSheet(result) ? (
                           <button
-                            className="save-btn"
-                            onClick={(e) => handleSaveMarks(e, result.student_result_id, result.total_max_marks)}
-                            disabled={isUpdating}
-                            title="Save"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#00A0E3]/10 text-[#00A0E3] hover:bg-[#00A0E3]/20 rounded-md text-xs font-medium transition-colors"
+                            onClick={(e) => handleViewAnswerSheet(e, result)}
+                            title="View Answer Sheet"
                           >
-                            {isUpdating ? (
-                              <span className="spinner-small"></span>
-                            ) : (
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="20 6 9 17 4 12"/>
-                              </svg>
-                            )}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                              <polyline points="14 2 14 8 20 8"/>
+                              <line x1="16" y1="13" x2="8" y2="13"/>
+                              <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                            View
                           </button>
-                          <button className="cancel-btn" onClick={handleCancelEdit} disabled={isUpdating} title="Cancel">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <line x1="18" y1="6" x2="6" y2="18"/>
-                              <line x1="6" y1="6" x2="18" y2="18"/>
+                        ) : (
+                          <span className="text-gray-400 text-xs">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        {editingRow === result.student_result_id ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              className="w-7 h-7 flex items-center justify-center rounded-md bg-emerald-500 hover:bg-emerald-600 text-white transition-colors disabled:opacity-50"
+                              onClick={(e) => handleSaveMarks(e, result.student_result_id, result.total_max_marks)}
+                              disabled={isUpdating}
+                              title="Save"
+                            >
+                              {isUpdating ? (
+                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                              )}
+                            </button>
+                            <button className="w-7 h-7 flex items-center justify-center rounded-md bg-gray-200 hover:bg-gray-300 text-gray-600 transition-colors disabled:opacity-50" onClick={handleCancelEdit} disabled={isUpdating} title="Cancel">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[#00A0E3]/10 text-gray-400 hover:text-[#00A0E3] transition-colors" onClick={(e) => handleEditClick(e, result)} title="Edit marks">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                             </svg>
                           </button>
-                        </div>
-                      ) : (
-                        <button className="edit-btn" onClick={(e) => handleEditClick(e, result)} title="Edit marks">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                          </svg>
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {/* Teacher Details Modal */}
         {showStudentDetailsModal && selectedStudentResult && (
-          <div className="modal-overlay" onClick={handleCloseStudentDetails}>
-            <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header1">
-                <h2>📋 Detailed Evaluation - {selectedStudentResult.student_fullname || selectedStudentResult.student_name}</h2>
-                <button className="modal-close-btn" onClick={handleCloseStudentDetails}>✕</button>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={handleCloseStudentDetails}>
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-bold text-[#0B1120]">Detailed Evaluation - {selectedStudentResult.student_fullname || selectedStudentResult.student_name}</h2>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 text-xl" onClick={handleCloseStudentDetails}>&times;</button>
               </div>
-              <div className="modal-body">
-                <StudentExamDetails 
+              <div className="flex-1 overflow-y-auto p-6">
+                <StudentExamDetails
                   studentResultId={selectedStudentResult.result_id}
                   studentName={selectedStudentResult.student_fullname || selectedStudentResult.student_name}
                   examName={selectedExam.name}
@@ -978,23 +987,23 @@ const getQuestionPaperUrl = (exam) => {
                   summaryData={selectedStudentResult}
                 />
               </div>
-<div className="modal-footer">
-  <button
-    className="btn btn-primary download-pdf-modal-btn"
-    onClick={() => {
-      if (window.downloadStudentExamPDF) {
-        window.downloadStudentExamPDF();
-      } else {
-        alert('PDF download function not available. Please try again.');
-      }
-    }}
-  >
-    📄 Download PDF
-  </button>
-  <button className="btn btn-secondary" onClick={handleCloseStudentDetails}>
-    Close
-  </button>
-</div>
+              <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+                <button
+                  className="px-5 py-2 bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg font-medium transition-colors"
+                  onClick={() => {
+                    if (window.downloadStudentExamPDF) {
+                      window.downloadStudentExamPDF();
+                    } else {
+                      alert('PDF download function not available. Please try again.');
+                    }
+                  }}
+                >
+                  Download PDF
+                </button>
+                <button className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors" onClick={handleCloseStudentDetails}>
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}

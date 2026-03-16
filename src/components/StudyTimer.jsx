@@ -1,13 +1,10 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClock } from '@fortawesome/free-solid-svg-icons';
+import { Clock } from 'lucide-react';
 import { useTimer } from '../contexts/TimerContext';
 
 const StudyTimer = ({ className }) => {
-  // Get elapsed time and active state from TimerContext
   const { elapsedTime, isTimerActive } = useTimer();
 
-  // Format time as MM:SS from milliseconds
   const formatTime = (totalMs) => {
     const totalSeconds = Math.floor(totalMs / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -16,9 +13,15 @@ const StudyTimer = ({ className }) => {
   };
 
   return (
-    <div className={`study-timer ${className || ''} ${isTimerActive ? 'active' : 'stopped'}`}>
-      <FontAwesomeIcon icon={faClock} className={`timer-icon ${isTimerActive ? 'pulsing' : ''}`} />
-      <span className="timer-display">{formatTime(elapsedTime)}</span>
+    <div
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-mono ${
+        isTimerActive
+          ? 'bg-green-50 text-green-700 border border-green-200'
+          : 'bg-gray-50 text-gray-500 border border-gray-200'
+      } ${className || ''}`}
+    >
+      <Clock className={`w-4 h-4 ${isTimerActive ? 'animate-pulse' : ''}`} />
+      <span className="tabular-nums font-semibold">{formatTime(elapsedTime)}</span>
     </div>
   );
 };

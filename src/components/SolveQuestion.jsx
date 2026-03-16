@@ -1,22 +1,8 @@
 // src/components/SolveQuestion.jsx
-import React, {
-  useState,
-  useContext,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useContext, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Form, Button, Spinner, Alert, Row, Col } from "react-bootstrap";
 import axiosInstance from "../api/axiosInstance";
-import "./SolveQuestion.css";
-import {
-  faBookOpenReader,
-  faArrowDown,
-  faCaretDown,
-  faQuestionCircle,
-} from "@fortawesome/free-solid-svg-icons";
+import { BookOpenCheck, ChevronDown, HelpCircle, Camera, Upload, Loader2, ClipboardList, Hash, CheckCircle2 } from "lucide-react";
 import QuestionListModal from "./QuestionListModal";
 import { ProgressContext } from "../contexts/ProgressContext";
 import { NotificationContext } from "../contexts/NotificationContext";
@@ -25,9 +11,6 @@ import { QUEST_TYPES } from "../models/QuestSystem";
 import { useSoundFeedback } from "../hooks/useSoundFeedback";
 import { useTimer } from "../contexts/TimerContext";
 import StudyTimer from "./StudyTimer";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faUpload } from "@fortawesome/free-solid-svg-icons";
-import "./StudyTimer.css";
 import { useCurrentQuestion } from "../contexts/CurrentQuestionContext";
 import MarkdownWithMath from "./MarkdownWithMath";
 import CameraCapture from "./CameraCapture";
@@ -36,8 +19,9 @@ import { useTutorial } from "../contexts/TutorialContext";
 import { getImageSrc, prepareImageForApi } from "../utils/imageUtils";
 import AnimatedBackground from "./AnimatedBackground";
 import { useMascot, MASCOT_ANIMATIONS } from "../contexts/MascotContext";
-// import { FloatingMascot, useSpeechBubble } from "./Mascot3D";
-import "./Mascot3D.css";
+import { FloatingMascot, useSpeechBubble } from "./Mascot3D";
+
+
 
 function SolveQuestion() {
   const location = useLocation();
@@ -49,7 +33,10 @@ function SolveQuestion() {
   const { updateQuestProgress } = useContext(QuestContext);
 
   // Timer context
-  const { startTimer, stopTimer } = useTimer();
+  const {
+    startTimer,
+    stopTimer
+  } = useTimer();
 
   // Sound feedback hook
   const { playQuestionSolvedSound, playAchievementSound } = useSoundFeedback();
@@ -65,16 +52,15 @@ function SolveQuestion() {
   } = useTutorial();
 
   // Mascot context
-  // const { setThinking, setIdle, setExplaining, playAnimation, ANIMATIONS } =
-  //   useMascot();
+  const { setThinking, setIdle, setExplaining, playAnimation, ANIMATIONS } = useMascot();
 
   // Speech bubble for contextual mascot tips
-  // const {
-  //   currentBubble,
-  //   showBubble: isBubbleVisible,
-  //   showMessage: showMascotMessage,
-  //   hideMessage: hideMascotMessage,
-  // } = useSpeechBubble();
+  const {
+    currentBubble,
+    showBubble: isBubbleVisible,
+    showMessage: showMascotMessage,
+    hideMessage: hideMascotMessage,
+  } = useSpeechBubble();
 
   // State for tracking study session
   const [studyTime, setStudyTime] = useState(0);
@@ -93,14 +79,14 @@ function SolveQuestion() {
   const [isContextExpanded, setIsContextExpanded] = useState(false);
 
   // JEE-specific states
-  const [jeeQuestionType, setJeeQuestionType] = useState(null);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [numericalAnswer, setNumericalAnswer] = useState("");
-  const [mcqOptions, setMcqOptions] = useState([]);
+const [jeeQuestionType, setJeeQuestionType] = useState(null);
+const [selectedOption, setSelectedOption] = useState(null);
+const [numericalAnswer, setNumericalAnswer] = useState('');
+const [mcqOptions, setMcqOptions] = useState([]);
 
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
+    return localStorage.getItem('darkMode') === 'true';
   });
 
   // Ensure context sharing starts enabled when entering SolveQuestion
@@ -110,83 +96,71 @@ function SolveQuestion() {
   }, []);
 
   // Set mascot to encouraging mode when solving questions
-  // useEffect(() => {
-  //   playAnimation(MASCOT_ANIMATIONS.LOOK_RIGHT, { loop: true });
-  // }, [playAnimation]);
+  useEffect(() => {
+    playAnimation(MASCOT_ANIMATIONS.LOOK_RIGHT, { loop: true });
+  }, [playAnimation]);
 
   // Apply dark mode on component mount and listen for changes
   useEffect(() => {
     const checkDarkMode = () => {
-      const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+      const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
       setIsDarkMode(darkModeEnabled);
-      document.body.classList.toggle("dark-mode", darkModeEnabled);
+      document.body.classList.toggle('dark-mode', darkModeEnabled);
     };
 
     checkDarkMode();
 
     // Listen for storage events (dark mode changes in other tabs/components)
-    window.addEventListener("storage", checkDarkMode);
+    window.addEventListener('storage', checkDarkMode);
 
     return () => {
-      window.removeEventListener("storage", checkDarkMode);
+      window.removeEventListener('storage', checkDarkMode);
     };
   }, []);
 
   // Tutorial steps for SolveQuestion
   const tutorialSteps = [
     {
-      target: ".question-text-container",
-      content:
-        "Welcome to the question solving page! This is your question. Read it carefully and try to solve it on paper or in your notebook.",
+      target: '.question-text-container',
+      content: 'Welcome to the question solving page! This is your question. Read it carefully and try to solve it on paper or in your notebook.',
       disableBeacon: true,
-      placement: "bottom",
+      placement: 'bottom',
     },
     {
-      target: ".solve-question-header",
-      content:
-        "The timer tracks how long you spend on this question. This helps you manage your time better.",
-      placement: "bottom",
+      target: '.solve-question-header',
+      content: 'The timer tracks how long you spend on this question. This helps you manage your time better.',
+      placement: 'bottom',
     },
     {
-      target: ".image-source-buttons",
-      content:
-        "Take a photo of your solution using your camera. Make sure your handwriting is clear!",
-      placement: "top",
+      target: '.image-source-buttons',
+      content: 'Take a photo of your solution using your camera. Make sure your handwriting is clear!',
+      placement: 'top',
     },
     {
-      target: ".explain-btn",
-      content:
-        'Click "Concepts-Required" to understand what concepts you need to solve this question.',
-      placement: "top",
+      target: '.explain-btn',
+      content: 'Click "Concepts-Required" to understand what concepts you need to solve this question.',
+      placement: 'top',
     },
     {
-      target: ".solve-btn",
-      content:
-        'Click "AI-Solution" to see the complete step-by-step solution from our AI tutor.',
-      placement: "top",
+      target: '.solve-btn',
+      content: 'Click "AI-Solution" to see the complete step-by-step solution from our AI tutor.',
+      placement: 'top',
     },
     {
-      target: ".btn-correct",
-      content:
-        'After taking a photo of your solution, click "AI-Correct" to get feedback and corrections from AI!',
-      placement: "top",
+      target: '.btn-correct',
+      content: 'After taking a photo of your solution, click "AI-Correct" to get feedback and corrections from AI!',
+      placement: 'top',
     },
   ];
 
   // Handle tutorial completion for SolveQuestion
   const handleTutorialComplete = () => {
-    // console.log("SolveQuestion tutorial completed");
     // Tutorial will continue when user navigates to result page
   };
 
   // Debug logging for tutorial
   useEffect(() => {
     const shouldShow = shouldShowTutorialForPage("solveQuestion");
-    // console.log("=== SolveQuestion Tutorial Debug ===");
-    // console.log("Should show tutorial for solveQuestion:", shouldShow);
-    // console.log("Tutorial flow:", tutorialFlow);
-    // console.log("Completed pages:", completedPages);
-    // console.log("Tutorial steps:", tutorialSteps);
   }, [shouldShowTutorialForPage, tutorialFlow, completedPages]);
 
   // Extract data from location state
@@ -200,49 +174,41 @@ function SolveQuestion() {
     subtopic,
     selectedQuestions,
     question_id,
-    context,
+    context
+
   } = location.state || {};
-  // console.log("Location state:", location.state);
   const { questionNumber } = location.state || {};
   const questionId = location.state?.questionId || `${index}${Date.now()}`;
   const question_image =
     location.state?.image || questionList?.[index]?.image || "";
-  // console.log("Question ID:", question_id);
-  const questioniid = location.state?.question_id || questionId;
-  // console.log("Question ID from state:", questioniid);
+  const questioniid=location.state?.question_id || questionId;
   const [currentQuestion, setCurrentQuestion] = useState({
     question: question,
     questionNumber: questionNumber || (index !== undefined ? index + 1 : 1),
     image: question_image,
-    context: context,
-    // id: questionId,
-    question_id: question_id || questionId,
+    context:context,
+    question_id: question_id || questionId
   });
-  // console.log("Current Question State:", currentQuestion);
-  // console.log("questionList", questionList);
 
-  const { setCurrentQuestion: setContextQuestion, setQuestion } =
-    useCurrentQuestion();
+  const { setCurrentQuestion: setContextQuestion, setQuestion } = useCurrentQuestion();
 
   // Use ref to track previous location state to prevent redundant updates
   const prevLocationStateRef = useRef(null);
 
   // Memoize cleanup function to revoke image URLs
   const revokeImageUrls = useCallback((urls) => {
-    urls.forEach((url) => {
+    urls.forEach(url => {
       try {
         URL.revokeObjectURL(url);
       } catch (error) {
-        // Ignore errors for already revoked URLs
-        console.debug("URL already revoked:", url);
+        console.debug('URL already revoked:', url);
       }
     });
   }, []);
 
   // Start timer on initial mount
   useEffect(() => {
-    const initialQuestionId =
-      location.state?.question_id || `${index}${Date.now()}`;
+    const initialQuestionId = location.state?.question_id || `${index}${Date.now()}`;
     startTimer(initialQuestionId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only on mount
@@ -251,7 +217,6 @@ function SolveQuestion() {
   useEffect(() => {
     return () => {
       const timeSpent = stopTimer();
-      // console.log(`Study session ended. Time spent: ${timeSpent}ms`);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only on unmount
@@ -271,23 +236,23 @@ function SolveQuestion() {
         image: location.state.image || "",
         id: newQuestionId,
         question_id: location.state?.question_id || newQuestionId,
-        context: location.state?.context || null,
+        context: location.state?.context || null
       };
 
       const jeeType = location.state?.jeeQuestionType;
       if (jeeType) {
         setJeeQuestionType(jeeType);
-        console.log("📐 JEE Question Type:", jeeType);
+        console.log("JEE Question Type:", jeeType);
 
-        if (jeeType === "mcq" && location.state.question) {
+        if (jeeType === 'mcq' && location.state.question) {
           const options = parseMCQOptions(location.state.question);
           setMcqOptions(options);
-          console.log("✅ Parsed options:", options);
+          console.log("Parsed options:", options);
         }
       } else {
         setJeeQuestionType(null);
         setSelectedOption(null);
-        setNumericalAnswer("");
+        setNumericalAnswer('');
         setMcqOptions([]);
       }
 
@@ -300,36 +265,23 @@ function SolveQuestion() {
         worksheet_id: location.state.worksheet_id,
       };
 
-      // console.log("Setting current question:", newQuestion);
-      // console.log("Setting question metadata:", metadata);
-
       setCurrentQuestion(newQuestion);
-      setQuestion(newQuestion, index || 0, questionList || [], metadata); // Update context with metadata
+      setQuestion(newQuestion, index || 0, questionList || [], metadata);
 
       // Stop previous timer and start a new one
       stopTimer();
       startTimer(newQuestionId);
 
       // Reset other state
-      // Revoke existing preview URLs before resetting
       revokeImageUrls(imagePreviewUrls);
       setImages([]);
       setImagePreviewUrls([]);
       setError(null);
       setUploadProgress(0);
       setProcessingButton(null);
-      setIsContextExpanded(false); // Reset context expansion
+      setIsContextExpanded(false);
     }
-  }, [
-    location.state,
-    index,
-    setQuestion,
-    questionList,
-    stopTimer,
-    startTimer,
-    revokeImageUrls,
-    imagePreviewUrls,
-  ]);
+  }, [location.state, index, setQuestion, questionList, stopTimer, startTimer, revokeImageUrls, imagePreviewUrls]);
 
   // Persist the share-with-chat preference
   useEffect(() => {
@@ -339,7 +291,6 @@ function SolveQuestion() {
   // Helper function to convert base64 to Blob
   const base64ToBlob = (base64Data, mimeType) => {
     try {
-      // Remove data URL prefix if it exists
       const dataStart = base64Data.indexOf(",");
       const actualData =
         dataStart !== -1 ? base64Data.slice(dataStart + 1) : base64Data;
@@ -370,39 +321,31 @@ function SolveQuestion() {
   const handleImageChange = useCallback((e) => {
     const files = Array.from(e.target.files);
 
-    // Validate file size before accepting
-    const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024); // 5MB limit
+    const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
 
     if (oversizedFiles.length > 0) {
       setError(
-        `Some files exceed the 5MB size limit. Please select smaller images.`,
+        `Some files exceed the 5MB size limit. Please select smaller images.`
       );
       return;
     }
 
-    // Create preview URLs for new images
-    const newPreviewUrls = files.map((file) => URL.createObjectURL(file));
+    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
 
-    setImages((prevImages) => [...prevImages, ...files]);
-    setImagePreviewUrls((prevUrls) => [...prevUrls, ...newPreviewUrls]);
+    setImages(prevImages => [...prevImages, ...files]);
+    setImagePreviewUrls(prevUrls => [...prevUrls, ...newPreviewUrls]);
     setIsSolveEnabled(false);
-    setError(null); // Clear previous errors
+    setError(null);
   }, []);
 
   // Handle captured image from camera
   const handleCapturedImage = useCallback((capturedImageBlob) => {
-    // Convert blob to File object
-    const file = new File(
-      [capturedImageBlob],
-      `captured-solution-${Date.now()}.jpg`,
-      { type: "image/jpeg" },
-    );
+    const file = new File([capturedImageBlob], `captured-solution-${Date.now()}.jpg`, { type: 'image/jpeg' });
 
-    // Create preview URL
     const previewUrl = URL.createObjectURL(file);
 
-    setImages((prevImages) => [...prevImages, file]);
-    setImagePreviewUrls((prevUrls) => [...prevUrls, previewUrl]);
+    setImages(prevImages => [...prevImages, file]);
+    setImagePreviewUrls(prevUrls => [...prevUrls, previewUrl]);
     setIsSolveEnabled(false);
     setError(null);
   }, []);
@@ -414,75 +357,54 @@ function SolveQuestion() {
 
   // Handlers for different actions
   const handleSubmit = () => {
-    // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
     const timeSpentMinutes = Math.ceil(timeSpentMs / 60000);
 
-    // Add study time to the request
-    sendFormData(
-      {
-        submit: true,
-        study_time_seconds: Math.floor(timeSpentMs / 1000),
-        study_time_minutes: timeSpentMinutes,
-      },
-      "submit",
-    );
+    sendFormData({
+      submit: true,
+      study_time_seconds: Math.floor(timeSpentMs / 1000),
+      study_time_minutes: timeSpentMinutes
+    }, "submit");
   };
 
   const handleSolve = () => {
-    // Trigger mascot thinking animation while processing
-    // playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
-    // showMascotMessage("Let me solve this for you!", 3000);
+    playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+    showMascotMessage("Let me solve this for you!", 3000);
 
-    // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
     const timeSpentMinutes = Math.ceil(timeSpentMs / 60000);
 
-    sendFormData(
-      {
-        solve: true,
-        study_time_seconds: Math.floor(timeSpentMs / 1000),
-        study_time_minutes: timeSpentMinutes,
-      },
-      "solve",
-    );
+    sendFormData({
+      solve: true,
+      study_time_seconds: Math.floor(timeSpentMs / 1000),
+      study_time_minutes: timeSpentMinutes
+    }, "solve");
   };
 
   const handleExplain = () => {
-    // Trigger mascot explaining animation
-    // playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
-    // showMascotMessage("I'll explain the key concepts!", 3000);
+    playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+    showMascotMessage("I'll explain the key concepts!", 3000);
 
-    // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
     const timeSpentMinutes = Math.ceil(timeSpentMs / 60000);
 
-    sendFormData(
-      {
-        explain: true,
-        study_time_seconds: Math.floor(timeSpentMs / 1000),
-        study_time_minutes: timeSpentMinutes,
-      },
-      "explain",
-    );
+    sendFormData({
+      explain: true,
+      study_time_seconds: Math.floor(timeSpentMs / 1000),
+      study_time_minutes: timeSpentMinutes
+    }, "explain");
   };
 
   // Enhanced handleCorrect function
   const handleCorrect = async () => {
-    // Trigger mascot thinking animation while correcting
-    // playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
-    // showMascotMessage("Analyzing your solution...", 3000);
+    playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+    showMascotMessage("Analyzing your solution...", 3000);
 
     setProcessingButton("correct");
     setError(null);
 
-    // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
-    // console.log("timespent in ms",timeSpentMs)
-    // const timeSpentMinutes = Math.ceil(timeSpentMs / 60000);
-    // console.log('time spent in min',time)
-
-    const timeSpentMinutes = Math.floor(timeSpentMs / 60000); // 1
+    const timeSpentMinutes = Math.floor(timeSpentMs / 60000);
 
     const formData = new FormData();
     formData.append("class_id", class_id);
@@ -491,34 +413,25 @@ function SolveQuestion() {
 
     formData.append("subtopic", subtopic);
     formData.append("correct", true);
-    formData.append(
-      "study_time_seconds",
-      Math.floor((timeSpentMs % 60000) / 1000),
-    );
+    formData.append("study_time_seconds", Math.floor((timeSpentMs % 60000) / 1000));
     formData.append("study_time_minutes", timeSpentMinutes);
-    formData.append(
-      "question_id",
-      currentQuestion.question_id || currentQuestion.id,
-    );
+    formData.append("question_id", currentQuestion.question_id || currentQuestion.id);
 
-    if (jeeQuestionType === "mcq") {
+    if (jeeQuestionType === 'mcq') {
       formData.append("jee_question_type", "mcq");
       formData.append("selected_option", selectedOption);
-      console.log("📐 MCQ - Selected:", selectedOption);
-    } else if (jeeQuestionType === "nvtq") {
+      console.log("MCQ - Selected:", selectedOption);
+    } else if (jeeQuestionType === 'nvtq') {
       formData.append("jee_question_type", "nvtq");
       formData.append("numerical_answer", numericalAnswer);
-      console.log("📐 NVTQ - Answer:", numericalAnswer);
-    } else if (jeeQuestionType === "theorem") {
+      console.log("NVTQ - Answer:", numericalAnswer);
+    } else if (jeeQuestionType === 'theorem') {
       formData.append("jee_question_type", "theorem");
-      console.log("📐 THEOREM - Image required");
+      console.log("THEOREM - Image required");
     }
-    // console.log("time in minutes :",timeSpentMinutes);
-    // console.log("time spent in seconds :",Math.floor((timeSpentMs % 60000) / 1000));
 
     // Helper: finalize and send the form after appending everything
     const finalizeAndSendForm = async () => {
-      // Add user's solution images
       if (images.length > 0) {
         images.forEach((image) => {
           formData.append("ans_img", image);
@@ -530,23 +443,18 @@ function SolveQuestion() {
         const response = await axiosInstance.uploadFile(
           "/anssubmit/",
           formData,
-          handleUploadProgress,
+          handleUploadProgress
         );
 
-        // Update study session
         updateStudySession(
           new Date().toISOString().split("T")[0],
           timeSpentMinutes,
           1,
-          100,
+          100
         );
 
-        // Update quest progress
         updateQuestProgress("daily_solve_questions", 1, QUEST_TYPES.DAILY);
 
-        // Tutorial no longer auto-continues to other pages (manual mode only)
-
-        // Navigate to result page
         navigate("/resultpage", {
           state: {
             ...response.data,
@@ -560,8 +468,7 @@ function SolveQuestion() {
             questionNumber: currentQuestion.questionNumber,
             question_id: currentQuestion.question_id || currentQuestion.id,
             context: currentQuestion.context,
-            // Add the student's uploaded/captured images
-            studentImages: images.map((img) => URL.createObjectURL(img)),
+            studentImages: images.map(img => URL.createObjectURL(img)),
           },
         });
 
@@ -570,7 +477,7 @@ function SolveQuestion() {
         console.error("API Error:", error);
         if (error.code === "ECONNABORTED") {
           setError(
-            "Request timed out. Please try with a smaller image or check your connection.",
+            "Request timed out. Please try with a smaller image or check your connection."
           );
         } else if (error.friendlyMessage) {
           setError(error.friendlyMessage);
@@ -580,7 +487,6 @@ function SolveQuestion() {
         setProcessingButton(null);
         setUploadProgress(0);
 
-        // Restart timer since submission failed
         startTimer(currentQuestion.id);
       }
     };
@@ -588,8 +494,6 @@ function SolveQuestion() {
     // Process question image as base64
     if (currentQuestion.image) {
       if (currentQuestion.image.startsWith("data:image")) {
-        // Already base64 – send as-is
-        // console.log("Detected base64 question image");
         formData.append("ques_img", currentQuestion.image);
         finalizeAndSendForm();
       } else if (currentQuestion.image.startsWith("http")) {
@@ -605,34 +509,32 @@ function SolveQuestion() {
           reader.onloadend = async () => {
             const base64String = reader.result;
             formData.append("question_img_base64", base64String);
-            finalizeAndSendForm(); // Proceed after conversion
+            finalizeAndSendForm();
           };
 
           reader.readAsDataURL(blob);
-        } catch (fetchError) {
-          console.error(
+      } catch (fetchError) {
+        console.error(
             "Error fetching or converting image to base64:",
-            fetchError,
-          );
+            fetchError
+        );
           setError(`Error fetching image: ${fetchError.message}`);
-          finalizeAndSendForm(); // Proceed even if image failed
+          finalizeAndSendForm();
         }
       } else {
         console.warn(
           "Unsupported image format:",
-          currentQuestion.image.substring(0, 30),
+          currentQuestion.image.substring(0, 30)
         );
         finalizeAndSendForm();
       }
     } else {
-      // No question image to process
       finalizeAndSendForm();
     }
   };
 
   // New handler for Gap Analysis
   const handleGapAnalysis = () => {
-    // Stop the timer before navigating
     stopTimer();
 
     navigate("/gap-analysis", {
@@ -655,55 +557,38 @@ function SolveQuestion() {
     formData.append("class_id", class_id);
     formData.append("subject_id", subject_id);
     formData.append("topic_ids", topic_ids);
-    // formData.append("question", currentQuestion.question);
-    // formData.append("ques_img", currentQuestion.image || "");
     formData.append("subtopic", subtopic);
-    formData.append(
-      "question_id",
-      currentQuestion.question_id || currentQuestion.id,
-    );
-    // console.log("Sending form data with flags:", formData);
+    formData.append("question_id", currentQuestion.question_id || currentQuestion.id);
     Object.entries(flags).forEach(([key, value]) => {
       formData.append(key, value);
     });
-    // console.log("curret question",currentQuestion.question_id);
-    // console.log("Form data prepared:", formData);
-    // Add images if required by the action
     if (flags.submit) {
       images.forEach((image) => {
         formData.append("ans_img", image);
       });
     }
-    // console.log("Form data prepared:", formData);
     try {
-      // Use the custom upload method for actions with file uploads
       let response;
 
       if (flags.submit) {
-        // Use custom upload method with progress tracking
         response = await axiosInstance.uploadFile(
           "/anssubmit/",
           formData,
-          handleUploadProgress,
+          handleUploadProgress
         );
       } else {
-        // Regular request for actions without file uploads
         response = await axiosInstance.post("/anssubmit/", formData);
       }
 
-      // Update study session with time info if available
       if (flags.study_time_minutes) {
         updateStudySession(
           new Date().toISOString().split("T")[0],
           flags.study_time_minutes,
           1,
-          0, // Accuracy unknown at this point
+          0
         );
       }
 
-      // Tutorial no longer auto-continues to other pages (manual mode only)
-
-      // Navigate to results page
       navigate("/resultpage", {
         state: {
           ...response.data,
@@ -722,10 +607,9 @@ function SolveQuestion() {
     } catch (error) {
       console.error("API Error:", error);
 
-      // Set user-friendly error message
       if (error.code === "ECONNABORTED") {
         setError(
-          "Request timed out. Please try with a smaller image or check your connection.",
+          "Request timed out. Please try with a smaller image or check your connection."
         );
       } else if (error.friendlyMessage) {
         setError(error.friendlyMessage);
@@ -736,86 +620,65 @@ function SolveQuestion() {
       setProcessingButton(null);
       setUploadProgress(0);
 
-      // Restart timer since submission failed
       startTimer(currentQuestion.id);
     }
   };
 
   // Cancel image upload
-  const handleCancelImage = useCallback(
-    (index) => {
-      setImagePreviewUrls((prevUrls) => {
-        // Revoke the URL for the removed image
-        if (prevUrls[index]) {
-          revokeImageUrls([prevUrls[index]]);
-        }
-        return prevUrls.filter((_, i) => i !== index);
-      });
+  const handleCancelImage = useCallback((index) => {
+    setImagePreviewUrls(prevUrls => {
+      if (prevUrls[index]) {
+        revokeImageUrls([prevUrls[index]]);
+      }
+      return prevUrls.filter((_, i) => i !== index);
+    });
 
-      setImages((prevImages) => {
-        const updatedImages = prevImages.filter((_, i) => i !== index);
-        setIsSolveEnabled(updatedImages.length === 0);
-        return updatedImages;
-      });
-    },
-    [revokeImageUrls],
-  );
+    setImages(prevImages => {
+      const updatedImages = prevImages.filter((_, i) => i !== index);
+      setIsSolveEnabled(updatedImages.length === 0);
+      return updatedImages;
+    });
+  }, [revokeImageUrls]);
 
   // Select question from list
-  const handleQuestionSelect = useCallback(
-    (
-      selectedQuestion,
-      selectedIndex,
-      selectedImage,
-      question_id,
-      questionContext = null,
-    ) => {
-      // console.log("Question selected in SolveQuestion");
-      // console.log("Selected question:", selectedQuestion);
-      // console.log("Selected image:", selectedImage);
-      // console.log("Selected index:", selectedIndex);
-      // console.log("Selected question ID:", question_id || selectedIndex);
-      // console.log("Selected context:", questionContext);
-      // Stop the current timer
-      stopTimer();
+  const handleQuestionSelect = useCallback((
+    selectedQuestion,
+    selectedIndex,
+    selectedImage,
+    question_id,
+    questionContext = null
 
-      const newQuestionId = `${question_id}`;
-      // console.log("New question ID after selected question:", newQuestionId);
-      setCurrentQuestion({
-        question: selectedQuestion,
-        questionNumber: selectedIndex + 1,
-        image: selectedImage,
-        id: newQuestionId,
-        question_id: selectedQuestion.question_id || newQuestionId,
-        context: questionContext,
-      });
+  ) => {
+    stopTimer();
 
-      // Start a new timer for the selected question
-      startTimer(newQuestionId);
+    const newQuestionId = `${question_id}`;
+    setCurrentQuestion({
+      question: selectedQuestion,
+      questionNumber: selectedIndex + 1,
+      image: selectedImage,
+      id: newQuestionId,
+      question_id: selectedQuestion.question_id || newQuestionId,
+      context: questionContext
+    });
 
-      // Reset image related state
-      setImagePreviewUrls((prevUrls) => {
-        // Revoke existing preview URLs
-        revokeImageUrls(prevUrls);
-        return [];
-      });
-      setImages([]);
-      setIsSolveEnabled(true);
-      setError(null);
-      setUploadProgress(0);
+    startTimer(newQuestionId);
 
-      // Reset context expansion state
-      setIsContextExpanded(false);
+    setImagePreviewUrls(prevUrls => {
+      revokeImageUrls(prevUrls);
+      return [];
+    });
+    setImages([]);
+    setIsSolveEnabled(true);
+    setError(null);
+    setUploadProgress(0);
 
-      // Close modal
-      setShowQuestionListModal(false);
-    },
-    [stopTimer, startTimer, revokeImageUrls],
-  );
+    setIsContextExpanded(false);
+
+    setShowQuestionListModal(false);
+  }, [stopTimer, startTimer, revokeImageUrls]);
 
   // Handle back button click
   const handleBackClick = () => {
-    // Stop the timer before navigating back
     stopTimer();
     navigate("/student-dash");
   };
@@ -833,142 +696,90 @@ function SolveQuestion() {
   // Clean up object URLs when component unmounts
   useEffect(() => {
     return () => {
-      // Revoke all preview URLs on cleanup when component unmounts
       revokeImageUrls(imagePreviewUrls);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount/unmount
 
-  const parseMCQOptions = (questionText) => {
-    const options = [];
-    const optionRegex = /\(([a-d])\)\s*([^\(]+?)(?=\([a-d]\)|$)/gi;
+    const parseMCQOptions = (questionText) => {
+      const options = [];
+      const optionRegex = /\(([a-d])\)\s*([^\(]+?)(?=\([a-d]\)|$)/gi;
 
-    let match;
-    while ((match = optionRegex.exec(questionText)) !== null) {
-      let cleanText = match[2]
-        .replace(/\\/g, "") // ← Remove backslashes
-        .replace(/\s+/g, " ") // ← Clean spaces
-        .trim();
+      let match;
+      while ((match = optionRegex.exec(questionText)) !== null) {
+        let cleanText = match[2]
+          .replace(/\\/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
 
-      options.push({
-        key: match[1].toLowerCase(),
-        text: cleanText,
-      });
-    }
+        options.push({
+          key: match[1].toLowerCase(),
+          text: cleanText
+        });
+      }
 
-    return options;
-  };
+      return options;
+    };
 
-  // Remove MCQ options from question text so they don't appear twice
-  const removeOptionsFromQuestion = (questionText) => {
-    const optionStartIndex = questionText.search(/\(a\)\s*/i);
+    // Remove MCQ options from question text so they don't appear twice
+    const removeOptionsFromQuestion = (questionText) => {
+      const optionStartIndex = questionText.search(/\(a\)\s*/i);
 
-    if (optionStartIndex > 0) {
-      let cleanText = questionText.substring(0, optionStartIndex);
-      // Remove ALL backslashes (not just at the end)
-      cleanText = cleanText.replace(/\\/g, "").trim();
-      return cleanText;
-    }
+      if (optionStartIndex > 0) {
+        let cleanText = questionText.substring(0, optionStartIndex);
+        cleanText = cleanText.replace(/\\/g, '').trim();
+        return cleanText;
+      }
 
-    // Also remove all backslashes if no options found
-    return questionText.replace(/\\/g, "").trim();
-  };
+      return questionText.replace(/\\/g, '').trim();
+    };
 
   return (
-    <div className={`solve-question-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
+    <div className={`relative min-h-screen overflow-y-auto ${isDarkMode ? 'bg-[#0B1120] text-white' : 'bg-[#F8FAFC]'}`}>
       {/* Animated Background with floating math/science symbols */}
-      <AnimatedBackground
-        isDarkMode={isDarkMode}
-        symbolCount={35}
-        showOrbs={true}
-      />
+      {/* <AnimatedBackground isDarkMode={isDarkMode} symbolCount={35} showOrbs={true} /> */}
 
-      <div className="solve-question-container">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 py-6 pb-24">
         {/* Header section with timer */}
-        <div className="solve-question-header d-flex justify-content-between align-items-center mb-3">
+        <div className="solve-question-header flex justify-between items-center mb-4">
           {/* Study Timer */}
           <StudyTimer className={processingButton ? "stopped" : ""} />
           {/* Tutorial Toggle Button */}
           <button
-            className="tutorial-toggle-btn"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg text-sm font-medium transition-transform hover:scale-105"
             onClick={() => startTutorialForPage("solveQuestion")}
             title="Start Tutorial"
           >
-            <FontAwesomeIcon icon={faQuestionCircle} />
+            <HelpCircle className="w-4 h-4" />
             <span>Tutorial</span>
           </button>
         </div>
 
         {/* Context Section - Only show if context exists */}
         {currentQuestion.context && (
-          <div
-            className="context-section"
-            style={{
-              backgroundColor: "#f8f9fa",
-              border: "1px solid #dee2e6",
-              borderRadius: "8px",
-              marginBottom: "20px",
-              overflow: "hidden",
-            }}
-          >
+          <div className={`rounded-xl mb-5 overflow-hidden border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
             <div
-              className="context-header"
+              className="flex items-center justify-between px-5 py-3 cursor-pointer select-none"
               onClick={() => setIsContextExpanded(!isContextExpanded)}
             >
-              <div className="context-header-content">
-                <div className="context-icon-wrapper">
-                  <FontAwesomeIcon icon={faBookOpenReader} />
+              <div className="flex items-center gap-3">
+                <div className="text-[#00A0E3]">
+                  <BookOpenCheck className="w-5 h-5" />
                 </div>
-                <span
-                  className="context-header-title"
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    color: "#212529",
-                  }}
-                >
+                <span className={`text-base font-semibold ${isDarkMode ? 'text-gray-100' : 'text-[#0B1120]'}`}>
                   Reading Context
                 </span>
               </div>
-              <FontAwesomeIcon
-                icon={faCaretDown}
-                style={{
-                  transform: isContextExpanded
-                    ? "rotate(180deg)"
-                    : "rotate(0deg)",
-                  transition: "transform 0.3s ease",
-                  color: "#6c757d",
-                  fontSize: "20px",
-                }}
+              <ChevronDown
+                className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isContextExpanded ? 'rotate-180' : ''}`}
               />
             </div>
             <div
-              className={`context-content-wrapper ${isContextExpanded ? "expanded" : ""}`}
-              style={{
-                maxHeight: isContextExpanded ? "400px" : "0",
-                overflow: "hidden",
-                transition: "max-height 0.3s ease",
-              }}
+              className="overflow-hidden transition-all duration-300"
+              style={{ maxHeight: isContextExpanded ? '400px' : '0' }}
             >
-              <div
-                className="context-scroll-view"
-                style={{
-                  maxHeight: "400px",
-                  overflowY: "auto",
-                  overflowX: "auto",
-                  padding: "0",
-                }}
-              >
-                <div
-                  className="context-text-container"
-                  style={{
-                    padding: "20px",
-                    backgroundColor: "#ffffff",
-                    color: "#212529",
-                    fontSize: "15px",
-                    lineHeight: "1.6",
-                  }}
-                >
+              <div className="max-h-[400px] overflow-y-auto overflow-x-auto">
+                <div className={`px-5 py-4 text-[15px] leading-relaxed ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-[#0B1120]'}`}>
                   <MarkdownWithMath content={currentQuestion.context} />
                 </div>
               </div>
@@ -977,128 +788,54 @@ function SolveQuestion() {
         )}
 
         {/* Question Display Section - Full Width */}
-        <div className="question-display-section">
-          <div className="question-text-container">
-            <span className="question-title">
+        <div className="question-display-section mb-6">
+          <div className="question-text-container bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <span className="question-title inline-block text-sm font-bold text-[#00A0E3] bg-blue-50 px-3 py-1 rounded-full mb-3">
               Question {currentQuestion.questionNumber}
             </span>
             {currentQuestion.image && (
               <img
                 src={getImageSrc(currentQuestion.image)}
                 alt="Question"
-                className="question-image"
+                className="max-w-full rounded-lg my-3 border border-gray-200"
               />
             )}
-            <div className="question-text">
+            <div className="text-[#0B1120] text-base leading-relaxed">
               <MarkdownWithMath
                 content={
-                  jeeQuestionType === "mcq"
+                  jeeQuestionType === 'mcq'
                     ? removeOptionsFromQuestion(currentQuestion.question)
                     : currentQuestion.question
                 }
               />
             </div>
-            {/* ✅ ADD MCQ OPTIONS HERE */}
-            {jeeQuestionType === "mcq" && mcqOptions.length > 0 && (
-              <div
-                style={{
-                  marginTop: "24px",
-                  marginBottom: "24px",
-                  padding: "20px",
-                  background: isDarkMode
-                    ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
-                    : "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
-                  borderRadius: "12px",
-                  border: `2px solid ${isDarkMode ? "#475569" : "#e2e8f0"}`,
-                  boxShadow: isDarkMode
-                    ? "0 4px 6px -1px rgba(0, 0, 0, 0.3)"
-                    : "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: "16px",
-                    paddingBottom: "12px",
-                    borderBottom: `2px solid ${isDarkMode ? "#334155" : "#e5e7eb"}`,
-                  }}
-                >
-                  <span style={{ fontSize: "24px", marginRight: "10px" }}>
-                    📝
-                  </span>
-                  <h6
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "700",
-                      margin: 0,
-                      color: isDarkMode ? "#f1f5f9" : "#1e293b",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
+            {/* MCQ OPTIONS */}
+            {jeeQuestionType === 'mcq' && mcqOptions.length > 0 && (
+              <div className={`mt-6 mb-6 p-5 rounded-xl border-2 shadow-sm ${
+                isDarkMode
+                  ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-600'
+                  : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200'
+              }`}>
+                <div className={`flex items-center mb-4 pb-3 border-b-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <ClipboardList className={`w-5 h-5 mr-2.5 ${isDarkMode ? 'text-[#00A0E3]' : 'text-[#00A0E3]'}`} />
+                  <h6 className={`text-lg font-bold m-0 tracking-wide ${isDarkMode ? 'text-gray-100' : 'text-[#0B1120]'}`}>
                     Select Your Answer
                   </h6>
                 </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                  }}
-                >
+                <div className="flex flex-col gap-2.5">
                   {mcqOptions.map((option) => (
                     <label
                       key={option.key}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        padding: "14px 16px",
-                        background:
-                          selectedOption === option.key
-                            ? isDarkMode
-                              ? "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)"
-                              : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                            : isDarkMode
-                              ? "#1e293b"
-                              : "#ffffff",
-                        color:
-                          selectedOption === option.key
-                            ? "#ffffff"
-                            : isDarkMode
-                              ? "#f1f5f9"
-                              : "#1f2937",
-                        borderRadius: "8px",
-                        border: `2px solid ${selectedOption === option.key ? (isDarkMode ? "#a78bfa" : "#818cf8") : isDarkMode ? "#374151" : "#d1d5db"}`,
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        boxShadow:
-                          selectedOption === option.key
-                            ? isDarkMode
-                              ? "0 4px 12px rgba(124, 58, 237, 0.4)"
-                              : "0 4px 12px rgba(102, 126, 234, 0.3)"
-                            : "none",
-                        transform:
-                          selectedOption === option.key
-                            ? "translateX(4px)"
-                            : "translateX(0)",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (selectedOption !== option.key) {
-                          e.currentTarget.style.borderColor = isDarkMode
-                            ? "#6366f1"
-                            : "#818cf8";
-                          e.currentTarget.style.transform = "translateX(2px)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (selectedOption !== option.key) {
-                          e.currentTarget.style.borderColor = isDarkMode
-                            ? "#374151"
-                            : "#d1d5db";
-                          e.currentTarget.style.transform = "translateX(0)";
-                        }
-                      }}
+                      className={`flex items-center px-4 py-3.5 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                        selectedOption === option.key
+                          ? isDarkMode
+                            ? 'bg-gradient-to-r from-violet-600 to-violet-700 text-white border-violet-400 shadow-lg shadow-violet-600/40 translate-x-1'
+                            : 'bg-gradient-to-r from-[#00A0E3] to-[#0080B8] text-white border-[#00A0E3] shadow-lg shadow-blue-400/30 translate-x-1'
+                          : isDarkMode
+                            ? 'bg-gray-800 text-gray-100 border-gray-600 hover:border-[#00A0E3] hover:translate-x-0.5'
+                            : 'bg-white text-[#0B1120] border-gray-300 hover:border-[#00A0E3] hover:translate-x-0.5'
+                      }`}
                     >
                       <input
                         type="radio"
@@ -1107,97 +844,43 @@ function SolveQuestion() {
                         checked={selectedOption === option.key}
                         onChange={() => {
                           setSelectedOption(option.key);
-                          console.log("✅ Selected:", option.key);
+                          console.log("Selected:", option.key);
                         }}
-                        style={{
-                          width: "20px",
-                          height: "20px",
-                          marginRight: "12px",
-                          cursor: "pointer",
-                          accentColor: isDarkMode ? "#7c3aed" : "#667eea",
-                        }}
+                        className="w-5 h-5 mr-3 cursor-pointer accent-[#00A0E3]"
                       />
-                      <div
-                        style={{
-                          fontSize: "16px",
-                          fontWeight:
-                            selectedOption === option.key ? "600" : "400",
-                          lineHeight: "1.5",
-                          flex: 1,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span style={{ fontWeight: "700", minWidth: "30px" }}>
-                          ({option.key})
-                        </span>
-                        <MarkdownWithMath content={option.text} />
-                      </div>
+                    <div className="text-base flex-1 flex items-center gap-2" style={{ fontWeight: selectedOption === option.key ? '600' : '400' }}>
+                      <span className="font-bold min-w-[30px]">({option.key})</span>
+                      <MarkdownWithMath content={option.text} />
+                    </div>
                     </label>
                   ))}
                 </div>
 
                 {selectedOption && (
-                  <div
-                    style={{
-                      marginTop: "16px",
-                      padding: "12px 16px",
-                      background: isDarkMode
-                        ? "rgba(34, 197, 94, 0.1)"
-                        : "#dcfce7",
-                      borderLeft: `4px solid ${isDarkMode ? "#22c55e" : "#16a34a"}`,
-                      borderRadius: "8px",
-                      color: isDarkMode ? "#86efac" : "#16a34a",
-                      fontSize: "15px",
-                      fontWeight: "600",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <span>✅</span>
-                    <span>
-                      Selected: Option ({selectedOption.toUpperCase()})
-                    </span>
+                  <div className={`mt-4 px-4 py-3 border-l-4 rounded-lg text-[15px] font-semibold flex items-center gap-2 ${
+                    isDarkMode
+                      ? 'bg-green-500/10 border-green-500 text-green-300'
+                      : 'bg-green-50 border-green-500 text-green-600'
+                  }`}>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Selected: Option ({selectedOption.toUpperCase()})</span>
                   </div>
                 )}
               </div>
             )}
 
-            {/* ✅ ADD NVTQ INPUT HERE */}
-            {jeeQuestionType === "nvtq" && (
-              <div
-                style={{
-                  marginTop: "20px",
-                  marginBottom: "20px",
-                  padding: "16px",
-                  background: isDarkMode ? "#1e293b" : "#f8fafc",
-                  borderRadius: "8px",
-                  border: `2px solid ${isDarkMode ? "#475569" : "#e2e8f0"}`,
-                }}
-              >
-                <h6
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    marginBottom: "12px",
-                    color: isDarkMode ? "#f1f5f9" : "#1e293b",
-                  }}
-                >
-                  🔢 Enter Your Numerical Answer
+            {/* NVTQ INPUT */}
+            {jeeQuestionType === 'nvtq' && (
+              <div className={`mt-5 mb-5 p-4 rounded-lg border-2 ${
+                isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <h6 className={`text-base font-semibold mb-3 flex items-center gap-2 ${isDarkMode ? 'text-gray-100' : 'text-[#0B1120]'}`}>
+                  <Hash className="w-5 h-5 text-[#00A0E3]" />
+                  Enter Your Numerical Answer
                 </h6>
 
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <span
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      color: isDarkMode ? "#94a3b8" : "#64748b",
-                    }}
-                  >
+                <div className="flex items-center gap-3">
+                  <span className={`text-lg font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     Answer:
                   </span>
 
@@ -1206,154 +889,133 @@ function SolveQuestion() {
                     value={numericalAnswer}
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
+                      if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
                         setNumericalAnswer(value);
-                        console.log("📝 Answer:", value);
+                        console.log("Answer:", value);
                       }
                     }}
                     placeholder="Write Your Answer Here"
-                    style={{
-                      flex: 1,
-                      padding: "12px 20px",
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      background: isDarkMode ? "#334155" : "#ffffff",
-                      color: isDarkMode ? "#f1f5f9" : "#1e293b",
-                      border: `2px solid ${numericalAnswer ? (isDarkMode ? "#7c3aed" : "#667eea") : isDarkMode ? "#475569" : "#e2e8f0"}`,
-                      borderRadius: "6px",
-                      outline: "none",
-                      textAlign: "center",
-                    }}
+                    className={`flex-1 px-5 py-3 text-lg font-semibold rounded-md border-2 outline-none text-center transition-colors ${
+                      isDarkMode
+                        ? `bg-gray-700 text-gray-100 ${numericalAnswer ? 'border-[#00A0E3]' : 'border-gray-600'}`
+                        : `bg-white text-[#0B1120] ${numericalAnswer ? 'border-[#00A0E3]' : 'border-gray-200'}`
+                    }`}
                   />
                 </div>
 
                 {numericalAnswer && (
-                  <div
-                    style={{
-                      marginTop: "10px",
-                      padding: "10px",
-                      background: isDarkMode ? "#22c55e20" : "#dcfce7",
-                      borderRadius: "6px",
-                      color: isDarkMode ? "#86efac" : "#16a34a",
-                      fontSize: "14px",
-                      textAlign: "center",
-                    }}
-                  >
-                    ✅ Your answer: {numericalAnswer}
+                  <div className={`mt-2.5 p-2.5 rounded-md text-sm text-center ${
+                    isDarkMode ? 'bg-green-500/10 text-green-300' : 'bg-green-50 text-green-600'
+                  }`}>
+                    <CheckCircle2 className="w-4 h-4 inline mr-1" /> Your answer: {numericalAnswer}
                   </div>
                 )}
               </div>
             )}
 
-            <div className="mt-2">
-              <Form.Check
-                type="switch"
-                id="share-with-chat-toggle"
-                label="Share this question with Chat"
-                checked={shareWithChat}
-                onChange={(e) => setShareWithChat(e.target.checked)}
-                disabled={isAnyButtonProcessing()}
-              />
+            <div className="mt-3">
+              <label className="inline-flex items-center cursor-pointer gap-2">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="share-with-chat-toggle"
+                    className="sr-only peer"
+                    checked={shareWithChat}
+                    onChange={(e) => setShareWithChat(e.target.checked)}
+                    disabled={isAnyButtonProcessing()}
+                  />
+                  <div className="w-10 h-5 bg-gray-300 peer-checked:bg-[#00A0E3] rounded-full transition-colors"></div>
+                  <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                </div>
+                <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Share this question with Chat
+                </span>
+              </label>
             </div>
           </div>
         </div>
 
         {/* Error Message */}
         {error && (
-          <Alert variant="danger" className="my-3">
+          <div className="my-3 border-l-4 border-[#ef4444] bg-red-50 text-[#ef4444] px-4 py-3 rounded-r-lg text-sm">
             {error}
-          </Alert>
+          </div>
         )}
 
         {/* Image Upload Section */}
-        <Form onSubmit={(e) => e.preventDefault()}>
-          <Form.Group controlId="formImage">
-            <Form.Label>Add Solution Images</Form.Label>
+        <form onSubmit={(e) => e.preventDefault()}>
+          <div className="mb-4">
+            <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-[#0B1120]'}`}>
+              Add Solution Images
+            </label>
 
             {/* Image Source Selection Buttons */}
-            <div className="image-source-buttons mb-3">
-              {/* <Button
-                variant={imageSourceType === "upload" ? "primary" : "outline-primary"}
-                className="me-2"
-                onClick={() => setImageSourceType("upload")}
-                disabled={isAnyButtonProcessing()}
-              >
-                <FontAwesomeIcon icon={faUpload} className="me-2" />
-                Upload Images
-              </Button> */}
-              <Button
-                variant={
-                  imageSourceType === "camera" ? "primary" : "outline-primary"
-                }
+            <div className="image-source-buttons mb-3 flex gap-2">
+              <button
+                type="button"
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  imageSourceType === "camera"
+                    ? 'bg-[#00A0E3] text-white'
+                    : 'border border-[#00A0E3] text-[#00A0E3] hover:bg-blue-50'
+                }`}
                 onClick={() => setImageSourceType("camera")}
                 disabled={isAnyButtonProcessing()}
               >
-                <FontAwesomeIcon icon={faCamera} className="me-2" />
+                <Camera className="w-4 h-4" />
                 Take Photo
-              </Button>
+              </button>
             </div>
 
             {/* Conditional rendering based on image source type */}
             {imageSourceType === "upload" ? (
               <>
-                <Form.Control
+                <input
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleImageChange}
                   disabled={isAnyButtonProcessing()}
+                  className={`block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#00A0E3] file:text-white hover:file:bg-[#0080B8] ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-500'
+                  }`}
                 />
-                <Form.Text className="text-muted">
-                  Maximum file size: 5MB per image. You can select multiple
-                  images.
-                </Form.Text>
+                <p className="text-xs text-gray-400 mt-1">
+                  Maximum file size: 5MB per image. You can select multiple images.
+                </p>
               </>
             ) : (
-              <div
-                style={{
-                  border: "2px dashed #dee2e6",
-                  borderRadius: "8px",
-                  padding: "20px",
-                  backgroundColor: "#f8f9fa",
-                  marginTop: "10px",
+              <div className={`border-2 border-dashed rounded-lg p-5 mt-2.5 ${isDarkMode ? 'border-gray-600 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}>
+
+              <CameraCapture
+                onImageCapture={handleCapturedImage}
+                videoConstraints={{
+                  facingMode: { ideal: "environment" },
+                  width: { ideal: 4096 },
+                  height: { ideal: 3072 },
+                  focusMode: { ideal: "continuous" },
+                  exposureMode: { ideal: "continuous" }
                 }}
-              >
-                <CameraCapture
-                  onImageCapture={handleCapturedImage}
-                  videoConstraints={{
-                    facingMode: { ideal: "environment" },
-                    // For text documents, use higher resolution
-                    width: { ideal: 4096 },
-                    height: { ideal: 3072 },
-                    // Additional constraints for clarity
-                    focusMode: { ideal: "continuous" },
-                    exposureMode: { ideal: "continuous" },
-                  }}
-                />
-                <p className="text-muted mt-2 text-center">
+              />
+                <p className="text-gray-400 mt-2 text-center text-sm">
                   Click "Capture" to take a photo of your solution
                 </p>
               </div>
             )}
-          </Form.Group>
-        </Form>
+          </div>
+        </form>
 
         {/* Upload Progress Bar */}
         {isAnyButtonProcessing() && uploadProgress > 0 && (
-          <div className="upload-progress mt-3">
-            <div className="progress">
+          <div className="mt-3">
+            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
               <div
-                className="progress-bar progress-bar-striped progress-bar-animated"
-                role="progressbar"
+                className="h-full bg-[#00A0E3] rounded-full transition-all duration-300 flex items-center justify-center text-[10px] text-white font-semibold"
                 style={{ width: `${uploadProgress}%` }}
-                aria-valuenow={uploadProgress}
-                aria-valuemin="0"
-                aria-valuemax="100"
               >
                 {uploadProgress}%
               </div>
             </div>
-            <p className="text-center mt-1">
+            <p className="text-center mt-1 text-sm text-gray-500">
               Uploading... Please don't close this page.
             </p>
           </div>
@@ -1361,54 +1023,36 @@ function SolveQuestion() {
 
         {/* Image Previews */}
         {images.length > 0 && (
-          <div className="uploaded-images mt-3">
-            <h6>Solution Images ({images.length})</h6>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                gap: "12px",
-                marginTop: "12px",
-              }}
-            >
+          <div className="mt-4">
+            <h6 className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-[#0B1120]'}`}>
+              Solution Images ({images.length})
+            </h6>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 mt-3">
               {images.map((image, index) => (
-                <div
-                  key={index}
-                  className="image-preview-container"
-                  style={{ position: "relative" }}
-                >
+                <div key={index} className="relative group">
                   <img
                     src={imagePreviewUrls[index]}
                     alt={`Preview ${index + 1}`}
-                    className="image-preview"
-                    style={{
-                      width: "100%",
-                      height: "150px",
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                      border: "1px solid #dee2e6",
-                    }}
+                    className="w-full h-[150px] object-cover rounded-lg border border-gray-200"
                   />
                   <button
                     type="button"
-                    className="image-remove-btn"
+                    className="absolute top-1 right-1 w-6 h-6 bg-[#ef4444] text-white rounded-full text-xs font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => handleCancelImage(index)}
                     disabled={isAnyButtonProcessing()}
                     aria-label="Remove image"
                   >
-                    ×
+                    &times;
                   </button>
                 </div>
               ))}
             </div>
             {images.length > 0 && (
-              <Button
-                variant="outline-danger"
-                size="sm"
-                className="mt-2"
+              <button
+                type="button"
+                className="mt-2 px-3 py-1.5 text-sm border border-[#ef4444] text-[#ef4444] rounded-lg hover:bg-red-50 transition-colors"
                 onClick={() => {
-                  setImagePreviewUrls((prevUrls) => {
-                    // Revoke all preview URLs
+                  setImagePreviewUrls(prevUrls => {
                     revokeImageUrls(prevUrls);
                     return [];
                   });
@@ -1418,127 +1062,92 @@ function SolveQuestion() {
                 disabled={isAnyButtonProcessing()}
               >
                 Clear All
-              </Button>
+              </button>
             )}
           </div>
         )}
 
         {/* Button Layout */}
-        <div className="button-grid mt-4">
+        <div className="mt-6 space-y-3">
           {/* Top Row with Navigation and Submit */}
-          <Row className="mb-3">
-            <Col xs={6} md={3}>
-              <Button
-                variant="secondary"
-                onClick={handleBackClick}
-                className="btn-back w-100"
-                disabled={isAnyButtonProcessing()}
-              >
-                Dashboard
-              </Button>
-            </Col>
-            <Col xs={6} md={3}>
-              <Button
-                variant="primary"
-                onClick={() => setShowQuestionListModal(true)}
-                className="btn-question-list w-100"
-                disabled={isAnyButtonProcessing()}
-              >
-                Question List
-              </Button>
-            </Col>
-          </Row>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button
+              type="button"
+              onClick={handleBackClick}
+              className="btn-back w-full px-4 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              disabled={isAnyButtonProcessing()}
+            >
+              Dashboard
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowQuestionListModal(true)}
+              className="btn-question-list w-full px-4 py-2.5 bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              disabled={isAnyButtonProcessing()}
+            >
+              Question List
+            </button>
+          </div>
 
           {/* Bottom Row with Action Buttons */}
-          <Row>
-            <Col xs={6} md={3} className="mb-2">
-              <Button
-                variant="primary"
-                onClick={handleExplain}
-                className="w-100 explain-btn"
-                disabled={isAnyButtonProcessing()}
-              >
-                {isButtonProcessing("explain") ? (
-                  <>
-                    <Spinner
-                      as="span"
-                      animation="border"
-                      size="sm"
-                      role="status"
-                      aria-hidden="true"
-                    />{" "}
-                    Processing...
-                  </>
-                ) : (
-                  "Concepts-Required"
-                )}
-              </Button>
-            </Col>
-            <Col xs={6} md={3} className="mb-2">
-              <Button
-                variant={isSolveEnabled ? "primary" : "secondary"}
-                onClick={handleSolve}
-                className="w-100 solve-btn"
-                disabled={!isSolveEnabled || isAnyButtonProcessing()}
-              >
-                {isButtonProcessing("solve") ? (
-                  <>
-                    <Spinner
-                      as="span"
-                      animation="border"
-                      size="sm"
-                      role="status"
-                      aria-hidden="true"
-                    />{" "}
-                    Processing...
-                  </>
-                ) : (
-                  "AI-Solution"
-                )}
-              </Button>
-            </Col>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <button
+              type="button"
+              onClick={handleExplain}
+              className="explain-btn w-full px-4 py-2.5 bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              disabled={isAnyButtonProcessing()}
+            >
+              {isButtonProcessing("explain") ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                "Concepts-Required"
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleSolve}
+              className={`solve-btn w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
+                isSolveEnabled
+                  ? 'bg-[#00A0E3] hover:bg-[#0080B8] text-white'
+                  : 'bg-gray-400 text-white cursor-not-allowed'
+              }`}
+              disabled={!isSolveEnabled || isAnyButtonProcessing()}
+            >
+              {isButtonProcessing("solve") ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                "AI-Solution"
+              )}
+            </button>
 
-            <Col xs={6} md={3} className="mb-2">
-              <Button
-                variant="primary"
-                onClick={handleCorrect}
-                className="w-100 btn-correct"
-                disabled={
-                  (jeeQuestionType === "mcq" && !selectedOption) ||
-                  (jeeQuestionType === "nvtq" && !numericalAnswer.trim()) ||
-                  (jeeQuestionType === "theorem" && images.length === 0) ||
-                  (!jeeQuestionType && images.length === 0) ||
-                  isAnyButtonProcessing()
-                }
-              >
-                {isButtonProcessing("correct") ? (
-                  <>
-                    <Spinner
-                      as="span"
-                      animation="border"
-                      size="sm"
-                      role="status"
-                      aria-hidden="true"
-                    />{" "}
-                    Processing...
-                  </>
-                ) : (
-                  "AI-Correct"
-                )}
-              </Button>
-            </Col>
-
-            {/* <Col xs={6} md={3} className="mb-2">
-              <Button
-                variant="info"
-                onClick={handleGapAnalysis}
-                className="w-100 gap-btn"
-                disabled={isAnyButtonProcessing()}
-              >
-                Gap Analysis
-              </Button>
-            </Col> */}
-          </Row>
+            <button
+              type="button"
+              onClick={handleCorrect}
+              className="btn-correct w-full px-4 py-2.5 bg-[#00A0E3] hover:bg-[#0080B8] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              disabled={
+                (jeeQuestionType === 'mcq' && !selectedOption) ||
+                (jeeQuestionType === 'nvtq' && !numericalAnswer.trim()) ||
+                (jeeQuestionType === 'theorem' && images.length === 0) ||
+                (!jeeQuestionType && images.length === 0) ||
+                isAnyButtonProcessing()
+              }
+            >
+              {isButtonProcessing("correct") ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                "AI-Correct"
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1546,11 +1155,7 @@ function SolveQuestion() {
       <QuestionListModal
         show={showQuestionListModal}
         onHide={() => setShowQuestionListModal(false)}
-        questionList={
-          Array.isArray(selectedQuestions) && selectedQuestions.length > 0
-            ? selectedQuestions
-            : questionList
-        }
+        questionList={Array.isArray(selectedQuestions) && selectedQuestions.length > 0 ? selectedQuestions : questionList}
         onQuestionClick={handleQuestionSelect}
         isMultipleSelect={false}
         onMultipleSelectSubmit={null}
@@ -1558,7 +1163,10 @@ function SolveQuestion() {
 
       {/* Tutorial Component */}
       {shouldShowTutorialForPage("solveQuestion") && (
-        <Tutorial steps={tutorialSteps} onComplete={handleTutorialComplete} />
+        <Tutorial
+          steps={tutorialSteps}
+          onComplete={handleTutorialComplete}
+        />
       )}
 
       {/* Floating Mascot - Non-intrusive corner placement */}

@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Container, Row, Col, Button, Alert, Form, Spinner } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUpload, faCamera, faArrowLeft, faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import { Upload, Camera, ArrowLeft, CheckCircle, X, Loader2 } from "lucide-react";
 import axiosInstance from "../api/axiosInstance";
 import CameraCapture from "./CameraCapture";
 import MarkdownWithMath from "./MarkdownWithMath";
-import "./SolveQuestion.css"; // Reusing existing styles
 
 function WorksheetSubmission() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Extract data from location state
   const { worksheetName, worksheetQuestions = [] } = location.state || {};
 
-  // State management
   const [images, setImages] = useState([]);
   const [imageSourceType, setImageSourceType] = useState("upload");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,18 +18,15 @@ function WorksheetSubmission() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Validate required data
   useEffect(() => {
     if (!worksheetName) {
       setError("Worksheet name is missing. Please go back and select a worksheet.");
     }
   }, [worksheetName]);
 
-  // Handle image upload
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
 
-    // Validate file size
     const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
     if (oversizedFiles.length > 0) {
       setError("Some files exceed the 5MB size limit. Please select smaller images.");
@@ -45,35 +37,30 @@ function WorksheetSubmission() {
     setError(null);
   };
 
-  // Handle captured image from camera
   const handleCapturedImage = (capturedImageBlob) => {
     const file = new File(
-      [capturedImageBlob], 
-      `worksheet-${worksheetName}-${Date.now()}.jpg`, 
+      [capturedImageBlob],
+      `worksheet-${worksheetName}-${Date.now()}.jpg`,
       { type: 'image/jpeg' }
     );
     setImages(prevImages => [...prevImages, file]);
     setError(null);
   };
 
-  // Handle upload progress
   const handleUploadProgress = (percent) => {
     setUploadProgress(percent);
   };
 
-  // Remove individual image
   const handleRemoveImage = (index) => {
     const updatedImages = images.filter((_, i) => i !== index);
     setImages(updatedImages);
   };
 
-  // Clear all images
   const handleClearAllImages = () => {
     setImages([]);
     setError(null);
   };
 
-  // Submit worksheet
   const handleSubmitWorksheet = async () => {
     if (images.length === 0) {
       setError("Please upload at least one image of your worksheet solutions.");
@@ -86,8 +73,7 @@ function WorksheetSubmission() {
 
     const formData = new FormData();
     formData.append("worksheet_name", worksheetName);
-    
-    // Append all images
+
     images.forEach((image) => {
       formData.append("image_response", image);
     });
@@ -100,8 +86,7 @@ function WorksheetSubmission() {
       );
 
       setSuccessMessage("Worksheet submitted successfully!");
-      
-      // Navigate back or to results after a short delay
+
       setTimeout(() => {
         navigate("/studentdash", {
           state: { worksheetSubmitted: true }
@@ -123,97 +108,80 @@ function WorksheetSubmission() {
     }
   };
 
-  // Handle back navigation
   const handleBack = () => {
     navigate(-1);
   };
 
+  const getLevelClasses = (level) => {
+    const l = level.toLowerCase();
+    if (l === 'easy') return 'bg-green-100 text-green-800';
+    if (l === 'medium') return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+  };
+
   return (
-    <div className="solve-question-wrapper">
-      <Container className="py-4">
-        <div className="solve-question-container">
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           {/* Header */}
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>Worksheet: {worksheetName}</h2>
-            <Button 
-              variant="secondary" 
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-[#0B1120]">Worksheet: {worksheetName}</h2>
+            <button
               onClick={handleBack}
               disabled={isSubmitting}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
             >
-              <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+              <ArrowLeft size={16} />
               Back
-            </Button>
+            </button>
           </div>
 
           {/* Error Alert */}
           {error && (
-            <Alert variant="danger" dismissible onClose={() => setError(null)}>
-              {error}
-            </Alert>
+            <div className="flex items-center justify-between mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              <span>{error}</span>
+              <button onClick={() => setError(null)} className="p-0.5 hover:bg-red-100 rounded">
+                <X size={16} />
+              </button>
+            </div>
           )}
 
           {/* Success Alert */}
           {successMessage && (
-            <Alert variant="success">
-              <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
+            <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+              <CheckCircle size={16} />
               {successMessage}
-            </Alert>
+            </div>
           )}
 
           {/* Worksheet Questions Display */}
           {worksheetQuestions && worksheetQuestions.length > 0 && (
-            <div className="worksheet-questions mb-4" style={{
-              backgroundColor: '#f8f9fa',
-              padding: '20px',
-              borderRadius: '8px',
-              maxHeight: '400px',
-              overflowY: 'auto'
-            }}>
-              <h4 className="mb-3">Worksheet Questions</h4>
-              <div className="questions-preview">
+            <div className="mb-6 bg-[#F8FAFC] p-5 rounded-lg max-h-[400px] overflow-y-auto">
+              <h4 className="font-semibold text-[#0B1120] mb-3">Worksheet Questions</h4>
+              <div className="space-y-3">
                 {worksheetQuestions.map((questionData, index) => (
-                  <div key={index} className="question-item mb-3 p-3 border rounded bg-white">
-                    <div className="d-flex align-items-start">
-                      <div className="question-number me-3" style={{
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        borderRadius: '50%',
-                        width: '30px',
-                        height: '30px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 'bold',
-                        flexShrink: 0
-                      }}>
+                  <div key={index} className="p-3 border border-gray-200 rounded-lg bg-white">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-[30px] h-[30px] rounded-full bg-[#00A0E3] text-white flex items-center justify-center font-bold text-sm">
                         {index + 1}
                       </div>
-                      <div className="question-details flex-grow-1">
+                      <div className="flex-1 min-w-0">
                         {questionData.question && (
-                          <div className="question-text mb-2">
+                          <div className="mb-2">
                             <MarkdownWithMath content={questionData.question} />
                           </div>
                         )}
                         {questionData.level && (
-                          <span className={`badge bg-${
-                            questionData.level.toLowerCase() === 'easy' ? 'success' : 
-                            questionData.level.toLowerCase() === 'medium' ? 'warning' : 
-                            'danger'
-                          } text-white`}>
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${getLevelClasses(questionData.level)}`}>
                             {questionData.level}
                           </span>
                         )}
                         {questionData.question_image && (
-                          <div className="question-image mt-2">
+                          <div className="mt-2">
                             <img
                               src={`data:image/png;base64,${questionData.question_image}`}
                               alt={`Question ${index + 1}`}
-                              style={{ 
-                                maxWidth: '100%', 
-                                height: 'auto',
-                                borderRadius: '4px',
-                                border: '1px solid #dee2e6' 
-                              }}
+                              className="max-w-full h-auto rounded border border-gray-200"
                             />
                           </div>
                         )}
@@ -226,49 +194,57 @@ function WorksheetSubmission() {
           )}
 
           {/* Image Upload Section */}
-          <div className="upload-section">
-            <h4>Upload Your Solutions</h4>
-            
+          <div className="mb-6">
+            <h4 className="font-semibold text-[#0B1120] mb-3">Upload Your Solutions</h4>
+
             {/* Image Source Selection */}
-            <div className="image-source-buttons mb-3">
-              <Button
-                variant={imageSourceType === "upload" ? "primary" : "outline-primary"}
-                className="me-2"
+            <div className="flex gap-2 mb-3">
+              <button
                 onClick={() => setImageSourceType("upload")}
                 disabled={isSubmitting}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 ${
+                  imageSourceType === "upload"
+                    ? 'bg-[#00A0E3] text-white'
+                    : 'border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3]/10'
+                }`}
               >
-                <FontAwesomeIcon icon={faUpload} className="me-2" />
+                <Upload size={16} />
                 Upload Images
-              </Button>
-              <Button
-                variant={imageSourceType === "camera" ? "primary" : "outline-primary"}
+              </button>
+              <button
                 onClick={() => setImageSourceType("camera")}
                 disabled={isSubmitting}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 ${
+                  imageSourceType === "camera"
+                    ? 'bg-[#00A0E3] text-white'
+                    : 'border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3]/10'
+                }`}
               >
-                <FontAwesomeIcon icon={faCamera} className="me-2" />
+                <Camera size={16} />
                 Take Photo
-              </Button>
+              </button>
             </div>
 
             {/* Conditional Upload/Camera Interface */}
             {imageSourceType === "upload" ? (
-              <Form.Group>
-                <Form.Control
+              <div>
+                <input
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleImageChange}
                   disabled={isSubmitting}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#00A0E3]/10 file:text-[#0080B8] hover:file:bg-[#00A0E3]/20 disabled:opacity-50"
                 />
-                <Form.Text className="text-muted">
+                <p className="text-xs text-gray-500 mt-1">
                   You can select multiple images. Maximum 5MB per image.
-                </Form.Text>
-              </Form.Group>
+                </p>
+              </div>
             ) : (
-              <div className="camera-capture-container p-3 border rounded">
+              <div className="p-3 border border-gray-200 rounded-lg">
                 <CameraCapture
                   onImageCapture={handleCapturedImage}
-                  videoConstraints={{ 
+                  videoConstraints={{
                     facingMode: { ideal: "environment" },
                     width: { ideal: 4096 },
                     height: { ideal: 3072 },
@@ -276,7 +252,7 @@ function WorksheetSubmission() {
                     exposureMode: { ideal: "continuous" }
                   }}
                 />
-                <p className="text-muted mt-2 text-center">
+                <p className="text-gray-500 text-sm mt-2 text-center">
                   Click "Capture" to take photos of your worksheet solutions
                 </p>
               </div>
@@ -285,20 +261,21 @@ function WorksheetSubmission() {
 
           {/* Upload Progress */}
           {isSubmitting && uploadProgress > 0 && (
-            <div className="upload-progress mt-3">
-              <div className="progress">
+            <div className="mt-3">
+              <div className="w-full bg-gray-200 rounded-full h-5 relative overflow-hidden">
                 <div
-                  className="progress-bar progress-bar-striped progress-bar-animated"
-                  role="progressbar"
+                  className="h-full rounded-full bg-[#00A0E3] transition-all animate-pulse"
                   style={{ width: `${uploadProgress}%` }}
+                  role="progressbar"
                   aria-valuenow={uploadProgress}
                   aria-valuemin="0"
                   aria-valuemax="100"
-                >
+                />
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white drop-shadow">
                   {uploadProgress}%
-                </div>
+                </span>
               </div>
-              <p className="text-center mt-1">
+              <p className="text-center text-sm text-gray-500 mt-1">
                 Uploading... Please don't close this page.
               </p>
             </div>
@@ -306,34 +283,33 @@ function WorksheetSubmission() {
 
           {/* Image Previews */}
           {images.length > 0 && (
-            <div className="uploaded-images mt-4">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h5>Solution Images ({images.length})</h5>
-                <Button
-                  variant="outline-danger"
-                  size="sm"
+            <div className="mt-6">
+              <div className="flex justify-between items-center mb-2">
+                <h5 className="font-semibold text-[#0B1120]">Solution Images ({images.length})</h5>
+                <button
                   onClick={handleClearAllImages}
                   disabled={isSubmitting}
+                  className="px-3 py-1.5 text-xs font-medium rounded-md border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
                 >
                   Clear All
-                </Button>
+                </button>
               </div>
-              <div className="image-previews-grid">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {images.map((image, index) => (
-                  <div key={index} className="image-preview-container position-relative">
+                  <div key={index} className="relative group">
                     <img
                       src={URL.createObjectURL(image)}
                       alt={`Solution ${index + 1}`}
-                      className="image-preview"
+                      className="w-full h-32 object-cover rounded-lg border border-gray-200"
                     />
                     <button
                       type="button"
-                      className="image-remove-btn"
                       onClick={() => handleRemoveImage(index)}
                       disabled={isSubmitting}
                       aria-label="Remove image"
+                      className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white text-sm hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      ×
+                      <X size={14} />
                     </button>
                   </div>
                 ))}
@@ -342,36 +318,27 @@ function WorksheetSubmission() {
           )}
 
           {/* Submit Button */}
-          <div className="mt-4 d-flex justify-content-center">
-            <Button
-              variant="success"
-              size="lg"
+          <div className="mt-6 flex justify-center">
+            <button
               onClick={handleSubmitWorksheet}
               disabled={images.length === 0 || isSubmitting}
-              className="px-5"
+              className="flex items-center gap-2 px-8 py-3 text-base font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? (
                 <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                    className="me-2"
-                  />
+                  <Loader2 size={18} className="animate-spin" />
                   Submitting...
                 </>
               ) : (
                 <>
-                  <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
+                  <CheckCircle size={18} />
                   Submit Worksheet
                 </>
               )}
-            </Button>
+            </button>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   );
 }

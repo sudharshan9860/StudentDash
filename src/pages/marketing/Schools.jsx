@@ -7,7 +7,7 @@ const howItWorks = [
     title: 'Upload Question Paper',
     desc: 'Teacher uploads the question paper with marking scheme and correct answers.',
     icon: '📄',
-    color: '#3b82f6',
+    color: '#00A0E3',
     image: '/upload-question.png'
   },
   {

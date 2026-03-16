@@ -4,42 +4,38 @@ import Footer from '../marketing/Footer'
 
 export default function MarketingLayout({ children }) {
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans">
-      {/* Toast notifications */}
+    <div className="min-h-screen bg-white text-[#0B1120] font-sans">
       <Toaster
         position="top-center"
         toastOptions={{
           duration: 4000,
           style: {
             background: '#ffffff',
-            color: '#202124',
-            border: '1px solid #e8eaed',
-            boxShadow: '0 4px 12px rgba(60, 64, 67, 0.15)',
+            color: '#0B1120',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 4px 12px rgba(11, 17, 32, 0.1)',
           },
           success: {
             iconTheme: {
-              primary: '#1e8e3e',
+              primary: '#22c55e',
               secondary: '#ffffff',
             },
           },
           error: {
             iconTheme: {
-              primary: '#d93025',
+              primary: '#ef4444',
               secondary: '#ffffff',
             },
           },
         }}
       />
 
-      {/* Navigation */}
       <Navbar />
 
-      {/* Main Content - Add padding for fixed navbar */}
       <main className="pt-20">
         {children}
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   )

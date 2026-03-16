@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import axiosInstance from "../api/axiosInstance";
 
 export const AuthContext = createContext();
@@ -14,8 +14,6 @@ export const AuthProvider = ({ children }) => {
   const [className, setClassName] = useState(() => localStorage.getItem("className") || "");
   const [fullName, setFullName] = useState(() => localStorage.getItem("fullName") || "");
   const [school, setSchool] = useState(() => localStorage.getItem("school") || "");
-  // WebSocket reference
-  const wsRef = useRef(null);
 
   // Keep state in sync with localStorage
   useEffect(() => {
@@ -52,11 +50,6 @@ export const AuthProvider = ({ children }) => {
       setFullName(fullName || "");
       setSchool(school || "")
 
-      // Connect to WebSocket after login
-      if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) {
-        // Your WebSocket connection logic here
-      }
-
     } catch (error) {
       console.error("Error during login:", error);
       throw new Error("Failed to store authentication data");
@@ -92,12 +85,8 @@ export const AuthProvider = ({ children }) => {
       setFullName("");
       setSchool("")
 
-      // Close the WebSocket connection during logout
-      if (wsRef.current) {
-        console.log("⚠ WebSocket closed on logout");
-        wsRef.current.close();
-        wsRef.current = null;
-      }
+      // WebSocket cleanup is handled by NotificationContext
+      // when username changes to ""
     }
   };
 

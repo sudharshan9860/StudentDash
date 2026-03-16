@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFire, faCalendarCheck, faTrophy } from '@fortawesome/free-solid-svg-icons';
+import { Flame } from 'lucide-react';
 import { AuthContext } from './AuthContext';
 import axiosInstance from '../api/axiosInstance';
-import './StreakTracker.css';
 
 const StreakTracker = () => {
   const { username } = useContext(AuthContext);
@@ -11,7 +9,7 @@ const StreakTracker = () => {
     currentStreak: 0,
     longestStreak: 0,
     lastLoginDate: null,
-    weeklyProgress: [false, false, false, false, false, false, false] // Last 7 days
+    weeklyProgress: [false, false, false, false, false, false, false]
   });
   const [loading, setLoading] = useState(true);
 
@@ -38,9 +36,7 @@ const StreakTracker = () => {
       const lastLogin = currentData.lastLoginDate ? new Date(currentData.lastLoginDate).toDateString() : null;
       const yesterday = new Date(Date.now() - 86400000).toDateString();
 
-      // Check if user already logged in today
       if (lastLogin === today) {
-        // Already logged in today, just load the data
         updateWeeklyProgress(currentData.loginDates);
         setStreakData({
           currentStreak: currentData.currentStreak,
@@ -49,17 +45,14 @@ const StreakTracker = () => {
           weeklyProgress: getWeeklyProgress(currentData.loginDates)
         });
       } else if (lastLogin === yesterday) {
-        // Logged in yesterday, increment streak
         currentData.currentStreak += 1;
         currentData.lastLoginDate = new Date().toISOString();
         currentData.loginDates.push(today);
 
-        // Update longest streak if needed
         if (currentData.currentStreak > currentData.longestStreak) {
           currentData.longestStreak = currentData.currentStreak;
         }
 
-        // Keep only last 30 days
         if (currentData.loginDates.length > 30) {
           currentData.loginDates = currentData.loginDates.slice(-30);
         }
@@ -73,7 +66,6 @@ const StreakTracker = () => {
           weeklyProgress: getWeeklyProgress(currentData.loginDates)
         });
 
-        // Optional: Send to backend
         try {
           await axiosInstance.post('/streak/', {
             username: username,
@@ -84,7 +76,6 @@ const StreakTracker = () => {
           console.error('Error updating streak on server:', error);
         }
       } else {
-        // Streak broken, reset to 1
         currentData.currentStreak = 1;
         currentData.lastLoginDate = new Date().toISOString();
         currentData.loginDates = [today];
@@ -134,97 +125,52 @@ const StreakTracker = () => {
     }));
   };
 
-  const getDayLabel = (index) => {
-    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    return days[index];
-  };
-
   const getStreakLevel = () => {
     const streak = streakData.currentStreak;
-    if (streak >= 6) return { label: 'Legendary', color: '#FFD700', icon: '🏆' };
-    if (streak >= 5) return { label: 'Expert', color: '#C0C0C0', icon: '💎' };
-    if (streak >= 4) return { label: 'Master', color: '#CD7F32', icon: '⭐' };
-    if (streak >= 3) return { label: 'Pro', color: '#4CAF50', icon: '🌟' };
-    if (streak >= 2) return { label: 'Rising', color: '#2196F3', icon: '🔥' };
-    return { label: 'Beginner', color: '#9E9E9E', icon: '🌱' };
+    if (streak >= 6) return { label: 'Legendary', color: '#FFD700' };
+    if (streak >= 5) return { label: 'Expert', color: '#C0C0C0' };
+    if (streak >= 4) return { label: 'Master', color: '#CD7F32' };
+    if (streak >= 3) return { label: 'Pro', color: '#4CAF50' };
+    if (streak >= 2) return { label: 'Rising', color: '#00A0E3' };
+    return { label: 'Beginner', color: '#9E9E9E' };
   };
 
   const level = getStreakLevel();
 
   if (loading) {
     return (
-      <div className="streak-tracker-card">
-        <div className="streak-loading">Loading streak...</div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="text-sm text-gray-400 text-center">Loading streak...</div>
       </div>
     );
   }
 
   return (
-    <div className="streak-tracker-card">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
       {/* Header */}
-      <div className="streak-header">
-        <h3>
-          <FontAwesomeIcon icon={faFire} className="streak-icon" />
-          Daily Streak
-        </h3>
+      <div className="flex items-center gap-2 mb-3">
+        <Flame className="w-5 h-5 text-orange-500" />
+        <h3 className="text-sm font-semibold text-[#0B1120]">Daily Streak</h3>
       </div>
 
       {/* Current Streak Display */}
-      <div className="streak-current">
-        <div className="streak-flame-container">
-          <div className="streak-flame" style={{ color: level.color }}>
-            <span className="streak-emoji">{level.icon}</span>
+      <div className="flex flex-col items-center py-3">
+        <div className="relative">
+          <div className="text-3xl" style={{ color: level.color }}>
+            <Flame className="w-10 h-10" />
           </div>
-          <div className="streak-number">{streakData.currentStreak}</div>
+          <div className="text-2xl font-bold text-[#0B1120] text-center mt-1">
+            {streakData.currentStreak}
+          </div>
         </div>
-        <p className="streak-description">Days in a row!</p>
-        <div className="streak-label">{level.label}</div>
+        <p className="text-xs text-gray-500 mt-1">Days in a row!</p>
+        <span
+          className="text-xs font-semibold px-2.5 py-0.5 rounded-full mt-1.5"
+          style={{ color: level.color, backgroundColor: `${level.color}20` }}
+        >
+          {level.label}
+        </span>
       </div>
-
-      {/* Weekly Progress */}
-      {/* <div className="streak-weekly">
-        <h4>This Week</h4>
-        <div className="streak-days">
-          {streakData.weeklyProgress.map((completed, index) => (
-            <div key={index} className="streak-day">
-              <div className={`streak-day-circle ${completed ? 'completed' : ''}`}>
-                {completed && <FontAwesomeIcon icon={faCalendarCheck} />}
-              </div>
-              <span className="streak-day-label">{getDayLabel(index)}</span>
-            </div>
-          ))}
-        </div>
-      </div> */}
-
-      {/* Stats */}
-      {/* <div className="streak-stats">
-        <div className="streak-stat">
-          <FontAwesomeIcon icon={faFire} className="stat-icon" />
-          <div className="stat-content">
-            <div className="stat-value">{streakData.currentStreak}</div>
-            <div className="stat-label">Current</div>
-          </div>
-        </div>
-        <div className="streak-stat-divider"></div>
-        <div className="streak-stat">
-          <FontAwesomeIcon icon={faTrophy} className="stat-icon" />
-          <div className="stat-content">
-            <div className="stat-value">{streakData.longestStreak}</div>
-            <div className="stat-label">Best</div>
-          </div>
-        </div>
-      </div> */}
-
-      {/* Motivational Message */}
-      {/* <div className="streak-motivation">
-        {streakData.currentStreak === 0 && "Start your streak today!"}
-        {streakData.currentStreak === 1 && "Great start! Come back tomorrow!"}
-        {streakData.currentStreak >= 2 && streakData.currentStreak < 7 && "Keep it going!"}
-        {streakData.currentStreak >= 7 && streakData.currentStreak < 14 && "You're on fire! 🔥"}
-        {streakData.currentStreak >= 14 && streakData.currentStreak < 21 && "Amazing dedication! 💪"}
-        {streakData.currentStreak >= 21 && streakData.currentStreak < 30 && "Unstoppable! 🚀"}
-        {streakData.currentStreak >= 30 && "You're a legend! 🏆"}
-      </div> */}
     </div>
   );
 };

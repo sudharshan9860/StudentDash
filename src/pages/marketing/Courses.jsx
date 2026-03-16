@@ -5,7 +5,7 @@ const courses = [
   {
     category: 'CBSE',
     icon: '&#x1F4DA;',
-    color: '#3b82f6',
+    color: '#00A0E3',
     items: [
       { name: 'Class 6', subjects: 'Mathematics, Science, English', price: 200 },
       { name: 'Class 7', subjects: 'Mathematics, Science, English', price: 200 },
@@ -45,12 +45,12 @@ const courses = [
 ]
 
 const subjects = [
-  { name: 'Mathematics', icon: '&#x1F4D0;', color: '#3b82f6', chapters: '15+ Chapters' },
+  { name: 'Mathematics', icon: '&#x1F4D0;', color: '#00A0E3', chapters: '15+ Chapters' },
   { name: 'Science', icon: '&#x1F52C;', color: '#22c55e', chapters: '18+ Chapters' },
   { name: 'Physics', icon: '&#x26A1;', color: '#eab308', chapters: '14+ Chapters' },
   { name: 'Chemistry', icon: '&#x1F9EA;', color: '#a855f7', chapters: '16+ Chapters' },
   { name: 'Biology', icon: '&#x1F9EC;', color: '#ec4899', chapters: '12+ Chapters' },
-  { name: 'English', icon: '&#x1F4D6;', color: '#6366f1', chapters: '10+ Chapters' },
+  { name: 'English', icon: '&#x1F4D6;', color: '#00A0E3', chapters: '10+ Chapters' },
 ]
 
 const features = [
@@ -63,8 +63,8 @@ const features = [
 ]
 
 const pricingPlans = [
-  { name: 'CBSE Class 6-10', price: 200, color: '#3b82f6', features: ['All Subjects', 'Video Lessons', 'Practice Tests', 'AI Support'] },
-  { name: 'CBSE Class 11-12', price: 300, color: '#3b82f6', features: ['All Subjects', 'Video Lessons', 'Practice Tests', 'AI Support'] },
+  { name: 'CBSE Class 6-10', price: 200, color: '#00A0E3', features: ['All Subjects', 'Video Lessons', 'Practice Tests', 'AI Support'] },
+  { name: 'CBSE Class 11-12', price: 300, color: '#00A0E3', features: ['All Subjects', 'Video Lessons', 'Practice Tests', 'AI Support'] },
   { name: 'JEE Mains', price: 800, color: '#f59e0b', features: ['PCM Complete', 'Mock Tests', 'AI Analysis', 'Doubt Support'], popular: true },
   { name: 'JEE Advanced', price: 1000, color: '#ef4444', features: ['Advanced Problems', 'Full Mock Tests', 'AI Remedial', 'Expert Support'] },
 ]

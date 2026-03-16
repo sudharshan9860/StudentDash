@@ -1,28 +1,13 @@
-import React, { useState, useContext } from 'react';
-import { 
-  Card, 
-  ProgressBar, 
-  Tooltip, 
-  OverlayTrigger,
-  Modal,
-  Button
-} from 'react-bootstrap';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  ResponsiveContainer 
+import React, { useState } from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer
 } from 'recharts';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faBars, 
-  faTrophy, 
-  faChartLine, 
-  faLevelUpAlt,
-  faMedal
-} from '@fortawesome/free-solid-svg-icons';
+import { Trophy, TrendingUp, ArrowUpRight, Medal } from 'lucide-react';
 
 // Subject Progress Configuration
 const SUBJECT_LEVELS = {
@@ -44,34 +29,34 @@ const SUBJECT_LEVELS = {
 
 const SUBJECT_ACHIEVEMENTS = {
   MATHEMATICS: [
-    { 
+    {
       id: 'math_problem_solver',
-      name: 'Problem Solver', 
+      name: 'Problem Solver',
       description: 'Solve 50 mathematics problems',
-      icon: faTrophy,
+      Icon: Trophy,
       requiredPoints: 100
     },
-    { 
+    {
       id: 'math_theory_master',
-      name: 'Theory Master', 
+      name: 'Theory Master',
       description: 'Complete all chapters in a subject',
-      icon: faMedal,
+      Icon: Medal,
       requiredPoints: 250
     }
   ],
   SCIENCE: [
-    { 
+    {
       id: 'science_explorer',
-      name: 'Science Explorer', 
+      name: 'Science Explorer',
       description: 'Explore 3 different science domains',
-      icon: faTrophy,
+      Icon: Trophy,
       requiredPoints: 100
     },
-    { 
+    {
       id: 'science_researcher',
-      name: 'Research Enthusiast', 
+      name: 'Research Enthusiast',
       description: 'Complete advanced scientific problems',
-      icon: faMedal,
+      Icon: Medal,
       requiredPoints: 250
     }
   ]
@@ -79,18 +64,18 @@ const SUBJECT_ACHIEVEMENTS = {
 
 const SubjectProgressCard = ({ subject, progressData }) => {
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
-  
+
   // Determine current level
   const subjectLevels = SUBJECT_LEVELS[subject.toUpperCase()] || SUBJECT_LEVELS.MATHEMATICS;
   const currentLevel = subjectLevels.find(
-    level => progressData.points >= level.minPoints && 
+    level => progressData.points >= level.minPoints &&
              progressData.points < level.maxPoints
   ) || subjectLevels[0];
 
   // Calculate progress to next level
   const nextLevel = subjectLevels[currentLevel.level] || subjectLevels[subjectLevels.length - 1];
-  const progressToNextLevel = nextLevel 
-    ? ((progressData.points - currentLevel.minPoints) / (nextLevel.minPoints - currentLevel.minPoints)) * 100 
+  const progressToNextLevel = nextLevel
+    ? ((progressData.points - currentLevel.minPoints) / (nextLevel.minPoints - currentLevel.minPoints)) * 100
     : 100;
 
   // Get subject-specific achievements
@@ -100,7 +85,7 @@ const SubjectProgressCard = ({ subject, progressData }) => {
   );
 
   // Prepare chart data
-  const chartData = progressData.weeklySummary?.dailyLogs 
+  const chartData = progressData.weeklySummary?.dailyLogs
     ? Object.entries(progressData.weeklySummary.dailyLogs).map(([date, data]) => ({
         date,
         points: data?.points || 0,
@@ -109,135 +94,125 @@ const SubjectProgressCard = ({ subject, progressData }) => {
     : [];
 
   return (
-    <Card className="mb-4">
-      <Card.Header className="d-flex justify-content-between align-items-center">
-        <div>
-          <FontAwesomeIcon icon={faChartLine} className="mr-2" />
+    <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-100">
+      <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2 text-[#0B1120] font-semibold">
+          <TrendingUp size={18} className="text-[#00A0E3]" />
           {subject.charAt(0).toUpperCase() + subject.slice(1)} Progress
         </div>
-        <OverlayTrigger
-          placement="top"
-          overlay={<Tooltip>View Achievements</Tooltip>}
+        <button
+          className="p-2 rounded-lg border border-[#00A0E3] text-[#00A0E3] hover:bg-[#00A0E3] hover:text-white transition-colors"
+          onClick={() => setShowAchievementsModal(true)}
+          title="View Achievements"
         >
-          <Button 
-            variant="outline-primary" 
-            size="sm"
-            onClick={() => setShowAchievementsModal(true)}
-          >
-            <FontAwesomeIcon icon={faTrophy} />
-          </Button>
-        </OverlayTrigger>
-      </Card.Header>
-      <Card.Body>
+          <Trophy size={16} />
+        </button>
+      </div>
+      <div className="p-6">
         {/* Level and Points */}
-        <div className="d-flex justify-content-between mb-3">
+        <div className="flex justify-between mb-4">
           <div>
-            <h6 className="text-muted">Current Level</h6>
-            <h4>
-              <FontAwesomeIcon icon={faLevelUpAlt} className="mr-2" />
+            <h6 className="text-sm text-gray-400 mb-1">Current Level</h6>
+            <h4 className="text-xl font-bold text-[#0B1120] flex items-center gap-2">
+              <ArrowUpRight size={20} className="text-[#00A0E3]" />
               {currentLevel.name} (Level {currentLevel.level})
             </h4>
           </div>
           <div className="text-right">
-            <h6 className="text-muted">Total Points</h6>
-            <h4>{progressData.points} pts</h4>
+            <h6 className="text-sm text-gray-400 mb-1">Total Points</h6>
+            <h4 className="text-xl font-bold text-[#0B1120]">{progressData.points} pts</h4>
           </div>
         </div>
 
         {/* Level Progress */}
-        <div className="mb-3">
-          <ProgressBar 
-            now={progressToNextLevel} 
-            label={`${Math.round(progressToNextLevel)}%`}
-            variant="success"
-          />
-          <div className="d-flex justify-content-between mt-1">
-            <small className="text-muted">
+        <div className="mb-4">
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div
+              className="bg-emerald-500 h-full rounded-full transition-all duration-500 flex items-center justify-center text-[10px] text-white font-medium"
+              style={{ width: `${Math.round(progressToNextLevel)}%` }}
+            >
+              {Math.round(progressToNextLevel)}%
+            </div>
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-xs text-gray-400">
               {currentLevel.name} Level
-            </small>
-            <small className="text-muted">
+            </span>
+            <span className="text-xs text-gray-400">
               Next: {nextLevel ? nextLevel.name : 'Max Level'}
-            </small>
+            </span>
           </div>
         </div>
 
         {/* Performance Chart */}
-        <Card className="mt-3">
-          <Card.Body>
-            <h6 className="mb-3">Weekly Performance</h6>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Line 
-                  type="monotone" 
-                  dataKey="points" 
-                  stroke="#8884d8" 
-                  name="Points Earned" 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="questionsAttempted" 
-                  stroke="#82ca9d" 
-                  name="Questions Attempted" 
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </Card.Body>
-        </Card>
+        <div className="bg-[#F8FAFC] rounded-xl p-4 mt-4">
+          <h6 className="text-sm font-semibold text-[#0B1120] mb-3">Weekly Performance</h6>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Line
+                type="monotone"
+                dataKey="points"
+                stroke="#8884d8"
+                name="Points Earned"
+              />
+              <Line
+                type="monotone"
+                dataKey="questionsAttempted"
+                stroke="#82ca9d"
+                name="Questions Attempted"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
         {/* Achievements Modal */}
-        <Modal 
-          show={showAchievementsModal} 
-          onHide={() => setShowAchievementsModal(false)}
-        >
-          <Modal.Header closeButton>
-            <Modal.Title>
-              <FontAwesomeIcon icon={faTrophy} className="mr-2" />
-              {subject.charAt(0).toUpperCase() + subject.slice(1)} Achievements
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {subjectAchievements.map((achievement, index) => (
-              <Card 
-                key={index} 
-                className={`mb-3 ${
-                  unlockedAchievements.includes(achievement) 
-                    ? 'border-success' 
-                    : 'border-secondary'
-                }`}
-              >
-                <Card.Body className="d-flex align-items-center">
-                  <FontAwesomeIcon 
-                    icon={achievement.icon} 
-                    className={`mr-3 ${
-                      unlockedAchievements.includes(achievement)
-                        ? 'text-success' 
-                        : 'text-muted'
-                    }`} 
-                    size="2x" 
-                  />
-                  <div>
-                    <h5 className="mb-1">{achievement.name}</h5>
-                    <p className="text-muted mb-1">{achievement.description}</p>
-                    <small className={`${
-                      unlockedAchievements.includes(achievement)
-                        ? 'text-success' 
-                        : 'text-muted'
-                    }`}>
-                      {unlockedAchievements.includes(achievement)
-                        ? 'Unlocked' 
-                        : `Unlock at ${achievement.requiredPoints} points`}
-                    </small>
-                  </div>
-                </Card.Body>
-              </Card>
-            ))}
-          </Modal.Body>
-        </Modal>
-      </Card.Body>
-    </Card>
+        {showAchievementsModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAchievementsModal(false)}>
+            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+                <h5 className="font-semibold text-[#0B1120] flex items-center gap-2">
+                  <Trophy size={20} className="text-[#00A0E3]" />
+                  {subject.charAt(0).toUpperCase() + subject.slice(1)} Achievements
+                </h5>
+                <button className="text-gray-400 hover:text-gray-600" onClick={() => setShowAchievementsModal(false)}>
+                  &times;
+                </button>
+              </div>
+              <div className="p-6 space-y-3">
+                {subjectAchievements.map((achievement, index) => {
+                  const isUnlocked = unlockedAchievements.includes(achievement);
+                  return (
+                    <div
+                      key={index}
+                      className={`flex items-center gap-4 p-4 rounded-xl border-2 ${
+                        isUnlocked ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 bg-white'
+                      }`}
+                    >
+                      <achievement.Icon
+                        size={32}
+                        className={isUnlocked ? 'text-emerald-500' : 'text-gray-300'}
+                      />
+                      <div>
+                        <h5 className="font-semibold text-[#0B1120] mb-0.5">{achievement.name}</h5>
+                        <p className="text-gray-400 text-sm mb-0.5">{achievement.description}</p>
+                        <span className={`text-xs ${isUnlocked ? 'text-emerald-500' : 'text-gray-400'}`}>
+                          {isUnlocked
+                            ? 'Unlocked'
+                            : `Unlock at ${achievement.requiredPoints} points`}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -268,14 +243,14 @@ const SubjectProgress = () => {
 
   return (
     <div>
-      <h3 className="text-center mb-4">Subject Progress</h3>
-      <SubjectProgressCard 
-        subject="mathematics" 
-        progressData={progressData.MATHEMATICS} 
+      <h3 className="text-center text-xl font-bold text-[#0B1120] mb-6">Subject Progress</h3>
+      <SubjectProgressCard
+        subject="mathematics"
+        progressData={progressData.MATHEMATICS}
       />
-      <SubjectProgressCard 
-        subject="science" 
-        progressData={progressData.SCIENCE} 
+      <SubjectProgressCard
+        subject="science"
+        progressData={progressData.SCIENCE}
       />
     </div>
   );

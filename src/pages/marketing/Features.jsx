@@ -17,7 +17,7 @@ const features = [
     title: 'Gap Analysis',
     description:
       'Automatically identifies weak areas across subjects and creates targeted improvement plans to close knowledge gaps fast.',
-    color: '#9334e9',
+    color: '#00A0E3',
     video: '/videos/exam-correction-demo.mp4',
   },
   {

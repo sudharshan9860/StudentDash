@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Webcam from 'react-webcam';
+import { Camera, Check, RefreshCw } from 'lucide-react';
 
 const CameraCapture = ({ onImageCapture, videoConstraints }) => {
   const webcamRef = useRef(null);
@@ -29,15 +30,15 @@ const CameraCapture = ({ onImageCapture, videoConstraints }) => {
       const windowHeight = window.innerHeight;
       const mobile = windowWidth <= 768;
       setIsMobile(mobile);
-      
+
       const padding = 40;
       const buttonAreaHeight = 100;
-      
+
       const maxWidth = windowWidth - padding;
       const maxHeight = windowHeight - buttonAreaHeight;
-      
+
       let width, height;
-      
+
       if (mobile) {
         width = maxWidth;
         height = Math.min((width * 4) / 3, maxHeight);
@@ -61,14 +62,14 @@ const CameraCapture = ({ onImageCapture, videoConstraints }) => {
           }
         }
       }
-      
+
       setDisplayDimensions({ width: Math.floor(width), height: Math.floor(height) });
     };
 
     calculateDimensions();
     window.addEventListener('resize', calculateDimensions);
     window.addEventListener('orientationchange', calculateDimensions);
-    
+
     return () => {
       window.removeEventListener('resize', calculateDimensions);
       window.removeEventListener('orientationchange', calculateDimensions);
@@ -81,22 +82,22 @@ const CameraCapture = ({ onImageCapture, videoConstraints }) => {
       width: 4096,
       height: 3072
     });
-    
+
     if (imageSrc) {
       // Optional: Enhance image quality for text extraction
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
+
         // Set canvas to actual image size for no quality loss
         canvas.width = img.width;
         canvas.height = img.height;
-        
+
         // Apply sharpening and contrast enhancement for better text recognition
         ctx.filter = 'contrast(1.2) brightness(1.1)';
         ctx.drawImage(img, 0, 0);
-        
+
         // Get enhanced image
         const enhancedImage = canvas.toDataURL('image/jpeg', 1.0);
         setImage(enhancedImage);
@@ -128,54 +129,6 @@ const CameraCapture = ({ onImageCapture, videoConstraints }) => {
     setImage(null);
   };
 
-  const containerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: isMobile ? '10px' : '20px',
-    width: '100%',
-    height: '100%',
-    boxSizing: 'border-box',
-    overflow: 'hidden'
-  };
-
-  const webcamContainerStyle = {
-    position: 'relative',
-    width: `${displayDimensions.width}px`,
-    height: `${displayDimensions.height}px`,
-    borderRadius: '8px',
-    overflow: 'hidden',
-    border: '2px solid #e5e7eb',
-    backgroundColor: '#000'
-  };
-
-  const buttonContainerStyle = {
-    marginTop: '20px',
-    display: 'flex',
-    gap: '10px',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    width: '100%',
-    maxWidth: `${displayDimensions.width}px`
-  };
-
-  const buttonStyle = {
-    padding: isMobile ? '12px 24px' : '10px 20px',
-    border: 'none',
-    borderRadius: '6px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: isMobile ? '16px' : '14px',
-    minWidth: '140px',
-    justifyContent: 'center',
-    touchAction: 'manipulation',
-    WebkitTapHighlightColor: 'transparent'
-  };
-
   // Image quality settings
   const imageSettings = {
     screenshotFormat: "image/jpeg",
@@ -184,10 +137,13 @@ const CameraCapture = ({ onImageCapture, videoConstraints }) => {
   };
 
   return (
-    <div style={containerStyle}>
+    <div className={`flex flex-col items-center justify-center w-full h-full box-border overflow-hidden ${isMobile ? 'p-2.5' : 'p-5'}`}>
       {!image ? (
         <>
-          <div style={webcamContainerStyle}>
+          <div
+            className="relative rounded-lg overflow-hidden border-2 border-gray-200 bg-black"
+            style={{ width: `${displayDimensions.width}px`, height: `${displayDimensions.height}px` }}
+          >
             <Webcam
               audio={false}
               ref={webcamRef}
@@ -195,78 +151,67 @@ const CameraCapture = ({ onImageCapture, videoConstraints }) => {
               width={displayDimensions.width}
               height={displayDimensions.height}
               videoConstraints={captureConstraints}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover'
-              }}
+              className="w-full h-full object-cover"
               minScreenshotWidth={1920}
               minScreenshotHeight={1080}
             />
           </div>
-          <div style={buttonContainerStyle}>
+          <div
+            className="mt-5 flex gap-2.5 justify-center flex-wrap w-full"
+            style={{ maxWidth: `${displayDimensions.width}px` }}
+          >
             <button
               type="button"
               onClick={capture}
-              style={{
-                ...buttonStyle,
-                backgroundColor: '#3b82f6',
-                color: 'white'
-              }}
+              className={`border-none rounded-md font-medium cursor-pointer inline-flex items-center gap-2 justify-center min-w-[140px] bg-[#00A0E3] hover:bg-[#0080B8] text-white ${
+                isMobile ? 'py-3 px-6 text-base' : 'py-2.5 px-5 text-sm'
+              }`}
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
+              <Camera className="w-5 h-5" />
               Capture Photo
             </button>
           </div>
-          <div style={{ marginTop: '10px', textAlign: 'center', fontSize: '12px', color: '#6b7280' }}>
+          <div className="mt-2.5 text-center text-xs text-gray-500">
             Tip: Hold steady and ensure good lighting for best text capture
           </div>
         </>
       ) : (
         <>
-          <div style={webcamContainerStyle}>
-            <img 
-              src={image} 
-              alt="Captured" 
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',  // Changed to contain to see full image
-                backgroundColor: '#f3f4f6'
-              }}
+          <div
+            className="relative rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-100"
+            style={{ width: `${displayDimensions.width}px`, height: `${displayDimensions.height}px` }}
+          >
+            <img
+              src={image}
+              alt="Captured"
+              className="w-full h-full object-contain"
             />
           </div>
-          <div style={buttonContainerStyle}>
+          <div
+            className="mt-5 flex gap-2.5 justify-center flex-wrap w-full"
+            style={{ maxWidth: `${displayDimensions.width}px` }}
+          >
             <button
               type="button"
               onClick={confirmImage}
-              style={{
-                ...buttonStyle,
-                backgroundColor: '#10b981',
-                color: 'white'
-              }}
+              className={`border-none rounded-md font-medium cursor-pointer inline-flex items-center gap-2 justify-center min-w-[140px] bg-emerald-500 hover:bg-emerald-600 text-white ${
+                isMobile ? 'py-3 px-6 text-base' : 'py-2.5 px-5 text-sm'
+              }`}
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
+              <Check className="w-5 h-5" />
               Use This Photo
             </button>
             <button
               type="button"
               onClick={retakeImage}
-              style={{
-                ...buttonStyle,
-                backgroundColor: '#ef4444',
-                color: 'white'
-              }}
+              className={`border-none rounded-md font-medium cursor-pointer inline-flex items-center gap-2 justify-center min-w-[140px] bg-red-500 hover:bg-red-600 text-white ${
+                isMobile ? 'py-3 px-6 text-base' : 'py-2.5 px-5 text-sm'
+              }`}
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M1 4v6h6M23 20v-6h-6"/>
-                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-              </svg>
+              <RefreshCw className="w-5 h-5" />
               Retake
             </button>
           </div>

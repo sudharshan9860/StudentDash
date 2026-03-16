@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Joyride from "react-joyride";
 import { useTutorial } from "../contexts/TutorialContext";
-import { Button } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import "./Tutorial.css";
 
 const Tutorial = ({ steps, onComplete }) => {
   const {
@@ -44,14 +40,8 @@ const Tutorial = ({ steps, onComplete }) => {
         debug={false}
         styles={{
           options: {
-            primaryColor: "#00C1D4",
+            primaryColor: "#00A0E3",
             zIndex: 10001,
-          },
-          tooltip: {
-            className: "tutorial-tooltip",
-          },
-          overlay: {
-            className: "tutorial-overlay",
           },
         }}
         callback={(data) => {
@@ -82,19 +72,6 @@ const Tutorial = ({ steps, onComplete }) => {
           }
         }}
       />
-
-      {/* {isButtonVisible && showTutorial && (
-        <div className="tutorial-toggle">
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={handleClose}
-            className="tutorial-close-btn"
-          >
-            <FontAwesomeIcon icon={faTimes} /> Close Tutorial
-          </Button>
-        </div>
-      )} */}
     </>
   );
 };

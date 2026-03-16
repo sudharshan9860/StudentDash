@@ -1,7 +1,6 @@
 // EnhancedTeacherDash.jsx
 
 import React, { useState, useEffect } from 'react';
-import './EnhancedTeacherDash.css';
 import axiosInstance from '../api/axiosInstance';
 import TeacherDashboard from './TeacherDashboard';
 import StudentDash from './StudentDash';
@@ -9,7 +8,7 @@ import QuickExerciseComponent from './QuickExerciseComponent';
 import ExamAnalytics from './ExamAnalytics';
 import ProgressTab from './ProgressTab';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import { Loader2 } from 'lucide-react';
 
 // Import the separated components
 import ClassAnalysis from './ClassAnalysis';
@@ -19,7 +18,6 @@ import UploadClasswork from './UploadClasswork';
 import ExamCorrection from './ExamCorrection';
 import QuestionPaperGenerator from './QuestionPaperGenerator';
 import { useAlert } from './AlertBox';
-import { progress } from 'framer-motion';
 
 // Mock data for different classes (6th to 12th)
 const classesData = {
@@ -202,12 +200,12 @@ const EnhancedTeacherDash = () => {
     window.handleExamAnalyticsView = () => {
       setActiveTab('exam-analytics');
     };
-    
+
     // Function for ExamAnalytics to switch to correction
     window.handleExamCorrectionView = () => {
       setActiveTab('exam-correction');
     };
-    
+
     return () => {
       delete window.handleExamAnalyticsView;
       delete window.handleExamCorrectionView;
@@ -219,7 +217,7 @@ const fetchTeacherData = async () => {
   try {
     const response = await axiosInstance.get('/teacher-dashboard/');
     console.log('teacher-data', response.data);
-    
+
     // Detailed logging to see EXACTLY what you're getting
     console.log('===========================================');
     console.log('TEACHER DASHBOARD API RESPONSE');
@@ -234,18 +232,18 @@ const fetchTeacherData = async () => {
 
     // Check what type of data we got
     if (response.data.status === 'warning') {
-      console.warn('⚠ WARNING from API:', response.data.message);
+      console.warn('WARNING from API:', response.data.message);
       console.log('Available Students (IDs only):', response.data.available_students);
     }
 
     if (response.data.students) {
-      console.log('✅ Got full student data:', response.data.students);
+      console.log('Got full student data:', response.data.students);
     } else {
-      console.log('❌ No full student data received, only IDs');
+      console.log('No full student data received, only IDs');
     }
-    
+
     setTeacherData(response.data);
-    
+
      // Also log what's being saved to localStorage
     console.log('Saving to localStorage:', {
       teacherData: response.data,
@@ -254,7 +252,7 @@ const fetchTeacherData = async () => {
     // Save to localStorage for Progress tab
     localStorage.setItem('teacherData', JSON.stringify(response.data));
     localStorage.setItem('studentData', JSON.stringify(response.data.students || []));
-    
+
     if (response.data.students && response.data.students.length > 0) {
       setSelectedClass({
         id: 1,
@@ -271,7 +269,7 @@ const fetchTeacherData = async () => {
 
   const generateStudentData = (studentName, classId) => {
     const baseEfficiency = Math.floor(Math.random() * 30) + 60;
-    
+
     return {
       weeklyEfficiency: [
         { week: 'May 01 - May 01', efficiency: baseEfficiency - 5 + Math.random() * 10 },
@@ -307,19 +305,19 @@ const fetchTeacherData = async () => {
     try {
       const endpoint = mode === "classwork" ? "/classwork/" : "/homework/";
       const response = await axiosInstance.post(endpoint, assignment);
-      
+
       if (response.status === 201) {
         console.log(`${mode} created successfully:`, response.data);
-        
+
         if (mode === "homework") {
           setAssignments(prev => [...prev, response.data]);
         }
-        
-        showalert(`${mode.charAt(0).toUpperCase() + mode.slice(1)} created successfully!`);
+
+        showAlert(`${mode.charAt(0).toUpperCase() + mode.slice(1)} created successfully!`);
       }
     } catch (error) {
       console.error(`Error creating ${mode}:`, error);
-      
+
     }
   };
 
@@ -331,31 +329,13 @@ const fetchTeacherData = async () => {
   // Loading state
   if (loading) {
     return (
-      <div className="dashboard-container">
-        <div className="dashboard-wrapper">
-          <div className="empty-state">
+      <div className="min-h-screen bg-[#F8FAFC]">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div>
-              <div className="empty-state-icon">⏳</div>
-              <h3 className="empty-state-title">Loading Dashboard</h3>
-              <p className="empty-state-text">Please wait while we fetch your data...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
- 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="dashboard-container">
-        <div className="dashboard-wrapper">
-          <div className="empty-state">
-            <div>
-              <div className="empty-state-icon">⏳</div>
-              <h3 className="empty-state-title">Loading Dashboard</h3>
-              <p className="empty-state-text">Please wait while we fetch your data...</p>
+              <Loader2 className="w-12 h-12 text-[#00A0E3] animate-spin mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-[#0B1120] mb-2">Loading Dashboard</h3>
+              <p className="text-gray-500">Please wait while we fetch your data...</p>
             </div>
           </div>
         </div>
@@ -367,15 +347,15 @@ const fetchTeacherData = async () => {
   return (
     <>
       <AlertContainer />
-      <div className="teacher-dashboard-container">
+      <div className="min-h-screen bg-[#F8FAFC]">
             {activeTab === 'class' ? (
-              <ClassAnalysis 
+              <ClassAnalysis
                 selectedClass={selectedClass}
                 classesData={classesData}
                 onClassChange={handleClassChange}
               />
             ) : activeTab === 'student' ? (
-              <StudentAnalysis 
+              <StudentAnalysis
                 selectedClass={selectedClass}
                 selectedStudent={selectedStudent}
                 onStudentSelect={handleStudentSelect}
@@ -387,12 +367,12 @@ const fetchTeacherData = async () => {
             ): activeTab === 'upload-classwork' ? (
               <UploadClasswork />
             ) : activeTab === 'classwork' ? (
-              <div style={{ padding: '20px' }}>
+              <div className="p-5">
                 <QuickExerciseComponent onCreateHomework={(assignment) => handleAssignmentSubmit(assignment, "classwork")} mode="classwork" />
               </div>
             ) : activeTab === 'homework' ? (
-              <div style={{ padding: '20px' }}>
-                <TeacherDashboard 
+              <div className="p-5">
+                <TeacherDashboard
                   user={selectedClass}
                   assignments={assignments}
                   submissions={submissions}
@@ -400,13 +380,13 @@ const fetchTeacherData = async () => {
                 />
               </div>
             ) : activeTab === 'exercise' ? (
-              <div  style={{ padding: '20px' }}>
+              <div className="p-5">
                 <QuickExerciseComponent onCreateHomework={(assignment) => handleAssignmentSubmit(assignment, "homework")} />
               </div>
             ) : activeTab === 'exam-correction' ? (
               <ExamCorrection />
             ) : activeTab === 'exam-analytics' ? (
-              <div style={{ padding: '20px', height: 'calc(100vh - 100px)', overflow: 'auto' }}>
+              <div className="p-5 h-[calc(100vh-100px)] overflow-auto">
                 <ExamAnalytics />
                 </div>
             ) : activeTab === 'progress' ? (
@@ -416,7 +396,7 @@ const fetchTeacherData = async () => {
               onClassChange={handleClassChange}
               />
             ) : activeTab === 'question-paper' ? (
-              <div style={{ padding: '20px', height: 'calc(100vh - 100px)', overflow: 'auto' }}>
+              <div className="p-5 h-[calc(100vh-100px)] overflow-auto">
                 <QuestionPaperGenerator />
               </div>
             ) : null}
@@ -425,5 +405,5 @@ const fetchTeacherData = async () => {
   );
 };
 
- 
+
 export default EnhancedTeacherDash;
