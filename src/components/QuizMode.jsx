@@ -66,10 +66,28 @@ const QuizMode = () => {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [learningAnswers, setLearningAnswers] = useState({});
 
-  // True only when Class 9 + MATHEMATICS is selected
-  const isClass9Math =
-    selectedClassObj?.class_name?.includes("9") &&
-    selectedSubject === "MATHEMATICS";
+  /**
+   * Returns true for classes 6–12 with any Mathematics subject,
+   * excluding JEE Mains / Advanced variants.
+   * This enables the optional subtopics step (step 4) in the wizard.
+   */
+  const isMathWithSubtopics = (() => {
+    if (!selectedClassObj || !selectedSubject) return false;
+    const classNum = parseInt(
+      selectedClassObj.class_name.replace(/\D/g, ""),
+      10,
+    );
+    if (isNaN(classNum) || classNum < 6 || classNum > 12) return false;
+    const subjectLower = selectedSubject.toLowerCase();
+    return (
+      (subjectLower.includes("mathematics") ||
+        subjectLower.includes("maths") ||
+        subjectLower.includes("math")) &&
+      !subjectLower.includes("jee") &&
+      !subjectLower.includes("mains") &&
+      !subjectLower.includes("advanced")
+    );
+  })();
 
   const [subtopics, setSubtopics] = useState([]); // NOW: [{updated_sub_topic_code, updated_sub_topic_name}]
   const [selectedSubtopics, setSelectedSubtopics] = useState([]); // NOW: string[] of subtopic NAMES (for generate payload)
@@ -199,7 +217,7 @@ const QuizMode = () => {
   useEffect(() => {
     setSubtopics([]);
     setSelectedSubtopics([]);
-    if (!isClass9Math || selectedChapters.length === 0) return;
+    if (!isMathWithSubtopics || selectedChapters.length === 0) return;
 
     const loadSubtopics = async () => {
       setLoadingSubtopics(true);
@@ -234,8 +252,7 @@ const QuizMode = () => {
       }
     };
     loadSubtopics();
-  }, [selectedChapters, isClass9Math, selectedClassObj, selectedSubjectObj]);
-
+  }, [selectedChapters, selectedClassObj, selectedSubjectObj, selectedSubject]);
   const toggleChapter = useCallback((ch) => {
     setSelectedChapters(
       (prev) =>
@@ -271,11 +288,12 @@ const QuizMode = () => {
       ? 2
       : selectedChapters.length === 0
         ? 3
-        : isClass9Math && selectedSubtopics.length === 0
+        : isMathWithSubtopics && selectedSubtopics.length === 0
           ? 4
-          : isClass9Math
+          : isMathWithSubtopics
             ? 5
             : 4;
+
   const totalQuestions = selectedChapters.length * questionsPerChapter;
   const estimatedTime = totalQuestions * 2; // 2 min per question
 
@@ -431,18 +449,20 @@ const QuizMode = () => {
       const chapterNames = selectedChapters.map((ch) =>
         formatChapterName(ch.name),
       );
-      const payload = isClass9Math
+      const classNum = Number(selectedClassObj.class_name.replace(/\D/g, ""));
+
+      const payload = isMathWithSubtopics
         ? {
-            class_num: 9,
+            class_num: classNum,
             chapters: chapterNames,
             questions_per_chapter: questionsPerChapter,
-            subject: "MATHEMATICS",
+            subject: selectedSubject, // preserves "Mathematics - 2" etc.
             ...(selectedSubtopics.length > 0 && {
               sub_topics: selectedSubtopics,
             }),
           }
         : {
-            class_num: Number(selectedClassObj.class_name.replace(/\D/g, "")),
+            class_num: classNum,
             chapters: chapterNames,
             questions_per_chapter: questionsPerChapter,
             subject: selectedSubject,
@@ -527,7 +547,7 @@ const QuizMode = () => {
               { num: 1, label: "Class", desc: "Select class" },
               { num: 2, label: "Subject", desc: "Pick subject" },
               { num: 3, label: "Chapter", desc: "Pick a topic" },
-              ...(isClass9Math
+              ...(isMathWithSubtopics
                 ? [{ num: 4, label: "Subtopics", desc: "Filter subtopics" }]
                 : []),
             ].map((step, i) => (
@@ -776,7 +796,7 @@ const QuizMode = () => {
               )}
             </AnimatePresence>
 
-            {isClass9Math && selectedChapters.length > 0 && (
+            {isMathWithSubtopics && selectedChapters.length > 0 && (
               <motion.div
                 className="quiz-glass-card"
                 initial={{ opacity: 0, y: 16 }}

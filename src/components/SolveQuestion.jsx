@@ -1,10 +1,22 @@
 // src/components/SolveQuestion.jsx
-import React, { useState, useContext, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useContext,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Form, Button, Spinner, Alert, Row, Col } from "react-bootstrap";
 import axiosInstance from "../api/axiosInstance";
 import "./SolveQuestion.css";
-import { faBookOpenReader, faArrowDown, faCaretDown, faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBookOpenReader,
+  faArrowDown,
+  faCaretDown,
+  faQuestionCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import QuestionListModal from "./QuestionListModal";
 import { ProgressContext } from "../contexts/ProgressContext";
 import { NotificationContext } from "../contexts/NotificationContext";
@@ -24,10 +36,8 @@ import { useTutorial } from "../contexts/TutorialContext";
 import { getImageSrc, prepareImageForApi } from "../utils/imageUtils";
 import AnimatedBackground from "./AnimatedBackground";
 import { useMascot, MASCOT_ANIMATIONS } from "../contexts/MascotContext";
-import { FloatingMascot, useSpeechBubble } from "./Mascot3D";
+// import { FloatingMascot, useSpeechBubble } from "./Mascot3D";
 import "./Mascot3D.css";
-
-
 
 function SolveQuestion() {
   const location = useLocation();
@@ -39,10 +49,7 @@ function SolveQuestion() {
   const { updateQuestProgress } = useContext(QuestContext);
 
   // Timer context
-  const {
-    startTimer,
-    stopTimer
-  } = useTimer();
+  const { startTimer, stopTimer } = useTimer();
 
   // Sound feedback hook
   const { playQuestionSolvedSound, playAchievementSound } = useSoundFeedback();
@@ -58,15 +65,16 @@ function SolveQuestion() {
   } = useTutorial();
 
   // Mascot context
-  const { setThinking, setIdle, setExplaining, playAnimation, ANIMATIONS } = useMascot();
+  // const { setThinking, setIdle, setExplaining, playAnimation, ANIMATIONS } =
+  //   useMascot();
 
   // Speech bubble for contextual mascot tips
-  const {
-    currentBubble,
-    showBubble: isBubbleVisible,
-    showMessage: showMascotMessage,
-    hideMessage: hideMascotMessage,
-  } = useSpeechBubble();
+  // const {
+  //   currentBubble,
+  //   showBubble: isBubbleVisible,
+  //   showMessage: showMascotMessage,
+  //   hideMessage: hideMascotMessage,
+  // } = useSpeechBubble();
 
   // State for tracking study session
   const [studyTime, setStudyTime] = useState(0);
@@ -85,14 +93,14 @@ function SolveQuestion() {
   const [isContextExpanded, setIsContextExpanded] = useState(false);
 
   // JEE-specific states
-const [jeeQuestionType, setJeeQuestionType] = useState(null);
-const [selectedOption, setSelectedOption] = useState(null);
-const [numericalAnswer, setNumericalAnswer] = useState('');
-const [mcqOptions, setMcqOptions] = useState([]);
+  const [jeeQuestionType, setJeeQuestionType] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [numericalAnswer, setNumericalAnswer] = useState("");
+  const [mcqOptions, setMcqOptions] = useState([]);
 
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('darkMode') === 'true';
+    return localStorage.getItem("darkMode") === "true";
   });
 
   // Ensure context sharing starts enabled when entering SolveQuestion
@@ -102,60 +110,66 @@ const [mcqOptions, setMcqOptions] = useState([]);
   }, []);
 
   // Set mascot to encouraging mode when solving questions
-  useEffect(() => {
-    playAnimation(MASCOT_ANIMATIONS.LOOK_RIGHT, { loop: true });
-  }, [playAnimation]);
+  // useEffect(() => {
+  //   playAnimation(MASCOT_ANIMATIONS.LOOK_RIGHT, { loop: true });
+  // }, [playAnimation]);
 
   // Apply dark mode on component mount and listen for changes
   useEffect(() => {
     const checkDarkMode = () => {
-      const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+      const darkModeEnabled = localStorage.getItem("darkMode") === "true";
       setIsDarkMode(darkModeEnabled);
-      document.body.classList.toggle('dark-mode', darkModeEnabled);
+      document.body.classList.toggle("dark-mode", darkModeEnabled);
     };
 
     checkDarkMode();
 
     // Listen for storage events (dark mode changes in other tabs/components)
-    window.addEventListener('storage', checkDarkMode);
+    window.addEventListener("storage", checkDarkMode);
 
     return () => {
-      window.removeEventListener('storage', checkDarkMode);
+      window.removeEventListener("storage", checkDarkMode);
     };
   }, []);
 
   // Tutorial steps for SolveQuestion
   const tutorialSteps = [
     {
-      target: '.question-text-container',
-      content: 'Welcome to the question solving page! This is your question. Read it carefully and try to solve it on paper or in your notebook.',
+      target: ".question-text-container",
+      content:
+        "Welcome to the question solving page! This is your question. Read it carefully and try to solve it on paper or in your notebook.",
       disableBeacon: true,
-      placement: 'bottom',
+      placement: "bottom",
     },
     {
-      target: '.solve-question-header',
-      content: 'The timer tracks how long you spend on this question. This helps you manage your time better.',
-      placement: 'bottom',
+      target: ".solve-question-header",
+      content:
+        "The timer tracks how long you spend on this question. This helps you manage your time better.",
+      placement: "bottom",
     },
     {
-      target: '.image-source-buttons',
-      content: 'Take a photo of your solution using your camera. Make sure your handwriting is clear!',
-      placement: 'top',
+      target: ".image-source-buttons",
+      content:
+        "Take a photo of your solution using your camera. Make sure your handwriting is clear!",
+      placement: "top",
     },
     {
-      target: '.explain-btn',
-      content: 'Click "Concepts-Required" to understand what concepts you need to solve this question.',
-      placement: 'top',
+      target: ".explain-btn",
+      content:
+        'Click "Concepts-Required" to understand what concepts you need to solve this question.',
+      placement: "top",
     },
     {
-      target: '.solve-btn',
-      content: 'Click "AI-Solution" to see the complete step-by-step solution from our AI tutor.',
-      placement: 'top',
+      target: ".solve-btn",
+      content:
+        'Click "AI-Solution" to see the complete step-by-step solution from our AI tutor.',
+      placement: "top",
     },
     {
-      target: '.btn-correct',
-      content: 'After taking a photo of your solution, click "AI-Correct" to get feedback and corrections from AI!',
-      placement: 'top',
+      target: ".btn-correct",
+      content:
+        'After taking a photo of your solution, click "AI-Correct" to get feedback and corrections from AI!',
+      placement: "top",
     },
   ];
 
@@ -186,8 +200,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
     subtopic,
     selectedQuestions,
     question_id,
-    context
-    
+    context,
   } = location.state || {};
   // console.log("Location state:", location.state);
   const { questionNumber } = location.state || {};
@@ -195,39 +208,41 @@ const [mcqOptions, setMcqOptions] = useState([]);
   const question_image =
     location.state?.image || questionList?.[index]?.image || "";
   // console.log("Question ID:", question_id);
-  const questioniid=location.state?.question_id || questionId;
+  const questioniid = location.state?.question_id || questionId;
   // console.log("Question ID from state:", questioniid);
   const [currentQuestion, setCurrentQuestion] = useState({
     question: question,
     questionNumber: questionNumber || (index !== undefined ? index + 1 : 1),
     image: question_image,
-    context:context,
+    context: context,
     // id: questionId,
-    question_id: question_id || questionId
+    question_id: question_id || questionId,
   });
   // console.log("Current Question State:", currentQuestion);
   // console.log("questionList", questionList);
 
-  const { setCurrentQuestion: setContextQuestion, setQuestion } = useCurrentQuestion();
+  const { setCurrentQuestion: setContextQuestion, setQuestion } =
+    useCurrentQuestion();
 
   // Use ref to track previous location state to prevent redundant updates
   const prevLocationStateRef = useRef(null);
 
   // Memoize cleanup function to revoke image URLs
   const revokeImageUrls = useCallback((urls) => {
-    urls.forEach(url => {
+    urls.forEach((url) => {
       try {
         URL.revokeObjectURL(url);
       } catch (error) {
         // Ignore errors for already revoked URLs
-        console.debug('URL already revoked:', url);
+        console.debug("URL already revoked:", url);
       }
     });
   }, []);
 
   // Start timer on initial mount
   useEffect(() => {
-    const initialQuestionId = location.state?.question_id || `${index}${Date.now()}`;
+    const initialQuestionId =
+      location.state?.question_id || `${index}${Date.now()}`;
     startTimer(initialQuestionId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only on mount
@@ -256,15 +271,15 @@ const [mcqOptions, setMcqOptions] = useState([]);
         image: location.state.image || "",
         id: newQuestionId,
         question_id: location.state?.question_id || newQuestionId,
-        context: location.state?.context || null
+        context: location.state?.context || null,
       };
 
       const jeeType = location.state?.jeeQuestionType;
       if (jeeType) {
         setJeeQuestionType(jeeType);
         console.log("📐 JEE Question Type:", jeeType);
-        
-        if (jeeType === 'mcq' && location.state.question) {
+
+        if (jeeType === "mcq" && location.state.question) {
           const options = parseMCQOptions(location.state.question);
           setMcqOptions(options);
           console.log("✅ Parsed options:", options);
@@ -272,7 +287,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
       } else {
         setJeeQuestionType(null);
         setSelectedOption(null);
-        setNumericalAnswer('');
+        setNumericalAnswer("");
         setMcqOptions([]);
       }
 
@@ -305,7 +320,16 @@ const [mcqOptions, setMcqOptions] = useState([]);
       setProcessingButton(null);
       setIsContextExpanded(false); // Reset context expansion
     }
-  }, [location.state, index, setQuestion, questionList, stopTimer, startTimer, revokeImageUrls, imagePreviewUrls]);
+  }, [
+    location.state,
+    index,
+    setQuestion,
+    questionList,
+    stopTimer,
+    startTimer,
+    revokeImageUrls,
+    imagePreviewUrls,
+  ]);
 
   // Persist the share-with-chat preference
   useEffect(() => {
@@ -351,16 +375,16 @@ const [mcqOptions, setMcqOptions] = useState([]);
 
     if (oversizedFiles.length > 0) {
       setError(
-        `Some files exceed the 5MB size limit. Please select smaller images.`
+        `Some files exceed the 5MB size limit. Please select smaller images.`,
       );
       return;
     }
 
     // Create preview URLs for new images
-    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
+    const newPreviewUrls = files.map((file) => URL.createObjectURL(file));
 
-    setImages(prevImages => [...prevImages, ...files]);
-    setImagePreviewUrls(prevUrls => [...prevUrls, ...newPreviewUrls]);
+    setImages((prevImages) => [...prevImages, ...files]);
+    setImagePreviewUrls((prevUrls) => [...prevUrls, ...newPreviewUrls]);
     setIsSolveEnabled(false);
     setError(null); // Clear previous errors
   }, []);
@@ -368,13 +392,17 @@ const [mcqOptions, setMcqOptions] = useState([]);
   // Handle captured image from camera
   const handleCapturedImage = useCallback((capturedImageBlob) => {
     // Convert blob to File object
-    const file = new File([capturedImageBlob], `captured-solution-${Date.now()}.jpg`, { type: 'image/jpeg' });
+    const file = new File(
+      [capturedImageBlob],
+      `captured-solution-${Date.now()}.jpg`,
+      { type: "image/jpeg" },
+    );
 
     // Create preview URL
     const previewUrl = URL.createObjectURL(file);
 
-    setImages(prevImages => [...prevImages, file]);
-    setImagePreviewUrls(prevUrls => [...prevUrls, previewUrl]);
+    setImages((prevImages) => [...prevImages, file]);
+    setImagePreviewUrls((prevUrls) => [...prevUrls, previewUrl]);
     setIsSolveEnabled(false);
     setError(null);
   }, []);
@@ -389,52 +417,61 @@ const [mcqOptions, setMcqOptions] = useState([]);
     // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
     const timeSpentMinutes = Math.ceil(timeSpentMs / 60000);
-    
+
     // Add study time to the request
-    sendFormData({ 
-      submit: true,
-      study_time_seconds: Math.floor(timeSpentMs / 1000),
-      study_time_minutes: timeSpentMinutes
-    }, "submit");
+    sendFormData(
+      {
+        submit: true,
+        study_time_seconds: Math.floor(timeSpentMs / 1000),
+        study_time_minutes: timeSpentMinutes,
+      },
+      "submit",
+    );
   };
 
   const handleSolve = () => {
     // Trigger mascot thinking animation while processing
-    playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
-    showMascotMessage("Let me solve this for you!", 3000);
+    // playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+    // showMascotMessage("Let me solve this for you!", 3000);
 
     // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
     const timeSpentMinutes = Math.ceil(timeSpentMs / 60000);
 
-    sendFormData({
-      solve: true,
-      study_time_seconds: Math.floor(timeSpentMs / 1000),
-      study_time_minutes: timeSpentMinutes
-    }, "solve");
+    sendFormData(
+      {
+        solve: true,
+        study_time_seconds: Math.floor(timeSpentMs / 1000),
+        study_time_minutes: timeSpentMinutes,
+      },
+      "solve",
+    );
   };
 
   const handleExplain = () => {
     // Trigger mascot explaining animation
-    playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
-    showMascotMessage("I'll explain the key concepts!", 3000);
+    // playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+    // showMascotMessage("I'll explain the key concepts!", 3000);
 
     // Stop the timer and get the time spent
     const timeSpentMs = stopTimer();
     const timeSpentMinutes = Math.ceil(timeSpentMs / 60000);
 
-    sendFormData({
-      explain: true,
-      study_time_seconds: Math.floor(timeSpentMs / 1000),
-      study_time_minutes: timeSpentMinutes
-    }, "explain");
+    sendFormData(
+      {
+        explain: true,
+        study_time_seconds: Math.floor(timeSpentMs / 1000),
+        study_time_minutes: timeSpentMinutes,
+      },
+      "explain",
+    );
   };
 
   // Enhanced handleCorrect function
   const handleCorrect = async () => {
     // Trigger mascot thinking animation while correcting
-    playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
-    showMascotMessage("Analyzing your solution...", 3000);
+    // playAnimation(ANIMATIONS.LOOK_RIGHT, { loop: true });
+    // showMascotMessage("Analyzing your solution...", 3000);
 
     setProcessingButton("correct");
     setError(null);
@@ -446,29 +483,33 @@ const [mcqOptions, setMcqOptions] = useState([]);
     // console.log('time spent in min',time)
 
     const timeSpentMinutes = Math.floor(timeSpentMs / 60000); // 1
-    
-
 
     const formData = new FormData();
     formData.append("class_id", class_id);
     formData.append("subject_id", subject_id);
     formData.append("topic_ids", topic_ids);
-   
+
     formData.append("subtopic", subtopic);
     formData.append("correct", true);
-    formData.append("study_time_seconds", Math.floor((timeSpentMs % 60000) / 1000));
+    formData.append(
+      "study_time_seconds",
+      Math.floor((timeSpentMs % 60000) / 1000),
+    );
     formData.append("study_time_minutes", timeSpentMinutes);
-    formData.append("question_id", currentQuestion.question_id || currentQuestion.id);
+    formData.append(
+      "question_id",
+      currentQuestion.question_id || currentQuestion.id,
+    );
 
-    if (jeeQuestionType === 'mcq') {
+    if (jeeQuestionType === "mcq") {
       formData.append("jee_question_type", "mcq");
       formData.append("selected_option", selectedOption);
       console.log("📐 MCQ - Selected:", selectedOption);
-    } else if (jeeQuestionType === 'nvtq') {
+    } else if (jeeQuestionType === "nvtq") {
       formData.append("jee_question_type", "nvtq");
       formData.append("numerical_answer", numericalAnswer);
       console.log("📐 NVTQ - Answer:", numericalAnswer);
-    } else if (jeeQuestionType === 'theorem') {
+    } else if (jeeQuestionType === "theorem") {
       formData.append("jee_question_type", "theorem");
       console.log("📐 THEOREM - Image required");
     }
@@ -489,15 +530,15 @@ const [mcqOptions, setMcqOptions] = useState([]);
         const response = await axiosInstance.uploadFile(
           "/anssubmit/",
           formData,
-          handleUploadProgress
+          handleUploadProgress,
         );
 
         // Update study session
         updateStudySession(
-          new Date().toISOString().split("T")[0], 
-          timeSpentMinutes, 
-          1, 
-          100
+          new Date().toISOString().split("T")[0],
+          timeSpentMinutes,
+          1,
+          100,
         );
 
         // Update quest progress
@@ -520,8 +561,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
             question_id: currentQuestion.question_id || currentQuestion.id,
             context: currentQuestion.context,
             // Add the student's uploaded/captured images
-            studentImages: images.map(img => URL.createObjectURL(img)),
-
+            studentImages: images.map((img) => URL.createObjectURL(img)),
           },
         });
 
@@ -530,7 +570,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
         console.error("API Error:", error);
         if (error.code === "ECONNABORTED") {
           setError(
-            "Request timed out. Please try with a smaller image or check your connection."
+            "Request timed out. Please try with a smaller image or check your connection.",
           );
         } else if (error.friendlyMessage) {
           setError(error.friendlyMessage);
@@ -539,7 +579,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
         }
         setProcessingButton(null);
         setUploadProgress(0);
-        
+
         // Restart timer since submission failed
         startTimer(currentQuestion.id);
       }
@@ -569,18 +609,18 @@ const [mcqOptions, setMcqOptions] = useState([]);
           };
 
           reader.readAsDataURL(blob);
-      } catch (fetchError) {
-        console.error(
+        } catch (fetchError) {
+          console.error(
             "Error fetching or converting image to base64:",
-            fetchError
-        );
+            fetchError,
+          );
           setError(`Error fetching image: ${fetchError.message}`);
           finalizeAndSendForm(); // Proceed even if image failed
         }
       } else {
         console.warn(
           "Unsupported image format:",
-          currentQuestion.image.substring(0, 30)
+          currentQuestion.image.substring(0, 30),
         );
         finalizeAndSendForm();
       }
@@ -618,7 +658,10 @@ const [mcqOptions, setMcqOptions] = useState([]);
     // formData.append("question", currentQuestion.question);
     // formData.append("ques_img", currentQuestion.image || "");
     formData.append("subtopic", subtopic);
-    formData.append("question_id", currentQuestion.question_id || currentQuestion.id);
+    formData.append(
+      "question_id",
+      currentQuestion.question_id || currentQuestion.id,
+    );
     // console.log("Sending form data with flags:", formData);
     Object.entries(flags).forEach(([key, value]) => {
       formData.append(key, value);
@@ -641,7 +684,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
         response = await axiosInstance.uploadFile(
           "/anssubmit/",
           formData,
-          handleUploadProgress
+          handleUploadProgress,
         );
       } else {
         // Regular request for actions without file uploads
@@ -654,7 +697,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
           new Date().toISOString().split("T")[0],
           flags.study_time_minutes,
           1,
-          0 // Accuracy unknown at this point
+          0, // Accuracy unknown at this point
         );
       }
 
@@ -682,7 +725,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
       // Set user-friendly error message
       if (error.code === "ECONNABORTED") {
         setError(
-          "Request timed out. Please try with a smaller image or check your connection."
+          "Request timed out. Please try with a smaller image or check your connection.",
         );
       } else if (error.friendlyMessage) {
         setError(error.friendlyMessage);
@@ -692,78 +735,83 @@ const [mcqOptions, setMcqOptions] = useState([]);
 
       setProcessingButton(null);
       setUploadProgress(0);
-      
+
       // Restart timer since submission failed
       startTimer(currentQuestion.id);
     }
   };
 
   // Cancel image upload
-  const handleCancelImage = useCallback((index) => {
-    setImagePreviewUrls(prevUrls => {
-      // Revoke the URL for the removed image
-      if (prevUrls[index]) {
-        revokeImageUrls([prevUrls[index]]);
-      }
-      return prevUrls.filter((_, i) => i !== index);
-    });
+  const handleCancelImage = useCallback(
+    (index) => {
+      setImagePreviewUrls((prevUrls) => {
+        // Revoke the URL for the removed image
+        if (prevUrls[index]) {
+          revokeImageUrls([prevUrls[index]]);
+        }
+        return prevUrls.filter((_, i) => i !== index);
+      });
 
-    setImages(prevImages => {
-      const updatedImages = prevImages.filter((_, i) => i !== index);
-      setIsSolveEnabled(updatedImages.length === 0);
-      return updatedImages;
-    });
-  }, [revokeImageUrls]);
+      setImages((prevImages) => {
+        const updatedImages = prevImages.filter((_, i) => i !== index);
+        setIsSolveEnabled(updatedImages.length === 0);
+        return updatedImages;
+      });
+    },
+    [revokeImageUrls],
+  );
 
   // Select question from list
-  const handleQuestionSelect = useCallback((
-    selectedQuestion,
-    selectedIndex,
-    selectedImage,
-    question_id,
-    questionContext = null
+  const handleQuestionSelect = useCallback(
+    (
+      selectedQuestion,
+      selectedIndex,
+      selectedImage,
+      question_id,
+      questionContext = null,
+    ) => {
+      // console.log("Question selected in SolveQuestion");
+      // console.log("Selected question:", selectedQuestion);
+      // console.log("Selected image:", selectedImage);
+      // console.log("Selected index:", selectedIndex);
+      // console.log("Selected question ID:", question_id || selectedIndex);
+      // console.log("Selected context:", questionContext);
+      // Stop the current timer
+      stopTimer();
 
-  ) => {
-    // console.log("Question selected in SolveQuestion");
-    // console.log("Selected question:", selectedQuestion);
-    // console.log("Selected image:", selectedImage);
-    // console.log("Selected index:", selectedIndex);
-    // console.log("Selected question ID:", question_id || selectedIndex);
-    // console.log("Selected context:", questionContext);
-    // Stop the current timer
-    stopTimer();
+      const newQuestionId = `${question_id}`;
+      // console.log("New question ID after selected question:", newQuestionId);
+      setCurrentQuestion({
+        question: selectedQuestion,
+        questionNumber: selectedIndex + 1,
+        image: selectedImage,
+        id: newQuestionId,
+        question_id: selectedQuestion.question_id || newQuestionId,
+        context: questionContext,
+      });
 
-    const newQuestionId = `${question_id}`;
-    // console.log("New question ID after selected question:", newQuestionId);
-    setCurrentQuestion({
-      question: selectedQuestion,
-      questionNumber: selectedIndex + 1,
-      image: selectedImage,
-      id: newQuestionId,
-      question_id: selectedQuestion.question_id || newQuestionId,
-      context: questionContext
-    });
+      // Start a new timer for the selected question
+      startTimer(newQuestionId);
 
-    // Start a new timer for the selected question
-    startTimer(newQuestionId);
+      // Reset image related state
+      setImagePreviewUrls((prevUrls) => {
+        // Revoke existing preview URLs
+        revokeImageUrls(prevUrls);
+        return [];
+      });
+      setImages([]);
+      setIsSolveEnabled(true);
+      setError(null);
+      setUploadProgress(0);
 
-    // Reset image related state
-    setImagePreviewUrls(prevUrls => {
-      // Revoke existing preview URLs
-      revokeImageUrls(prevUrls);
-      return [];
-    });
-    setImages([]);
-    setIsSolveEnabled(true);
-    setError(null);
-    setUploadProgress(0);
+      // Reset context expansion state
+      setIsContextExpanded(false);
 
-    // Reset context expansion state
-    setIsContextExpanded(false);
-
-    // Close modal
-    setShowQuestionListModal(false);
-  }, [stopTimer, startTimer, revokeImageUrls]);
+      // Close modal
+      setShowQuestionListModal(false);
+    },
+    [stopTimer, startTimer, revokeImageUrls],
+  );
 
   // Handle back button click
   const handleBackClick = () => {
@@ -791,45 +839,49 @@ const [mcqOptions, setMcqOptions] = useState([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount/unmount
 
-    const parseMCQOptions = (questionText) => {
-      const options = [];
-      const optionRegex = /\(([a-d])\)\s*([^\(]+?)(?=\([a-d]\)|$)/gi;
-      
-      let match;
-      while ((match = optionRegex.exec(questionText)) !== null) {
-        let cleanText = match[2]
-          .replace(/\\/g, '')      // ← Remove backslashes
-          .replace(/\s+/g, ' ')    // ← Clean spaces
-          .trim();
-        
-        options.push({
-          key: match[1].toLowerCase(),
-          text: cleanText
-        });
-      }
-      
-      return options;
-    };
+  const parseMCQOptions = (questionText) => {
+    const options = [];
+    const optionRegex = /\(([a-d])\)\s*([^\(]+?)(?=\([a-d]\)|$)/gi;
 
-    // Remove MCQ options from question text so they don't appear twice
-    const removeOptionsFromQuestion = (questionText) => {
-      const optionStartIndex = questionText.search(/\(a\)\s*/i);
-      
-      if (optionStartIndex > 0) {
-        let cleanText = questionText.substring(0, optionStartIndex);
-        // Remove ALL backslashes (not just at the end)
-        cleanText = cleanText.replace(/\\/g, '').trim();
-        return cleanText;
-      }
-      
-      // Also remove all backslashes if no options found
-      return questionText.replace(/\\/g, '').trim();
-    };
+    let match;
+    while ((match = optionRegex.exec(questionText)) !== null) {
+      let cleanText = match[2]
+        .replace(/\\/g, "") // ← Remove backslashes
+        .replace(/\s+/g, " ") // ← Clean spaces
+        .trim();
+
+      options.push({
+        key: match[1].toLowerCase(),
+        text: cleanText,
+      });
+    }
+
+    return options;
+  };
+
+  // Remove MCQ options from question text so they don't appear twice
+  const removeOptionsFromQuestion = (questionText) => {
+    const optionStartIndex = questionText.search(/\(a\)\s*/i);
+
+    if (optionStartIndex > 0) {
+      let cleanText = questionText.substring(0, optionStartIndex);
+      // Remove ALL backslashes (not just at the end)
+      cleanText = cleanText.replace(/\\/g, "").trim();
+      return cleanText;
+    }
+
+    // Also remove all backslashes if no options found
+    return questionText.replace(/\\/g, "").trim();
+  };
 
   return (
-    <div className={`solve-question-wrapper ${isDarkMode ? 'dark-mode' : ''}`}>
+    <div className={`solve-question-wrapper ${isDarkMode ? "dark-mode" : ""}`}>
       {/* Animated Background with floating math/science symbols */}
-      <AnimatedBackground isDarkMode={isDarkMode} symbolCount={35} showOrbs={true} />
+      <AnimatedBackground
+        isDarkMode={isDarkMode}
+        symbolCount={35}
+        showOrbs={true}
+      />
 
       <div className="solve-question-container">
         {/* Header section with timer */}
@@ -849,56 +901,74 @@ const [mcqOptions, setMcqOptions] = useState([]);
 
         {/* Context Section - Only show if context exists */}
         {currentQuestion.context && (
-          <div className="context-section" style={{
-            backgroundColor: '#f8f9fa',
-            border: '1px solid #dee2e6',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            overflow: 'hidden'
-          }}>
+          <div
+            className="context-section"
+            style={{
+              backgroundColor: "#f8f9fa",
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              marginBottom: "20px",
+              overflow: "hidden",
+            }}
+          >
             <div
               className="context-header"
               onClick={() => setIsContextExpanded(!isContextExpanded)}
-             
             >
-              <div className="context-header-content" >
-                <div className="context-icon-wrapper" >
-                 <FontAwesomeIcon icon={faBookOpenReader} />
+              <div className="context-header-content">
+                <div className="context-icon-wrapper">
+                  <FontAwesomeIcon icon={faBookOpenReader} />
                 </div>
-                <span className="context-header-title" style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: '#212529'
-                }}>Reading Context</span>
+                <span
+                  className="context-header-title"
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    color: "#212529",
+                  }}
+                >
+                  Reading Context
+                </span>
               </div>
-             <FontAwesomeIcon
-               icon={faCaretDown}
-               style={{
-                 transform: isContextExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                 transition: 'transform 0.3s ease',
-                 color: '#6c757d',
-                 fontSize: '20px'
-               }}
-             />
+              <FontAwesomeIcon
+                icon={faCaretDown}
+                style={{
+                  transform: isContextExpanded
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)",
+                  transition: "transform 0.3s ease",
+                  color: "#6c757d",
+                  fontSize: "20px",
+                }}
+              />
             </div>
-            <div className={`context-content-wrapper ${isContextExpanded ? 'expanded' : ''}`} style={{
-              maxHeight: isContextExpanded ? '400px' : '0',
-              overflow: 'hidden',
-              transition: 'max-height 0.3s ease'
-            }}>
-              <div className="context-scroll-view" style={{
-                maxHeight: '400px',
-                overflowY: 'auto',
-                overflowX: 'auto',
-                padding: '0'
-              }}>
-                <div className="context-text-container" style={{
-                  padding: '20px',
-                  backgroundColor: '#ffffff',
-                  color: '#212529',
-                  fontSize: '15px',
-                  lineHeight: '1.6'
-                }}>
+            <div
+              className={`context-content-wrapper ${isContextExpanded ? "expanded" : ""}`}
+              style={{
+                maxHeight: isContextExpanded ? "400px" : "0",
+                overflow: "hidden",
+                transition: "max-height 0.3s ease",
+              }}
+            >
+              <div
+                className="context-scroll-view"
+                style={{
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                  overflowX: "auto",
+                  padding: "0",
+                }}
+              >
+                <div
+                  className="context-text-container"
+                  style={{
+                    padding: "20px",
+                    backgroundColor: "#ffffff",
+                    color: "#212529",
+                    fontSize: "15px",
+                    lineHeight: "1.6",
+                  }}
+                >
                   <MarkdownWithMath content={currentQuestion.context} />
                 </div>
               </div>
@@ -920,77 +990,113 @@ const [mcqOptions, setMcqOptions] = useState([]);
               />
             )}
             <div className="question-text">
-              <MarkdownWithMath 
+              <MarkdownWithMath
                 content={
-                  jeeQuestionType === 'mcq' 
+                  jeeQuestionType === "mcq"
                     ? removeOptionsFromQuestion(currentQuestion.question)
                     : currentQuestion.question
-                } 
+                }
               />
-            </div>            
+            </div>
             {/* ✅ ADD MCQ OPTIONS HERE */}
-            {jeeQuestionType === 'mcq' && mcqOptions.length > 0 && (
-              <div style={{
-                marginTop: '24px',
-                marginBottom: '24px',
-                padding: '20px',
-                background: isDarkMode 
-                  ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' 
-                  : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                borderRadius: '12px',
-                border: `2px solid ${isDarkMode ? '#475569' : '#e2e8f0'}`,
-                boxShadow: isDarkMode 
-                  ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' 
-                  : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: '16px',
-                  paddingBottom: '12px',
-                  borderBottom: `2px solid ${isDarkMode ? '#334155' : '#e5e7eb'}`,
-                }}>
-                  <span style={{ fontSize: '24px', marginRight: '10px' }}>📝</span>
-                  <h6 style={{
-                    fontSize: '18px',
-                    fontWeight: '700',
-                    margin: 0,
-                    color: isDarkMode ? '#f1f5f9' : '#1e293b',
-                    letterSpacing: '0.5px',
-                  }}>
+            {jeeQuestionType === "mcq" && mcqOptions.length > 0 && (
+              <div
+                style={{
+                  marginTop: "24px",
+                  marginBottom: "24px",
+                  padding: "20px",
+                  background: isDarkMode
+                    ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+                    : "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+                  borderRadius: "12px",
+                  border: `2px solid ${isDarkMode ? "#475569" : "#e2e8f0"}`,
+                  boxShadow: isDarkMode
+                    ? "0 4px 6px -1px rgba(0, 0, 0, 0.3)"
+                    : "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: "16px",
+                    paddingBottom: "12px",
+                    borderBottom: `2px solid ${isDarkMode ? "#334155" : "#e5e7eb"}`,
+                  }}
+                >
+                  <span style={{ fontSize: "24px", marginRight: "10px" }}>
+                    📝
+                  </span>
+                  <h6
+                    style={{
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      margin: 0,
+                      color: isDarkMode ? "#f1f5f9" : "#1e293b",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
                     Select Your Answer
                   </h6>
                 </div>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
                   {mcqOptions.map((option) => (
                     <label
                       key={option.key}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '14px 16px',
-                        background: selectedOption === option.key
-                          ? (isDarkMode ? 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)')
-                          : (isDarkMode ? '#1e293b' : '#ffffff'),
-                        color: selectedOption === option.key ? '#ffffff' : (isDarkMode ? '#f1f5f9' : '#1f2937'),
-                        borderRadius: '8px',
-                        border: `2px solid ${selectedOption === option.key ? (isDarkMode ? '#a78bfa' : '#818cf8') : (isDarkMode ? '#374151' : '#d1d5db')}`,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: selectedOption === option.key ? (isDarkMode ? '0 4px 12px rgba(124, 58, 237, 0.4)' : '0 4px 12px rgba(102, 126, 234, 0.3)') : 'none',
-                        transform: selectedOption === option.key ? 'translateX(4px)' : 'translateX(0)',
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "14px 16px",
+                        background:
+                          selectedOption === option.key
+                            ? isDarkMode
+                              ? "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)"
+                              : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                            : isDarkMode
+                              ? "#1e293b"
+                              : "#ffffff",
+                        color:
+                          selectedOption === option.key
+                            ? "#ffffff"
+                            : isDarkMode
+                              ? "#f1f5f9"
+                              : "#1f2937",
+                        borderRadius: "8px",
+                        border: `2px solid ${selectedOption === option.key ? (isDarkMode ? "#a78bfa" : "#818cf8") : isDarkMode ? "#374151" : "#d1d5db"}`,
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        boxShadow:
+                          selectedOption === option.key
+                            ? isDarkMode
+                              ? "0 4px 12px rgba(124, 58, 237, 0.4)"
+                              : "0 4px 12px rgba(102, 126, 234, 0.3)"
+                            : "none",
+                        transform:
+                          selectedOption === option.key
+                            ? "translateX(4px)"
+                            : "translateX(0)",
                       }}
                       onMouseEnter={(e) => {
                         if (selectedOption !== option.key) {
-                          e.currentTarget.style.borderColor = isDarkMode ? '#6366f1' : '#818cf8';
-                          e.currentTarget.style.transform = 'translateX(2px)';
+                          e.currentTarget.style.borderColor = isDarkMode
+                            ? "#6366f1"
+                            : "#818cf8";
+                          e.currentTarget.style.transform = "translateX(2px)";
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (selectedOption !== option.key) {
-                          e.currentTarget.style.borderColor = isDarkMode ? '#374151' : '#d1d5db';
-                          e.currentTarget.style.transform = 'translateX(0)';
+                          e.currentTarget.style.borderColor = isDarkMode
+                            ? "#374151"
+                            : "#d1d5db";
+                          e.currentTarget.style.transform = "translateX(0)";
                         }
                       }}
                     >
@@ -1004,84 +1110,103 @@ const [mcqOptions, setMcqOptions] = useState([]);
                           console.log("✅ Selected:", option.key);
                         }}
                         style={{
-                          width: '20px',
-                          height: '20px',
-                          marginRight: '12px',
-                          cursor: 'pointer',
-                          accentColor: isDarkMode ? '#7c3aed' : '#667eea',
+                          width: "20px",
+                          height: "20px",
+                          marginRight: "12px",
+                          cursor: "pointer",
+                          accentColor: isDarkMode ? "#7c3aed" : "#667eea",
                         }}
                       />
-                    <div style={{
-                      fontSize: '16px',
-                      fontWeight: selectedOption === option.key ? '600' : '400',
-                      lineHeight: '1.5',
-                      flex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                    }}>
-                      <span style={{ fontWeight: '700', minWidth: '30px' }}>({option.key})</span>
-                      <MarkdownWithMath content={option.text} />
-                    </div>
+                      <div
+                        style={{
+                          fontSize: "16px",
+                          fontWeight:
+                            selectedOption === option.key ? "600" : "400",
+                          lineHeight: "1.5",
+                          flex: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <span style={{ fontWeight: "700", minWidth: "30px" }}>
+                          ({option.key})
+                        </span>
+                        <MarkdownWithMath content={option.text} />
+                      </div>
                     </label>
                   ))}
                 </div>
-                
+
                 {selectedOption && (
-                  <div style={{
-                    marginTop: '16px',
-                    padding: '12px 16px',
-                    background: isDarkMode ? 'rgba(34, 197, 94, 0.1)' : '#dcfce7',
-                    borderLeft: `4px solid ${isDarkMode ? '#22c55e' : '#16a34a'}`,
-                    borderRadius: '8px',
-                    color: isDarkMode ? '#86efac' : '#16a34a',
-                    fontSize: '15px',
-                    fontWeight: '600',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}>
+                  <div
+                    style={{
+                      marginTop: "16px",
+                      padding: "12px 16px",
+                      background: isDarkMode
+                        ? "rgba(34, 197, 94, 0.1)"
+                        : "#dcfce7",
+                      borderLeft: `4px solid ${isDarkMode ? "#22c55e" : "#16a34a"}`,
+                      borderRadius: "8px",
+                      color: isDarkMode ? "#86efac" : "#16a34a",
+                      fontSize: "15px",
+                      fontWeight: "600",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
                     <span>✅</span>
-                    <span>Selected: Option ({selectedOption.toUpperCase()})</span>
+                    <span>
+                      Selected: Option ({selectedOption.toUpperCase()})
+                    </span>
                   </div>
                 )}
               </div>
             )}
-            
+
             {/* ✅ ADD NVTQ INPUT HERE */}
-            {jeeQuestionType === 'nvtq' && (
-              <div style={{
-                marginTop: '20px',
-                marginBottom: '20px',
-                padding: '16px',
-                background: isDarkMode ? '#1e293b' : '#f8fafc',
-                borderRadius: '8px',
-                border: `2px solid ${isDarkMode ? '#475569' : '#e2e8f0'}`,
-              }}>
-                <h6 style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  marginBottom: '12px',
-                  color: isDarkMode ? '#f1f5f9' : '#1e293b',
-                }}>
+            {jeeQuestionType === "nvtq" && (
+              <div
+                style={{
+                  marginTop: "20px",
+                  marginBottom: "20px",
+                  padding: "16px",
+                  background: isDarkMode ? "#1e293b" : "#f8fafc",
+                  borderRadius: "8px",
+                  border: `2px solid ${isDarkMode ? "#475569" : "#e2e8f0"}`,
+                }}
+              >
+                <h6
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    marginBottom: "12px",
+                    color: isDarkMode ? "#f1f5f9" : "#1e293b",
+                  }}
+                >
                   🔢 Enter Your Numerical Answer
                 </h6>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: isDarkMode ? '#94a3b8' : '#64748b',
-                  }}>
+
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
+                >
+                  <span
+                    style={{
+                      fontSize: "18px",
+                      fontWeight: "600",
+                      color: isDarkMode ? "#94a3b8" : "#64748b",
+                    }}
+                  >
                     Answer:
                   </span>
-                  
+
                   <input
                     type="text"
                     value={numericalAnswer}
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
+                      if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
                         setNumericalAnswer(value);
                         console.log("📝 Answer:", value);
                       }
@@ -1089,35 +1214,37 @@ const [mcqOptions, setMcqOptions] = useState([]);
                     placeholder="Write Your Answer Here"
                     style={{
                       flex: 1,
-                      padding: '12px 20px',
-                      fontSize: '18px',
-                      fontWeight: '600',
-                      background: isDarkMode ? '#334155' : '#ffffff',
-                      color: isDarkMode ? '#f1f5f9' : '#1e293b',
-                      border: `2px solid ${numericalAnswer ? (isDarkMode ? '#7c3aed' : '#667eea') : (isDarkMode ? '#475569' : '#e2e8f0')}`,
-                      borderRadius: '6px',
-                      outline: 'none',
-                      textAlign: 'center',
+                      padding: "12px 20px",
+                      fontSize: "18px",
+                      fontWeight: "600",
+                      background: isDarkMode ? "#334155" : "#ffffff",
+                      color: isDarkMode ? "#f1f5f9" : "#1e293b",
+                      border: `2px solid ${numericalAnswer ? (isDarkMode ? "#7c3aed" : "#667eea") : isDarkMode ? "#475569" : "#e2e8f0"}`,
+                      borderRadius: "6px",
+                      outline: "none",
+                      textAlign: "center",
                     }}
                   />
                 </div>
-                
+
                 {numericalAnswer && (
-                  <div style={{
-                    marginTop: '10px',
-                    padding: '10px',
-                    background: isDarkMode ? '#22c55e20' : '#dcfce7',
-                    borderRadius: '6px',
-                    color: isDarkMode ? '#86efac' : '#16a34a',
-                    fontSize: '14px',
-                    textAlign: 'center',
-                  }}>
+                  <div
+                    style={{
+                      marginTop: "10px",
+                      padding: "10px",
+                      background: isDarkMode ? "#22c55e20" : "#dcfce7",
+                      borderRadius: "6px",
+                      color: isDarkMode ? "#86efac" : "#16a34a",
+                      fontSize: "14px",
+                      textAlign: "center",
+                    }}
+                  >
                     ✅ Your answer: {numericalAnswer}
                   </div>
                 )}
               </div>
             )}
-            
+
             <div className="mt-2">
               <Form.Check
                 type="switch"
@@ -1142,7 +1269,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
         <Form onSubmit={(e) => e.preventDefault()}>
           <Form.Group controlId="formImage">
             <Form.Label>Add Solution Images</Form.Label>
-            
+
             {/* Image Source Selection Buttons */}
             <div className="image-source-buttons mb-3">
               {/* <Button
@@ -1155,7 +1282,9 @@ const [mcqOptions, setMcqOptions] = useState([]);
                 Upload Images
               </Button> */}
               <Button
-                variant={imageSourceType === "camera" ? "primary" : "outline-primary"}
+                variant={
+                  imageSourceType === "camera" ? "primary" : "outline-primary"
+                }
                 onClick={() => setImageSourceType("camera")}
                 disabled={isAnyButtonProcessing()}
               >
@@ -1175,30 +1304,32 @@ const [mcqOptions, setMcqOptions] = useState([]);
                   disabled={isAnyButtonProcessing()}
                 />
                 <Form.Text className="text-muted">
-                  Maximum file size: 5MB per image. You can select multiple images.
+                  Maximum file size: 5MB per image. You can select multiple
+                  images.
                 </Form.Text>
               </>
             ) : (
-              <div style={{
-                border: '2px dashed #dee2e6',
-                borderRadius: '8px',
-                padding: '20px',
-                backgroundColor: '#f8f9fa',
-                marginTop: '10px'
-              }}>
-              
-              <CameraCapture
-                onImageCapture={handleCapturedImage}
-                videoConstraints={{ 
-                  facingMode: { ideal: "environment" },
-                  // For text documents, use higher resolution
-                  width: { ideal: 4096 },
-                  height: { ideal: 3072 },
-                  // Additional constraints for clarity
-                  focusMode: { ideal: "continuous" },
-                  exposureMode: { ideal: "continuous" }
+              <div
+                style={{
+                  border: "2px dashed #dee2e6",
+                  borderRadius: "8px",
+                  padding: "20px",
+                  backgroundColor: "#f8f9fa",
+                  marginTop: "10px",
                 }}
-              />
+              >
+                <CameraCapture
+                  onImageCapture={handleCapturedImage}
+                  videoConstraints={{
+                    facingMode: { ideal: "environment" },
+                    // For text documents, use higher resolution
+                    width: { ideal: 4096 },
+                    height: { ideal: 3072 },
+                    // Additional constraints for clarity
+                    focusMode: { ideal: "continuous" },
+                    exposureMode: { ideal: "continuous" },
+                  }}
+                />
                 <p className="text-muted mt-2 text-center">
                   Click "Capture" to take a photo of your solution
                 </p>
@@ -1232,24 +1363,30 @@ const [mcqOptions, setMcqOptions] = useState([]);
         {images.length > 0 && (
           <div className="uploaded-images mt-3">
             <h6>Solution Images ({images.length})</h6>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-              gap: '12px',
-              marginTop: '12px'
-            }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                gap: "12px",
+                marginTop: "12px",
+              }}
+            >
               {images.map((image, index) => (
-                <div key={index} className="image-preview-container" style={{ position: 'relative' }}>
+                <div
+                  key={index}
+                  className="image-preview-container"
+                  style={{ position: "relative" }}
+                >
                   <img
                     src={imagePreviewUrls[index]}
                     alt={`Preview ${index + 1}`}
                     className="image-preview"
                     style={{
-                      width: '100%',
-                      height: '150px',
-                      objectFit: 'cover',
-                      borderRadius: '8px',
-                      border: '1px solid #dee2e6'
+                      width: "100%",
+                      height: "150px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      border: "1px solid #dee2e6",
                     }}
                   />
                   <button
@@ -1270,7 +1407,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
                 size="sm"
                 className="mt-2"
                 onClick={() => {
-                  setImagePreviewUrls(prevUrls => {
+                  setImagePreviewUrls((prevUrls) => {
                     // Revoke all preview URLs
                     revokeImageUrls(prevUrls);
                     return [];
@@ -1314,7 +1451,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
 
           {/* Bottom Row with Action Buttons */}
           <Row>
-           <Col xs={6} md={3} className="mb-2">
+            <Col xs={6} md={3} className="mb-2">
               <Button
                 variant="primary"
                 onClick={handleExplain}
@@ -1367,12 +1504,13 @@ const [mcqOptions, setMcqOptions] = useState([]);
                 onClick={handleCorrect}
                 className="w-100 btn-correct"
                 disabled={
-                  (jeeQuestionType === 'mcq' && !selectedOption) ||
-                  (jeeQuestionType === 'nvtq' && !numericalAnswer.trim()) ||
-                  (jeeQuestionType === 'theorem' && images.length === 0) ||
+                  (jeeQuestionType === "mcq" && !selectedOption) ||
+                  (jeeQuestionType === "nvtq" && !numericalAnswer.trim()) ||
+                  (jeeQuestionType === "theorem" && images.length === 0) ||
                   (!jeeQuestionType && images.length === 0) ||
                   isAnyButtonProcessing()
-                }              >
+                }
+              >
                 {isButtonProcessing("correct") ? (
                   <>
                     <Spinner
@@ -1389,7 +1527,7 @@ const [mcqOptions, setMcqOptions] = useState([]);
                 )}
               </Button>
             </Col>
-            
+
             {/* <Col xs={6} md={3} className="mb-2">
               <Button
                 variant="info"
@@ -1408,7 +1546,11 @@ const [mcqOptions, setMcqOptions] = useState([]);
       <QuestionListModal
         show={showQuestionListModal}
         onHide={() => setShowQuestionListModal(false)}
-        questionList={Array.isArray(selectedQuestions) && selectedQuestions.length > 0 ? selectedQuestions : questionList}
+        questionList={
+          Array.isArray(selectedQuestions) && selectedQuestions.length > 0
+            ? selectedQuestions
+            : questionList
+        }
         onQuestionClick={handleQuestionSelect}
         isMultipleSelect={false}
         onMultipleSelectSubmit={null}
@@ -1416,21 +1558,18 @@ const [mcqOptions, setMcqOptions] = useState([]);
 
       {/* Tutorial Component */}
       {shouldShowTutorialForPage("solveQuestion") && (
-        <Tutorial
-          steps={tutorialSteps}
-          onComplete={handleTutorialComplete}
-        />
+        <Tutorial steps={tutorialSteps} onComplete={handleTutorialComplete} />
       )}
 
       {/* Floating Mascot - Non-intrusive corner placement */}
-      <FloatingMascot
+      {/* <FloatingMascot
         position="bottom-right"
         size="medium"
         bottomOffset={80}
         speechBubble={currentBubble}
         showBubble={isBubbleVisible}
         onBubbleDismiss={hideMascotMessage}
-      />
+      /> */}
     </div>
   );
 }

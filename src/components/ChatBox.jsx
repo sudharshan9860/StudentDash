@@ -10,8 +10,9 @@ import React, {
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import lightModeGif from "../assets/1080x1080.gif";
-import darkModeGif from "../assets/1080x1080 (1).gif";
+// import lightModeGif from "../assets/1080x1080.gif";
+// import darkModeGif from "../assets/1080x1080 (1).gif";
+// import chatbotLogo from "../assets/chatbot-logo.png";
 import { motion } from "framer-motion";
 import {
   faCommentDots,
@@ -158,7 +159,7 @@ const VideoListComponent = ({ videos }) => {
 };
 
 // ====== Main Component ======
-const ChatBox = forwardRef((props, ref) => {
+const ChatBox = forwardRef(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { username } = useContext(AuthContext);
@@ -266,21 +267,21 @@ const ChatBox = forwardRef((props, ref) => {
   })();
 
   // Dark mode state
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
-  });
+  // const [isDarkMode, setIsDarkMode] = useState(() => {
+  //   return localStorage.getItem("darkMode") === "true";
+  // });
 
   // Listen for dark mode changes
-  useEffect(() => {
-    const handleDarkModeChange = (e) => {
-      setIsDarkMode(e.detail.isDarkMode);
-    };
+  // useEffect(() => {
+  //   const handleDarkModeChange = (e) => {
+  //     setIsDarkMode(e.detail.isDarkMode);
+  //   };
 
-    window.addEventListener("darkModeChange", handleDarkModeChange);
-    return () => {
-      window.removeEventListener("darkModeChange", handleDarkModeChange);
-    };
-  }, []);
+  //   window.addEventListener("darkModeChange", handleDarkModeChange);
+  //   return () => {
+  //     window.removeEventListener("darkModeChange", handleDarkModeChange);
+  //   };
+  // }, []);
 
   // ====== Suggestion Questions ======
   // Different suggestions based on whether we're on SolveQuestion page
@@ -735,7 +736,7 @@ const ChatBox = forwardRef((props, ref) => {
         formData.append("class_name", className || "default_class");
       }
       // Log formData entries for debugging
-      for (let [key, value] of formData.entries()) {
+      for (let [] of formData.entries()) {
         // console.log(`${key}:`, value);
       }
 
@@ -1489,19 +1490,22 @@ const ChatBox = forwardRef((props, ref) => {
               <span className="thinking-dot"></span>
             </div>
           )}
-          <motion.img
+          <div
             style={{
-              width: "clamp(48px, 12vw, 80px)",
-              height: "clamp(48px, 12vw, 80px)",
+              width: 36,
+              height: 36,
               borderRadius: "50%",
-              objectFit: "cover",
-              maxWidth: "none",
+              background: "linear-gradient(135deg, #0ea5e9, #2563eb)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-            src={isDarkMode ? darkModeGif : lightModeGif}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-          />
+          >
+            <FontAwesomeIcon
+              icon={faRobot}
+              style={{ fontSize: 18, color: "white" }}
+            />
+          </div>
 
           {/* <FontAwesomeIcon icon={isOpen ? faTimes : faCommentDots} /> */}
           {!isOpen && (
@@ -1518,20 +1522,23 @@ const ChatBox = forwardRef((props, ref) => {
             {/* Top row: avatar + title + actions */}
             <div className="chat-header-top">
               <div className="chat-header-identity">
-                <div className="chat-header-avatar">
-                  <img
-                    src={isDarkMode ? darkModeGif : lightModeGif}
-                    alt="AI"
-                    className="chat-header-avatar-img"
-                  />
-                  <span
-                    className={`chat-header-status-dot ${
-                      connectionStatus === "connected"
-                        ? "online"
-                        : connectionStatus === "checking"
-                          ? "connecting"
-                          : "offline"
-                    }`}
+                <div
+                  style={{
+                    width: "clamp(48px, 12vw, 80px)",
+                    height: "clamp(48px, 12vw, 80px)",
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #0ea5e9, #2563eb)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={faRobot}
+                    style={{
+                      fontSize: "clamp(22px, 5vw, 36px)",
+                      color: "white",
+                    }}
                   />
                 </div>
                 <div className="chat-header-info">

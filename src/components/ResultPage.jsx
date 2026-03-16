@@ -1,18 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Button, Container, Row, Col, Accordion, Alert, Spinner } from 'react-bootstrap';
-import './ResultPage.css';
-import QuestionListModal from './QuestionListModal';
-import axiosInstance from '../api/axiosInstance';
-import MarkdownWithMath from './MarkdownWithMath';
-import Tutorial from './Tutorial';
-import { useTutorial } from '../contexts/TutorialContext';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
-import { getImageSrc } from '../utils/imageUtils';
-import { useMascot, MASCOT_ANIMATIONS } from '../contexts/MascotContext';
-import { FloatingMascot, useSpeechBubble } from './Mascot3D';
-import './Mascot3D.css';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Button,
+  Container,
+  Row,
+  Col,
+  Accordion,
+  Alert,
+  Spinner,
+} from "react-bootstrap";
+import "./ResultPage.css";
+import QuestionListModal from "./QuestionListModal";
+import axiosInstance from "../api/axiosInstance";
+import MarkdownWithMath from "./MarkdownWithMath";
+import Tutorial from "./Tutorial";
+import { useTutorial } from "../contexts/TutorialContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
+import { getImageSrc } from "../utils/imageUtils";
+// import { useMascot, MASCOT_ANIMATIONS } from "../contexts/MascotContext";
+// import { FloatingMascot, useSpeechBubble } from "./Mascot3D";
+// import "./Mascot3D.css";
 
 const ResultPage = () => {
   const location = useLocation();
@@ -31,21 +39,22 @@ const ResultPage = () => {
   } = useTutorial();
 
   // Mascot context
-  const { playScoreAnimation, playActionAnimation, playAnimation, ANIMATIONS } = useMascot();
+  // const { playScoreAnimation, playActionAnimation, playAnimation, ANIMATIONS } =
+  //   useMascot();
 
   // Speech bubble for contextual mascot feedback
-  const {
-    currentBubble,
-    showBubble: isBubbleVisible,
-    showMessage: showMascotMessage,
-    hideMessage: hideMascotMessage,
-  } = useSpeechBubble();
+  // const {
+  //   currentBubble,
+  //   showBubble: isBubbleVisible,
+  //   showMessage: showMascotMessage,
+  //   hideMessage: hideMascotMessage,
+  // } = useSpeechBubble();
 
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('darkMode') === 'true';
+    return localStorage.getItem("darkMode") === "true";
   });
-  
+
   const { state } = location;
   const {
     message,
@@ -59,16 +68,20 @@ const ResultPage = () => {
     questionImage,
     questionNumber,
     studentImages = [],
-    question_id,// Get student images from state
-    context
+    question_id, // Get student images from state
+    context,
   } = state || {};
-  console.log('question_id from explain state:', question_id);
+  console.log("question_id from explain state:", question_id);
   const {
     question,
     ai_explaination,
     student_answer,
     concepts,
-    comment,gap_analysis,time_analysis,error_type,mistakes_made,
+    comment,
+    gap_analysis,
+    time_analysis,
+    error_type,
+    mistakes_made,
     concepts_used,
     solution,
     score,
@@ -82,40 +95,41 @@ const ResultPage = () => {
     bridges_used,
     patterns_required,
     pattern_explanation,
-    pattern_based_solution
+    pattern_based_solution,
   } = ai_data || {};
 
   // Determine which AI explanation to use - prioritize pattern_based_solution if available
-  const effectiveAiExplaination = pattern_based_solution?.ai_explaination || ai_explaination;
-  console.log('AI Data:', ai_data);
+  const effectiveAiExplaination =
+    pattern_based_solution?.ai_explaination || ai_explaination;
+  console.log("AI Data:", ai_data);
   const formated_concepts_used = Array.isArray(concepts_used)
-    ? concepts_used.join(', ')
-    : concepts_used || '';
+    ? concepts_used.join(", ")
+    : concepts_used || "";
 
   // Combine student images from state and API response
   const getAllStudentImages = () => {
     const images = [];
-    
+
     // Add images from state (uploaded/captured images)
     if (studentImages && studentImages.length > 0) {
       studentImages.forEach((imageUrl, index) => {
         images.push({
           src: imageUrl,
-          type: 'uploaded',
-          label: `Uploaded Image `
+          type: "uploaded",
+          label: `Uploaded Image `,
         });
       });
     }
-    
+
     // Add processed image from API response
     if (student_answer_base64) {
       images.push({
         src: `data:image/jpeg;base64,${student_answer_base64}`,
-        type: 'processed',
-        label: 'Processed Solution'
+        type: "processed",
+        label: "Processed Solution",
       });
     }
-    
+
     return images;
   };
 
@@ -124,127 +138,156 @@ const ResultPage = () => {
   // Tutorial steps for ResultPage
   const tutorialSteps = [
     {
-      target: '.result-title',
-      content: 'Congratulations! This is your result page where you can see AI feedback on your solution.',
+      target: ".result-title",
+      content:
+        "Congratulations! This is your result page where you can see AI feedback on your solution.",
       disableBeacon: true,
     },
     {
-      target: '.student-images',
-      content: 'Here you can see your uploaded solution images. The AI has analyzed your work!',
+      target: ".student-images",
+      content:
+        "Here you can see your uploaded solution images. The AI has analyzed your work!",
       skipIfMissing: true,
     },
     {
-      target: '.result-question',
-      content: 'This section shows the AI\'s feedback, solution steps, and corrections for your answer.',
+      target: ".result-question",
+      content:
+        "This section shows the AI's feedback, solution steps, and corrections for your answer.",
     },
     {
-      target: '.practice-btn-fixed',
-      content: 'Click here to practice similar questions and improve your understanding!',
+      target: ".practice-btn-fixed",
+      content:
+        "Click here to practice similar questions and improve your understanding!",
     },
     {
-      target: '.dashboard-btn-fixed',
-      content: 'Use the Question List button to try other questions from your selection.',
+      target: ".dashboard-btn-fixed",
+      content:
+        "Use the Question List button to try other questions from your selection.",
     },
     {
-      target: '.back-btn-fixed',
-      content: 'You can go back to modify your answer or try a different approach. That completes the tutorial!',
+      target: ".back-btn-fixed",
+      content:
+        "You can go back to modify your answer or try a different approach. That completes the tutorial!",
     },
   ];
 
   // Handle tutorial completion for ResultPage
   const handleTutorialComplete = () => {
-    console.log("ResultPage tutorial completed - marking entire flow as complete");
+    console.log(
+      "ResultPage tutorial completed - marking entire flow as complete",
+    );
     completeTutorialFlow();
   };
 
   // Set mascot emotion based on score or action type
-  useEffect(() => {
-    // For correct/submit actions with score, show score-based animation
-    if ((actionType === 'correct' || actionType === 'submit') &&
-        (obtained_marks !== undefined || score !== undefined)) {
-      const obtainedValue = obtained_marks !== undefined
-        ? (typeof obtained_marks === 'number' ? obtained_marks : parseInt(obtained_marks, 10))
-        : (score !== undefined
-          ? (typeof score === 'number' ? score : parseInt(score, 10))
-          : 0);
+  // useEffect(() => {
+  //   // For correct/submit actions with score, show score-based animation
+  //   if (
+  //     (actionType === "correct" || actionType === "submit") &&
+  //     (obtained_marks !== undefined || score !== undefined)
+  //   ) {
+  //     const obtainedValue =
+  //       obtained_marks !== undefined
+  //         ? typeof obtained_marks === "number"
+  //           ? obtained_marks
+  //           : parseInt(obtained_marks, 10)
+  //         : score !== undefined
+  //           ? typeof score === "number"
+  //             ? score
+  //             : parseInt(score, 10)
+  //           : 0;
 
-      const totalValue = total_marks !== undefined
-        ? (typeof total_marks === 'number' ? total_marks : parseInt(total_marks, 10))
-        : (question_marks !== undefined
-          ? (typeof question_marks === 'number' ? question_marks : parseInt(question_marks, 10))
-          : 10);
+  //     const totalValue =
+  //       total_marks !== undefined
+  //         ? typeof total_marks === "number"
+  //           ? total_marks
+  //           : parseInt(total_marks, 10)
+  //         : question_marks !== undefined
+  //           ? typeof question_marks === "number"
+  //             ? question_marks
+  //             : parseInt(question_marks, 10)
+  //           : 10;
 
-      // Play score-based animation (victory for high scores, sad for low)
-      playScoreAnimation(obtainedValue, totalValue);
+  //     // Play score-based animation (victory for high scores, sad for low)
+  //     playScoreAnimation(obtainedValue, totalValue);
 
-      // Show contextual feedback based on score
-      const scorePercent = (obtainedValue / totalValue) * 100;
-      setTimeout(() => {
-        if (scorePercent >= 80) {
-          showMascotMessage("Excellent work! Keep it up!", 4000);
-        } else if (scorePercent >= 60) {
-          showMascotMessage("Good effort! Review the gaps.", 4000);
-        } else if (scorePercent >= 40) {
-          showMascotMessage("Keep practicing! You'll improve.", 4000);
-        } else {
-          showMascotMessage("Don't give up! Let's learn together.", 4000);
-        }
-      }, 800);
-    } else {
-      // For explain/solve actions, play appropriate animation
-      playActionAnimation(actionType);
+  //     // Show contextual feedback based on score
+  //     const scorePercent = (obtainedValue / totalValue) * 100;
+  //     setTimeout(() => {
+  //       if (scorePercent >= 80) {
+  //         showMascotMessage("Excellent work! Keep it up!", 4000);
+  //       } else if (scorePercent >= 60) {
+  //         showMascotMessage("Good effort! Review the gaps.", 4000);
+  //       } else if (scorePercent >= 40) {
+  //         showMascotMessage("Keep practicing! You'll improve.", 4000);
+  //       } else {
+  //         showMascotMessage("Don't give up! Let's learn together.", 4000);
+  //       }
+  //     }, 800);
+  //   } else {
+  //     // For explain/solve actions, play appropriate animation
+  //     playActionAnimation(actionType);
 
-      // Show action-specific messages
-      setTimeout(() => {
-        if (actionType === 'solve') {
-          showMascotMessage("Here's the solution!", 3000);
-        } else if (actionType === 'explain') {
-          showMascotMessage("Let me explain the concepts!", 3000);
-        }
-      }, 500);
-    }
-  }, [actionType, obtained_marks, total_marks, score, question_marks, playScoreAnimation, playActionAnimation, showMascotMessage]);
+  //     // Show action-specific messages
+  //     setTimeout(() => {
+  //       if (actionType === "solve") {
+  //         showMascotMessage("Here's the solution!", 3000);
+  //       } else if (actionType === "explain") {
+  //         showMascotMessage("Let me explain the concepts!", 3000);
+  //       }
+  //     }, 500);
+  //   }
+  // }, [
+  //   actionType,
+  //   obtained_marks,
+  //   total_marks,
+  //   score,
+  //   question_marks,
+  //   playScoreAnimation,
+  //   playActionAnimation,
+  //   showMascotMessage,
+  // ]);
 
   // Apply dark mode on component mount and listen for changes
   useEffect(() => {
     const checkDarkMode = () => {
-      const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+      const darkModeEnabled = localStorage.getItem("darkMode") === "true";
       setIsDarkMode(darkModeEnabled);
-      document.body.classList.toggle('dark-mode', darkModeEnabled);
+      document.body.classList.toggle("dark-mode", darkModeEnabled);
     };
 
     checkDarkMode();
 
     // Listen for storage events (dark mode changes in other tabs/components)
-    window.addEventListener('storage', checkDarkMode);
+    window.addEventListener("storage", checkDarkMode);
 
     return () => {
-      window.removeEventListener('storage', checkDarkMode);
+      window.removeEventListener("storage", checkDarkMode);
     };
   }, []);
 
-   // Hide body scrollbar when result page is active                                    
-     useEffect(() => {                                                                    
-     // Store original styles                                                           
-      const originalBodyOverflow = document.body.style.overflow;                         
-      const originalHtmlOverflow = document.documentElement.style.overflow;              
-                                                                                       
-      // Hide body/html scrollbar                                                        
-      document.body.style.overflow = 'hidden';                                           
-      document.documentElement.style.overflow = 'hidden';                                
-                                                                                       
-      // Cleanup: restore original styles when component unmounts                        
-      return () => {                                                                     
-        document.body.style.overflow = originalBodyOverflow;                             
-        document.documentElement.style.overflow = originalHtmlOverflow;                  
-      };                                                                                 
-    }, []);                                                                              
-            
+  // Hide body scrollbar when result page is active
+  useEffect(() => {
+    // Store original styles
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
+    // Hide body/html scrollbar
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    // Cleanup: restore original styles when component unmounts
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, []);
+
   // Cleanup object URLs when component unmounts
   useEffect(() => {
     return () => {
-      studentImages.forEach(url => {
-        if (url.startsWith('blob:')) {
+      studentImages.forEach((url) => {
+        if (url.startsWith("blob:")) {
           URL.revokeObjectURL(url);
         }
       });
@@ -253,10 +296,12 @@ const ResultPage = () => {
 
   // Auto-calculate score if none is provided from API
   useEffect(() => {
-    if ((actionType === 'submit' || actionType === 'correct') && 
-        student_answer && 
-        obtained_marks === undefined && 
-        score === undefined) {
+    if (
+      (actionType === "submit" || actionType === "correct") &&
+      student_answer &&
+      obtained_marks === undefined &&
+      score === undefined
+    ) {
       calculateAutoScore();
     }
   }, [ai_data, actionType, student_answer]);
@@ -266,16 +311,18 @@ const ResultPage = () => {
     if (!student_answer || !question) {
       return;
     }
-    
+
     setIsCalculatingScore(true);
-    
+
     try {
-      const aiScoringResponse = await axiosInstance.post('/auto-score/', {
-        student_answer,
-        question,
-        expected_solution: ai_explaination || solution || [],
-        total_marks: total_marks || question_marks || 10
-      }).catch(() => null);
+      const aiScoringResponse = await axiosInstance
+        .post("/auto-score/", {
+          student_answer,
+          question,
+          expected_solution: ai_explaination || solution || [],
+          total_marks: total_marks || question_marks || 10,
+        })
+        .catch(() => null);
 
       if (aiScoringResponse?.data?.score !== undefined) {
         setAutoCalculatedScore(aiScoringResponse.data.score);
@@ -284,7 +331,7 @@ const ResultPage = () => {
         setAutoCalculatedScore(fallbackScore);
       }
     } catch (error) {
-      console.error('Error calculating score:', error);
+      console.error("Error calculating score:", error);
       const fallbackScore = calculateFallbackScore();
       setAutoCalculatedScore(fallbackScore);
     } finally {
@@ -295,66 +342,84 @@ const ResultPage = () => {
   // Fallback scoring method using keyword matching
   const calculateFallbackScore = () => {
     const totalMark = total_marks || question_marks || 10;
-    
-    const expectedSolution = Array.isArray(ai_explaination) 
-      ? ai_explaination.join(' ') 
-      : (Array.isArray(solution) ? solution.join(' ') : '');
-    
+
+    const expectedSolution = Array.isArray(ai_explaination)
+      ? ai_explaination.join(" ")
+      : Array.isArray(solution)
+        ? solution.join(" ")
+        : "";
+
     if (!expectedSolution) {
       return 0;
     }
 
     const normalizeText = (text) => {
-      return text.toLowerCase()
-        .replace(/\s+/g, ' ')
-        .replace(/[^\w\s]/g, '')
+      return text
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .replace(/[^\w\s]/g, "")
         .trim();
     };
-    
+
     const normalizedStudentAnswer = normalizeText(student_answer);
     const normalizedSolution = normalizeText(expectedSolution);
-    
+
     const extractKeywords = (text) => {
-      const commonWords = ['the', 'and', 'is', 'in', 'of', 'to', 'for', 'a', 'by', 'with', 'as'];
+      const commonWords = [
+        "the",
+        "and",
+        "is",
+        "in",
+        "of",
+        "to",
+        "for",
+        "a",
+        "by",
+        "with",
+        "as",
+      ];
       const words = text.split(/\s+/);
-      return words.filter(word => 
-        word.length > 2 && !commonWords.includes(word)
+      return words.filter(
+        (word) => word.length > 2 && !commonWords.includes(word),
       );
     };
-    
+
     const solutionKeywords = extractKeywords(normalizedSolution);
     const studentKeywords = extractKeywords(normalizedStudentAnswer);
-    
+
     let matchCount = 0;
     for (const keyword of solutionKeywords) {
       if (studentKeywords.includes(keyword)) {
         matchCount++;
       }
     }
-    
-    const matchPercentage = solutionKeywords.length > 0 
-      ? matchCount / solutionKeywords.length 
-      : 0;
-    
+
+    const matchPercentage =
+      solutionKeywords.length > 0 ? matchCount / solutionKeywords.length : 0;
+
     let calculatedScore = Math.round(matchPercentage * totalMark);
-    
-    if (calculatedScore === 0 && matchCount > 0 && normalizedStudentAnswer.length > 10) {
+
+    if (
+      calculatedScore === 0 &&
+      matchCount > 0 &&
+      normalizedStudentAnswer.length > 10
+    ) {
       calculatedScore = 1;
     }
-    
+
     if (matchPercentage > 0.8) {
       calculatedScore = totalMark;
     }
-    
+
     return calculatedScore;
   };
 
   const handleBackToDashboard = () => {
-    navigate('/student-dash');
+    navigate("/student-dash");
   };
 
   const handleBack = () => {
-    navigate('/solvequestion', {
+    navigate("/solvequestion", {
       state: {
         question: question,
         questionNumber: questionNumber,
@@ -367,8 +432,8 @@ const ResultPage = () => {
         index: questionNumber ? questionNumber - 1 : 0,
         selectedQuestions: questionList,
         question_id: question_id,
-        context: context
-      }
+        context: context,
+      },
     });
   };
   const handleShowQuestionList = () => {
@@ -379,8 +444,14 @@ const ResultPage = () => {
     setShowQuestionListModal(false);
   };
 
-  const handleQuestionSelect = (selectedQuestion, index, selectedImage, question_id, questionContext = null) => {
-    navigate('/solvequestion', {
+  const handleQuestionSelect = (
+    selectedQuestion,
+    index,
+    selectedImage,
+    question_id,
+    questionContext = null,
+  ) => {
+    navigate("/solvequestion", {
       state: {
         question: selectedQuestion,
         questionNumber: index + 1,
@@ -391,18 +462,18 @@ const ResultPage = () => {
         subtopic,
         image: selectedImage,
         question_id: question_id || `question_${index}_${Date.now()}`,
-        context: questionContext
-      }
+        context: questionContext,
+      },
     });
   };
 
   const handlePracticeSimilar = () => {
     if (!question) {
-      setErrorMessage('No question available for practice');
+      setErrorMessage("No question available for practice");
       return;
     }
-  
-    navigate('/similar-questions', {
+
+    navigate("/similar-questions", {
       state: {
         originalQuestion: question,
         class_id,
@@ -410,38 +481,50 @@ const ResultPage = () => {
         topic_ids,
         subtopic,
         questionImage,
-        solution: ai_explaination || solution
-      }
+        solution: ai_explaination || solution,
+      },
     });
   };
 
   // Display the score with proper formatting
   const renderScore = () => {
-    const scoreFromApi = obtained_marks !== undefined 
-                    ? (typeof obtained_marks === 'number' ? obtained_marks : parseInt(obtained_marks, 10))
-                    : (score !== undefined 
-                        ? (typeof score === 'number' ? score : parseInt(score, 10))
-                        : null);
-    
-    const totalValue = total_marks !== undefined
-      ? (typeof total_marks === 'number' ? total_marks : parseInt(total_marks, 10))
-      : (question_marks !== undefined
-          ? (typeof question_marks === 'number' ? question_marks : parseInt(question_marks, 10))
-          : 10);
+    const scoreFromApi =
+      obtained_marks !== undefined
+        ? typeof obtained_marks === "number"
+          ? obtained_marks
+          : parseInt(obtained_marks, 10)
+        : score !== undefined
+          ? typeof score === "number"
+            ? score
+            : parseInt(score, 10)
+          : null;
+
+    const totalValue =
+      total_marks !== undefined
+        ? typeof total_marks === "number"
+          ? total_marks
+          : parseInt(total_marks, 10)
+        : question_marks !== undefined
+          ? typeof question_marks === "number"
+            ? question_marks
+            : parseInt(question_marks, 10)
+          : 10;
 
     if (scoreFromApi !== null) {
       return (
         <div className="result-score">
-          <p><strong>Score:</strong> {scoreFromApi} / {totalValue}</p>
+          <p>
+            <strong>Score:</strong> {scoreFromApi} / {totalValue}
+          </p>
         </div>
       );
     }
-    
+
     if (isCalculatingScore) {
       return (
         <div className="result-score calculating">
           <p>
-            <Spinner animation="border" size="sm" /> 
+            <Spinner animation="border" size="sm" />
             <strong> Calculating Score...</strong>
           </p>
         </div>
@@ -459,7 +542,7 @@ const ResultPage = () => {
       <div className="solution-steps">
         {steps.map((step, index) => {
           const stepMatch = step.match(/^Step\s+(\d+):\s+(.*)/i);
-          
+
           if (stepMatch) {
             const [_, stepNumber, stepContent] = stepMatch;
             return (
@@ -473,7 +556,7 @@ const ResultPage = () => {
           } else {
             return (
               <div key={index} className="solution-step-container">
-                <div className="step-title">Step {index+1}:</div>
+                <div className="step-title">Step {index + 1}:</div>
                 <div className="question-step">
                   <MarkdownWithMath content={step} />
                 </div>
@@ -489,22 +572,21 @@ const ResultPage = () => {
     if (!example) return null;
 
     const [intro, ...stepParts] = example.split(/Step \d+:/);
-// Remove empty parts
+    // Remove empty parts
     return (
       <div className="example-content">
         <div className="example-steps">
           {stepParts.map((step, index) => (
             <div key={index} className="example-step">
-              <strong>{`Step ${index + 1}:`}</strong><MarkdownWithMath content={step.replace(/\*\*/g, '').trim()} />
+              <strong>{`Step ${index + 1}:`}</strong>
+              <MarkdownWithMath content={step.replace(/\*\*/g, "").trim()} />
             </div>
           ))}
         </div>
-        
-        
       </div>
     );
   };
-// Function to render video cards (for concept videos or real-world applications)
+  // Function to render video cards (for concept videos or real-world applications)
   const renderVideoSection = (videosArray, title) => {
     if (!Array.isArray(videosArray) || videosArray.length === 0) return null;
 
@@ -526,7 +608,9 @@ const ResultPage = () => {
                 />
               </a>
               <div className="video-info">
-                <p className="video-title"><strong>{video.title}</strong></p>
+                <p className="video-title">
+                  <strong>{video.title}</strong>
+                </p>
                 <p className="video-channel">{video.channel}</p>
                 <p className="video-meta">
                   ⏱ {video.duration} | 👁 {video.views} | 👍 {video.likes}
@@ -545,12 +629,13 @@ const ResultPage = () => {
     }
 
     switch (actionType) {
-
-      case 'submit':
+      case "submit":
         return (
           <>
             <div className="result-question">
-              <p><strong>Student Answer:</strong></p>
+              <p>
+                <strong>Student Answer:</strong>
+              </p>
               <div className="student-answer-content">
                 {student_answer || "No answer submitted"}
               </div>
@@ -558,17 +643,21 @@ const ResultPage = () => {
             {renderScore()}
             {comment && (
               <div className="result-question">
-                <p><strong>Comments:</strong> {comment}</p>
+                <p>
+                  <strong>Comments:</strong> {comment}
+                </p>
               </div>
             )}
             {formated_concepts_used && (
               <div className="result-question">
-                <p><strong>Concepts Used:</strong> {formated_concepts_used}</p>
+                <p>
+                  <strong>Concepts Used:</strong> {formated_concepts_used}
+                </p>
               </div>
             )}
           </>
         );
-      case 'solve':
+      case "solve":
         return (
           <>
             <div className="result-question">
@@ -576,7 +665,7 @@ const ResultPage = () => {
               {question_image_base64 && (
                 <div className="solution-image-container">
                   <img
-                    src={getImageSrc(question_image_base64, 'image/jpeg')}
+                    src={getImageSrc(question_image_base64, "image/jpeg")}
                     alt="Solution diagram"
                     className="solution-image"
                   />
@@ -586,101 +675,139 @@ const ResultPage = () => {
             </div>
             {comment && (
               <div className="result-question">
-                <p><strong>Comments:</strong> {comment}</p>
+                <p>
+                  <strong>Comments:</strong> {comment}
+                </p>
               </div>
             )}
             {formated_concepts_used && (
               <div className="result-question">
-                <p><strong>Concepts Used:</strong> {formated_concepts_used}</p>
+                <p>
+                  <strong>Concepts Used:</strong> {formated_concepts_used}
+                </p>
               </div>
             )}
           </>
         );
-        case 'correct':
+      case "correct":
         return (
-        <>
+          <>
             {/* <div className="result-question">
               <p><strong>Student Answer:</strong></p>
               <div className="student-answer-content">
                 {student_answer || "No answer submitted"}
               </div>
             </div> */}
-          <div className="result-question">
-            <p className="solution-header">
-              {pattern_based_solution ? 'Pattern-Based AI Solution:' : 'AI Solution:'}
-            </p>
-            {question_image_base64 && (
-              <div className="solution-image-container">
-                <img
-                  src={getImageSrc(question_image_base64, 'image/jpeg')}
-                  alt="Solution diagram"
-                  className="solution-image"
-                />
-              </div>
-            )}
-            {renderSolutionSteps(effectiveAiExplaination)}
+            <div className="result-question">
+              <p className="solution-header">
+                {pattern_based_solution
+                  ? "Pattern-Based AI Solution:"
+                  : "AI Solution:"}
+              </p>
+              {question_image_base64 && (
+                <div className="solution-image-container">
+                  <img
+                    src={getImageSrc(question_image_base64, "image/jpeg")}
+                    alt="Solution diagram"
+                    className="solution-image"
+                  />
+                </div>
+              )}
+              {renderSolutionSteps(effectiveAiExplaination)}
             </div>
             {renderScore()}
             {comment && (
               <div className="result-question">
-                <p><strong>Comments:</strong> <MarkdownWithMath content={comment} /></p>
+                <p>
+                  <strong>Comments:</strong>{" "}
+                  <MarkdownWithMath content={comment} />
+                </p>
               </div>
             )}
             {error_type && (
               <div className="result-question">
-                <p><strong>Type of Error:</strong> <MarkdownWithMath content={error_type} /></p>
+                <p>
+                  <strong>Type of Error:</strong>{" "}
+                  <MarkdownWithMath content={error_type} />
+                </p>
               </div>
             )}
             {gap_analysis && (
               <div className="result-question">
-                <p><strong>Gap Analysis:</strong><MarkdownWithMath content={gap_analysis} /></p>
+                <p>
+                  <strong>Gap Analysis:</strong>
+                  <MarkdownWithMath content={gap_analysis} />
+                </p>
               </div>
             )}
             {mistakes_made && (
               <div className="result-question">
-                <p><strong>Mistakes Made:</strong> <MarkdownWithMath content={mistakes_made} /></p>
+                <p>
+                  <strong>Mistakes Made:</strong>{" "}
+                  <MarkdownWithMath content={mistakes_made} />
+                </p>
               </div>
             )}
             {patterns_required && patterns_required.length > 0 && (
               <div className="result-question">
-                <p><strong>Patterns Required:</strong></p>
+                <p>
+                  <strong>Patterns Required:</strong>
+                </p>
                 <ul className="patterns-list">
                   {patterns_required.map((pattern, index) => (
-                    <li key={index}><MarkdownWithMath content={pattern} /></li>
+                    <li key={index}>
+                      <MarkdownWithMath content={pattern} />
+                    </li>
                   ))}
                 </ul>
               </div>
             )}
             {bridges_used && (
               <div className="result-question">
-                <p><strong>Bridges Used:</strong> <MarkdownWithMath content={bridges_used} /></p>
+                <p>
+                  <strong>Bridges Used:</strong>{" "}
+                  <MarkdownWithMath content={bridges_used} />
+                </p>
               </div>
             )}
             {pattern_explanation && (
               <div className="result-question">
-                <p><strong>Pattern Explanation:</strong> <MarkdownWithMath content={pattern_explanation} /></p>
+                <p>
+                  <strong>Pattern Explanation:</strong>{" "}
+                  <MarkdownWithMath content={pattern_explanation} />
+                </p>
               </div>
             )}
             {time_analysis && (
               <div className="result-question">
-                <p><strong>Time-Management:</strong><MarkdownWithMath content={time_analysis} /> </p>
+                <p>
+                  <strong>Time-Management:</strong>
+                  <MarkdownWithMath content={time_analysis} />{" "}
+                </p>
               </div>
             )}
             {formated_concepts_used && (
               <div className="result-question">
-                <p><strong>Concepts Required:</strong> <MarkdownWithMath content={formated_concepts_used} /></p>
+                <p>
+                  <strong>Concepts Required:</strong>{" "}
+                  <MarkdownWithMath content={formated_concepts_used} />
+                </p>
               </div>
             )}
           </>
         );
-    
-      case 'explain':
+
+      case "explain":
         return (
           <>
             {concepts && (
               <Accordion defaultActiveKey="0" className="result-accordion">
                 {concepts.map((conceptItem, index) => (
-                  <Accordion.Item eventKey={index.toString()} key={index} className="accordion-item">
+                  <Accordion.Item
+                    eventKey={index.toString()}
+                    key={index}
+                    className="accordion-item"
+                  >
                     <Accordion.Header>
                       <strong>{`Concept ${index + 1}`}</strong>
                     </Accordion.Header>
@@ -688,34 +815,50 @@ const ResultPage = () => {
                       <p className="concept-title">
                         <strong>{conceptItem.concept}</strong>
                       </p>
-                       <p className="example-content">
-                        <strong className='example-header'>Explanation:</strong>
+                      <p className="example-content">
+                        <strong className="example-header">Explanation:</strong>
                       </p>
-                      <p>  <MarkdownWithMath content={conceptItem.explanation} /></p>
+                      <p>
+                        {" "}
+                        <MarkdownWithMath content={conceptItem.explanation} />
+                      </p>
 
                       {/* 🧮 Example Section */}
                       {conceptItem.example && (
                         <div className="example-content pt-3">
                           {typeof conceptItem.example === "string" ? (
                             <>
-                            <p className="example-content">
-                        <strong className='example-header'>Example:</strong>
-                      </p>
+                              <p className="example-content">
+                                <strong className="example-header">
+                                  Example:
+                                </strong>
+                              </p>
                               <MarkdownWithMath content={conceptItem.example} />
-                              <strong className="example-header">Solution:</strong>
-                              <MarkdownWithMath content={conceptItem.application} />
-                            
+                              <strong className="example-header">
+                                Solution:
+                              </strong>
+                              <MarkdownWithMath
+                                content={conceptItem.application}
+                              />
                             </>
                           ) : (
                             <>
                               {conceptItem.example.problem && (
-                                <MarkdownWithMath content={conceptItem.example.problem} />
+                                <MarkdownWithMath
+                                  content={conceptItem.example.problem}
+                                />
                               )}
                               {conceptItem.example.solution && (
                                 <>
-                                  <strong className="example-header">Solution:</strong>
-                                  <MarkdownWithMath content={conceptItem.example.solution} />
-                                  <MarkdownWithMath content={conceptItem.example.explaination} />
+                                  <strong className="example-header">
+                                    Solution:
+                                  </strong>
+                                  <MarkdownWithMath
+                                    content={conceptItem.example.solution}
+                                  />
+                                  <MarkdownWithMath
+                                    content={conceptItem.example.explaination}
+                                  />
                                 </>
                               )}
                             </>
@@ -724,33 +867,32 @@ const ResultPage = () => {
                       )}
 
                       {/* 🟦 Add filtered video + real world video sections */}
-                      {Array.isArray(videos) && videos.length > 0 && (
+                      {Array.isArray(videos) &&
+                        videos.length > 0 &&
                         videos
                           .filter(
                             (item) =>
                               item.concept_name?.toLowerCase().trim() ===
-                              conceptItem.concept?.toLowerCase().trim()
+                              conceptItem.concept?.toLowerCase().trim(),
                           )
                           .map((item, idx) => (
                             <div key={idx}>
                               {/* Concept Explanation Videos */}
-                              {Array.isArray(item.videos) && item.videos.length > 0 && (
+                              {Array.isArray(item.videos) &&
+                                item.videos.length > 0 &&
                                 renderVideoSection(
                                   item.videos,
-                                  `Concept Explanation Videos`
-                                )
-                              )}
+                                  `Concept Explanation Videos`,
+                                )}
 
                               {/* Real World Applications */}
-                              {item.real_world_video && (
+                              {item.real_world_video &&
                                 renderVideoSection(
                                   [item.real_world_video],
                                   // `${item.concept_name} - Real World Applications`
-                                )
-                              )}
+                                )}
                             </div>
-                          ))
-                      )}
+                          ))}
                     </Accordion.Body>
                   </Accordion.Item>
                 ))}
@@ -758,18 +900,22 @@ const ResultPage = () => {
             )}
             {comment && (
               <div className="result-question">
-                <p><strong>Comments:</strong> </p>
+                <p>
+                  <strong>Comments:</strong>{" "}
+                </p>
                 <MarkdownWithMath content={comment} />
               </div>
             )}
             {formated_concepts_used && (
               <div className="result-question">
-                <p><strong>Concepts Used:</strong> {formated_concepts_used}</p>
+                <p>
+                  <strong>Concepts Used:</strong> {formated_concepts_used}
+                </p>
               </div>
             )}
           </>
         );
-        
+
       default:
         return <p>No action type provided. Unable to display results.</p>;
     }
@@ -830,7 +976,10 @@ const ResultPage = () => {
       </div> */}
 
       {/* Main Content Container */}
-      <Container fluid className={`result-page-container ${isDarkMode ? 'dark-mode' : ''}`}>
+      <Container
+        fluid
+        className={`result-page-container ${isDarkMode ? "dark-mode" : ""}`}
+      >
         <Row className="result-row">
           {/* Left Column - Sticky Image Container */}
           {allStudentImages.length > 0 && (
@@ -845,18 +994,18 @@ const ResultPage = () => {
                         alt={imageData.label}
                         className="student-solution-image"
                         onError={(e) => {
-                          console.error('Error loading image:', imageData.src);
-                          e.target.style.display = 'none';
+                          console.error("Error loading image:", imageData.src);
+                          e.target.style.display = "none";
                         }}
                       />
                       <span className="image-label">{imageData.label}</span>
-                      {imageData.type === 'processed' && (
+                      {imageData.type === "processed" && (
                         <span className="image-type-badge">AI Processed</span>
                       )}
                     </div>
                   ))}
                 </div>
-                
+
                 {/* Fallback text display if no images or images fail to load */}
                 {student_answer && (
                   <div className="student-answer-text">
@@ -866,25 +1015,34 @@ const ResultPage = () => {
                     </div>
                   </div>
                 )}
-               
               </div>
             </Col>
           )}
-          
+
           {/* Right Column - Content */}
-          <Col lg={allStudentImages.length > 0 ? 7 : 12} className="content-column">
+          <Col
+            lg={allStudentImages.length > 0 ? 7 : 12}
+            className="content-column"
+          >
             <div className="result-content">
               <h2 className="result-title">Result</h2>
 
               {errorMessage && (
-                <Alert variant="danger" onClose={() => setErrorMessage(null)} dismissible>
+                <Alert
+                  variant="danger"
+                  onClose={() => setErrorMessage(null)}
+                  dismissible
+                >
                   {errorMessage}
                 </Alert>
               )}
 
               {/* Question Section - Full Width */}
               <div className="result-question">
-                <p><strong>Question {questionNumber}:</strong> <MarkdownWithMath content={question} /></p>
+                <p>
+                  <strong>Question {questionNumber}:</strong>{" "}
+                  <MarkdownWithMath content={question} />
+                </p>
                 {questionImage && (
                   <div className="question-image-container">
                     <img
@@ -905,7 +1063,7 @@ const ResultPage = () => {
               {renderContentBasedOnAction()}
 
               {/* Add some bottom padding to prevent content from being hidden behind fixed buttons */}
-              <div style={{ height: '100px' }}></div>
+              <div style={{ height: "100px" }}></div>
             </div>
           </Col>
         </Row>
@@ -927,16 +1085,16 @@ const ResultPage = () => {
       )} */}
 
       {/* Floating Mascot - Non-intrusive corner placement */}
-      <FloatingMascot
+      {/* <FloatingMascot
         position="bottom-right"
         size="medium"
         bottomOffset={80}
         speechBubble={currentBubble}
         showBubble={isBubbleVisible}
         onBubbleDismiss={hideMascotMessage}
-      />
+      /> */}
     </>
   );
 };
 
-export default ResultPage; 
+export default ResultPage;
