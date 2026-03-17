@@ -72,7 +72,16 @@ const QuizMode = () => {
    * This enables the optional subtopics step (step 4) in the wizard.
    */
   const isMathWithSubtopics = (() => {
-    if (!selectedClassObj || !selectedSubject) return false;
+    if (!selectedClassObj || !selectedSubject || !selectedSubjectObj)
+      return false;
+
+    // Explicitly excluded subjects (e.g. Mathematics -3)
+    const EXCLUDED_SUBJECT_CODES = ["222"];
+    if (
+      EXCLUDED_SUBJECT_CODES.includes(String(selectedSubjectObj.subject_code))
+    )
+      return false;
+
     const classNum = parseInt(
       selectedClassObj.class_name.replace(/\D/g, ""),
       10,
@@ -193,6 +202,8 @@ const QuizMode = () => {
           class_id: selectedClassObj.class_code,
         });
         const allSubjects = res.data.data || [];
+        const EXCLUDED_SUBJECT_CODES = ["222"]; // Mathematics -3 and any future exclusions
+
         // Filter to only PHYSICS and MATHEMATICS
         const filtered = allSubjects.filter((s) => {
           const name = s.subject_name.toLowerCase();
@@ -201,7 +212,8 @@ const QuizMode = () => {
             !name.includes("jee") &&
             !name.includes("mains") &&
             !name.includes("advanced") &&
-            !name.includes("foundation")
+            !name.includes("foundation") &&
+            !EXCLUDED_SUBJECT_CODES.includes(s.subject_code)
           );
         });
         setSubjects(filtered);
@@ -288,11 +300,9 @@ const QuizMode = () => {
       ? 2
       : selectedChapters.length === 0
         ? 3
-        : isMathWithSubtopics && selectedSubtopics.length === 0
-          ? 4
-          : isMathWithSubtopics
-            ? 5
-            : 4;
+        : isMathWithSubtopics
+          ? 4 // ← always 4 once chapter chosen (subtopic optional)
+          : 4; // non-Math also 4
 
   const totalQuestions = selectedChapters.length * questionsPerChapter;
   const estimatedTime = totalQuestions * 2; // 2 min per question
@@ -451,14 +461,23 @@ const QuizMode = () => {
       );
       const classNum = Number(selectedClassObj.class_name.replace(/\D/g, ""));
 
+      // ── AFTER ───────────────────────────────────────────────────────────────────
+      // Determine which subtopic names to send:
+      // - user picked some  → send only those
+      // - user picked none  → send ALL available subtopic names (default = cover all)
+      const subtopicsToSend =
+        selectedSubtopics.length > 0
+          ? selectedSubtopics // user's selection
+          : subtopics.map((st) => st.updated_sub_topic_name); // all available
+
       const payload = isMathWithSubtopics
         ? {
             class_num: classNum,
             chapters: chapterNames,
             questions_per_chapter: questionsPerChapter,
             subject: selectedSubject, // preserves "Mathematics - 2" etc.
-            ...(selectedSubtopics.length > 0 && {
-              sub_topics: selectedSubtopics,
+            ...(subtopicsToSend.length > 0 && {
+              sub_topics: subtopicsToSend,
             }),
           }
         : {
@@ -691,105 +710,51 @@ const QuizMode = () => {
             {/* ── Section 3: Chapter Selection ── */}
             <AnimatePresence>
               {selectedClassObj && selectedSubjectObj && (
-                <motion.div
-                  className="quiz-glass-card"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -16 }}
-                  transition={{ duration: 0.35 }}
-                >
+                <motion.div className="quiz-glass-card">
                   <div className="quiz-section-label">
                     <span className="quiz-section-num">3</span>
-                    <span>Select Chapters</span>
-                    {chapters.length > 0 && (
-                      <span className="quiz-section-count">
-                        {selectedChapters.length === 1
-                          ? "1 selected"
-                          : "Pick one"}
-                      </span>
+                    <span>Select Chapter</span>
+                    {selectedChapters.length === 1 && (
+                      <span className="quiz-section-count">1 selected</span>
                     )}
-                    {/* {chapters.length > 0 && (
-                      <button
-                        className="quiz-select-all-btn"
-                        onClick={toggleAll}
-                      >
-                        {selectedChapters.length === chapters.length
-                          ? "Deselect All"
-                          : "Select All"}
-                      </button>
-                    )} */}
                   </div>
 
-                  {/* Selected tags */}
-                  {selectedChapters.length > 0 && (
-                    <div className="quiz-selected-tags">
-                      {selectedChapters.map((ch) => (
-                        <span className="quiz-selected-tag" key={ch.topic_code}>
-                          {formatChapterName(ch.name)}
-                          <button
-                            className="quiz-tag-remove"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeChapter(ch);
-                            }}
-                          >
-                            &times;
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Search filter */}
-                  {chapters.length > 5 && (
+                  {/* Search */}
+                  <div className="quiz-chapter-search">
                     <input
-                      className="quiz-glass-input quiz-chapter-search"
-                      type="text"
+                      className="quiz-glass-input"
                       placeholder="Search chapters..."
                       value={chapterFilter}
                       onChange={(e) => setChapterFilter(e.target.value)}
                     />
-                  )}
+                  </div>
 
+                  {/* Radio-style chip grid — NO selected-tags row above */}
                   {loadingChapters ? (
-                    <div className="quiz-empty-state">
-                      <div
-                        className="quiz-spinner"
-                        style={{ margin: "0 auto", width: 32, height: 32 }}
-                      />
-                    </div>
-                  ) : chapters.length === 0 ? (
-                    <div className="quiz-empty-state">
-                      <div className="empty-icon">📭</div>
-                      <p>No chapters found for this class</p>
-                    </div>
+                    <div className="quiz-empty-state">...</div>
                   ) : (
                     <div className="quiz-chapter-grid">
-                      {filteredChapters.map((ch) => (
-                        <motion.button
-                          key={ch.topic_code}
-                          className={`quiz-chapter-chip ${selectedChapters.some((c) => c.topic_code === ch.topic_code) ? "selected" : ""}`}
-                          onClick={() => toggleChapter(ch)}
-                          whileTap={{ scale: 0.96 }}
-                        >
-                          <span
-                            className={`quiz-chip-check ${selectedChapters.some((c) => c.topic_code === ch.topic_code) ? "visible" : ""}`}
+                      {filteredChapters.map((ch) => {
+                        const isSelected =
+                          selectedChapters.length === 1 &&
+                          selectedChapters[0].topic_code === ch.topic_code;
+                        return (
+                          <motion.button
+                            key={ch.topic_code}
+                            className={`quiz-chapter-chip ${isSelected ? "selected" : ""}`}
+                            onClick={() => toggleChapter(ch)} // already does single-select
+                            whileTap={{ scale: 0.96 }}
                           >
-                            ✓
-                          </span>
-                          <span className="quiz-chip-text">
-                            {formatChapterName(ch.name)}
-                          </span>{" "}
-                        </motion.button>
-                      ))}
-                      {filteredChapters.length === 0 && chapterFilter && (
-                        <div
-                          className="quiz-empty-state"
-                          style={{ width: "100%" }}
-                        >
-                          <p>No chapters match "{chapterFilter}"</p>
-                        </div>
-                      )}
+                            {/* Radio dot instead of ✓ checkmark */}
+                            <span
+                              className={`quiz-chip-radio ${isSelected ? "visible" : ""}`}
+                            />
+                            <span className="quiz-chip-text">
+                              {formatChapterName(ch.name)}
+                            </span>
+                          </motion.button>
+                        );
+                      })}
                     </div>
                   )}
                 </motion.div>
@@ -862,7 +827,7 @@ const QuizMode = () => {
                         opacity: 0.7,
                       }}
                     >
-                      Select subtopics to focus on, or leave blank to cover all.
+                      "leave blank to cover all" ✅
                     </p>
                   </>
                 )}

@@ -944,3 +944,19 @@
   padding: 5px 14px;
   margin-top: 6px;
 }
+
+/* ── Question Figure ── */
+.quiz-question-figure {
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.quiz-question-figure-img {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  object-fit: contain;
+  background: #fff;
+}

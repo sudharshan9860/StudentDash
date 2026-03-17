@@ -96,6 +96,18 @@ const QuizQuestion = () => {
     );
   }
 
+  const getQuizFigureSrc = (figure) => {
+    if (!figure) return null;
+    if (figure.startsWith("data:")) return figure;
+    // JPEG signatures
+    if (figure.startsWith("/9j/") || figure.startsWith("9j/")) {
+      const b64 = figure.startsWith("/") ? figure : "/" + figure;
+      return `data:image/jpeg;base64,${b64}`;
+    }
+    // PNG / default
+    return `data:image/png;base64,${figure}`;
+  };
+
   const handleSubmit = async () => {
     setShowSubmitModal(false);
     setEvaluating(true);
@@ -250,6 +262,15 @@ const QuizQuestion = () => {
               {/* Question text */}
               <div className="quiz-q-text">
                 <MarkdownWithMath content={q.question} />
+                {q.figure && (
+                  <div className="quiz-question-figure">
+                    <img
+                      src={getQuizFigureSrc(q.figure)}
+                      alt={`Figure for question ${q.question_num}`}
+                      className="quiz-question-figure-img"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Options */}
